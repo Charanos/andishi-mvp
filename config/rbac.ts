@@ -1,0 +1,77 @@
+import { Permission, UserRole } from "@/types/auth";
+
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  [UserRole.ADMIN]: [
+    Permission.VIEW_PROJECT,
+    Permission.EDIT_PROJECT,
+    Permission.ASSIGN_PROJECT,
+    Permission.VIEW_USERS,
+    Permission.EDIT_USERS,
+    Permission.MANAGE_ROLES,
+    Permission.VIEW_TALENT_POOL,
+    Permission.MANAGE_PLATFORM,
+    Permission.VIEW_ANALYTICS,
+    Permission.MODERATE_CONTENT,
+    Permission.HANDLE_DISPUTES,
+    Permission.MANAGE_PAYMENTS,
+    Permission.VIEW_DASHBOARD,
+    Permission.UPDATE_PROFILE,
+    Permission.CHANGE_PASSWORD,
+  ],
+  [UserRole.CLIENT]: [
+    Permission.CREATE_PROJECT,
+    Permission.VIEW_PROJECT,
+    Permission.EDIT_PROJECT,
+    Permission.POST_PROJECT,
+    Permission.HIRE_DEVELOPER,
+    Permission.REVIEW_SUBMISSIONS,
+    Permission.MAKE_PAYMENT,
+    Permission.VIEW_TALENT_POOL,
+    Permission.VIEW_DASHBOARD,
+    Permission.UPDATE_PROFILE,
+    Permission.CHANGE_PASSWORD,
+  ],
+  [UserRole.DEVELOPER]: [
+    Permission.VIEW_PROJECT,
+    Permission.APPLY_TO_PROJECT,
+    Permission.UPDATE_PORTFOLIO,
+    Permission.SUBMIT_WORK,
+    Permission.VIEW_DASHBOARD,
+    Permission.UPDATE_PROFILE,
+    Permission.CHANGE_PASSWORD,
+  ],
+};
+
+export const ALL_PERMISSIONS: Permission[] = [
+    Permission.CREATE_PROJECT,
+    Permission.VIEW_PROJECT,
+    Permission.EDIT_PROJECT,
+    Permission.DELETE_PROJECT,
+    Permission.ASSIGN_PROJECT,
+    Permission.VIEW_USERS,
+    Permission.EDIT_USERS,
+    Permission.DELETE_USERS,
+    Permission.MANAGE_ROLES,
+    Permission.APPLY_TO_PROJECT,
+    Permission.VIEW_TALENT_POOL,
+    Permission.UPDATE_PORTFOLIO,
+    Permission.SUBMIT_WORK,
+    Permission.POST_PROJECT,
+    Permission.HIRE_DEVELOPER,
+    Permission.REVIEW_SUBMISSIONS,
+    Permission.MAKE_PAYMENT,
+    Permission.MANAGE_PLATFORM,
+    Permission.VIEW_ANALYTICS,
+    Permission.MODERATE_CONTENT,
+    Permission.HANDLE_DISPUTES,
+    Permission.MANAGE_PAYMENTS,
+    Permission.VIEW_DASHBOARD,
+    Permission.UPDATE_PROFILE,
+    Permission.CHANGE_PASSWORD
+];
+
+export const DASHBOARD_ROUTES: Record<UserRole, string> = {
+  [UserRole.ADMIN]: '/admin-dashboard',
+  [UserRole.CLIENT]: '/client-dashboard',
+  [UserRole.DEVELOPER]: '/developer-dashboard',
+};

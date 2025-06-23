@@ -47,7 +47,7 @@ import {
 } from "react-icons/fa";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
 import { UserRole } from "@/types/auth";
-import renderProjectDetail from "../client-dashboard/projectDetails";
+import UserManagement from "./renderUsers";
 
 // Types
 interface UserInfo {
@@ -116,6 +116,9 @@ interface SystemUser {
   completedProjects?: number;
   activeProjects?: number;
   totalEarnings?: number;
+  isActive: boolean;
+  accountCreated: boolean;
+  passwordGenerated: boolean;
 }
 
 interface AnalyticsData {
@@ -161,9 +164,9 @@ export default function EnhancedAdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [fetchLoggedInUser, setFetchLoggedInUser] = useState(false);
 
+  const [accountExists, setAccountExists] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string>("");
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-  const [accountExists, setAccountExists] = useState(false);
   const [existingAccountData, setExistingAccountData] = useState<any>(null);
 
   // Navigation items for developers tab
@@ -297,8 +300,6 @@ export default function EnhancedAdminDashboard() {
     skills: selectedUser?.skills?.join(", ") || "",
     hourlyRate: selectedUser?.hourlyRate?.toString() || "",
   });
-
-  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch data
   useEffect(() => {
@@ -511,82 +512,6 @@ export default function EnhancedAdminDashboard() {
       setProjects(prevProjects);
       toast.error(error?.message || "Failed to delete project");
     }
-  };
-
-  // User management functions
-  const createUser = async (userData: Partial<SystemUser>) => {
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUsers((prev) => [...prev, data.user]);
-        toast.success("User created successfully!");
-        setShowUserModal(false);
-        setSelectedUser(null);
-      } else {
-        throw new Error(data.message || "Failed to create user");
-      }
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to create user");
-    }
-  };
-
-  const updateUser = async (userId: string, userData: Partial<SystemUser>) => {
-    try {
-      const res = await fetch("/api/users", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: userId, ...userData }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUsers((prev) =>
-          prev.map((user) =>
-            user._id === userId ? { ...user, ...userData } : user
-          )
-        );
-        toast.success("User updated successfully!");
-        setShowUserModal(false);
-        setSelectedUser(null);
-      } else {
-        throw new Error(data.message || "Failed to update user");
-      }
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to update user");
-    }
-  };
-
-  const deleteUser = async (userId: string) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this user?"
-    );
-    if (!confirmed) return;
-
-    try {
-      const res = await fetch("/api/users", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: userId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUsers((prev) => prev.filter((user) => user._id !== userId));
-        toast.success("User deleted successfully!");
-      } else {
-        throw new Error(data.message || "Failed to delete user");
-      }
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to delete user");
-    }
-  };
-
-  const toggleUserStatus = async (userId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "suspended" : "active";
-    await updateUser(userId, { status: newStatus });
   };
 
   // Utility functions
@@ -1189,233 +1114,547 @@ export default function EnhancedAdminDashboard() {
     );
   };
 
-  const renderUsers = () => {
-    if (viewMode === "detail" || viewMode === "edit") {
-      return renderUserDetails();
+  // User management functions
+  interface CreateUserPayload {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    role: "client" | "developer" | "admin";
+    status?: "active" | "inactive" | "suspended";
+    skills?: string;
+    hourlyRate?: string;
+    generatePassword: boolean;
+  }
+
+  interface CreateUserResponse {
+    success: boolean;
+    user: SystemUser;
+    generatedPassword?: string;
+    error?: string;
+  }
+
+  const createUser = async (
+    userData: Omit<CreateUserPayload, "generatePassword">
+  ): Promise<CreateUserResponse> => {
+    try {
+      // Add password generation flag for new users
+      const payload: CreateUserPayload = {
+        ...userData,
+        generatePassword: true, // This will generate a secure password
+      };
+
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data: CreateUserResponse = await res.json();
+
+      if (data.success) {
+        setUsers((prev) => [...prev, data.user]);
+        toast.success(
+          `User created successfully! ${
+            data.generatedPassword ? "Password: " + data.generatedPassword : ""
+          }`
+        );
+
+        // If a password was generated, you might want to show it to the admin
+        if (data.generatedPassword) {
+          // You could show this in a separate modal or copy to clipboard
+          console.log("Generated password:", data.generatedPassword);
+          // Optional: Copy to clipboard
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(data.generatedPassword);
+            toast.info("Password copied to clipboard!");
+          }
+        }
+
+        return data;
+      } else {
+        throw new Error(data.error || "Failed to create user");
+      }
+    } catch (error: any) {
+      console.error("Create user error:", error);
+      toast.error(error?.message || "Failed to create user");
+      throw error;
     }
-
-    return (
-      <div className="space-y-6">
-        {/* User Management Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-semibold text-white mb-2">
-              {activeTab === "clients"
-                ? "Client Management"
-                : activeTab === "dev profiles"
-                ? "Developer Management"
-                : "User Management"}
-            </h2>
-            <p className="text-gray-400 mt-1">
-              {activeTab === "clients"
-                ? "Manage client accounts and information"
-                : activeTab === "dev profiles"
-                ? "Manage developer accounts and profiles"
-                : "Manage all user accounts and permissions"}
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setSelectedUser(null);
-              setUserModalMode("create");
-              setShowUserModal(true);
-            }}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <FaPlus />
-            <span>Add User</span>
-          </button>
-        </div>
-
-        {/* User Filters */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  value={userSearchTerm}
-                  onChange={(e) => setUserSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              {activeTab === "users" && (
-                <select
-                  value={userRoleFilter}
-                  onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                >
-                  <option value="all" className="bg-gray-800">
-                    All Roles
-                  </option>
-                  <option value="admin" className="bg-gray-800">
-                    Admin
-                  </option>
-                  <option value="developer" className="bg-gray-800">
-                    Developer
-                  </option>
-                  <option value="client" className="bg-gray-800">
-                    Client
-                  </option>
-                </select>
-              )}
-              <select
-                value={userStatusFilter}
-                onChange={(e) => setUserStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
-              >
-                <option value="all" className="bg-gray-800">
-                  All Status
-                </option>
-                <option value="active" className="bg-gray-800">
-                  Active
-                </option>
-                <option value="inactive" className="bg-gray-800">
-                  Inactive
-                </option>
-                <option value="suspended" className="bg-gray-800">
-                  Suspended
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Users Table */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/5 border-b border-white/10">
-                <tr>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-                    User
-                  </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-                    Contact
-                  </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-                    Role
-                  </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-                    Status
-                  </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-                    Joined
-                  </th>
-                  <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {getFilteredUsers().map((user) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-white/5 transition-colors"
-                  >
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-medium">
-                            {user.firstName.charAt(0)}
-                            {user.lastName.charAt(0)}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-white font-medium">
-                            {user.firstName} {user.lastName}
-                          </p>
-                          <p className="text-gray-400 text-sm">
-                            {user.company || "No company"}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div>
-                        <p className="text-white text-sm">{user.email}</p>
-                        <p className="text-gray-400 text-sm">
-                          {user.phone || "No phone"}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`px-2 py-1 rounded text-xs border ${getRoleColor(
-                          user.role
-                        )}`}
-                      >
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(user.status)}
-                        <span
-                          className={`px-2 py-1 rounded text-xs border ${getStatusColor(
-                            user.status
-                          )}`}
-                        >
-                          {user.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-gray-400 text-sm">
-                        {formatDate(user.createdAt)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setViewMode("detail");
-                            setShowUserModal(true);
-                          }}
-                          className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
-                        >
-                          <FaEye />
-                        </button>
-                        {/* <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setUserModalMode("edit");
-                            setShowUserModal(true);
-                          }}
-                          className="p-2 text-gray-400 hover:text-yellow-400 transition-colors"
-                        >
-                          <FaEdit />
-                        </button> */}
-                        <button
-                          onClick={() =>
-                            toggleUserStatus(user._id, user.status)
-                          }
-                          className="p-2 text-gray-400 hover:text-orange-400 transition-colors"
-                        >
-                          {user.status === "active" ? <FaLock /> : <FaUnlock />}
-                        </button>
-                        <button
-                          onClick={() => deleteUser(user._id)}
-                          className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
   };
+
+  interface UpdateUserPayload {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    role?: "client" | "developer" | "admin";
+    status?: "active" | "inactive" | "suspended";
+    skills?: string[] | string;
+    hourlyRate?: number | string;
+  }
+
+  interface UpdateUserResponse {
+    success: boolean;
+    user?: SystemUser;
+    error?: string;
+  }
+
+  const updateUser = async (
+    userId: string,
+    userData: UpdateUserPayload
+  ): Promise<UpdateUserResponse> => {
+    try {
+      const res = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _id: userId, ...userData }),
+      });
+
+      const data: UpdateUserResponse = await res.json();
+
+      if (data.success) {
+        setUsers((prev) =>
+          prev.map((user) =>
+            user._id === userId
+              ? {
+                  ...user,
+                  ...userData,
+                  skills:
+                    typeof userData.skills === "string"
+                      ? userData.skills
+                          .split(",")
+                          .map((s: string) => s.trim())
+                          .filter(Boolean)
+                      : userData.skills ?? user.skills,
+                  hourlyRate:
+                    userData.hourlyRate !== undefined
+                      ? typeof userData.hourlyRate === "string"
+                        ? userData.hourlyRate === ""
+                          ? undefined
+                          : Number(userData.hourlyRate)
+                        : userData.hourlyRate
+                      : user.hourlyRate,
+                }
+              : user
+          )
+        );
+        toast.success("User updated successfully!");
+        return data;
+      } else {
+        throw new Error(data.error || "Failed to update user");
+      }
+    } catch (error: any) {
+      console.error("Update user error:", error);
+      toast.error(error?.message || "Failed to update user");
+      throw error;
+    }
+  };
+
+  interface DeleteUserResponse {
+    success: boolean;
+    error?: string;
+  }
+
+  const deleteUser = async (userId: string): Promise<DeleteUserResponse> => {
+    try {
+      // Fixed: Use query parameter instead of body for DELETE request
+      const res: Response = await fetch(`/api/users?id=${userId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data: DeleteUserResponse = await res.json();
+
+      if (data.success) {
+        setUsers((prev) => prev.filter((user) => user._id !== userId));
+        toast.success("User deleted successfully!");
+        return data;
+      } else {
+        throw new Error(data.error || "Failed to delete user");
+      }
+    } catch (error: any) {
+      console.error("Delete user error:", error);
+      toast.error(error?.message || "Failed to delete user");
+      throw error;
+    }
+  };
+
+  interface ToggleUserStatusResponse {
+    success: boolean;
+    user?: SystemUser;
+    error?: string;
+  }
+
+  const toggleUserStatus = async (
+    userId: string,
+    currentStatus: "active" | "inactive" | "suspended"
+  ): Promise<ToggleUserStatusResponse> => {
+    try {
+      const newStatus: "active" | "inactive" =
+        currentStatus === "active" ? "inactive" : "active";
+
+      const res: Response = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          _id: userId,
+          status: newStatus,
+        }),
+      });
+
+      const data: ToggleUserStatusResponse = await res.json();
+
+      if (data.success) {
+        setUsers((prev) =>
+          prev.map((user) =>
+            user._id === userId ? { ...user, status: newStatus } : user
+          )
+        );
+        toast.success(
+          `User ${
+            newStatus === "active" ? "activated" : "deactivated"
+          } successfully!`
+        );
+        return data;
+      } else {
+        throw new Error(data.error || "Failed to update user status");
+      }
+    } catch (error: any) {
+      console.error("Toggle user status error:", error);
+      toast.error(error?.message || "Failed to update user status");
+      throw error;
+    }
+  };
+
+  // Additional utility functions
+  interface GenerateNewPasswordRequest {
+    userId: string;
+    regenerate: boolean;
+  }
+
+  interface GenerateNewPasswordResponse {
+    success: boolean;
+    generatedPassword?: string;
+    user?: SystemUser;
+    error?: string;
+  }
+
+  const generateNewPassword = async (
+    userId: string
+  ): Promise<GenerateNewPasswordResponse> => {
+    try {
+      const payload: GenerateNewPasswordRequest = {
+        userId: userId,
+        regenerate: true,
+      };
+
+      const res: Response = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data: GenerateNewPasswordResponse = await res.json();
+
+      if (data.success) {
+        toast.success("New password generated successfully!");
+
+        // Copy password to clipboard if available
+        if (data.generatedPassword && navigator.clipboard) {
+          navigator.clipboard.writeText(data.generatedPassword);
+          toast.info("Password copied to clipboard!");
+        }
+
+        // You might want to show the password in a secure way to the admin
+        console.log("New password:", data.generatedPassword);
+
+        return data;
+      } else {
+        throw new Error(data.error || "Failed to generate new password");
+      }
+    } catch (error: any) {
+      console.error("Generate password error:", error);
+      toast.error(error?.message || "Failed to generate new password");
+      throw error;
+    }
+  };
+
+  // Bulk operations
+  interface BulkDeleteUsersResult {
+    successfulDeletions: string[];
+    failedDeletions: string[];
+  }
+
+  const bulkDeleteUsers = async (
+    userIds: string[]
+  ): Promise<BulkDeleteUsersResult> => {
+    try {
+      const deletePromises: Promise<Response>[] = userIds.map((id: string) =>
+        fetch(`/api/users?id=${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+
+      const results: PromiseSettledResult<Response>[] =
+        await Promise.allSettled(deletePromises);
+
+      // Filter out successful deletions
+      const successfulDeletions: string[] = [];
+      const failedDeletions: string[] = [];
+
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled" && result.value.ok) {
+          successfulDeletions.push(userIds[index]);
+        } else {
+          failedDeletions.push(userIds[index]);
+        }
+      });
+
+      // Update local state
+      if (successfulDeletions.length > 0) {
+        setUsers((prev) =>
+          prev.filter((user) => !successfulDeletions.includes(user._id))
+        );
+        toast.success(
+          `${successfulDeletions.length} user(s) deleted successfully!`
+        );
+      }
+
+      if (failedDeletions.length > 0) {
+        toast.error(`Failed to delete ${failedDeletions.length} user(s)`);
+      }
+
+      return { successfulDeletions, failedDeletions };
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      toast.error("Failed to delete users");
+      throw error;
+    }
+  };
+
+  // const renderUsers = () => {
+  //   if (viewMode === "detail" || viewMode === "edit") {
+  //     return renderUserDetails();
+  //   }
+
+  //   return (
+  //     <div className="space-y-6">
+  //       {/* User Management Header */}
+  //       <div className="flex items-center justify-between">
+  //         <div>
+  //           <h2 className="text-3xl font-semibold text-white mb-2">
+  //             {activeTab === "clients"
+  //               ? "Client Management"
+  //               : activeTab === "dev profiles"
+  //               ? "Developer Management"
+  //               : "User Management"}
+  //           </h2>
+  //           <p className="text-gray-400 mt-1">
+  //             {activeTab === "clients"
+  //               ? "Manage client accounts and information"
+  //               : activeTab === "dev profiles"
+  //               ? "Manage developer accounts and profiles"
+  //               : "Manage all user accounts and permissions"}
+  //           </p>
+  //         </div>
+  //         <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+  //           <FaPlus />
+  //           <span>Add User</span>
+  //         </button>
+  //       </div>
+
+  //       {/* User Filters */}
+  //       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+  //         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+  //           <div className="flex-1 max-w-md">
+  //             <div className="relative">
+  //               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+  //               <input
+  //                 type="text"
+  //                 placeholder="Search users..."
+  //                 value={userSearchTerm}
+  //                 onChange={(e) => setUserSearchTerm(e.target.value)}
+  //                 className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+  //               />
+  //             </div>
+  //           </div>
+  //           <div className="flex items-center space-x-4">
+  //             {activeTab === "users" && (
+  //               <select
+  //                 value={userRoleFilter}
+  //                 onChange={(e) => setUserRoleFilter(e.target.value)}
+  //                 className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+  //               >
+  //                 <option value="all" className="bg-gray-800">
+  //                   All Roles
+  //                 </option>
+  //                 <option value="admin" className="bg-gray-800">
+  //                   Admin
+  //                 </option>
+  //                 <option value="developer" className="bg-gray-800">
+  //                   Developer
+  //                 </option>
+  //                 <option value="client" className="bg-gray-800">
+  //                   Client
+  //                 </option>
+  //               </select>
+  //             )}
+  //             <select
+  //               value={userStatusFilter}
+  //               onChange={(e) => setUserStatusFilter(e.target.value)}
+  //               className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+  //             >
+  //               <option value="all" className="bg-gray-800">
+  //                 All Status
+  //               </option>
+  //               <option value="active" className="bg-gray-800">
+  //                 Active
+  //               </option>
+  //               <option value="inactive" className="bg-gray-800">
+  //                 Inactive
+  //               </option>
+  //               <option value="suspended" className="bg-gray-800">
+  //                 Suspended
+  //               </option>
+  //             </select>
+  //           </div>
+  //         </div>
+  //       </div>
+
+  //       {/* Users Table */}
+  //       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+  //         <div className="overflow-x-auto">
+  //           <table className="w-full">
+  //             <thead className="bg-white/5 border-b border-white/10">
+  //               <tr>
+  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
+  //                   User
+  //                 </th>
+  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
+  //                   Contact
+  //                 </th>
+  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
+  //                   Role
+  //                 </th>
+  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
+  //                   Status
+  //                 </th>
+  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
+  //                   Joined
+  //                 </th>
+  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
+  //                   Actions
+  //                 </th>
+  //               </tr>
+  //             </thead>
+  //             <tbody className="divide-y divide-white/10">
+  //               {getFilteredUsers().map((user) => (
+  //                 <tr
+  //                   key={user._id}
+  //                   className="hover:bg-white/5 transition-colors"
+  //                 >
+  //                   <td className="py-4 px-6">
+  //                     <div className="flex items-center space-x-3">
+  //                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+  //                         <span className="text-white font-medium">
+  //                           {user.firstName.charAt(0)}
+  //                           {user.lastName.charAt(0)}
+  //                         </span>
+  //                       </div>
+  //                       <div>
+  //                         <p className="text-white font-medium">
+  //                           {user.firstName} {user.lastName}
+  //                         </p>
+  //                         <p className="text-gray-400 text-sm">
+  //                           {user.company || "No company"}
+  //                         </p>
+  //                       </div>
+  //                     </div>
+  //                   </td>
+  //                   <td className="py-4 px-6">
+  //                     <div>
+  //                       <p className="text-white text-sm">{user.email}</p>
+  //                       <p className="text-gray-400 text-sm">
+  //                         {user.phone || "No phone"}
+  //                       </p>
+  //                     </div>
+  //                   </td>
+  //                   <td className="py-4 px-6">
+  //                     <span
+  //                       className={`px-2 py-1 rounded text-xs border ${getRoleColor(
+  //                         user.role
+  //                       )}`}
+  //                     >
+  //                       {user.role}
+  //                     </span>
+  //                   </td>
+  //                   <td className="py-4 px-6">
+  //                     <div className="flex items-center space-x-2">
+  //                       {getStatusIcon(user.status)}
+  //                       <span
+  //                         className={`px-2 py-1 rounded text-xs border ${getStatusColor(
+  //                           user.status
+  //                         )}`}
+  //                       >
+  //                         {user.status}
+  //                       </span>
+  //                     </div>
+  //                   </td>
+  //                   <td className="py-4 px-6">
+  //                     <span className="text-gray-400 text-sm">
+  //                       {formatDate(user.createdAt)}
+  //                     </span>
+  //                   </td>
+  //                   <td className="py-4 px-6">
+  //                     <div className="flex items-center space-x-2">
+  //                       <button
+  //                         onClick={() => {
+  //                           setSelectedUser(user);
+  //                           setViewMode("detail");
+  //                           setShowUserModal(true);
+  //                         }}
+  //                         className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+  //                       >
+  //                         <FaEye />
+  //                       </button>
+  //                       {/* <button
+  //                         onClick={() => {
+  //                           setSelectedUser(user);
+  //                           setUserModalMode("edit");
+  //                           setShowUserModal(true);
+  //                         }}
+  //                         className="p-2 text-gray-400 hover:text-yellow-400 transition-colors"
+  //                       >
+  //                         <FaEdit />
+  //                       </button> */}
+  //                       <button
+  //                         onClick={() =>
+  //                           toggleUserStatus(user._id, user.status)
+  //                         }
+  //                         className="p-2 text-gray-400 hover:text-orange-400 transition-colors"
+  //                       >
+  //                         {user.status === "active" ? <FaLock /> : <FaUnlock />}
+  //                       </button>
+  //                       <button
+  //                         onClick={() => deleteUser(user._id)}
+  //                         className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+  //                       >
+  //                         <FaTrash />
+  //                       </button>
+  //                     </div>
+  //                   </td>
+  //                 </tr>
+  //               ))}
+  //             </tbody>
+  //           </table>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   const renderAnalytics = () => (
     <div className="space-y-6">
@@ -2620,815 +2859,6 @@ Generate new credentials to reset password.`;
     }
   };
 
-  // User Details Component
-  const renderUserDetails = () => {
-    if (!selectedUser) return null;
-
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      const userData = {
-        ...formData,
-        skills: formData.skills
-          ? formData.skills.split(",").map((s) => s.trim())
-          : [],
-        hourlyRate: formData.hourlyRate
-          ? parseFloat(formData.hourlyRate)
-          : undefined,
-      };
-
-      if (userModalMode === "create") {
-        createUser(userData);
-      } else if (userModalMode === "edit" && selectedUser) {
-        updateUser(selectedUser._id, userData);
-      }
-      setIsEditing(false);
-    };
-
-    return (
-      <div className="min-h-screen  rounded-2xl bg-white/5 backdrop-blur-xl">
-        {/* Header Section */}
-        <div className="relative overflow-hidden  rounded-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20"></div>
-          <div className="relative max-w-7xl mx-auto px-6 py-8">
-            {/* Navigation */}
-            <div className="flex items-center justify-between mb-8 cursor-pointer p-2  rounded-full bg-white/10 group-hover:bg-white/20 transition-all">
-              <button
-                onClick={() => setViewMode("list")}
-                className="flex items-center space-x-3 text-gray-300 hover:text-white transition-all duration-300 group"
-              >
-                <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/20 transition-all">
-                  <FaArrowCircleLeft className="w-5 h-5" />
-                </div>
-                <span className="font-medium">Back to Users</span>
-              </button>
-
-              {/* User Status and Role */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-                  <FaUser className="text-blue-400" />
-                  <span className="text-white font-medium capitalize">
-                    {selectedUser.role}
-                  </span>
-                </div>
-                <span
-                  className={`px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/20 ${getStatusColor(
-                    selectedUser.status || "inactive"
-                  )}`}
-                >
-                  {selectedUser.status?.toUpperCase()}
-                </span>
-              </div>
-            </div>
-
-            {/* User Profile Header */}
-            <div className="text-center mb-12">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                <span className="text-white font-semibold text-3xl">
-                  {selectedUser.firstName.charAt(0)}
-                  {selectedUser.lastName.charAt(0)}
-                </span>
-              </div>
-              <h1 className="text-4xl md:text-5xl font-semibold text-white mb-4">
-                {selectedUser.firstName} {selectedUser.lastName}
-              </h1>
-              <p className="text-xl text-blue-200 font-medium">
-                {selectedUser.company || "Independent User"}
-              </p>
-              <p className="text-gray-400 mt-2">
-                Member since {formatDate(selectedUser.createdAt || "")}
-              </p>
-              <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-indigo-400 mx-auto mt-6 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - User Information */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Personal Information Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                      <FaUser className="text-white text-sm" />
-                    </div>
-                    <h3 className="text-2xl font-semibold text-white">
-                      Personal Information
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="px-4 py-2 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded-lg transition-all duration-300 flex items-center space-x-2"
-                  >
-                    <FaEdit className="text-sm" />
-                    <span>{isEditing ? "Cancel Edit" : "Edit Details"}</span>
-                  </button>
-                </div>
-
-                {isEditing ? (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-300 mb-2">
-                          First Name
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.firstName}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              firstName: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-blue-300 mb-2">
-                          Last Name
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.lastName}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              lastName: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-blue-300 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData({ ...formData, email: e.target.value })
-                        }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-300 mb-2">
-                          Phone Number
-                        </label>
-                        <input
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) =>
-                            setFormData({ ...formData, phone: e.target.value })
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-blue-300 mb-2">
-                          Company
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.company}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              company: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-300 mb-2">
-                          Role
-                        </label>
-                        <select
-                          value={formData.role}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              role: e.target.value as
-                                | "client"
-                                | "developer"
-                                | "admin",
-                            })
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                        >
-                          <option value="client" className="bg-gray-800">
-                            Client
-                          </option>
-                          <option value="developer" className="bg-gray-800">
-                            Developer
-                          </option>
-                          <option value="admin" className="bg-gray-800">
-                            Admin
-                          </option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-blue-300 mb-2">
-                          Status
-                        </label>
-                        <select
-                          value={formData.status}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              status: e.target.value as
-                                | "active"
-                                | "inactive"
-                                | "suspended",
-                            })
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                        >
-                          <option value="active" className="bg-gray-800">
-                            Active
-                          </option>
-                          <option value="inactive" className="bg-gray-800">
-                            Inactive
-                          </option>
-                          <option value="suspended" className="bg-gray-800">
-                            Suspended
-                          </option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {formData.role === "developer" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-blue-300 mb-2">
-                            Skills (comma separated)
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.skills}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                skills: e.target.value,
-                              })
-                            }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                            placeholder="React, Node.js, Python..."
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-blue-300 mb-2">
-                            Hourly Rate ($)
-                          </label>
-                          <input
-                            type="number"
-                            value={formData.hourlyRate}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                hourlyRate: e.target.value,
-                              })
-                            }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white/10 transition-all"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex justify-end space-x-4 pt-6 border-t border-white/10">
-                      <button
-                        type="button"
-                        onClick={() => setIsEditing(false)}
-                        className="px-6 py-3 bg-gray-600/50 hover:bg-gray-600/70 text-white rounded-xl transition-all duration-300"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg"
-                      >
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <p className="text-blue-300 text-sm font-medium mb-2">
-                          Contact Information
-                        </p>
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            <FaEnvelope className="text-blue-400 text-sm" />
-                            <span className="text-white">
-                              {selectedUser.email}
-                            </span>
-                          </div>
-                          {selectedUser.phone && (
-                            <div className="flex items-center space-x-3">
-                              <FaPhone className="text-blue-400 text-sm" />
-                              <span className="text-white">
-                                {selectedUser.phone}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <p className="text-blue-300 text-sm font-medium mb-2">
-                          Professional Details
-                        </p>
-                        <div className="space-y-2">
-                          <p className="text-white">
-                            <span className="text-gray-400">Role:</span>{" "}
-                            {selectedUser.role}
-                          </p>
-                          <p className="text-white">
-                            <span className="text-gray-400">Status:</span>{" "}
-                            {selectedUser.status}
-                          </p>
-                          {selectedUser.hourlyRate && (
-                            <p className="text-white">
-                              <span className="text-gray-400">Rate:</span> $
-                              {selectedUser.hourlyRate}/hour
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {selectedUser.skills && selectedUser.skills.length > 0 && (
-                      <div>
-                        <p className="text-blue-300 text-sm font-medium mb-3">
-                          Skills & Expertise
-                        </p>
-                        <div className="flex flex-wrap gap-3">
-                          {selectedUser.skills.map((skill, index) => (
-                            <span
-                              key={index}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-300 rounded-full text-sm font-medium border border-blue-400/30"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Login Credentials Card */}
-              {/* Enhanced Login Credentials Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                    <FaKey className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-white">
-                    Login Credentials
-                  </h3>
-                  {accountExists && (
-                    <div className="flex items-center space-x-2 bg-blue-500/20 px-3 py-1 rounded-full">
-                      <FaUser className="text-blue-400 text-xs" />
-                      <span className="text-blue-300 text-xs font-medium">
-                        Account Exists
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-white">
-                          Email
-                        </h4>
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              getAccountStatusInfo().isActive
-                                ? "bg-green-400"
-                                : "bg-red-400"
-                            }`}
-                          ></div>
-                          <span
-                            className={`text-sm ${
-                              getAccountStatusInfo().isActive
-                                ? "text-green-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {getAccountStatusInfo().isActive
-                              ? "Active"
-                              : "Inactive"}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-gray-300 font-mono text-lg bg-black/20 px-4 py-3 rounded-lg border border-white/10">
-                        {selectedUser.email}
-                      </p>
-                    </div>
-
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-white">
-                          Password
-                        </h4>
-                        <span className="text-yellow-400 text-sm">
-                          {generatedPassword
-                            ? "Just Generated"
-                            : getAccountStatusInfo().lastPasswordChange
-                            ? `Changed ${formatDate(
-                                getAccountStatusInfo().lastPasswordChange
-                              )}`
-                            : accountExists
-                            ? "Existing Password"
-                            : "Not Generated"}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-1 relative">
-                          {generatedPassword ? (
-                            <div className="space-y-2">
-                              <p className="text-green-300 font-mono text-sm bg-green-900/20 px-4 py-3 rounded-lg border border-green-400/30 break-all">
-                                {generatedPassword}
-                              </p>
-                              <p className="text-xs text-green-400">
-                                ✓ New password generated -{" "}
-                                {accountExists
-                                  ? "Account updated"
-                                  : "Account created"}
-                              </p>
-                            </div>
-                          ) : accountExists ? (
-                            <div className="space-y-2">
-                              <p className="text-blue-300 font-mono text-lg bg-blue-900/20 px-4 py-3 rounded-lg border border-blue-400/30">
-                                ••••••••••••
-                              </p>
-                              <p className="text-xs text-blue-400">
-                                ✓ Account has existing password - Generate new
-                                to reset
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-gray-400 font-mono text-lg bg-black/20 px-4 py-3 rounded-lg border border-white/10">
-                              ••••••••••••
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <button
-                            onClick={generateCredentials}
-                            disabled={isCreatingAccount}
-                            className="px-4 py-3 bg-blue-600/30 hover:bg-blue-600/50 disabled:bg-gray-600/30 text-blue-300 disabled:text-gray-400 rounded-lg transition-all duration-300"
-                            title={
-                              accountExists
-                                ? "Reset password"
-                                : "Generate password and create account"
-                            }
-                          >
-                            {isCreatingAccount ? (
-                              <div className="animate-spin w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full"></div>
-                            ) : (
-                              <FaRedo className="text-sm" />
-                            )}
-                          </button>
-                          {(generatedPassword || accountExists) && (
-                            <button
-                              onClick={copyCredentials}
-                              className="px-4 py-3 bg-green-600/30 hover:bg-green-600/50 text-green-300 rounded-lg transition-all duration-300"
-                              title="Copy credentials info"
-                            >
-                              <FaCopy className="text-sm" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Enhanced Account Status Alert */}
-                  <div
-                    className={`${
-                      generatedPassword
-                        ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
-                        : accountExists
-                        ? getAccountStatusInfo().isActive
-                          ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20"
-                          : "bg-gradient-to-r from-red-500/10 to-rose-500/10 border-red-500/20"
-                        : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
-                    } border rounded-xl p-6`}
-                  >
-                    <div className="flex items-start space-x-3">
-                      {generatedPassword ? (
-                        <FaCheckCircle className="text-green-400 text-lg mt-1" />
-                      ) : accountExists ? (
-                        getAccountStatusInfo().isActive ? (
-                          <FaUser className="text-blue-400 text-lg mt-1" />
-                        ) : (
-                          <FaBan className="text-red-400 text-lg mt-1" />
-                        )
-                      ) : (
-                        <FaExclamationTriangle className="text-amber-400 text-lg mt-1" />
-                      )}
-                      <div>
-                        <h4
-                          className={`${
-                            generatedPassword
-                              ? "text-green-300"
-                              : accountExists
-                              ? getAccountStatusInfo().isActive
-                                ? "text-blue-300"
-                                : "text-red-300"
-                              : "text-amber-300"
-                          } font-semibold mb-2`}
-                        >
-                          {generatedPassword
-                            ? accountExists
-                              ? "Account Updated"
-                              : "Account Created"
-                            : accountExists
-                            ? getAccountStatusInfo().isActive
-                              ? "Existing Account"
-                              : "Account Disabled"
-                            : "No Account"}
-                        </h4>
-                        <div
-                          className={`space-y-2 text-sm ${
-                            generatedPassword
-                              ? "text-green-200"
-                              : accountExists
-                              ? getAccountStatusInfo().isActive
-                                ? "text-blue-200"
-                                : "text-red-200"
-                              : "text-amber-200"
-                          }`}
-                        >
-                          {generatedPassword ? (
-                            <>
-                              <p>
-                                ✓{" "}
-                                {accountExists
-                                  ? "Password updated for existing account"
-                                  : "New account created with login credentials"}
-                              </p>
-                              <p>✓ User can now log in with the new password</p>
-                              <p>• Role: {selectedUser.role}</p>
-                              <p>
-                                • Permissions:{" "}
-                                {
-                                  getRolePermissions(
-                                    selectedUser.role as UserRole
-                                  ).length
-                                }{" "}
-                                assigned
-                              </p>
-                            </>
-                          ) : accountExists ? (
-                            getAccountStatusInfo().isActive ? (
-                              <>
-                                <p>✓ Account exists and is active</p>
-                                <p>• Role: {getAccountStatusInfo().role}</p>
-                                <p>
-                                  • Permissions:{" "}
-                                  {getAccountStatusInfo().permissions} assigned
-                                </p>
-                                <p>
-                                  • Last login:{" "}
-                                  {getAccountStatusInfo().lastLogin
-                                    ? formatDate(
-                                        getAccountStatusInfo().lastLogin
-                                      )
-                                    : "Never logged in"}
-                                </p>
-                                <p>
-                                  • Account created:{" "}
-                                  {formatDate(
-                                    getAccountStatusInfo().accountCreated
-                                  )}
-                                </p>
-                                <p className="text-blue-300">
-                                  • Generate new credentials to reset password
-                                </p>
-                              </>
-                            ) : (
-                              <>
-                                <p>⚠ Account exists but is disabled</p>
-                                <p>• Role: {getAccountStatusInfo().role}</p>
-                                <p>
-                                  • Account created:{" "}
-                                  {formatDate(
-                                    getAccountStatusInfo().accountCreated
-                                  )}
-                                </p>
-                                <p>
-                                  • Last login:{" "}
-                                  {getAccountStatusInfo().lastLogin
-                                    ? formatDate(
-                                        getAccountStatusInfo().lastLogin
-                                      )
-                                    : "Never logged in"}
-                                </p>
-                                <p className="text-red-300">
-                                  • Restore access to enable login
-                                </p>
-                              </>
-                            )
-                          ) : (
-                            <>
-                              <p>
-                                • Click "Generate New Credentials" to create
-                                account
-                              </p>
-                              <p>
-                                • This will create login access for this user
-                              </p>
-                              <p>• Role will be: {selectedUser.role}</p>
-                              <p>
-                                • Will get{" "}
-                                {
-                                  getRolePermissions(
-                                    selectedUser.role as UserRole
-                                  ).length
-                                }{" "}
-                                permissions
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Enhanced Action Buttons */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <button
-                      onClick={generateCredentials}
-                      disabled={isCreatingAccount}
-                      className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
-                    >
-                      <FaKey className="text-sm" />
-                      <span className="text-sm">
-                        {accountExists ? "Reset Password" : "Create Account"}
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={sendCredentials}
-                      disabled={!generatedPassword && !accountExists}
-                      className="px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
-                    >
-                      <FaPaperPlane className="text-sm" />
-                      <span className="text-sm">Send Info</span>
-                    </button>
-
-                    {(generatedPassword || accountExists) && (
-                      <button
-                        onClick={copyCredentials}
-                        className="px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
-                      >
-                        <FaCopy className="text-sm" />
-                        <span className="text-sm">Copy Details</span>
-                      </button>
-                    )}
-
-                    {accountExists && (
-                      <button
-                        onClick={
-                          getAccountStatusInfo().isActive
-                            ? revokeAccess
-                            : restoreAccess
-                        }
-                        className={`px-4 py-3 bg-gradient-to-r ${
-                          getAccountStatusInfo().isActive
-                            ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
-                            : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                        } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
-                      >
-                        {getAccountStatusInfo().isActive ? (
-                          <FaBan className="text-sm" />
-                        ) : (
-                          <FaCheckCircle className="text-sm" />
-                        )}
-                        <span className="text-sm">
-                          {getAccountStatusInfo().isActive
-                            ? "Disable"
-                            : "Enable"}
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Quick Actions & Stats */}
-            <div className="space-y-8">
-              {/* Quick Actions Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  Quick Actions
-                </h3>
-
-                <div className="space-y-4">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
-                  >
-                    <FaEdit />
-                    <span>Edit User Details</span>
-                  </button>
-
-                  <button
-                    onClick={generateCredentials}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
-                  >
-                    <FaKey />
-                    <span>Reset Password</span>
-                  </button>
-
-                  <button
-                    onClick={sendCredentials}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
-                  >
-                    <FaPaperPlane />
-                    <span>Send Login Details</span>
-                  </button>
-
-                  <button className="w-full px-4 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2">
-                    <FaBan />
-                    <span>Suspend Account</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* User Statistics Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  User Statistics
-                </h3>
-
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-semibold text-blue-400 mb-1">
-                      {selectedUser.projectsCount || 0}
-                    </div>
-                    <p className="text-gray-400 text-sm">Total Projects</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-xl font-semibold text-green-400 mb-1">
-                        {selectedUser.completedProjects || 0}
-                      </div>
-                      <p className="text-gray-400 text-xs">Completed</p>
-                    </div>
-                    <div>
-                      <div className="text-xl font-semibold text-yellow-400 mb-1">
-                        {selectedUser.activeProjects || 0}
-                      </div>
-                      <p className="text-gray-400 text-xs">Active</p>
-                    </div>
-                  </div>
-
-                  {selectedUser.totalEarnings && (
-                    <div className="text-center pt-4 border-t border-white/10">
-                      <div className="text-2xl font-semibold text-emerald-400 mb-1">
-                        ${selectedUser.totalEarnings.toLocaleString()}
-                      </div>
-                      <p className="text-gray-400 text-sm">Total Earnings</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   // Main render
   return (
     <>
@@ -3530,7 +2960,19 @@ Generate new credentials to reset password.`;
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
             {activeTab === "overview" && renderOverview()}
             {activeTab === "projects" && renderProjects()}
-            {activeTab === "users" && renderUsers()}
+            {activeTab === "users" && (
+              <UserManagement
+                activeTab={activeTab}
+                users={users}
+                setUsers={setUsers}
+                userSearchTerm={userSearchTerm}
+                setUserSearchTerm={setUserSearchTerm}
+                userRoleFilter={userRoleFilter}
+                setUserRoleFilter={setUserRoleFilter}
+                userStatusFilter={userStatusFilter}
+                setUserStatusFilter={setUserStatusFilter}
+              />
+            )}
             {activeTab === "analytics" && renderAnalytics()}
             {activeTab === "dev profiles" && <DeveloperProfilesOverview />}
             {activeTab === "settings" && renderSettings()}

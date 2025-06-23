@@ -67,13 +67,13 @@ export default function Navbar() {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         stiffness: 100,
         damping: 15,
         duration: 0.6,
       },
     },
-  };
+  } as const;
 
   const mobileMenuVariants: Variants = {
     hidden: {
@@ -88,10 +88,10 @@ export default function Navbar() {
       y: 0,
       transition: {
         duration: 0.3,
-        ease: "easeOut",
+        ease: "easeOut" as const,
       },
     },
-  };
+  } as const;
 
   const linkItemVariants: Variants = {
     hidden: { opacity: 0, x: -20 },
@@ -103,7 +103,7 @@ export default function Navbar() {
         duration: 0.3,
       },
     }),
-  };
+  } as const;
 
   return (
     <motion.nav

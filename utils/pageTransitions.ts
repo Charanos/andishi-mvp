@@ -14,13 +14,13 @@ export const pageVariants = {
     y: -20,
     scale: 1.02,
   },
-};
+} as const;
 
 export const pageTransition = {
-  type: 'tween',
-  ease: 'anticipate',
+  type: 'tween' as const,
+  ease: 'anticipate' as const,
   duration: 0.4,
-};
+} as const;
 
 // Alternative slide transitions
 export const slideVariants = {
@@ -36,4 +36,4 @@ export const slideVariants = {
     x: direction < 0 ? 1000 : -1000,
     opacity: 0,
   }),
-};
+} as const;

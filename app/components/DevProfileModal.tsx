@@ -94,7 +94,7 @@ export default function DevProfileModal({
     hidden: {
       opacity: 0,
       scale: 0.8,
-      y: 50,
+      y: 100,
     },
     visible: {
       opacity: 1,
@@ -108,13 +108,13 @@ export default function DevProfileModal({
     exit: {
       opacity: 0,
       scale: 0.8,
-      y: 50,
+      y: 100,
       transition: {
         duration: 0.2,
         ease: "easeIn",
       },
     },
-  };
+  } as const;
 
   const backdropVariants = {
     hidden: { opacity: 0 },

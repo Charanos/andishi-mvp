@@ -14,19 +14,19 @@ const pageVariants = {
   },
   in: {
     opacity: 1,
-    x: 0,
+    y: 0,
   },
   out: {
     opacity: 0,
-    x: -50,
+    y: 20,
   },
-};
+} as const;
 
 const pageTransition = {
   type: "tween",
   ease: "easeInOut",
   duration: 0.3,
-};
+} as const;
 
 export default function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();

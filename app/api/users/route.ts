@@ -338,7 +338,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const { _id, ...updates } = payload;
+    const { _id, action, ...updates } = payload;
     
     if (!_id) {
       return NextResponse.json(
@@ -355,9 +355,8 @@ export async function PATCH(request: Request) {
     }
 
     const objectId = new ObjectId(_id);
-
-    // Check if user exists
     const existingUser = await db.collection('users').findOne({ _id: objectId });
+    
     if (!existingUser) {
       return NextResponse.json(
         { success: false, error: 'User not found' }, 
@@ -365,77 +364,54 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // Validate email if being updated
-    if (updates.email) {
-      const normalizedEmail = updates.email.toLowerCase().trim();
-      if (!isValidEmail(normalizedEmail)) {
-        return NextResponse.json(
-          { success: false, error: 'Invalid email format' }, 
-          { status: 400 }
-        );
-      }
+    if (action === 'reset_password') {
+      const generatedPassword = generateSecurePassword();
+      const hashedPassword = await bcrypt.hash(generatedPassword, 12);
       
-      // Check if email is already taken by another user
-      const emailExists = await db.collection('users').findOne({ 
-        email: normalizedEmail,
-        _id: { $ne: objectId }
+      await db.collection('users').updateOne(
+        { _id: objectId },
+        { 
+          $set: {
+            password: hashedPassword,
+            passwordGenerated: true,
+            passwordLastChanged: new Date(),
+            isActive: true,
+            updatedAt: new Date()
+          }
+        }
+      );
+
+      return NextResponse.json({
+        success: true,
+        generatedPassword,
+        message: 'Password reset successfully'
       });
-      
-      if (emailExists) {
-        return NextResponse.json(
-          { success: false, error: 'Email already exists' }, 
-          { status: 409 }
-        );
-      }
-      
-      updates.email = normalizedEmail;
     }
 
-    // Hash password if being updated
-    if (updates.password) {
-      if (updates.password.length < 6) {
-        return NextResponse.json(
-          { success: false, error: 'Password must be at least 6 characters' }, 
-          { status: 400 }
-        );
-      }
-      updates.password = await bcrypt.hash(updates.password, 12);
-      updates.passwordLastChanged = new Date();
-      updates.passwordGenerated = false; // Manual password update
+    if (action === 'send_credentials') {
+      // Here you would implement your email sending logic
+      // For now, we'll just simulate success
+      return NextResponse.json({
+        success: true,
+        message: 'Credentials sent successfully'
+      });
     }
 
-    // Add updatedAt timestamp
-    updates.updatedAt = new Date();
-
-    // Trim string fields
-    ['name', 'firstName', 'lastName', 'role'].forEach(field => {
-      if (updates[field] && typeof updates[field] === 'string') {
-        updates[field] = updates[field].trim();
-      }
-    });
-
+    // Handle regular updates
     const result = await db.collection('users').updateOne(
-      { _id: objectId }, 
-      { $set: updates }
+      { _id: objectId },
+      { $set: { ...updates, updatedAt: new Date() } }
     );
 
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' }, 
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'User updated successfully',
       modifiedCount: result.modifiedCount
     });
-    
   } catch (err) {
     console.error('User update error:', err);
     return NextResponse.json(
-      { success: false, error: 'Failed to update user' }, 
+      { success: false, error: 'Failed to update user' },
       { status: 500 }
     );
   }

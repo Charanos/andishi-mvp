@@ -2,7 +2,6 @@
 
 import { toast, ToastContainer } from "react-toastify";
 import React, { useState, useEffect } from "react";
-import { IconType } from "react-icons/lib";
 import {
   FaUser,
   FaProjectDiagram,
@@ -43,8 +42,12 @@ import {
   FaBan,
   FaServer,
   FaCalendarAlt,
+  FaCopy,
+  FaCheckCircle,
 } from "react-icons/fa";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
+import { UserRole } from "@/types/auth";
+import renderProjectDetail from "../client-dashboard/projectDetails";
 
 // Types
 interface UserInfo {
@@ -157,6 +160,11 @@ export default function EnhancedAdminDashboard() {
   });
   const [loading, setLoading] = useState(false);
   const [fetchLoggedInUser, setFetchLoggedInUser] = useState(false);
+
+  const [generatedPassword, setGeneratedPassword] = useState<string>("");
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [accountExists, setAccountExists] = useState(false);
+  const [existingAccountData, setExistingAccountData] = useState<any>(null);
 
   // Navigation items for developers tab
   // Get logged-in user from session (example using /api/session)
@@ -1186,7 +1194,6 @@ export default function EnhancedAdminDashboard() {
       return renderUserDetails();
     }
 
-    // Add the missing return statement here
     return (
       <div className="space-y-6">
         {/* User Management Header */}
@@ -1374,7 +1381,7 @@ export default function EnhancedAdminDashboard() {
                         >
                           <FaEye />
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => {
                             setSelectedUser(user);
                             setUserModalMode("edit");
@@ -1383,7 +1390,7 @@ export default function EnhancedAdminDashboard() {
                           className="p-2 text-gray-400 hover:text-yellow-400 transition-colors"
                         >
                           <FaEdit />
-                        </button>
+                        </button> */}
                         <button
                           onClick={() =>
                             toggleUserStatus(user._id, user.status)
@@ -2204,7 +2211,416 @@ export default function EnhancedAdminDashboard() {
     );
   };
 
-  // User Modal Component
+  // Check if account already exists when component loads or user changes
+  useEffect(() => {
+    if (selectedUser) {
+      checkExistingAccount(selectedUser._id);
+    }
+  }, [selectedUser]);
+
+  // Password generation utility
+  const generateRandomPassword = (length: number = 12): string => {
+    const charset =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+  };
+
+  // Permissions enum definition
+  enum Permissions {
+    VIEW_DASHBOARD = "VIEW_DASHBOARD",
+    UPDATE_PROFILE = "UPDATE_PROFILE",
+    CHANGE_PASSWORD = "CHANGE_PASSWORD",
+    VIEW_USERS = "VIEW_USERS",
+    EDIT_USERS = "EDIT_USERS",
+    DELETE_USERS = "DELETE_USERS",
+    MANAGE_ROLES = "MANAGE_ROLES",
+    MANAGE_PLATFORM = "MANAGE_PLATFORM",
+    VIEW_ANALYTICS = "VIEW_ANALYTICS",
+    MODERATE_CONTENT = "MODERATE_CONTENT",
+    HANDLE_DISPUTES = "HANDLE_DISPUTES",
+    MANAGE_PAYMENTS = "MANAGE_PAYMENTS",
+    CREATE_PROJECT = "CREATE_PROJECT",
+    VIEW_PROJECT = "VIEW_PROJECT",
+    EDIT_PROJECT = "EDIT_PROJECT",
+    DELETE_PROJECT = "DELETE_PROJECT",
+    ASSIGN_PROJECT = "ASSIGN_PROJECT",
+    POST_PROJECT = "POST_PROJECT",
+    HIRE_DEVELOPER = "HIRE_DEVELOPER",
+    REVIEW_SUBMISSIONS = "REVIEW_SUBMISSIONS",
+    MAKE_PAYMENT = "MAKE_PAYMENT",
+    VIEW_TALENT_POOL = "VIEW_TALENT_POOL",
+    APPLY_TO_PROJECT = "APPLY_TO_PROJECT",
+    UPDATE_PORTFOLIO = "UPDATE_PORTFOLIO",
+    SUBMIT_WORK = "SUBMIT_WORK",
+  }
+
+  // Role-based permissions mapping
+  const getRolePermissions = (role: UserRole): Permissions[] => {
+    switch (role) {
+      case UserRole.ADMIN:
+        return [
+          Permissions.VIEW_DASHBOARD,
+          Permissions.UPDATE_PROFILE,
+          Permissions.CHANGE_PASSWORD,
+          Permissions.VIEW_USERS,
+          Permissions.EDIT_USERS,
+          Permissions.DELETE_USERS,
+          Permissions.MANAGE_ROLES,
+          Permissions.MANAGE_PLATFORM,
+          Permissions.VIEW_ANALYTICS,
+          Permissions.MODERATE_CONTENT,
+          Permissions.HANDLE_DISPUTES,
+          Permissions.MANAGE_PAYMENTS,
+          Permissions.CREATE_PROJECT,
+          Permissions.VIEW_PROJECT,
+          Permissions.EDIT_PROJECT,
+          Permissions.DELETE_PROJECT,
+          Permissions.ASSIGN_PROJECT,
+        ];
+
+      case UserRole.CLIENT:
+        return [
+          Permissions.VIEW_DASHBOARD,
+          Permissions.UPDATE_PROFILE,
+          Permissions.CHANGE_PASSWORD,
+          Permissions.POST_PROJECT,
+          Permissions.HIRE_DEVELOPER,
+          Permissions.REVIEW_SUBMISSIONS,
+          Permissions.MAKE_PAYMENT,
+          Permissions.CREATE_PROJECT,
+          Permissions.VIEW_PROJECT,
+          Permissions.EDIT_PROJECT,
+          Permissions.VIEW_TALENT_POOL,
+        ];
+
+      case UserRole.DEVELOPER:
+        return [
+          Permissions.VIEW_DASHBOARD,
+          Permissions.UPDATE_PROFILE,
+          Permissions.CHANGE_PASSWORD,
+          Permissions.APPLY_TO_PROJECT,
+          Permissions.VIEW_TALENT_POOL,
+          Permissions.UPDATE_PORTFOLIO,
+          Permissions.SUBMIT_WORK,
+          Permissions.VIEW_PROJECT,
+        ];
+
+      default:
+        return [
+          Permissions.VIEW_DASHBOARD,
+          Permissions.UPDATE_PROFILE,
+          Permissions.CHANGE_PASSWORD,
+        ];
+    }
+  };
+
+  // Enhanced generateCredentials function that calls your API
+  const generateCredentials = async () => {
+    if (!selectedUser) return;
+
+    setIsCreatingAccount(true);
+
+    try {
+      // Call your API to generate credentials
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: selectedUser._id,
+          regenerate: accountExists, // Flag to indicate if this is a password reset
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGeneratedPassword(data.generatedPassword);
+        setAccountExists(true);
+        setExistingAccountData(data.user);
+
+        console.log("Credentials generated successfully:", {
+          email: data.user.email,
+          action: accountExists ? "password_reset" : "account_created",
+          role: data.user.role,
+          userId: data.user._id,
+        });
+
+        // Optionally refresh the user list to get updated data
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname.includes("users")
+        ) {
+          // Trigger a refresh of the users list if you have that function
+          // refreshUsers?.();
+        }
+      } else {
+        console.error("Error generating credentials:", data.error);
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error generating credentials:", error);
+      alert("Failed to generate credentials. Please try again.");
+    } finally {
+      setIsCreatingAccount(false);
+    }
+  };
+
+  // Function to get account status info
+  const getAccountStatusInfo = () => {
+    if (accountExists && existingAccountData) {
+      return {
+        hasAccount: true,
+        lastPasswordChange: existingAccountData.passwordLastChanged,
+        accountCreated: existingAccountData.createdAt,
+        lastLogin: existingAccountData.lastLogin,
+        isActive:
+          existingAccountData.isActive && !existingAccountData.accountLocked,
+        role: existingAccountData.role,
+        permissions: getRolePermissions(existingAccountData.role as UserRole)
+          .length,
+        accountLocked: existingAccountData.accountLocked || false,
+        loginAttempts: existingAccountData.loginAttempts || 0,
+      };
+    }
+    return {
+      hasAccount: false,
+      lastPasswordChange: null,
+      accountCreated: null,
+      lastLogin: null,
+      isActive: false,
+      role: selectedUser?.role,
+      permissions: selectedUser
+        ? getRolePermissions(selectedUser.role as UserRole).length
+        : 0,
+      accountLocked: false,
+      loginAttempts: 0,
+    };
+  };
+
+  // Function to disable/enable account access
+  const toggleAccountAccess = async (disable: boolean) => {
+    if (!selectedUser || !accountExists) return;
+
+    const action = disable ? "disable" : "enable";
+    const confirmMessage = disable
+      ? `Are you sure you want to disable access for ${selectedUser.email}? This will prevent them from logging in.`
+      : `Are you sure you want to enable access for ${selectedUser.email}?`;
+
+    const confirmed = window.confirm(confirmMessage);
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch("/api/users", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          _id: selectedUser._id,
+          isActive: !disable,
+          accountLocked: disable,
+          // Reset login attempts when enabling
+          ...(disable ? {} : { loginAttempts: 0 }),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update local state
+        setExistingAccountData((prev: typeof existingAccountData) => ({
+          ...prev,
+          isActive: !disable,
+          accountLocked: disable,
+          loginAttempts: disable ? prev?.loginAttempts : 0,
+        }));
+
+        console.log(`Account ${action}d successfully for:`, selectedUser.email);
+        alert(`Account ${action}d successfully!`);
+      } else {
+        console.error(`Error ${action}ing account:`, data.error);
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing account:`, error);
+      alert(`Failed to ${action} account. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Separate functions for disable/enable
+  const revokeAccess = () => toggleAccountAccess(true);
+  const restoreAccess = () => toggleAccountAccess(false);
+
+  // Enhanced sendCredentials function
+  const sendCredentials = () => {
+    if (!selectedUser) {
+      alert("No user selected");
+      return;
+    }
+
+    if (!generatedPassword && !accountExists) {
+      alert("Please generate credentials first");
+      return;
+    }
+
+    const statusInfo = getAccountStatusInfo();
+
+    // For MVP, show different messages based on account status
+    if (generatedPassword) {
+      // Newly generated password
+      const message = `Login Credentials for ${selectedUser.email}:
+
+Email: ${selectedUser.email}
+Password: ${generatedPassword}
+Login URL: ${window.location.origin}/login
+
+This ${
+        statusInfo.hasAccount ? "updates their existing" : "creates a new"
+      } account.
+Role: ${selectedUser.role}
+Status: Active`;
+
+      alert(message);
+    } else if (accountExists) {
+      // Existing account
+      const message = `Account Information for ${selectedUser.email}:
+
+Email: ${selectedUser.email}
+Password: [Hidden for security - generate new to reset]
+Login URL: ${window.location.origin}/login
+
+Account Status: ${statusInfo.isActive ? "Active" : "Inactive"}
+Role: ${statusInfo.role}
+Last Login: ${
+        statusInfo.lastLogin
+          ? new Date(statusInfo.lastLogin).toLocaleDateString()
+          : "Never"
+      }
+Account Created: ${
+        statusInfo.accountCreated
+          ? new Date(statusInfo.accountCreated).toLocaleDateString()
+          : "Unknown"
+      }
+
+${
+  statusInfo.isActive
+    ? "User can log in with existing password."
+    : "Account is disabled - enable to allow login."
+}
+Generate new credentials to reset password.`;
+
+      alert(message);
+    }
+
+    console.log("Credentials info sent:", {
+      email: selectedUser.email,
+      hasNewPassword: !!generatedPassword,
+      accountExists: statusInfo.hasAccount,
+      isActive: statusInfo.isActive,
+      loginUrl: window.location.origin + "/login",
+    });
+  };
+
+  // Function to delete user account completely
+  const deleteUserAccount = async () => {
+    if (!selectedUser) return;
+
+    const confirmMessage = `Are you sure you want to permanently delete the account for ${selectedUser.email}? This action cannot be undone.`;
+    const confirmed = window.confirm(confirmMessage);
+    if (!confirmed) return;
+
+    const doubleConfirm = window.confirm(
+      "This will permanently delete all user data. Are you absolutely sure?"
+    );
+    if (!doubleConfirm) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/users?id=${selectedUser._id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("User account deleted successfully:", selectedUser.email);
+        alert("User account deleted successfully!");
+
+        // Reset local state
+        setAccountExists(false);
+        setExistingAccountData(null);
+        setGeneratedPassword("");
+
+        // Optionally redirect or refresh the user list
+        // window.location.reload(); // or navigate to users list
+      } else {
+        console.error("Error deleting user account:", data.error);
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error deleting user account:", error);
+      alert("Failed to delete user account. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to copy credentials to clipboard
+  const copyCredentials = async () => {
+    if (!selectedUser || !generatedPassword) return;
+
+    const credentials = `Email: ${selectedUser.email}\nPassword: ${generatedPassword}`;
+
+    try {
+      await navigator.clipboard.writeText(credentials);
+      alert("Credentials copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy credentials:", err);
+    }
+  };
+
+  // Function to check if account already exists in the database
+  const checkExistingAccount = async (userId: string) => {
+    if (!userId) return;
+
+    setLoading(true);
+    try {
+      // Check if user has account credentials (passwordGenerated flag)
+      const response = await fetch(`/api/users`);
+      const data = await response.json();
+
+      if (data.success) {
+        const user = data.users.find((u: any) => u._id === userId);
+
+        if (user && user.passwordGenerated) {
+          setAccountExists(true);
+          setExistingAccountData(user);
+          setGeneratedPassword(""); // Reset generated password display
+        } else {
+          setAccountExists(false);
+          setExistingAccountData(null);
+          setGeneratedPassword("");
+        }
+      }
+    } catch (error) {
+      console.error("Error checking existing account:", error);
+      setAccountExists(false);
+      setExistingAccountData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // User Details Component
   const renderUserDetails = () => {
     if (!selectedUser) return null;
 
@@ -2226,17 +2642,6 @@ export default function EnhancedAdminDashboard() {
         updateUser(selectedUser._id, userData);
       }
       setIsEditing(false);
-    };
-
-    const generateCredentials = () => {
-      // This would typically call an API to generate/reset credentials
-      console.log("Generating new credentials for user:", selectedUser?._id);
-      // You can implement this later when you provide the account creation details
-    };
-
-    const sendCredentials = () => {
-      // This would send credentials via email
-      console.log("Sending credentials to:", selectedUser?.email);
     };
 
     return (
@@ -2593,6 +2998,7 @@ export default function EnhancedAdminDashboard() {
               </div>
 
               {/* Login Credentials Card */}
+              {/* Enhanced Login Credentials Card */}
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
@@ -2601,6 +3007,14 @@ export default function EnhancedAdminDashboard() {
                   <h3 className="text-2xl font-semibold text-white">
                     Login Credentials
                   </h3>
+                  {accountExists && (
+                    <div className="flex items-center space-x-2 bg-blue-500/20 px-3 py-1 rounded-full">
+                      <FaUser className="text-blue-400 text-xs" />
+                      <span className="text-blue-300 text-xs font-medium">
+                        Account Exists
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-6">
@@ -2608,15 +3022,31 @@ export default function EnhancedAdminDashboard() {
                     <div className="bg-white/5 rounded-xl p-6 border border-white/10">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg font-semibold text-white">
-                          Username
+                          Email
                         </h4>
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                          <span className="text-green-400 text-sm">Active</span>
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              getAccountStatusInfo().isActive
+                                ? "bg-green-400"
+                                : "bg-red-400"
+                            }`}
+                          ></div>
+                          <span
+                            className={`text-sm ${
+                              getAccountStatusInfo().isActive
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {getAccountStatusInfo().isActive
+                              ? "Active"
+                              : "Inactive"}
+                          </span>
                         </div>
                       </div>
                       <p className="text-gray-300 font-mono text-lg bg-black/20 px-4 py-3 rounded-lg border border-white/10">
-                        {selectedUser.firstName || selectedUser.email}
+                        {selectedUser.email}
                       </p>
                     </div>
 
@@ -2626,75 +3056,288 @@ export default function EnhancedAdminDashboard() {
                           Password
                         </h4>
                         <span className="text-yellow-400 text-sm">
-                          {selectedUser.passwordLastChanged
+                          {generatedPassword
+                            ? "Just Generated"
+                            : getAccountStatusInfo().lastPasswordChange
                             ? `Changed ${formatDate(
-                                selectedUser.passwordLastChanged
+                                getAccountStatusInfo().lastPasswordChange
                               )}`
-                            : "Initial password"}
+                            : accountExists
+                            ? "Existing Password"
+                            : "Not Generated"}
                         </span>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <p className="text-gray-400 font-mono text-lg bg-black/20 px-4 py-3 rounded-lg border border-white/10 flex-1">
-                          ••••••••••••
-                        </p>
-                        <button
-                          onClick={generateCredentials}
-                          className="px-4 py-3 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded-lg transition-all duration-300"
-                          title="Generate new password"
-                        >
-                          <FaRedo className="text-sm" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-xl p-6">
-                    <div className="flex items-start space-x-3">
-                      <FaExclamationTriangle className="text-amber-400 text-lg mt-1" />
-                      <div>
-                        <h4 className="text-amber-300 font-semibold mb-2">
-                          Account Access Information
-                        </h4>
-                        <div className="space-y-2 text-sm text-amber-200">
-                          <p>
-                            • Last login:{" "}
-                            {selectedUser.lastLogin
-                              ? formatDate(selectedUser.lastLogin)
-                              : "Never logged in"}
-                          </p>
-                          <p>
-                            • Account created:{" "}
-                            {formatDate(selectedUser.createdAt || "")}
-                          </p>
-                          <p>
-                            • Login attempts today:{" "}
-                            {selectedUser.loginAttempts || 0}
-                          </p>
-                          {selectedUser.accountLocked && (
-                            <p className="text-red-300">
-                              • Account is currently locked
+                        <div className="flex-1 relative">
+                          {generatedPassword ? (
+                            <div className="space-y-2">
+                              <p className="text-green-300 font-mono text-sm bg-green-900/20 px-4 py-3 rounded-lg border border-green-400/30 break-all">
+                                {generatedPassword}
+                              </p>
+                              <p className="text-xs text-green-400">
+                                ✓ New password generated -{" "}
+                                {accountExists
+                                  ? "Account updated"
+                                  : "Account created"}
+                              </p>
+                            </div>
+                          ) : accountExists ? (
+                            <div className="space-y-2">
+                              <p className="text-blue-300 font-mono text-lg bg-blue-900/20 px-4 py-3 rounded-lg border border-blue-400/30">
+                                ••••••••••••
+                              </p>
+                              <p className="text-xs text-blue-400">
+                                ✓ Account has existing password - Generate new
+                                to reset
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 font-mono text-lg bg-black/20 px-4 py-3 rounded-lg border border-white/10">
+                              ••••••••••••
                             </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col space-y-2">
+                          <button
+                            onClick={generateCredentials}
+                            disabled={isCreatingAccount}
+                            className="px-4 py-3 bg-blue-600/30 hover:bg-blue-600/50 disabled:bg-gray-600/30 text-blue-300 disabled:text-gray-400 rounded-lg transition-all duration-300"
+                            title={
+                              accountExists
+                                ? "Reset password"
+                                : "Generate password and create account"
+                            }
+                          >
+                            {isCreatingAccount ? (
+                              <div className="animate-spin w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full"></div>
+                            ) : (
+                              <FaRedo className="text-sm" />
+                            )}
+                          </button>
+                          {(generatedPassword || accountExists) && (
+                            <button
+                              onClick={copyCredentials}
+                              className="px-4 py-3 bg-green-600/30 hover:bg-green-600/50 text-green-300 rounded-lg transition-all duration-300"
+                              title="Copy credentials info"
+                            >
+                              <FaCopy className="text-sm" />
+                            </button>
                           )}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex space-x-4">
+                  {/* Enhanced Account Status Alert */}
+                  <div
+                    className={`${
+                      generatedPassword
+                        ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
+                        : accountExists
+                        ? getAccountStatusInfo().isActive
+                          ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20"
+                          : "bg-gradient-to-r from-red-500/10 to-rose-500/10 border-red-500/20"
+                        : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
+                    } border rounded-xl p-6`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      {generatedPassword ? (
+                        <FaCheckCircle className="text-green-400 text-lg mt-1" />
+                      ) : accountExists ? (
+                        getAccountStatusInfo().isActive ? (
+                          <FaUser className="text-blue-400 text-lg mt-1" />
+                        ) : (
+                          <FaBan className="text-red-400 text-lg mt-1" />
+                        )
+                      ) : (
+                        <FaExclamationTriangle className="text-amber-400 text-lg mt-1" />
+                      )}
+                      <div>
+                        <h4
+                          className={`${
+                            generatedPassword
+                              ? "text-green-300"
+                              : accountExists
+                              ? getAccountStatusInfo().isActive
+                                ? "text-blue-300"
+                                : "text-red-300"
+                              : "text-amber-300"
+                          } font-semibold mb-2`}
+                        >
+                          {generatedPassword
+                            ? accountExists
+                              ? "Account Updated"
+                              : "Account Created"
+                            : accountExists
+                            ? getAccountStatusInfo().isActive
+                              ? "Existing Account"
+                              : "Account Disabled"
+                            : "No Account"}
+                        </h4>
+                        <div
+                          className={`space-y-2 text-sm ${
+                            generatedPassword
+                              ? "text-green-200"
+                              : accountExists
+                              ? getAccountStatusInfo().isActive
+                                ? "text-blue-200"
+                                : "text-red-200"
+                              : "text-amber-200"
+                          }`}
+                        >
+                          {generatedPassword ? (
+                            <>
+                              <p>
+                                ✓{" "}
+                                {accountExists
+                                  ? "Password updated for existing account"
+                                  : "New account created with login credentials"}
+                              </p>
+                              <p>✓ User can now log in with the new password</p>
+                              <p>• Role: {selectedUser.role}</p>
+                              <p>
+                                • Permissions:{" "}
+                                {
+                                  getRolePermissions(
+                                    selectedUser.role as UserRole
+                                  ).length
+                                }{" "}
+                                assigned
+                              </p>
+                            </>
+                          ) : accountExists ? (
+                            getAccountStatusInfo().isActive ? (
+                              <>
+                                <p>✓ Account exists and is active</p>
+                                <p>• Role: {getAccountStatusInfo().role}</p>
+                                <p>
+                                  • Permissions:{" "}
+                                  {getAccountStatusInfo().permissions} assigned
+                                </p>
+                                <p>
+                                  • Last login:{" "}
+                                  {getAccountStatusInfo().lastLogin
+                                    ? formatDate(
+                                        getAccountStatusInfo().lastLogin
+                                      )
+                                    : "Never logged in"}
+                                </p>
+                                <p>
+                                  • Account created:{" "}
+                                  {formatDate(
+                                    getAccountStatusInfo().accountCreated
+                                  )}
+                                </p>
+                                <p className="text-blue-300">
+                                  • Generate new credentials to reset password
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <p>⚠ Account exists but is disabled</p>
+                                <p>• Role: {getAccountStatusInfo().role}</p>
+                                <p>
+                                  • Account created:{" "}
+                                  {formatDate(
+                                    getAccountStatusInfo().accountCreated
+                                  )}
+                                </p>
+                                <p>
+                                  • Last login:{" "}
+                                  {getAccountStatusInfo().lastLogin
+                                    ? formatDate(
+                                        getAccountStatusInfo().lastLogin
+                                      )
+                                    : "Never logged in"}
+                                </p>
+                                <p className="text-red-300">
+                                  • Restore access to enable login
+                                </p>
+                              </>
+                            )
+                          ) : (
+                            <>
+                              <p>
+                                • Click "Generate New Credentials" to create
+                                account
+                              </p>
+                              <p>
+                                • This will create login access for this user
+                              </p>
+                              <p>• Role will be: {selectedUser.role}</p>
+                              <p>
+                                • Will get{" "}
+                                {
+                                  getRolePermissions(
+                                    selectedUser.role as UserRole
+                                  ).length
+                                }{" "}
+                                permissions
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Enhanced Action Buttons */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <button
                       onClick={generateCredentials}
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
+                      disabled={isCreatingAccount}
+                      className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
                     >
                       <FaKey className="text-sm" />
-                      <span>Generate New Credentials</span>
+                      <span className="text-sm">
+                        {accountExists ? "Reset Password" : "Create Account"}
+                      </span>
                     </button>
+
                     <button
                       onClick={sendCredentials}
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
+                      disabled={!generatedPassword && !accountExists}
+                      className="px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
                     >
                       <FaPaperPlane className="text-sm" />
-                      <span>Send Credentials via Email</span>
+                      <span className="text-sm">Send Info</span>
                     </button>
+
+                    {(generatedPassword || accountExists) && (
+                      <button
+                        onClick={copyCredentials}
+                        className="px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
+                      >
+                        <FaCopy className="text-sm" />
+                        <span className="text-sm">Copy Details</span>
+                      </button>
+                    )}
+
+                    {accountExists && (
+                      <button
+                        onClick={
+                          getAccountStatusInfo().isActive
+                            ? revokeAccess
+                            : restoreAccess
+                        }
+                        className={`px-4 py-3 bg-gradient-to-r ${
+                          getAccountStatusInfo().isActive
+                            ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
+                            : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                        } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
+                      >
+                        {getAccountStatusInfo().isActive ? (
+                          <FaBan className="text-sm" />
+                        ) : (
+                          <FaCheckCircle className="text-sm" />
+                        )}
+                        <span className="text-sm">
+                          {getAccountStatusInfo().isActive
+                            ? "Disable"
+                            : "Enable"}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

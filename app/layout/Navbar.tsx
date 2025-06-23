@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { RBACService } from "@/utils/rbac";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../hooks/useAuth"; // Adjust path as needed
-import { RBACService } from "@/utils/rbac";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -55,19 +55,19 @@ export default function Navbar() {
 
   // Public navigation links
   const publicLinks = [
-    { label: "About Us", href: "/about-us" },
     { label: "Our Portfolio", href: "/our-portfolio" },
     { label: "Tech Talent Pool", href: "/tech-talent-pool" },
+    { label: "About Us", href: "/about-us" },
     { label: "Contact Us", href: "/contact-us" },
   ];
 
-  const navVariants = {
+  const navVariants: Variants = {
     hidden: { y: -100, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 15,
         duration: 0.6,
@@ -75,7 +75,7 @@ export default function Navbar() {
     },
   };
 
-  const mobileMenuVariants = {
+  const mobileMenuVariants: Variants = {
     hidden: {
       opacity: 0,
       y: -20,
@@ -93,7 +93,7 @@ export default function Navbar() {
     },
   };
 
-  const linkItemVariants = {
+  const linkItemVariants: Variants = {
     hidden: { opacity: 0, x: -20 },
     visible: (index: number) => ({
       opacity: 1,

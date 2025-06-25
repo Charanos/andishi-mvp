@@ -58,7 +58,7 @@ export default function ClientReviews() {
   };
 
   return (
-    <section id="reviews" className="py-32">
+    <section id="reviews" className="py-32 mt-0 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
       <div className="absolute top-0 left-0 w-full h-full opacity-30">

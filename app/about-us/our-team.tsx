@@ -176,7 +176,10 @@ export default function TeamSection() {
         );
 
   return (
-    <section id="team" className="py-20 relative overflow-hidden">
+    <section
+      id="team"
+      className="py-20 relative my-16 bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
+    >
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">

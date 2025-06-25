@@ -495,7 +495,7 @@ export default function TechTalentPool() {
       linkedinUrl: "https://linkedin.com/in/elenavolkov",
       bio: "DevOps engineer with extensive experience in cloud infrastructure and automated deployment strategies.",
       about:
-        "I'm a DevOps engineer with 7+ years of experience building robust, scalable cloud infrastructure that enables development teams to deploy with confidence. My expertise spans the entire DevOps lifecycle, from setting up CI/CD pipelines to implementing comprehensive monitoring and logging solutions. I believe in Infrastructure as Code and have helped numerous organizations transition from manual deployment processes to fully automated, reliable systems. My experience includes working with both startups needing to scale quickly and large enterprises requiring bulletproof reliability. I'm passionate about creating systems that not only work flawlessly but also provide clear visibility into their operation.",
+        "I'm a DevOps engineer with 3+ years of experience building robust, scalable cloud infrastructure that enables development teams to deploy with confidence. My expertise spans the entire DevOps lifecycle, from setting up CI/CD pipelines to implementing comprehensive monitoring and logging solutions. I believe in Infrastructure as Code and have helped numerous organizations transition from manual deployment processes to fully automated, reliable systems. My experience includes working with both startups needing to scale quickly and large enterprises requiring bulletproof reliability. I'm passionate about creating systems that not only work flawlessly but also provide clear visibility into their operation.",
       languages: [
         "English (Fluent)",
         "Swahili (Native)",
@@ -574,11 +574,11 @@ export default function TechTalentPool() {
     },
     {
       id: 6,
-      name: "Alex Thompson",
+      name: "Chinedu Okafor ",
       role: "Blockchain Developer",
       experience: "3+ years",
-      location: "London, UK",
-      avatar: "/images/dev8.jpg",
+      location: "Lagos, Nigeria",
+      avatar: "/images/dev7.jpg",
       skills: ["Blockchain", "TypeScript", "Next.js", "Node.js"],
       specialties: ["Smart Contracts", "DeFi Protocols", "Web3 Integration"],
       availability: "Available",
@@ -630,14 +630,14 @@ export default function TechTalentPool() {
         {
           client: "CryptoVentures DAO",
           feedback:
-            "Alex built an exceptional DeFi protocol that exceeded our security and performance requirements. His Web3 expertise is outstanding.",
+            "Chinedu built an exceptional DeFi protocol that exceeded our security and performance requirements. His Web3 expertise is outstanding.",
           project: "DeFi Lending Protocol",
           rating: 5.0,
         },
         {
           client: "ArtBlock NFT",
           feedback:
-            "The NFT marketplace Alex developed is elegant and gas-efficient. Great attention to user experience in the Web3 space.",
+            "The NFT marketplace Chinedu developed is elegant and gas-efficient. Great attention to user experience in the Web3 space.",
           project: "NFT Marketplace",
           rating: 4.7,
         },

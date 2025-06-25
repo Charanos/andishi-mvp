@@ -294,7 +294,7 @@ export default function TechTalentPool() {
       avatar: "/images/dev6.jpg",
       skills: ["Python", "Node.js", "MongoDB", "AWS", "Docker"],
       specialties: ["Microservices", "Database Design", "Cloud Architecture"],
-      availability: "Busy until Jan 2025",
+      availability: "Busy until Oct 2025",
       rating: 5.0,
       projectsCompleted: 58,
       gradient: "from-green-500/20 to-emerald-500/10",

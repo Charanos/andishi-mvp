@@ -110,7 +110,7 @@ export default function DevDashboardSection(): JSX.Element {
             <div className="pt-4">
               <Link
                 href="/join-talent-pool"
-                className="group relative inline-flex items-center gap-3 px-6 py-3 mt-6 rounded-xl bg-purple-500/80 shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-orange-400/60"
+                className="group relative inline-flex items-center gap-3 px-6 py-3 mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium capitalize hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/25"
               >
                 <span className="relative z-10 text-md font-medium text-white tracking-wide monty drop-shadow-sm group-hover:text-orange-100 transition-colors duration-300">
                   Join as Developer

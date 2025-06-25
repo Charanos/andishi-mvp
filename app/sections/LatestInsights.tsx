@@ -44,6 +44,8 @@ export default function LatestInsights() {
       readTime: "8 min read",
       views: "1.8K",
       likes: "142",
+      image: "/images/blog-image-1.jpg",
+      featured: true,
       category: "Team Leadership",
       gradient: "from-purple-500/25 to-pink-500/15",
       size: "medium",
@@ -58,6 +60,8 @@ export default function LatestInsights() {
       readTime: "6 min read",
       views: "3.2K",
       likes: "201",
+      image: "/images/blog-image-2.jpg",
+      featured: true,
       category: "Web3 & Blockchain",
       gradient: "from-green-500/25 to-emerald-400/15",
       size: "small",
@@ -240,6 +244,14 @@ export default function LatestInsights() {
               {/* Image Section */}
               <div className="relative bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden h-48">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+
+                <Image
+                  width={5000}
+                  height={5000}
+                  alt="featured blog image"
+                  src={blog.image || " "}
+                  className="w-full z-30 h-full object-cover rounded-b-3xl"
+                />
                 <div className="absolute top-3 left-3">
                   <div className="flex items-center space-x-2 px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full">
                     <CategoryIcon category={blog.category} />

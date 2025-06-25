@@ -44,6 +44,7 @@ export default function BlogsSection() {
       readTime: "8 min read",
       views: "1.8K",
       likes: "142",
+      image: "/images/blog-image-1.jpg",
       category: "Team Leadership",
       gradient: "from-purple-500/25 to-pink-500/15",
       size: "medium",
@@ -58,9 +59,10 @@ export default function BlogsSection() {
       readTime: "6 min read",
       views: "3.2K",
       likes: "201",
+      image: "/images/blog-image-2.jpg",
       category: "Web3 & Blockchain",
       gradient: "from-green-500/25 to-emerald-400/15",
-      size: "small",
+      size: "medium",
     },
     {
       id: 4,
@@ -72,6 +74,7 @@ export default function BlogsSection() {
       readTime: "10 min read",
       views: "1.5K",
       likes: "98",
+      image: "/images/blog-image-3.jpg",
       category: "Cloud & Infrastructure",
       gradient: "from-orange-500/25 to-red-400/15",
       size: "medium",
@@ -87,8 +90,9 @@ export default function BlogsSection() {
       views: "2.7K",
       likes: "185",
       category: "Architecture",
+      image: "/images/blog-image-4.jpeg",
       gradient: "from-indigo-500/25 to-blue-400/15",
-      size: "small",
+      size: "medium",
     },
     {
       id: 6,
@@ -101,6 +105,7 @@ export default function BlogsSection() {
       views: "1.9K",
       likes: "167",
       category: "Security",
+      image: "/images/blog-image-5.jpg",
       gradient: "from-red-500/25 to-pink-400/15",
       size: "large",
     },
@@ -114,9 +119,10 @@ export default function BlogsSection() {
       readTime: "5 min read",
       views: "1.3K",
       likes: "87",
+      image: "/images/blog-image-6.jpeg",
       category: "Tools & Productivity",
       gradient: "from-teal-500/25 to-cyan-400/15",
-      size: "small",
+      size: "medium",
     },
     {
       id: 8,
@@ -129,6 +135,7 @@ export default function BlogsSection() {
       readTime: "9 min read",
       views: "2.4K",
       likes: "203",
+      image: "/images/blog-image-7.jpg",
       category: "Development Culture",
       gradient: "from-violet-500/25 to-purple-400/15",
       size: "medium",
@@ -144,6 +151,7 @@ export default function BlogsSection() {
       readTime: "9 min read",
       views: "2.4K",
       likes: "203",
+      image: "/images/blog-image-8.jpg",
       category: "Development Culture",
       gradient: "from-violet-500/25 to-purple-400/15",
       size: "medium",
@@ -159,6 +167,7 @@ export default function BlogsSection() {
       readTime: "9 min read",
       views: "2.4K",
       likes: "203",
+      image: "/images/blog-image-9.jpg",
       category: "Development Culture",
       gradient: "from-violet-500/25 to-purple-400/15",
       size: "medium",
@@ -188,12 +197,12 @@ export default function BlogsSection() {
   const getCardSizeClasses: GetCardSizeClasses = (size) => {
     switch (size) {
       case "large":
-        return "md:col-span-2 md:row-span-2";
+        return "md:col-span-2 md:row-span-2"; // Takes up 4 grid cells
       case "medium":
-        return "md:col-span-2 md:row-span-1";
+        return "md:col-span-2 md:row-span-1"; // Takes up 2 grid cells
       case "small":
       default:
-        return "md:col-span-1 md:row-span-1";
+        return "md:col-span-1 md:row-span-1"; // Takes up 1 grid cell
     }
   };
 
@@ -340,7 +349,7 @@ export default function BlogsSection() {
         </div>
 
         {/* Mosaic Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 auto-rows-fr mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 auto-rows-[200px] mb-16">
           {blogs.map((blog) => (
             <article
               key={blog.id}
@@ -360,13 +369,20 @@ export default function BlogsSection() {
               <div
                 className={`relative bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden ${
                   blog.size === "large"
-                    ? "h-48"
+                    ? "h-40" // Reduced from h-48
                     : blog.size === "medium"
-                    ? "h-32"
-                    : "h-24"
+                    ? "h-28" // Reduced from h-32
+                    : "h-20" // Reduced from h-24
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <Image
+                  width={5000}
+                  height={5000}
+                  alt="featured blog image"
+                  src={blog.image || " "}
+                  className="w-full z-30 h-full object-cover rounded-b-3xl"
+                />
                 <div className="absolute top-3 left-3">
                   <div className="flex items-center space-x-2 px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full">
                     <CategoryIcon category={blog.category} />

@@ -2,55 +2,81 @@ import { z } from 'zod';
 
 // --- Project Forms Schemas ---
 
-export const userInfoSchema = z.object({
-  firstName: z.string().min(2, 'First name is required'),
-  lastName: z.string().min(2, 'Last name is required'),
-  email: z.string().email('Valid email required'),
+// User info schema for unauthenticated users
+const userInfoSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email is required"),
   phone: z.string().optional(),
   company: z.string().optional(),
-  role: z.string().optional(),
+  role: z.string().default("client")
 });
 
-export const projectDetailsSchema = z.object({
-  title: z.string().min(2, 'Project title is required'),
-  description: z.string().min(10, 'Project description is required'),
+// Project details schema
+const projectDetailsSchema = z.object({
+  title: z.string().min(1, "Project title is required"),
+  description: z.string().min(10, "Project description must be at least 10 characters"),
   category: z.string().optional(),
   timeline: z.string().optional(),
-  urgency: z.string().optional(),
-  techStack: z.array(z.string()).min(1, 'Please select at least one technology').default([]),
-  requirements: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "urgent"]).default("low"),
+  techStack: z.array(z.string()).min(1, "At least one technology must be selected"),
+  requirements: z.string().optional()
 });
 
-export const milestoneSchema = z.object({
+// Milestone schema for milestone-based pricing
+const milestoneSchema = z.object({
   id: z.string(),
-  title: z.string().min(1, 'Milestone title is required'),
-  description: z.string().min(1, 'Milestone description is required'),
-  budget: z.string().min(1, 'Milestone budget is required'),
-  timeline: z.string().min(1, 'Milestone timeline is required'),
+  title: z.string().min(1, "Milestone title is required"),
+  description: z.string().min(1, "Milestone description is required"),
+  budget: z.string().min(1, "Milestone budget is required"),
+  timeline: z.string().min(1, "Milestone timeline is required")
 });
 
-export const pricingSchema = z.object({
-  type: z.enum(['fixed', 'milestone', 'hourly']),
-  currency: z.enum(['USD', 'KES']),
+// Pricing schema with conditional validation
+const pricingSchema = z.object({
+  type: z.enum(["fixed", "milestone", "hourly"]).default("fixed"),
+  currency: z.enum(["USD", "KES"]).default("USD"),
   fixedBudget: z.string().optional(),
-  milestones: z.array(milestoneSchema).default([]),
+  milestones: z.array(milestoneSchema).optional().default([]),
   hourlyRate: z.string().optional(),
-  estimatedHours: z.string().optional(),
-}).refine(
-  (data) => data.type !== 'milestone' || (data.milestones && data.milestones.length > 0),
-  {
-    message: 'Please add at least one milestone for milestone-based pricing.',
-    path: ['milestones'],
+  estimatedHours: z.string().optional()
+}).refine((data) => {
+  // Conditional validation based on pricing type
+  if (data.type === "fixed") {
+    return data.fixedBudget && data.fixedBudget.trim() !== "";
   }
-);
+  if (data.type === "hourly") {
+    return data.hourlyRate && data.hourlyRate.trim() !== "" && 
+           data.estimatedHours && data.estimatedHours.trim() !== "";
+  }
+  if (data.type === "milestone") {
+    return data.milestones && data.milestones.length > 0;
+  }
+  return true;
+}, {
+  message: "Please provide the required pricing information for your selected pricing type"
+});
 
+// Schema for unauthenticated users (includes userInfo)
 export const startProjectFormSchema = z.object({
   userInfo: userInfoSchema,
   projectDetails: projectDetailsSchema,
-  pricing: pricingSchema,
+  pricing: pricingSchema
 });
 
+// Schema for authenticated users (no userInfo needed)
+export const authenticatedStartProjectFormSchema = z.object({
+  projectDetails: projectDetailsSchema,
+  pricing: pricingSchema
+});
+
+// Export types for TypeScript
+export type UserInfo = z.infer<typeof userInfoSchema>;
+export type ProjectDetails = z.infer<typeof projectDetailsSchema>;
+export type Milestone = z.infer<typeof milestoneSchema>;
+export type PricingOption = z.infer<typeof pricingSchema>;
 export type StartProjectForm = z.infer<typeof startProjectFormSchema>;
+export type AuthenticatedStartProjectForm = z.infer<typeof authenticatedStartProjectFormSchema>;
 
 // --- Tech Talent Pool Forms Schemas ---
 

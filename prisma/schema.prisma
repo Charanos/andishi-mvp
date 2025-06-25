@@ -8,14 +8,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model DeveloperProfile {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  data            Json
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  email             String           @unique
+  firstName         String
+  lastName          String
+  role              String           @default("developer")
+  status            String           @default("pending")
+  isActive          Boolean          @default(true)
+  accountCreated    Boolean          @default(false)
+  passwordGenerated Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  developerProfile  DeveloperProfile? @relation("UserProfile")
+}
+
+model DeveloperProfile {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  data            Json
+  userId          String?  @unique @db.ObjectId
+  user            User?    @relation("UserProfile", fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

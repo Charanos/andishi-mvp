@@ -119,11 +119,6 @@ interface CRUDOperations {
   uploadFile: (projectId: string, file: File) => Promise<void>;
   deleteFile: (projectId: string, fileId: string) => Promise<void>;
 }
-deleteUpdate: (projectId: string, updateId: string) => Promise<void>;
-
-// File operations
-uploadFile: (projectId: string, file: File) => Promise<void>;
-deleteFile: (projectId: string, fileId: string) => Promise<void>;
 
 const renderProjectDetail = (
   project: ProjectWithDetails,
@@ -775,27 +770,21 @@ const renderProjectDetail = (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
                     <label className="text-sm font-medium text-gray-400 mb-2 block">
-                      Urgency
+                      Priority Level
                     </label>
-                    {isEditing && editingSection === "info" ? (
-                      <select
-                        value={formData.urgency || ""}
-                        onChange={(e) =>
-                          handleInputChange("urgency", e.target.value)
-                        }
-                        className="w-full bg-white/10 text-white px-3 py-2 rounded-lg border border-white/20 focus:border-blue-500 focus:outline-none"
-                      >
-                        <option value="">Select urgency</option>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                        <option value="critical">Critical</option>
-                      </select>
-                    ) : (
-                      <span className="text-white font-medium capitalize">
-                        {project.urgency || "Not specified"}
-                      </span>
-                    )}
+                    <select
+                      value={formData.priority || ""}
+                      onChange={(e) =>
+                        handleInputChange("priority", e.target.value)
+                      }
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    >
+                      <option value="">Select priority</option>
+                      <option value="low">Low - No rush</option>
+                      <option value="medium">Medium - Standard timeline</option>
+                      <option value="high">High - ASAP</option>
+                      <option value="urgent">Urgent - Emergency</option>
+                    </select>
                   </div>
 
                   <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">

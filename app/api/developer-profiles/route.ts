@@ -1,14 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import { DeveloperProfile } from "@/types/developer-profile";
+import prisma from "@/lib/prisma";
 import { mockDeveloperProfile } from "../../../lib/mockDeveloperProfile";
+import { ObjectId } from "mongodb";
+import clientPromise from "@/lib/mongodb";
 
-const prisma = new PrismaClient();
-
-// Type for the database record
-interface DeveloperProfileRecord {
-  id: string;
-  data: any; // Changed from Partial<DeveloperProfile> to any for better JSON handling
+type DeveloperProfileData = {
+  personalInfo?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    location?: string;
+    portfolio?: string;
+    tagline?: string;
+  };
+  professionalInfo?: {
+    title?: string;
+    experienceLevel?: string;
+    availability?: string;
+    hourlyRate?: number;
+  };
+  technicalSkills?: {
+    primarySkills?: Array<{ name: string; level: number }>;
+  };
+  stats?: {
+    totalProjects?: number;
+    averageRating?: number;
+    totalEarnings?: number;
+    clientRetention?: number;
+  };
+  projects?: any[];
+  recentActivity?: any[];
 }
 
 // NOTE: Proper authentication / RBAC is not yet wired. For now, we only allow writes
@@ -18,44 +39,39 @@ const isReadOnly = process.env.NODE_ENV === "production";
 export async function GET(): Promise<NextResponse> {
   try {
     console.log('Fetching developer profiles from database...');
-    let records = await prisma.developerProfile.findMany() as DeveloperProfileRecord[];
+    const client = await clientPromise;
+    const db = client.db();
+    const records = await db.collection('developerProfiles').find({}).toArray();
     console.log(`Found ${records.length} developer profiles`);
 
     // Only create mock profile if no records exist at all
     if (records.length === 0) {
       console.log('No profiles found, creating mock profile...');
-      const created = await prisma.developerProfile.create({
-        data: {
-          data: mockDeveloperProfile,
-        },
-      }) as DeveloperProfileRecord;
-      records = [created];
+      const created = await db.collection('developerProfiles').insertOne({
+        data: mockDeveloperProfile,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      return NextResponse.json([created], { status: 200 });
     }
 
-    const payload: DeveloperProfile[] = records.map(rec => {
-      // Parse the data if it's a string (some databases store JSON as strings)
-      let data = rec.data;
-      if (typeof data === 'string') {
-        try {
-          data = JSON.parse(data);
-        } catch (e) {
-          console.warn('Failed to parse JSON data for record:', rec.id);
-          data = {};
-        }
-      }
-
-      // Provide more robust fallbacks
+    const payload = await Promise.all(records.map(async (rec) => {
+      const data = rec.data as DeveloperProfileData;
       const personalInfo = data?.personalInfo || {};
       const professionalInfo = data?.professionalInfo || {};
       const technicalSkills = data?.technicalSkills || {};
       const stats = data?.stats || {};
 
+      // Get associated user
+      const user = await db.collection('developers').findOne({ _id: new ObjectId(rec.userId) });
+
       return {
-        id: rec.id,
+        id: rec._id.toString(),
+        user,
         personalInfo: {
-          firstName: personalInfo.firstName || 'Unknown', 
-          lastName: personalInfo.lastName || 'Developer',
-          email: personalInfo.email || '',
+          firstName: personalInfo.firstName || user?.firstName || 'Unknown',
+          lastName: personalInfo.lastName || user?.lastName || 'Developer',
+          email: personalInfo.email || user?.email || '',
           location: personalInfo.location || 'Unknown',
           portfolio: personalInfo.portfolio || undefined,
           tagline: personalInfo.tagline || 'Full Stack Developer',
@@ -84,12 +100,61 @@ export async function GET(): Promise<NextResponse> {
         projects: Array.isArray(data?.projects) ? data.projects : [],
         recentActivity: Array.isArray(data?.recentActivity) ? data.recentActivity : [],
       };
-    });
+    }));
     
-    console.log('Sending response with payload:', JSON.stringify(payload, null, 2));
     return NextResponse.json(payload, { status: 200 });
   } catch (err) {
     console.error("GET /api/developer-profile error", err);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId, data } = await req.json();
+
+    if (!userId) {
+      return new NextResponse("User ID is required", { status: 400 });
+    }
+
+    // Check if user exists
+    const client = await clientPromise;
+    const db = client.db();
+    const user = await db.collection('developers').findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
+    // Create developer profile
+    const profile = await db.collection('developerProfiles').insertOne({
+      data,
+      userId: new ObjectId(userId),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Return the created profile with user data
+    const createdProfile = await db.collection('developerProfiles').findOne(
+      { _id: profile.insertedId },
+      {
+        projection: {
+          _id: 1,
+          data: 1,
+          userId: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      }
+    );
+
+    return NextResponse.json({
+      ...createdProfile,
+      id: createdProfile?._id.toString(),
+      user,
+    }, { status: 201 });
+  } catch (err) {
+    console.error("POST /api/developer-profiles error:", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -100,27 +165,37 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
-    const payload = await req.json();
-    console.log('Received PUT payload:', payload);
+    const { id, data } = await req.json();
 
-    const existing = await prisma.developerProfile.findFirst();
-
-    let record;
-    if (existing) {
-      console.log('Updating existing profile:', existing.id);
-      record = await prisma.developerProfile.update({
-        where: { id: existing.id },
-        data: { data: payload },
-      });
-    } else {
-      console.log('Creating new profile');
-      record = await prisma.developerProfile.create({
-        data: { data: payload },
-      });
+    if (!id) {
+      return new NextResponse("Profile ID is required", { status: 400 });
     }
 
-    console.log('Profile saved successfully');
-    return NextResponse.json(record.data, { status: 200 });
+    const client = await clientPromise;
+    const db = client.db();
+    const profile = await db.collection('developerProfiles').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          data,
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!profile) {
+      return new NextResponse("Profile not found", { status: 404 });
+    }
+
+    // Get associated user
+    const user = await db.collection('developers').findOne({ _id: new ObjectId(profile.userId) });
+
+    return NextResponse.json({
+      ...profile,
+      id: profile._id.toString(),
+      user,
+    }, { status: 200 });
   } catch (err) {
     console.error("PUT /api/developer-profile error", err);
     return new NextResponse("Internal Server Error", { status: 500 });

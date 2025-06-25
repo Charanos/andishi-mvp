@@ -55,6 +55,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import ClientDashboardStartProject from "./StartNewProject";
+import { useAuth } from "@/hooks/useAuth";
 
 type ActiveTab = "projects" | "analytics" | "create" | "settings";
 
@@ -65,11 +66,10 @@ interface ProjectWithDetails {
   description: string;
   category?: string;
   timeline?: string;
-  urgency?: string;
+  priority: "low" | "medium" | "high" | "urgent";
   techStack: string[];
   requirements?: string;
   status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
-  priority: "low" | "medium" | "high" | "urgent";
   progress: number;
   startDate?: Date;
   endDate?: Date;
@@ -124,6 +124,7 @@ interface ProjectStats {
 }
 
 const ClientDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>("projects");
   const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<
@@ -161,134 +162,117 @@ const ClientDashboard: React.FC = () => {
     );
   };
 
-  // Mock data - replace with actual API calls
+  // Replace the first useEffect with this:
   useEffect(() => {
-    // Simulate API call
-    const mockProjects: ProjectWithDetails[] = [
-      {
-        id: "1",
-        title: "E-commerce Platform Redesign",
-        description:
-          "Complete redesign of the e-commerce platform with modern UI/UX, improved performance, and mobile optimization.",
-        category: "Web Development",
-        timeline: "3 months",
-        urgency: "high",
-        techStack: [
-          "React",
-          "Next.js",
-          "TypeScript",
-          "Tailwind CSS",
-          "PostgreSQL",
-        ],
-        status: "in_progress",
-        priority: "high",
-        progress: 65,
-        startDate: new Date("2024-01-15"),
-        estimatedCompletionDate: new Date("2024-04-15"),
-        createdAt: new Date("2024-01-10"),
-        updatedAt: new Date("2024-03-01"),
-        pricing: {
-          type: "milestone",
-          currency: "USD",
-          totalPaid: "15000",
-        },
-        milestones: [
-          {
-            id: "1",
-            title: "UI/UX Design",
-            description: "Complete design system and mockups",
-            budget: "5000",
-            timeline: "2 weeks",
-            status: "completed",
-            order: 1,
-            completedAt: new Date("2024-01-30"),
-          },
-          {
-            id: "2",
-            title: "Frontend Development",
-            description: "Implement responsive frontend",
-            budget: "8000",
-            timeline: "6 weeks",
-            status: "in_progress",
-            order: 2,
-          },
-        ],
-        updates: [
-          {
-            id: "1",
-            title: "Frontend Development Progress",
-            description:
-              "Completed product catalog and shopping cart functionality",
-            type: "general",
-            createdAt: new Date("2024-02-28"),
-          },
-        ],
-      },
-      {
-        id: "2",
-        title: "Mobile App Development",
-        description:
-          "Native mobile application for iOS and Android with real-time features and offline capability.",
-        category: "Mobile Development",
-        timeline: "4 months",
-        urgency: "medium",
-        techStack: ["React Native", "Node.js", "Firebase", "Redux"],
-        status: "pending",
-        priority: "medium",
-        progress: 0,
-        createdAt: new Date("2024-02-01"),
-        updatedAt: new Date("2024-02-01"),
-        pricing: {
-          type: "fixed",
-          currency: "USD",
-          fixedBudget: "25000",
-        },
-      },
-      {
-        id: "3",
-        title: "Data Analytics Dashboard",
-        description:
-          "Business intelligence dashboard with real-time analytics, reporting, and data visualization.",
-        category: "Data Analytics",
-        timeline: "2 months",
-        urgency: "low",
-        techStack: ["Python", "Django", "React", "D3.js", "PostgreSQL"],
-        status: "completed",
-        priority: "low",
-        progress: 100,
-        startDate: new Date("2023-11-01"),
-        endDate: new Date("2024-01-01"),
-        actualCompletionDate: new Date("2024-01-01"),
-        createdAt: new Date("2023-10-15"),
-        updatedAt: new Date("2024-01-01"),
-        pricing: {
-          type: "hourly",
-          currency: "USD",
-          hourlyRate: "75",
-          estimatedHours: 200,
-        },
-      },
-    ];
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
 
-    setProjects(mockProjects);
-    setFilteredProjects(mockProjects);
+        if (!user?.email || user?.role !== "client") {
+          throw new Error("User not authenticated or unauthorized");
+        }
 
-    // Calculate stats
-    const newStats: ProjectStats = {
-      total: mockProjects.length,
-      pending: mockProjects.filter((p) => p.status === "pending").length,
-      inProgress: mockProjects.filter((p) => p.status === "in_progress").length,
-      completed: mockProjects.filter((p) => p.status === "completed").length,
-      cancelled: mockProjects.filter((p) => p.status === "cancelled").length,
-      onHold: mockProjects.filter((p) => p.status === "on_hold").length,
-      averageProgress: Math.round(
-        mockProjects.reduce((acc, p) => acc + p.progress, 0) /
-          mockProjects.length
-      ),
+        const response = await fetch("/api/client-projects", {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            "user-email": user.email,
+            "user-role": "client",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            (await response.text()) || "Failed to fetch projects"
+          );
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Transform dates in the projects data
+          const transformedProjects = data.projects.map((project: any) => ({
+            ...project,
+            createdAt: project.createdAt
+              ? new Date(project.createdAt)
+              : new Date(),
+            updatedAt: project.updatedAt
+              ? new Date(project.updatedAt)
+              : new Date(),
+            startDate: project.startDate ? new Date(project.startDate) : null,
+            endDate: project.endDate ? new Date(project.endDate) : null,
+            estimatedCompletionDate: project.estimatedCompletionDate
+              ? new Date(project.estimatedCompletionDate)
+              : null,
+            actualCompletionDate: project.actualCompletionDate
+              ? new Date(project.actualCompletionDate)
+              : null,
+            milestones:
+              project.milestones?.map((m: any) => ({
+                ...m,
+                dueDate: m.dueDate ? new Date(m.dueDate) : null,
+                completedAt: m.completedAt ? new Date(m.completedAt) : null,
+              })) || [],
+            updates:
+              project.updates?.map((u: any) => ({
+                ...u,
+                createdAt: u.createdAt ? new Date(u.createdAt) : new Date(),
+              })) || [],
+            files:
+              project.files?.map((f: any) => ({
+                ...f,
+                createdAt: f.createdAt ? new Date(f.createdAt) : new Date(),
+              })) || [],
+          }));
+
+          setProjects(transformedProjects);
+          setFilteredProjects(transformedProjects);
+
+          // Calculate stats
+          const newStats: ProjectStats = {
+            total: transformedProjects.length,
+            pending: transformedProjects.filter(
+              (p: any) => p.status === "pending"
+            ).length,
+            inProgress: transformedProjects.filter(
+              (p: any) => p.status === "in_progress"
+            ).length,
+            completed: transformedProjects.filter(
+              (p: any) => p.status === "completed"
+            ).length,
+            cancelled: transformedProjects.filter(
+              (p: any) => p.status === "cancelled"
+            ).length,
+            onHold: transformedProjects.filter(
+              (p: any) => p.status === "on_hold"
+            ).length,
+            averageProgress: Math.round(
+              transformedProjects.reduce(
+                (acc: number, p: any) => acc + p.progress,
+                0
+              ) / transformedProjects.length
+            ),
+          };
+          setStats(newStats);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+        setNotifications((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            type: "error",
+            message: "Failed to fetch projects. Please try again later.",
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
     };
-    setStats(newStats);
-    setLoading(false);
-  }, []);
+
+    fetchProjects();
+  }, [user]);
 
   // Reset view when changing tabs:
   useEffect(() => {
@@ -404,6 +388,173 @@ const ClientDashboard: React.FC = () => {
       </div>
     );
   }
+
+  // Add these functions before the render functions:
+
+  const createProject = async (projectData: any) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userEmail = localStorage.getItem("userEmail");
+
+      const response = await fetch("/api/client-projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "user-email": userEmail || "",
+        },
+        body: JSON.stringify(projectData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create project");
+      }
+
+      // Refresh projects
+      const updatedResponse = await fetch("/api/client-projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "user-email": userEmail || "",
+        },
+      });
+      const updatedData = await updatedResponse.json();
+
+      if (updatedData.success) {
+        setProjects(updatedData.projects);
+        setFilteredProjects(updatedData.projects);
+        setNotifications((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            type: "success",
+            message: "Project created successfully!",
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error creating project:", error);
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          type: "error",
+          message: "Failed to create project. Please try again.",
+        },
+      ]);
+    }
+  };
+
+  const updateProject = async (projectId: string, updates: any) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userEmail = localStorage.getItem("userEmail");
+
+      const response = await fetch("/api/client-projects", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "user-email": userEmail || "",
+        },
+        body: JSON.stringify({ projectId, updates }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update project");
+      }
+
+      // Refresh projects
+      const updatedResponse = await fetch("/api/client-projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "user-email": userEmail || "",
+        },
+      });
+      const updatedData = await updatedResponse.json();
+
+      if (updatedData.success) {
+        setProjects(updatedData.projects);
+        setFilteredProjects(updatedData.projects);
+        setNotifications((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            type: "success",
+            message: "Project updated successfully!",
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error updating project:", error);
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          type: "error",
+          message: "Failed to update project. Please try again.",
+        },
+      ]);
+    }
+  };
+
+  const deleteProject = async (projectId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userEmail = localStorage.getItem("userEmail");
+
+      const response = await fetch("/api/client-projects", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "user-email": userEmail || "",
+        },
+        body: JSON.stringify({ projectId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete project");
+      }
+
+      // Refresh projects
+      const updatedResponse = await fetch("/api/client-projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "user-email": userEmail || "",
+        },
+      });
+      const updatedData = await updatedResponse.json();
+
+      if (updatedData.success) {
+        setProjects(updatedData.projects);
+        setFilteredProjects(updatedData.projects);
+        setNotifications((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            type: "success",
+            message: "Project deleted successfully!",
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          type: "error",
+          message: "Failed to delete project. Please try again.",
+        },
+      ]);
+    }
+  };
 
   // Render Functions
   const renderCreateNewProject = () => (
@@ -1005,7 +1156,7 @@ const ClientDashboard: React.FC = () => {
                   {
                     status: "Completed",
                     count: completedProjects,
-                    color: "bg-green-500",
+                    color: "bg-green-500/30",
                     icon: <FaCheckCircle className="text-green-400" />,
                     percentage:
                       totalProjects > 0
@@ -1015,7 +1166,7 @@ const ClientDashboard: React.FC = () => {
                   {
                     status: "In Progress",
                     count: inProgressProjects,
-                    color: "bg-blue-500",
+                    color: "bg-blue-500/30",
                     icon: <FaClock className="text-blue-400" />,
                     percentage:
                       totalProjects > 0
@@ -1028,7 +1179,7 @@ const ClientDashboard: React.FC = () => {
                       0,
                       totalProjects - completedProjects - inProgressProjects
                     ),
-                    color: "bg-yellow-500",
+                    color: "bg-yellow-500/30",
                     icon: <FaLightbulb className="text-yellow-400" />,
                     percentage:
                       totalProjects > 0
@@ -1044,7 +1195,7 @@ const ClientDashboard: React.FC = () => {
                   {
                     status: "On Hold",
                     count: 0, // You might want to add this data from your projects
-                    color: "bg-red-500",
+                    color: "bg-red-500/30",
                     icon: <FaPause className="text-red-400" />,
                     percentage: 0,
                   },
@@ -1604,13 +1755,13 @@ const ClientDashboard: React.FC = () => {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {project.urgency && (
+                    {project.priority && (
                       <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
                         <label className="text-sm font-medium text-gray-400 mb-2 block">
-                          Urgency
+                          Priority
                         </label>
                         <span className="text-white font-medium capitalize">
-                          {project.urgency}
+                          {project.priority}
                         </span>
                       </div>
                     )}

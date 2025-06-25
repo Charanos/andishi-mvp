@@ -57,33 +57,50 @@ export default function TechTalentPool() {
 
   // Skill colors for badges
   const skillColors: { [key: string]: string } = {
-    React: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    "Next.js": "bg-gray-800/20 text-gray-300 border-gray-600/30",
-    "Node.js": "bg-green-500/20 text-green-300 border-green-500/30",
-    TypeScript: "bg-blue-600/20 text-blue-400 border-blue-600/30",
-    Python: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    "Tailwind CSS": "bg-teal-500/20 text-teal-300 border-teal-500/30",
-    MongoDB: "bg-green-600/20 text-green-400 border-green-600/30",
-    PostgreSQL: "bg-blue-700/20 text-blue-400 border-blue-700/30",
-    Firebase: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    AWS: "bg-orange-600/20 text-orange-400 border-orange-600/30",
-    "Vue.js": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    Blockchain: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    DevOps: "bg-red-500/20 text-red-300 border-red-500/30",
-    "Machine Learning": "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
-    "React Native": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-    Docker: "bg-blue-400/20 text-blue-200 border-blue-400/30",
-    Kubernetes: "bg-purple-600/20 text-purple-400 border-purple-600/30",
-    GraphQL: "bg-pink-500/20 text-pink-300 border-pink-500/30",
+    React:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Next.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Node.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    TypeScript:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Python:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Tailwind CSS":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    MongoDB:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    PostgreSQL:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Firebase:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    AWS: "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Vue.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Blockchain:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    DevOps:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Machine Learning":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "React Native":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Docker:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Kubernetes:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    GraphQL:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
   };
 
   const developers: Developer[] = [
     {
       id: 1,
-      name: "Sarah Chen",
+      name: "Felix Nthiwa",
       role: "Full Stack Developer",
       experience: "5+ years",
-      location: "San Francisco, CA",
+      location: "Nairobi, KE",
       avatar: "/images/dev1.jpg",
       skills: ["React", "Node.js", "TypeScript", "AWS", "PostgreSQL"],
       specialties: ["E-commerce", "Real-time Systems", "API Design"],
@@ -91,18 +108,18 @@ export default function TechTalentPool() {
       rating: 4.9,
       projectsCompleted: 47,
       gradient: "from-blue-500/20 to-cyan-500/10",
-      portfolioUrl: "/talent/sarah-chen",
-      githubUrl: "https://github.com/sarahchen",
-      linkedinUrl: "https://linkedin.com/in/sarahchen",
+      portfolioUrl: "/talent/Felix-nthiwa",
+      githubUrl: "https://github.com/FelixNthiwa",
+      linkedinUrl: "https://linkedin.com/in/FelixNthiwa",
       bio: "Passionate full-stack developer with expertise in building scalable web applications and modern user interfaces.",
       about:
         "I'm a dedicated full-stack developer with over 5 years of experience creating robust, scalable web applications. My journey began with a Computer Science degree, and I've since worked with startups and enterprises alike, helping them build digital solutions that drive growth. I'm particularly passionate about e-commerce platforms and real-time systems, having architected several high-traffic applications that serve thousands of users daily. When I'm not coding, you'll find me contributing to open-source projects or mentoring junior developers.",
       languages: [
         "English (Native)",
-        "Mandarin (Fluent)",
+        "Swahili (Fluent)",
         "Spanish (Conversational)",
       ],
-      education: "B.S. Computer Science, Stanford University",
+      education: "B.S. Computer Science, Kenyatta University",
       certifications: [
         "AWS Solutions Architect",
         "Google Cloud Professional",
@@ -135,35 +152,35 @@ export default function TechTalentPool() {
         {
           client: "TechCorp Solutions",
           feedback:
-            "Sarah delivered exceptional results on our e-commerce platform. Her technical expertise and attention to detail exceeded our expectations.",
+            "Felix delivered exceptional results on our e-commerce platform. Her technical expertise and attention to detail exceeded our expectations.",
           project: "E-commerce Platform",
           rating: 5.0,
         },
         {
           client: "FinanceFlow Inc",
           feedback:
-            "Outstanding work on our trading dashboard. Sarah's real-time expertise was exactly what we needed.",
+            "Outstanding work on our trading dashboard. Felix's real-time expertise was exactly what we needed.",
           project: "Trading Dashboard",
           rating: 4.9,
         },
       ],
       workHistory: [
         {
-          company: "Shopify",
+          company: "Airtel KE",
           position: "Senior Full Stack Developer",
           duration: "2022 - 2024",
           description:
             "Led development of core e-commerce features, mentored junior developers, and improved system performance by 35%.",
         },
         {
-          company: "Stripe",
+          company: "Kenya Revenue Authority (KRA)",
           position: "Full Stack Developer",
           duration: "2020 - 2022",
           description:
             "Built payment processing systems and APIs, working with high-volume financial transactions.",
         },
         {
-          company: "StartupXYZ",
+          company: "Startup Hub Africa",
           position: "Frontend Developer",
           duration: "2019 - 2020",
           description:
@@ -173,10 +190,10 @@ export default function TechTalentPool() {
     },
     {
       id: 2,
-      name: "Marcus Rodriguez",
+      name: "Daniel Kemboi",
       role: "Frontend Developer",
       experience: "4+ years",
-      location: "Austin, TX",
+      location: "Nakuru, KE",
       avatar: "/images/dev2.jpg",
       skills: ["React", "Next.js", "Tailwind CSS", "TypeScript", "Vue.js"],
       specialties: [
@@ -196,10 +213,10 @@ export default function TechTalentPool() {
         "I'm a creative frontend developer who believes that great user interfaces are the bridge between complex technology and human needs. With 4+ years of experience, I specialize in transforming design concepts into pixel-perfect, performant web applications. My background in graphic design gives me a unique perspective on UI/UX implementation, allowing me to work closely with designers while ensuring technical feasibility. I'm passionate about accessibility, performance optimization, and creating mobile-first experiences that work seamlessly across all devices.",
       languages: [
         "English (Native)",
-        "Spanish (Native)",
-        "Portuguese (Intermediate)",
+        "Swahili (Native)",
+        "French (Intermediate)",
       ],
-      education: "B.A. Graphic Design & Computer Science, UT Austin",
+      education: "B.A. Graphic Design & Computer Science, Egerton University",
       certifications: [
         "Google UX Design Certificate",
         "React Advanced Patterns",
@@ -246,21 +263,21 @@ export default function TechTalentPool() {
       ],
       workHistory: [
         {
-          company: "Adobe",
+          company: "Jumia KE",
           position: "Senior Frontend Developer",
           duration: "2023 - Present",
           description:
             "Developing user interfaces for creative tools, focusing on performance optimization and accessibility.",
         },
         {
-          company: "Spotify",
+          company: "Salem Innovations",
           position: "Frontend Developer",
           duration: "2021 - 2023",
           description:
             "Built responsive web applications for music streaming platform, improving user engagement metrics.",
         },
         {
-          company: "Local Design Agency",
+          company: "E-mobilis Institute",
           position: "Junior Frontend Developer",
           duration: "2020 - 2021",
           description:
@@ -273,8 +290,8 @@ export default function TechTalentPool() {
       name: "Priya Patel",
       role: "Backend Developer",
       experience: "6+ years",
-      location: "Toronto, ON",
-      avatar: "/images/dev3.jpg",
+      location: "New Delhi, IN",
+      avatar: "/images/dev6.jpg",
       skills: ["Python", "Node.js", "MongoDB", "AWS", "Docker"],
       specialties: ["Microservices", "Database Design", "Cloud Architecture"],
       availability: "Busy until Jan 2025",
@@ -287,13 +304,8 @@ export default function TechTalentPool() {
       bio: "Senior backend engineer specializing in scalable server architectures and high-performance database systems.",
       about:
         "I'm a senior backend engineer with 6+ years of experience building robust, scalable server architectures that power modern applications. My expertise lies in designing microservices architectures, optimizing database performance, and implementing cloud-native solutions. I've worked with companies ranging from early-stage startups to Fortune 500 enterprises, helping them scale their backend systems to handle millions of users. I'm particularly passionate about database design and performance optimization, having reduced query times by up to 90% in several projects. My approach combines solid engineering principles with pragmatic solutions that deliver real business value.",
-      languages: [
-        "English (Fluent)",
-        "Hindi (Native)",
-        "Gujarati (Native)",
-        "French (Intermediate)",
-      ],
-      education: "M.S. Computer Science, University of Toronto",
+      languages: ["English (Fluent)", "Hindi (Native)", "Gujarati (Native)"],
+      education: "M.S. Computer Science, University of India",
       certifications: [
         "AWS Solutions Architect Professional",
         "MongoDB Certified Developer",
@@ -341,21 +353,21 @@ export default function TechTalentPool() {
       ],
       workHistory: [
         {
-          company: "Amazon",
+          company: "Mahindra Tech",
           position: "Senior Backend Engineer",
           duration: "2021 - Present",
           description:
             "Leading backend development for high-traffic e-commerce services, focusing on scalability and performance optimization.",
         },
         {
-          company: "Uber",
+          company: "Alibaba Cloud",
           position: "Backend Engineer",
           duration: "2019 - 2021",
           description:
             "Developed real-time location services and payment processing systems for ride-sharing platform.",
         },
         {
-          company: "Shopify",
+          company: "Smirtrack Technologies",
           position: "Software Engineer",
           duration: "2018 - 2019",
           description:
@@ -369,7 +381,7 @@ export default function TechTalentPool() {
       role: "Mobile Developer",
       experience: "4+ years",
       location: "Seattle, WA",
-      avatar: "/images/dev4.jpg",
+      avatar: "/images/dev3.jpg",
       skills: ["React Native", "TypeScript", "Firebase", "Node.js"],
       specialties: [
         "Cross-platform Apps",
@@ -439,18 +451,18 @@ export default function TechTalentPool() {
       ],
       workHistory: [
         {
-          company: "Microsoft",
+          company: "Shangai Holding LTD",
           position: "Senior Mobile Developer",
           duration: "2022 - Present",
           description:
             "Leading mobile app development for productivity suite, focusing on cross-platform React Native solutions.",
         },
         {
-          company: "Starbucks",
+          company: "XenoTech Solutions",
           position: "Mobile Developer",
           duration: "2020 - 2022",
           description:
-            "Developed features for the Starbucks mobile app, including payment systems and loyalty program integration.",
+            "Developed features for the Xen mobile app, including payment systems and loyalty program integration.",
         },
         {
           company: "Local Startup",
@@ -463,10 +475,10 @@ export default function TechTalentPool() {
     },
     {
       id: 5,
-      name: "Elena Volkov",
+      name: "Elena Njeri",
       role: "DevOps Engineer",
-      experience: "7+ years",
-      location: "Berlin, Germany",
+      experience: "3+ years",
+      location: "Thika, KE",
       avatar: "/images/dev5.jpg",
       skills: ["AWS", "Docker", "Kubernetes", "Python", "DevOps"],
       specialties: [
@@ -486,11 +498,10 @@ export default function TechTalentPool() {
         "I'm a DevOps engineer with 7+ years of experience building robust, scalable cloud infrastructure that enables development teams to deploy with confidence. My expertise spans the entire DevOps lifecycle, from setting up CI/CD pipelines to implementing comprehensive monitoring and logging solutions. I believe in Infrastructure as Code and have helped numerous organizations transition from manual deployment processes to fully automated, reliable systems. My experience includes working with both startups needing to scale quickly and large enterprises requiring bulletproof reliability. I'm passionate about creating systems that not only work flawlessly but also provide clear visibility into their operation.",
       languages: [
         "English (Fluent)",
-        "Russian (Native)",
-        "German (Fluent)",
+        "Swahili (Native)",
         "Spanish (Intermediate)",
       ],
-      education: "M.S. Systems Engineering, Technical University of Berlin",
+      education: "M.S. Systems Engineering, Technical University of Thika",
       certifications: [
         "AWS Solutions Architect Professional",
         "Certified Kubernetes Administrator",
@@ -553,7 +564,7 @@ export default function TechTalentPool() {
             "Built and maintained CI/CD pipelines for Europe's largest fashion e-commerce platform.",
         },
         {
-          company: "BMW Group",
+          company: "AMG Group",
           position: "Cloud Engineer",
           duration: "2017 - 2019",
           description:
@@ -567,7 +578,7 @@ export default function TechTalentPool() {
       role: "Blockchain Developer",
       experience: "3+ years",
       location: "London, UK",
-      avatar: "/images/dev6.jpg",
+      avatar: "/images/dev8.jpg",
       skills: ["Blockchain", "TypeScript", "Next.js", "Node.js"],
       specialties: ["Smart Contracts", "DeFi Protocols", "Web3 Integration"],
       availability: "Available",
@@ -657,11 +668,11 @@ export default function TechTalentPool() {
     },
     {
       id: 7,
-      name: "Maria Santos",
+      name: "Mary Wanga",
       role: "AI/ML Engineer",
-      experience: "5+ years",
-      location: "São Paulo, Brazil",
-      avatar: "/images/dev7.jpg",
+      experience: "4+ years",
+      location: "Nairobi, KE",
+      avatar: "/images/dev4.jpg",
       skills: ["Python", "Machine Learning", "React", "AWS"],
       specialties: [
         "Computer Vision",
@@ -680,12 +691,11 @@ export default function TechTalentPool() {
       about:
         "I'm an AI/ML engineer with 5+ years of experience developing intelligent systems that solve complex real-world problems. My passion for artificial intelligence began during my PhD research in computer vision, where I published several papers on image recognition algorithms. Since then, I've applied machine learning to diverse domains including healthcare, finance, retail, and autonomous systems. I specialize in computer vision, natural language processing, and building end-to-end ML pipelines that can scale to production. My approach combines strong theoretical foundations with practical engineering skills, ensuring that the AI solutions I build are not only accurate but also maintainable and deployable at scale.",
       languages: [
-        "Portuguese (Native)",
         "English (Fluent)",
-        "Spanish (Fluent)",
-        "Italian (Intermediate)",
+        "Swahili (Fluent)",
+        "German (Intermediate)",
       ],
-      education: "PhD Computer Vision, University of São Paulo",
+      education: "Masters Computer Vision, University of Nairobi",
       certifications: [
         "TensorFlow Developer Certificate",
         "AWS Machine Learning Specialty",
@@ -733,21 +743,21 @@ export default function TechTalentPool() {
       ],
       workHistory: [
         {
-          company: "Google",
+          company: "Aga Khan University",
           position: "Senior ML Engineer",
           duration: "2021 - Present",
           description:
             "Leading development of computer vision models for Google Photos and developing ML infrastructure for model deployment.",
         },
         {
-          company: "Uber",
+          company: "Kilimall ",
           position: "ML Engineer",
           duration: "2019 - 2021",
           description:
             "Built machine learning models for demand forecasting, route optimization, and fraud detection systems.",
         },
         {
-          company: "University of São Paulo",
+          company: "University of Nairobi",
           position: "Research Scientist",
           duration: "2016 - 2019",
           description:
@@ -850,6 +860,100 @@ export default function TechTalentPool() {
           duration: "2018 - 2019",
           description:
             "Built core banking features and payment processing systems, gaining experience in financial technology requirements.",
+        },
+      ],
+    },
+    {
+      id: 9,
+      name: "Eric Kibuchi",
+      role: "Mobile Developer",
+      experience: "5+ years",
+      location: "Nairobi, Kenya",
+      avatar: "/images/dev9.jpg",
+      skills: ["Flutter", "Dart", "Firebase", "Kotlin", "React Native"],
+      specialties: [
+        "Cross-Platform Development",
+        "Mobile App Optimization",
+        "Backend Integration",
+      ],
+      availability: "Available",
+      rating: 4.8,
+      projectsCompleted: 47,
+      gradient: "from-purple-500/20 to-indigo-500/10",
+      portfolioUrl: "https://erickibuichi.dev",
+      githubUrl: "https://github.com/erickibuichi",
+      linkedinUrl: "https://linkedin.com/in/erickibuichi",
+      bio: "Experienced mobile developer focused on delivering high-performance apps across Android and iOS platforms.",
+      about:
+        "I'm a mobile developer with over 5 years of experience building robust, scalable applications for startups, NGOs, and enterprise clients. My core expertise lies in crafting seamless cross-platform user experiences using Flutter and React Native, with deep understanding of mobile performance optimization and backend integrations. I’m passionate about clean UI, efficient state management, and building apps that users love. From MVPs to full-scale production apps, I bring a design-driven and user-centric approach to mobile development.",
+      languages: ["English (Fluent)", "Swahili (Native)", "French (Basic)"],
+      education:
+        "B.Sc. Computer Science, Jomo Kenyatta University of Agriculture and Technology (JKUAT)",
+      certifications: [
+        "Google Associate Android Developer",
+        "Flutter Developer Expert (by Dart/Flutter Kenya)",
+        "Firebase for Mobile Certification",
+      ],
+      projectHighlights: [
+        {
+          title: "Telemedicine App for East Africa",
+          description:
+            "Led mobile development for a doctor-patient video consultation platform, enabling secure real-time chats and prescription uploads.",
+          tech: ["Flutter", "Firebase", "WebRTC", "Node.js"],
+          duration: "7 months",
+        },
+        {
+          title: "Ride-Hailing MVP",
+          description:
+            "Built a fully functional MVP for a ride-hailing service with live tracking, fare estimation, and driver-passenger chat.",
+          tech: ["React Native", "Firebase", "Google Maps API"],
+          duration: "6 months",
+        },
+        {
+          title: "E-learning Platform Mobile App",
+          description:
+            "Developed a mobile app extension for a web-based LMS, featuring offline mode, video streaming, and progress tracking.",
+          tech: ["Flutter", "Hive", "Firebase", "REST APIs"],
+          duration: "5 months",
+        },
+      ],
+      testimonials: [
+        {
+          client: "AfyaLink Health",
+          feedback:
+            "Eric was instrumental in bringing our mobile telehealth platform to life. His commitment and quality of code were top-tier.",
+          project: "Telemedicine App",
+          rating: 4.9,
+        },
+        {
+          client: "SwiftRides",
+          feedback:
+            "From concept to MVP, Eric handled every challenge with professionalism. The app exceeded our expectations.",
+          project: "Ride-Hailing MVP",
+          rating: 4.8,
+        },
+      ],
+      workHistory: [
+        {
+          company: "Andishi Software",
+          position: "Lead Mobile Developer",
+          duration: "2022 - Present",
+          description:
+            "Driving cross-platform mobile development for global clients. Responsible for architecture, implementation, and mentoring junior devs.",
+        },
+        {
+          company: "Tech4Dev Africa",
+          position: "Mobile Developer",
+          duration: "2020 - 2022",
+          description:
+            "Worked on digital tools for NGOs and government initiatives, including health tracking and education platforms.",
+        },
+        {
+          company: "Freelance",
+          position: "Independent Mobile Developer",
+          duration: "2018 - 2020",
+          description:
+            "Delivered mobile solutions for local SMEs and startups, focusing on MVPs and business process automation tools.",
         },
       ],
     },

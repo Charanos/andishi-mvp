@@ -274,43 +274,43 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                   <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
                     <FaUser className="text-white text-sm" />
                   </div>
-                  <h3 className="text-2xl font-semibold text-white">
+                  <h3 className="text-xl monty font-semibold !text-indigo-400">
                     Profile Overview
                   </h3>
                 </div>
 
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-lg font-semibold text-indigo-200 mb-3">
+                    <h4 className="text-base font-semibold text-indigo-200 mb-3">
                       Professional Summary
                     </h4>
-                    <p className="text-gray-300 leading-relaxed text-lg">
+                    <p className="text-gray-300 leading-relaxed text-md">
                       {selectedProfile.personalInfo.tagline}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-indigo-300 text-sm font-medium mb-2">
+                      <p className="text-indigo-300 text-sm monty uppercase font-medium mb-2">
                         Experience Level
                       </p>
-                      <p className="text-white font-semibold text-lg">
+                      <p className="text-white font-semibold text-md">
                         {selectedProfile.professionalInfo.experienceLevel}
                       </p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-indigo-300 text-sm font-medium mb-2">
+                      <p className="text-indigo-300 text-sm monty uppercase font-medium mb-2">
                         Availability
                       </p>
-                      <p className="text-white font-semibold text-lg">
+                      <p className="text-white font-semibold text-md">
                         {selectedProfile.professionalInfo.availability}
                       </p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-indigo-300 text-sm font-medium mb-2">
+                      <p className="text-indigo-300 text-sm monty uppercase font-medium mb-2">
                         Location
                       </p>
-                      <p className="text-white font-semibold text-lg">
+                      <p className="text-white font-semibold text-md">
                         {selectedProfile.personalInfo.location}
                       </p>
                     </div>
@@ -325,7 +325,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                     <FaCode className="text-white text-sm" />
                   </div>
-                  <h3 className="text-2xl font-semibold text-white">
+                  <h3 className="text-xl monty font-semibold !text-indigo-400">
                     Technical Skills
                   </h3>
                 </div>
@@ -396,7 +396,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                   <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                     <FaChartLine className="text-white text-sm" />
                   </div>
-                  <h3 className="text-2xl font-semibold text-white">
+                  <h3 className="text-xl monty font-semibold !text-indigo-400">
                     Performance Statistics
                   </h3>
                 </div>
@@ -486,7 +486,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                   <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                     <FaUser className="text-white text-sm" />
                   </div>
-                  <h3 className="text-2xl font-semibold text-white">
+                  <h3 className="text-xl monty font-semibold !text-indigo-400">
                     Personal Details
                   </h3>
                 </div>
@@ -499,11 +499,11 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                         {selectedProfile.personalInfo.lastName[0]}
                       </span>
                     </div>
-                    <h4 className="text-xl font-semibold text-white">
+                    <h4 className="text-lg mb-2 font-semibold text-white">
                       {selectedProfile.personalInfo.firstName}{" "}
                       {selectedProfile.personalInfo.lastName}
                     </h4>
-                    <p className="text-indigo-300">
+                    <p className="text-indigo-300 text-sm monty uppercase">
                       {selectedProfile.professionalInfo.title}
                     </p>
                   </div>
@@ -512,7 +512,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                     <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                       <FaMapMarkerAlt className="text-indigo-400" />
                       <div>
-                        <p className="text-indigo-300 text-sm">Location</p>
+                        <p className="text-indigo-300 text-sm monty uppercase">
+                          Location
+                        </p>
                         <p className="text-white font-medium">
                           {selectedProfile.personalInfo.location}
                         </p>
@@ -522,7 +524,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                     <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                       <FaUsers className="text-indigo-400" />
                       <div>
-                        <p className="text-indigo-300 text-sm">Experience</p>
+                        <p className="text-indigo-300 text-sm monty uppercase">
+                          Experience
+                        </p>
                         <p className="text-white font-medium">
                           {selectedProfile.professionalInfo.experienceLevel}
                         </p>
@@ -532,7 +536,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                     <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                       <FaClock className="text-indigo-400" />
                       <div>
-                        <p className="text-indigo-300 text-sm">Availability</p>
+                        <p className="text-indigo-300 text-sm monty uppercase">
+                          Availability
+                        </p>
                         <p className="text-white font-medium">
                           {selectedProfile.professionalInfo.availability}
                         </p>
@@ -544,16 +550,16 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
 
               {/* Action Buttons Card */}
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-                <h3 className="text-xl font-semibold text-white mb-6">
+                <h3 className="text-xl monty font-semibold !text-indigo-400 mb-6">
                   Profile Actions
                 </h3>
 
                 <div className="space-y-4">
                   <button
                     onClick={() => handleEdit(selectedProfile.id)}
-                    className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-green-500/25"
+                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-green-500/10 group"
                   >
-                    <FaEdit className="text-lg" />
+                    <FaEdit className="text-lg text-green-400 group-hover:text-green-300 transition-colors" />
                     <span>Edit Profile</span>
                   </button>
 
@@ -564,9 +570,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                         `${selectedProfile.personalInfo.firstName} ${selectedProfile.personalInfo.lastName}`
                       )
                     }
-                    className="w-full px-6 py-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-red-500/25"
+                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-red-500/20 hover:border-red-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-red-500/10 group"
                   >
-                    <FaTrash className="text-lg" />
+                    <FaTrash className="text-lg text-red-400 group-hover:text-red-300 transition-colors" />
                     <span>Delete Profile</span>
                   </button>
                 </div>

@@ -16,6 +16,7 @@ import {
   FaMobile,
   FaShieldAlt,
   FaExclamationTriangle,
+  FaCodeBranch,
 } from "react-icons/fa";
 import { SiTypescript, SiDocker, SiKubernetes } from "react-icons/si";
 import { toast, ToastContainer } from "react-toastify";
@@ -306,7 +307,9 @@ export default function LoginPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-white text-lg">Redirecting to your dashboard...</p>
+          <p className="text-white text-lg monty uppercase">
+            Redirecting to your dashboard...
+          </p>
         </div>
       </div>
     );
@@ -346,7 +349,7 @@ export default function LoginPage() {
                 Welcome to <span className="text-purple-400">Andishi</span>
               </h1>
               <p className="text-lg text-gray-300">
-                Sign in to your developer dashboard
+                Sign in to access your respective dashboard
               </p>
 
               {/* Show account blocked warning */}
@@ -365,7 +368,7 @@ export default function LoginPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">
-                    Email Address *
+                    Email Address <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -376,7 +379,7 @@ export default function LoginPage() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full pl-10 px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                      className={`w-full pl-10 text-sm px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
                         errors.email
                           ? "border-red-400 focus:border-red-400"
                           : "border-white/10 focus:border-blue-400"
@@ -393,7 +396,7 @@ export default function LoginPage() {
 
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">
-                    Password *
+                    Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -404,7 +407,7 @@ export default function LoginPage() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full pl-10 pr-10 px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                      className={`w-full pl-10 text-sm pr-10 px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
                         errors.password
                           ? "border-red-400 focus:border-red-400"
                           : "border-white/10 focus:border-blue-400"
@@ -460,14 +463,14 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading || isAccountBlocked()}
-                  className={`w-full py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center ${
+                  className={`w-full monty uppercase cursor-pointer py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center ${
                     isLoading || isAccountBlocked()
                       ? "bg-gray-500/50 text-gray-300 cursor-not-allowed"
                       : "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:shadow-lg hover:shadow-blue-500/25"
                   }`}
                 >
                   {isLoading ? (
-                    <span className="flex items-center">
+                    <span className="flex items-center monty uppercase cursor-pointer">
                       <svg
                         className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                         xmlns="http://www.w3.org/2000/svg"
@@ -488,18 +491,18 @@ export default function LoginPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      Signing in...
+                      Loging in...
                     </span>
                   ) : isAccountBlocked() ? (
                     "Account Blocked"
                   ) : (
-                    "Sign In"
+                    "Log In"
                   )}
                 </button>
 
                 {/* Login attempts indicator */}
                 {loginAttempts.attempts > 0 && !isAccountBlocked() && (
-                  <div className="text-center text-sm text-yellow-400">
+                  <div className="text-center text-xs monty uppercase text-yellow-400">
                     {loginAttempts.attempts} failed attempt
                     {loginAttempts.attempts > 1 ? "s" : ""}.
                     {5 - loginAttempts.attempts} remaining.
@@ -509,7 +512,7 @@ export default function LoginPage() {
 
               {/* Role-based account creation notice */}
               <div className="mt-8 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <h4 className="text-blue-300 font-medium mb-2">
+                <h4 className="!text-blue-300 font-medium mb-2">
                   Need an Account?
                 </h4>
                 <p className="text-gray-300 text-sm mb-3">
@@ -517,8 +520,11 @@ export default function LoginPage() {
                 </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-300">
-                      👨‍💻 Developers & Talent
+                    <span className="text-gray-300 flex items-center gap-2">
+                      <span>
+                        <FaCodeBranch className="ml-1 text-green-400" />
+                      </span>
+                      Developers & Talent
                     </span>
                     <Link
                       href="/join-talent-pool"
@@ -528,8 +534,11 @@ export default function LoginPage() {
                     </Link>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-300">
-                      🏢 Clients & Businesses
+                    <span className="text-gray-300 flex items-center gap-2">
+                      <span className="">
+                        <FaUser className="ml-1 text-indigo-400" />
+                      </span>
+                      Clients & Businesses
                     </span>
                     <Link
                       href="/start-project"
@@ -548,7 +557,7 @@ export default function LoginPage() {
                 className="inline-flex items-center monty uppercase px-4 py-2 text-gray-300 hover:text-white transition-colors"
               >
                 <FaArrowLeft className="mr-2" />
-                Back to Home
+                Back to Home Page
               </Link>
             </div>
           </div>

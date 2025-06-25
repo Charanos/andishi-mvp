@@ -1,7 +1,7 @@
 "use client";
 
-import { toast, ToastContainer } from "react-toastify";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactNode } from "react";
+import { toast } from "react-toastify";
 import {
   FaUser,
   FaProjectDiagram,
@@ -19,31 +19,28 @@ import {
   FaExclamationTriangle,
   FaUsers,
   FaCode,
-  FaChartBar,
-  FaCog,
-  FaPlus,
-  FaUserEdit,
   FaChartLine,
-  FaMoneyBillWave,
-  FaBell,
   FaDownload,
-  FaLock,
-  FaUnlock,
-  FaDatabase,
-  FaNetworkWired,
+  FaCheckCircle,
+  FaLightbulb,
+  FaPause,
+  FaFile,
+  FaTag,
+  FaCog,
   FaShieldAlt,
-  FaInfoCircle,
-  FaStar,
+  FaKey,
+  FaLock,
+  FaNetworkWired,
+  FaDatabase,
+  FaCalendarAlt,
+  FaChartBar,
+  FaServer,
   FaArrowCircleLeft,
   FaPhone,
-  FaKey,
-  FaRedo,
-  FaPaperPlane,
-  FaBan,
-  FaServer,
-  FaCalendarAlt,
-  FaCopy,
-  FaCheckCircle,
+  FaUserEdit,
+  FaInfoCircle,
+  FaBell,
+  FaTachometerAlt,
 } from "react-icons/fa";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
 import { UserRole } from "@/types/auth";
@@ -64,7 +61,7 @@ interface ProjectDetails {
   description: string;
   category: string;
   timeline: string;
-  urgency: string;
+  priority: "low" | "medium" | "high" | "urgent";
   techStack: string[];
   requirements: string;
 }
@@ -92,8 +89,40 @@ interface ProjectData {
   projectDetails: ProjectDetails;
   pricing: PricingOption;
   status: "pending" | "reviewed" | "approved" | "rejected";
-  createdAt: string;
   priority: "low" | "medium" | "high" | "critical";
+  progress: number;
+  startDate?: Date;
+  endDate?: Date;
+  estimatedCompletionDate?: Date;
+  actualCompletionDate?: Date;
+  createdAt: string;
+  updatedAt: string;
+  milestones?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    budget: string;
+    timeline: string;
+    status: "pending" | "in_progress" | "completed" | "cancelled";
+    dueDate?: Date;
+    completedAt?: Date;
+    order: number;
+  }>;
+  updates?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    createdAt: Date;
+  }>;
+  files?: Array<{
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    fileSize?: number;
+    fileType?: string;
+    createdAt: Date;
+  }>;
 }
 
 interface SystemUser {
@@ -142,7 +171,7 @@ type ActiveTab =
   | "analytics"
   | "settings";
 
-export default function EnhancedAdminDashboard() {
+export default function EnhancedAdminDashboard(): ReactNode {
   // State Management
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
   const [devProfiles, setDevProfiles] = useState<
@@ -193,26 +222,47 @@ export default function EnhancedAdminDashboard() {
     const loadDashboardData = async () => {
       setLoading(true);
       try {
-        const [projRes, devRes, userRes, anaRes] = await Promise.all([
-          fetch("/api/start-projects"),
+        // Fetch all required data in parallel
+        const [projectsRes, devProfilesRes, usersRes] = await Promise.all([
+          fetch("/api/start-project"),
           fetch("/api/developer-profiles"),
           fetch("/api/users"),
-          fetch("/api/analytics"),
         ]);
-        if (!projRes.ok || !devRes.ok || !userRes.ok || !anaRes.ok)
+
+        if (!projectsRes.ok || !devProfilesRes.ok || !usersRes.ok) {
           throw new Error("Failed to load dashboard data");
-        const [projData, devData, userData, anaData] = await Promise.all([
-          projRes.json(),
-          devRes.json(),
-          userRes.json(),
-          anaRes.json(),
+        }
+
+        const [projectsData, devProfilesData, usersData] = await Promise.all([
+          projectsRes.json(),
+          devProfilesRes.json(),
+          usersRes.json(),
         ]);
-        setProjects(projData);
-        setDevProfiles(devData);
-        setUsers(userData.users ? userData.users : userData);
-        setAnalytics(anaData);
+
+        // Transform and set the data
+        const transformedProjects = (projectsData.projects || []).map(
+          (project: any) => ({
+            ...project,
+            priority: project.priority || "low",
+          })
+        );
+
+        setProjects(transformedProjects);
+        setDevProfiles(devProfilesData.profiles || []);
+
+        // Ensure users is always an array
+        const usersArray = Array.isArray(usersData)
+          ? usersData
+          : Array.isArray(usersData.users)
+          ? usersData.users
+          : [];
+
+        setUsers(usersArray);
+
+        // Generate analytics from the fetched data
+        generateAnalytics(transformedProjects, usersArray);
       } catch (err) {
-        console.error(err);
+        console.error("Error loading dashboard data:", err);
         toast.error("Error loading dashboard data");
       } finally {
         setLoading(false);
@@ -329,9 +379,7 @@ export default function EnhancedAdminDashboard() {
         const transformedProjects = projectsData.projects.map(
           (project: any) => ({
             ...project,
-            priority:
-              project.priority ||
-              derivePriorityFromUrgency(project.projectDetails.urgency),
+            priority: project.priority || "low",
           })
         );
         setProjects(transformedProjects);
@@ -341,7 +389,7 @@ export default function EnhancedAdminDashboard() {
       const usersRes = await fetch("/api/users");
       const usersData = await usersRes.json();
       if (usersData.success) {
-        setUsers(usersData.users);
+        setUsers(usersData.users ? usersData.users : usersData);
       }
 
       // Fetch developer profiles
@@ -364,47 +412,115 @@ export default function EnhancedAdminDashboard() {
   const generateAnalytics = (
     projectsData: ProjectData[],
     usersData: SystemUser[]
-  ) => {
-    const totalRevenue = projectsData.reduce((sum, project) => {
-      const budget = calculateProjectBudget(project);
-      return sum + budget;
-    }, 0);
+  ): void => {
+    // Calculate project statistics
+    const projectStats = projectsData.map((project) => ({
+      id: project._id,
+      status: project.status,
+      priority: project.priority,
+      budget: calculateProjectBudget(project),
+      client: project.userInfo.firstName + " " + project.userInfo.lastName,
+      date: project.createdAt,
+    }));
 
-    const projectsByStatus = projectsData.reduce((acc, project) => {
-      acc[project.status] = (acc[project.status] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    // Calculate total revenue and project status counts
+    const totalRevenue = projectStats.reduce(
+      (sum, project) => sum + project.budget,
+      0
+    );
+    const projectsByStatus = projectStats.reduce(
+      (acc: { [key: string]: number }, project) => {
+        acc[project.status] = (acc[project.status] || 0) + 1;
+        return acc;
+      },
+      {}
+    );
 
-    const usersByRole = usersData.reduce((acc, user) => {
-      acc[user.role] = (acc[user.role] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    // Calculate user role distribution
+    const usersByRole = usersData.reduce(
+      (acc: { [key: string]: number }, user) => {
+        acc[user.role] = (acc[user.role] || 0) + 1;
+        return acc;
+      },
+      {}
+    );
+
+    // Calculate monthly revenue
+    const revenueByMonth = projectStats.reduce(
+      (acc: { [key: string]: number }, project) => {
+        const month = new Date(project.date).toLocaleString("default", {
+          month: "short",
+        });
+        acc[month] = (acc[month] || 0) + project.budget;
+        return acc;
+      },
+      {}
+    );
+
+    // Convert revenueByMonth to array format
+    const revenueMonthly = Object.entries(revenueByMonth).map(
+      ([month, revenue]) => ({
+        month,
+        revenue,
+      })
+    );
+
+    // Calculate top clients
+    const clientStats = projectStats.reduce(
+      (
+        acc: { [key: string]: { projects: number; revenue: number } },
+        project
+      ) => {
+        if (!acc[project.client]) {
+          acc[project.client] = { projects: 0, revenue: 0 };
+        }
+        acc[project.client].projects++;
+        acc[project.client].revenue += project.budget;
+        return acc;
+      },
+      {}
+    );
+
+    const topClients = Object.entries(clientStats)
+      .map(([name, stats]) => ({
+        name,
+        projects: stats.projects,
+        revenue: stats.revenue,
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    // Calculate top developers
+    const developerStats = usersData
+      .filter((user) => user.role === "developer")
+      .map((dev) => ({
+        name: `${dev.firstName} ${dev.lastName}`,
+        projects: dev.projectsCount || 0,
+        rating: 4.5, // Default rating if not available
+      }))
+      .sort((a, b) => b.projects - a.projects)
+      .slice(0, 5);
+
+    // Calculate monthly growth (comparing to previous month)
+    const currentMonthRevenue =
+      revenueMonthly[revenueMonthly.length - 1]?.revenue || 0;
+    const previousMonthRevenue =
+      revenueMonthly[revenueMonthly.length - 2]?.revenue || 0;
+    const monthlyGrowth = previousMonthRevenue
+      ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) *
+        100
+      : 0;
 
     setAnalytics({
       totalUsers: usersData.length,
       totalProjects: projectsData.length,
       totalRevenue,
-      monthlyGrowth: 12.5, // Mock data
+      monthlyGrowth,
       projectsByStatus,
       usersByRole,
-      revenueByMonth: [
-        { month: "Jan", revenue: 45000 },
-        { month: "Feb", revenue: 52000 },
-        { month: "Mar", revenue: 48000 },
-        { month: "Apr", revenue: 61000 },
-        { month: "May", revenue: 55000 },
-        { month: "Jun", revenue: 67000 },
-      ],
-      topClients: [
-        { name: "Acme Corp", projects: 5, revenue: 125000 },
-        { name: "TechFlow Inc", projects: 3, revenue: 89000 },
-        { name: "StartupX", projects: 4, revenue: 76000 },
-      ],
-      topDevelopers: [
-        { name: "John Smith", projects: 8, rating: 4.9 },
-        { name: "Sarah Johnson", projects: 6, rating: 4.8 },
-        { name: "Mike Wilson", projects: 7, rating: 4.7 },
-      ],
+      revenueByMonth: revenueMonthly,
+      topClients,
+      topDevelopers: developerStats,
     });
   };
 
@@ -423,30 +539,6 @@ export default function EnhancedAdminDashboard() {
         parseFloat(project.pricing.hourlyRate || "0") *
         parseFloat(project.pricing.estimatedHours || "0")
       );
-    }
-  };
-
-  const derivePriorityFromUrgency = (
-    urgency: string
-  ): "low" | "medium" | "high" | "critical" => {
-    const urgencyLower = urgency.toLowerCase();
-    if (
-      urgencyLower.includes("critical") ||
-      urgencyLower.includes("emergency")
-    ) {
-      return "critical";
-    } else if (
-      urgencyLower.includes("high") ||
-      urgencyLower.includes("urgent")
-    ) {
-      return "high";
-    } else if (
-      urgencyLower.includes("medium") ||
-      urgencyLower.includes("moderate")
-    ) {
-      return "medium";
-    } else {
-      return "low";
     }
   };
 
@@ -632,330 +724,243 @@ export default function EnhancedAdminDashboard() {
   };
 
   // Render functions
-  const renderOverview = () => (
-    <div className="space-y-8">
-      {/* Enhanced Stats Grid with Animations */}
+  const renderOverview = (): ReactNode => (
+    <div className="space-y-6">
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             label: "Total Users",
             value: analytics.totalUsers,
-            color: "blue",
-            icon: FaUsers,
-            change: "+12%",
-            gradient: "from-blue-500/20 to-cyan-500/20",
-            iconBg: "bg-gradient-to-br from-blue-500 to-cyan-500",
+            icon: <FaUsers className="text-blue-400" />,
+            change: "+12.5%",
+            trend: "up" as const,
           },
           {
             label: "Active Projects",
             value: analytics.totalProjects,
-            color: "green",
-            icon: FaProjectDiagram,
-            change: "+8%",
-            gradient: "from-green-500/20 to-emerald-500/20",
-            iconBg: "bg-gradient-to-br from-green-500 to-emerald-500",
+            icon: <FaProjectDiagram className="text-green-400" />,
+            change: "+8.2%",
+            trend: "up" as const,
           },
           {
             label: "Total Revenue",
             value: formatCurrency(analytics.totalRevenue),
-            color: "purple",
-            icon: FaMoneyBillWave,
-            change: "+15%",
-            gradient: "from-purple-500/20 to-pink-500/20",
-            iconBg: "bg-gradient-to-br from-purple-500 to-pink-500",
+            icon: <FaDollarSign className="text-yellow-400" />,
+            change: `+${analytics.monthlyGrowth.toFixed(1)}%`,
+            trend:
+              analytics.monthlyGrowth >= 0
+                ? ("up" as const)
+                : ("down" as const),
           },
           {
-            label: "Monthly Growth",
-            value: `${analytics.monthlyGrowth}%`,
-            color: "orange",
-            icon: FaChartLine,
-            change: "+3%",
-            gradient: "from-orange-500/20 to-yellow-500/20",
-            iconBg: "bg-gradient-to-br from-orange-500 to-yellow-500",
+            label: "Avg Project Value",
+            value: formatCurrency(
+              analytics.totalProjects > 0
+                ? analytics.totalRevenue / analytics.totalProjects
+                : 0
+            ),
+            icon: <FaChartLine className="text-purple-400" />,
+            change: "+15.3%",
+            trend: "up" as const,
           },
-        ].map((stat, index) => (
+        ].map((metric, index) => (
           <div
-            key={stat.label}
-            className={`group relative overflow-hidden backdrop-blur-xl bg-gradient-to-br ${stat.gradient} 
-                     border border-white/20 rounded-2xl p-6 hover:scale-105 transition-all duration-300 
-                     hover:shadow-2xl hover:shadow-${stat.color}-500/25 cursor-pointer`}
+            key={index}
+            className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6"
           >
-            {/* Animated Background Glow */}
-            <div
-              className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 
-                          group-hover:opacity-100 transition-opacity duration-300 rounded-2xl`}
-            />
-
-            <div className="relative z-10">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <p className="text-gray-300 text-sm font-medium uppercase tracking-wider mb-2">
-                    {stat.label}
-                  </p>
-                  <p
-                    className="text-3xl font-semibold text-white mb-1 group-hover:scale-105 
-                             transition-transform duration-200"
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4">
+                  {metric.icon}
+                </div>
+                <p className="text-gray-400 text-sm uppercase tracking-wide">
+                  {metric.label}
+                </p>
+                <p className="text-2xl font-semibold text-white mt-1">
+                  {metric.value}
+                </p>
+                <div className="flex items-center mt-2">
+                  {metric.trend === "up" ? (
+                    <FaSortAmountUp className="text-green-400 mr-1" />
+                  ) : (
+                    <FaSortAmountDown className="text-red-400 mr-1" />
+                  )}
+                  <span
+                    className={`text-sm ${
+                      metric.trend === "up" ? "text-green-400" : "text-red-400"
+                    }`}
                   >
-                    {stat.value}
-                  </p>
-                  <div className="flex items-center space-x-1">
-                    <span className="text-green-400 text-sm font-semibold">
-                      {stat.change}
-                    </span>
-                    <span className="text-gray-400 text-xs">vs last month</span>
-                  </div>
+                    {metric.change}
+                  </span>
                 </div>
-
-                {/* Enhanced Icon */}
-                <div
-                  className={`${stat.iconBg} p-3 rounded-xl shadow-lg 
-                              group-hover:scale-110 group-hover:rotate-3 
-                              transition-all duration-300`}
-                >
-                  <stat.icon className="text-white text-xl" />
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className={`h-full bg-gradient-to-r from-${stat.color}-400 to-${stat.color}-500 
-                          rounded-full transition-all duration-500 ease-out`}
-                  style={{
-                    width: `${Math.min(
-                      parseInt(stat.change.replace("%", "").replace("+", "")) *
-                        5,
-                      100
-                    )}%`,
-                  }}
-                />
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Enhanced Activity Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Projects - Enhanced */}
-        <div
-          className="lg:col-span-2 backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 
-                      border border-white/20 rounded-2xl p-6 hover:shadow-2xl 
-                      transition-all duration-300 group"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg">
-                <FaProjectDiagram className="text-white text-lg" />
-              </div>
-              <h3 className="text-xl font-semibold text-white">
-                Recent Projects
-              </h3>
-            </div>
-            <button
-              className="text-gray-400 hover:text-white transition-colors duration-200 
-                           text-sm font-medium hover:underline"
-            >
-              View All
-            </button>
+      {/* Project Status Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Project Status Distribution
+          </h3>
+          <div className="space-y-4">
+            {Object.entries(analytics.projectsByStatus).map(
+              ([status, count]) => {
+                const percentage = Math.round(
+                  (count / analytics.totalProjects) * 100
+                );
+                return (
+                  <div key={status} className="relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+                          {getStatusIcon(status)}
+                        </div>
+                        <span className="text-white font-medium capitalize">
+                          {status}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-400 text-sm">
+                          {count} projects
+                        </span>
+                        <span className="text-white font-semibold">
+                          {percentage}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-700/50 rounded-full h-2">
+                      <div
+                        className={`${getStatusColor(
+                          status
+                        )} h-2 rounded-full transition-all duration-500`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              }
+            )}
           </div>
+        </div>
 
-          <div className="space-y-3">
-            {projects.slice(0, 5).map((project, index) => (
-              <div
-                key={project._id}
-                className="group/item relative overflow-hidden bg-gradient-to-r from-white/5 to-white/10 
-                         rounded-xl p-4 hover:from-white/10 hover:to-white/15 
-                         transition-all duration-300 hover:scale-[1.02] cursor-pointer
-                         border border-white/10 hover:border-white/20"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <p
-                        className="text-white font-semibold truncate group-hover/item:text-blue-300 
-                                 transition-colors duration-200"
-                      >
-                        {project.projectDetails.title}
-                      </p>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium
-                      ${
-                        project.status === "approved"
-                          ? "bg-green-500/20 text-green-300"
-                          : project.status === "pending"
-                          ? "bg-yellow-500/20 text-yellow-300"
-                          : project.status === "reviewed"
-                          ? "bg-blue-500/20 text-blue-300"
-                          : "bg-red-500/20 text-red-300"
-                      }`}
-                      >
-                        {project.status}
+        {/* User Role Distribution */}
+        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">
+            User Role Distribution
+          </h3>
+          <div className="space-y-4">
+            {Object.entries(analytics.usersByRole).map(([role, count]) => {
+              const percentage = Math.round(
+                (count / analytics.totalUsers) * 100
+              );
+              return (
+                <div key={role} className="relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+                        <FaUser className={getRoleColor(role)} />
+                      </div>
+                      <span className="text-white font-medium capitalize">
+                        {role}
                       </span>
                     </div>
-                    <p className="text-gray-400 text-sm">
-                      {project.userInfo.firstName} {project.userInfo.lastName} •{" "}
-                      {project.userInfo.company}
-                    </p>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded">
-                        {project.projectDetails.category}
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-400 text-sm">
+                        {count} users
                       </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(project.createdAt).toLocaleDateString()}
+                      <span className="text-white font-semibold">
+                        {percentage}%
                       </span>
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-3 ml-4">
-                    {getStatusIcon(project.status)}
-                    <div className="flex flex-col items-end space-y-1">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold
-                      ${getPriorityColor(project.priority)} shadow-sm`}
-                      >
-                        {project.priority.toUpperCase()}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {project.projectDetails.timeline}
-                      </span>
-                    </div>
+                  <div className="w-full bg-gray-700/50 rounded-full h-2">
+                    <div
+                      className={`${getRoleColor(
+                        role
+                      )} h-2 rounded-full transition-all duration-500`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-                {/* Hover Effect Line */}
-                <div
-                  className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 
-                            w-0 group-hover/item:w-full transition-all duration-300"
-                />
+      {/* Top Performers */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Clients */}
+        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Top Clients</h3>
+          <div className="space-y-3">
+            {analytics.topClients.map((client, index) => (
+              <div
+                key={client.name}
+                className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-green-400 font-medium">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{client.name}</p>
+                    <p className="text-gray-400 text-sm">
+                      {client.projects} projects
+                    </p>
+                  </div>
+                </div>
+                <p className="text-green-400 font-medium">
+                  {formatCurrency(client.revenue)}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Top Performers - Enhanced */}
-        <div
-          className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 
-                      border border-white/20 rounded-2xl p-6 hover:shadow-2xl 
-                      transition-all duration-300 group"
-        >
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg">
-              <FaStar className="text-white text-lg" />
-            </div>
-            <h3 className="text-xl font-semibold text-white">Top Performers</h3>
-          </div>
-
-          <div className="space-y-4">
+        {/* Top Developers */}
+        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Top Developers
+          </h3>
+          <div className="space-y-3">
             {analytics.topDevelopers.map((dev, index) => (
               <div
                 key={dev.name}
-                className="group/performer relative bg-gradient-to-r from-white/5 to-white/10 
-                         rounded-xl p-4 hover:from-white/10 hover:to-white/15 
-                         transition-all duration-300 cursor-pointer border border-white/10 
-                         hover:border-white/20 hover:scale-105"
+                className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {/* Ranking Badge */}
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center 
-                                  font-semibold text-sm shadow-lg
-                    ${
-                      index === 0
-                        ? "bg-gradient-to-br from-yellow-400 to-yellow-600 text-white"
-                        : index === 1
-                        ? "bg-gradient-to-br from-gray-300 to-gray-500 text-white"
-                        : index === 2
-                        ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white"
-                        : "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
-                    }`}
-                    >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-blue-400 font-medium">
                       {index + 1}
-                    </div>
-
-                    <div>
-                      <p
-                        className="text-white font-semibold group-hover/performer:text-yellow-300 
-                                 transition-colors duration-200"
-                      >
-                        {dev.name}
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        {dev.projects} project{dev.projects !== 1 ? "s" : ""}{" "}
-                        completed
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Rating */}
-                  <div className="flex items-center space-x-1 bg-white/10 px-3 py-1 rounded-full">
-                    <FaStar className="text-yellow-400 text-sm" />
-                    <span className="text-white font-semibold">
-                      {dev.rating}
                     </span>
                   </div>
+                  <div>
+                    <p className="text-white font-medium">{dev.name}</p>
+                    <p className="text-gray-400 text-sm">
+                      {dev.projects} projects
+                    </p>
+                  </div>
                 </div>
-
-                {/* Performance Bar */}
-                <div className="mt-3 w-full bg-white/10 rounded-full h-1 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full 
-                           transition-all duration-500 ease-out"
-                    style={{
-                      width: `${(dev.rating / 5) * 100}%`,
-                    }}
-                  />
+                <div className="flex items-center space-x-1">
+                  <span className="text-yellow-400">★</span>
+                  <span className="text-white">{dev.rating.toFixed(1)}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Additional Quick Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Pending Reviews",
-            value: analytics.projectsByStatus.pending || 0,
-            color: "yellow",
-          },
-          {
-            label: "Active Clients",
-            value: analytics.usersByRole.client || 0,
-            color: "green",
-          },
-          {
-            label: "Available Devs",
-            value: analytics.usersByRole.developer || 0,
-            color: "blue",
-          },
-          {
-            label: "This Month",
-            value: `${analytics.monthlyGrowth}%`,
-            color: "purple",
-          },
-        ].map((stat, index) => (
-          <div
-            key={stat.label}
-            className={`backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl p-4 
-                     hover:bg-white/10 transition-all duration-300 hover:scale-105 cursor-pointer
-                     hover:shadow-lg hover:shadow-${stat.color}-500/20`}
-          >
-            <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
-              {stat.label}
-            </p>
-            <p className={`text-lg font-semibold text-${stat.color}-400`}>
-              {stat.value}
-            </p>
-          </div>
-        ))}
       </div>
     </div>
   );
 
-  const renderProjects = () => {
+  const renderProjects = (): ReactNode => {
     if (viewMode === "detail" && selectedProject) {
       return renderProjectDetail();
     }
@@ -1040,30 +1045,31 @@ export default function EnhancedAdminDashboard() {
 
           {/* Projects Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {projects.map((project) => (
+            {(projects ?? []).map((project) => (
               <div
-                key={project._id}
+                key={project?._id}
                 className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all cursor-pointer"
                 onClick={() => setSelectedProject(project)}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-white mb-1">
-                      {project.projectDetails.title}
+                      {project?.projectDetails?.title ?? "Untitled Project"}
                     </h3>
                     <p className="text-sm text-gray-400">
-                      {project.userInfo.firstName} {project.userInfo.lastName} •{" "}
-                      {project.userInfo.company}
+                      {project?.userInfo?.firstName ?? "Unknown"}{" "}
+                      {project?.userInfo?.lastName ?? ""} •{" "}
+                      {project?.userInfo?.company ?? "No Company"}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {getStatusIcon(project.status)}
+                    {getStatusIcon(project?.status ?? "unknown")}
                     <span
                       className={`px-2 py-1 rounded text-xs ${getPriorityColor(
-                        project.priority
+                        project?.priority ?? "low"
                       )}`}
                     >
-                      {project.priority}
+                      {project?.priority ?? "low"}
                     </span>
                   </div>
                 </div>
@@ -1071,19 +1077,26 @@ export default function EnhancedAdminDashboard() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm text-gray-300">
                     <FaProjectDiagram className="mr-2 text-blue-400" />
-                    <span>{project.projectDetails.category}</span>
+                    <span>
+                      {project?.projectDetails?.category ?? "Uncategorized"}
+                    </span>
                   </div>
                   <div className="flex items-center text-sm text-gray-300">
                     <FaDollarSign className="mr-2 text-green-400" />
                     <span>
-                      {formatCurrency(calculateProjectBudget(project))}
+                      {formatCurrency(
+                        calculateProjectBudget(project),
+                        project?.pricing?.currency ?? "USD"
+                      )}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-white/10">
                   <span className="text-sm text-gray-400">
-                    {formatDate(project.createdAt)}
+                    {project?.createdAt
+                      ? formatDate(project.createdAt)
+                      : "No date"}
                   </span>
                   <div className="flex items-center space-x-2">
                     <button
@@ -1098,7 +1111,9 @@ export default function EnhancedAdminDashboard() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteProject(project._id);
+                        if (project?._id) {
+                          deleteProject(project._id);
+                        }
                       }}
                       className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                     >
@@ -1656,7 +1671,7 @@ export default function EnhancedAdminDashboard() {
   //   );
   // };
 
-  const renderAnalytics = () => (
+  const renderAnalytics = (): ReactNode => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -1680,26 +1695,26 @@ export default function EnhancedAdminDashboard() {
         {[
           {
             label: "Total Revenue",
-            value: formatCurrency(analytics.totalRevenue),
+            value: formatCurrency(analytics?.totalRevenue ?? 0),
             change: "+15.3%",
             trend: "up",
           },
           {
             label: "Active Users",
-            value: analytics.totalUsers,
+            value: analytics?.totalUsers ?? 0,
             change: "+8.2%",
             trend: "up",
           },
           {
             label: "Completed Projects",
-            value: analytics.projectsByStatus.approved || 0,
+            value: analytics?.projectsByStatus?.approved ?? 0,
             change: "+12.1%",
             trend: "up",
           },
           {
             label: "Avg. Project Value",
             value: formatCurrency(
-              analytics.totalRevenue / analytics.totalProjects || 0
+              (analytics?.totalRevenue ?? 0) / (analytics?.totalProjects ?? 0)
             ),
             change: "+5.7%",
             trend: "up",
@@ -1756,7 +1771,7 @@ export default function EnhancedAdminDashboard() {
             Project Status Distribution
           </h3>
           <div className="space-y-3">
-            {Object.entries(analytics.projectsByStatus).map(
+            {Object.entries(analytics?.projectsByStatus ?? {}).map(
               ([status, count]) => (
                 <div key={status} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -1768,7 +1783,10 @@ export default function EnhancedAdminDashboard() {
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{
-                          width: `${(count / analytics.totalProjects) * 100}%`,
+                          width: `${
+                            ((count ?? 0) / (analytics?.totalProjects ?? 1)) *
+                            100
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -1786,10 +1804,10 @@ export default function EnhancedAdminDashboard() {
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Top Clients</h3>
           <div className="space-y-3">
-            {analytics.topClients.map((client, index) => (
+            {(analytics?.topClients ?? []).map((client, index) => (
               <div
-                key={client.name}
-                className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                key={client?.name ?? index}
+                className="flex  items-center justify-between p-3 bg-white/5 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
@@ -1798,14 +1816,16 @@ export default function EnhancedAdminDashboard() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-white font-medium">{client.name}</p>
+                    <p className="text-white font-medium">
+                      {client?.name ?? "Unknown"}
+                    </p>
                     <p className="text-gray-400 text-sm">
-                      {client.projects} projects
+                      {client?.projects ?? 0} projects
                     </p>
                   </div>
                 </div>
                 <p className="text-green-400 font-medium">
-                  {formatCurrency(client.revenue)}
+                  {formatCurrency(client?.revenue ?? 0)}
                 </p>
               </div>
             ))}
@@ -1817,9 +1837,9 @@ export default function EnhancedAdminDashboard() {
             Top Developers
           </h3>
           <div className="space-y-3">
-            {analytics.topDevelopers.map((dev, index) => (
+            {(analytics?.topDevelopers ?? []).map((dev, index) => (
               <div
-                key={dev.name}
+                key={dev?.name ?? index}
                 className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
@@ -1829,15 +1849,17 @@ export default function EnhancedAdminDashboard() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-white font-medium">{dev.name}</p>
+                    <p className="text-white font-medium">
+                      {dev?.name ?? "Unknown"}
+                    </p>
                     <p className="text-gray-400 text-sm">
-                      {dev.projects} projects
+                      {dev?.projects ?? 0} projects
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-1">
                   <span className="text-yellow-400">★</span>
-                  <span className="text-white">{dev.rating}</span>
+                  <span className="text-white">{dev?.rating ?? 0}</span>
                 </div>
               </div>
             ))}
@@ -1847,7 +1869,7 @@ export default function EnhancedAdminDashboard() {
     </div>
   );
 
-  const renderSettings = () => (
+  const renderSettings = (): ReactNode => (
     <div className="space-y-8">
       {/* Header Section */}
       <div className="relative">
@@ -2130,7 +2152,7 @@ export default function EnhancedAdminDashboard() {
   );
 
   // Project Detail Modal
-  const renderProjectDetail = () => {
+  const renderProjectDetail = (): ReactNode => {
     if (!selectedProject) return null;
 
     return (
@@ -2151,10 +2173,12 @@ export default function EnhancedAdminDashboard() {
                 <div className="h-6 w-px bg-white/20"></div>
                 <div>
                   <h1 className="text-2xl font-semibold text-white">
-                    {selectedProject.projectDetails.title}
+                    {selectedProject?.projectDetails?.title ??
+                      "Untitled Project"}
                   </h1>
                   <p className="text-gray-400 text-sm mt-1">
-                    {selectedProject.projectDetails.category}
+                    {selectedProject?.projectDetails?.category ??
+                      "Uncategorized"}
                   </p>
                 </div>
               </div>
@@ -2162,17 +2186,17 @@ export default function EnhancedAdminDashboard() {
               {/* Quick Actions */}
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
-                  {getStatusIcon(selectedProject.status)}
+                  {getStatusIcon(selectedProject?.status ?? "unknown")}
                   <span className="text-white font-medium capitalize">
-                    {(selectedProject.status ?? "").replace("_", " ")}
+                    {(selectedProject?.status ?? "").replace("_", " ")}
                   </span>
                 </div>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                    selectedProject.priority
+                    selectedProject?.priority ?? "low"
                   )}`}
                 >
-                  {selectedProject.priority.toUpperCase()}
+                  {(selectedProject?.priority ?? "low").toUpperCase()}
                 </span>
               </div>
             </div>
@@ -2201,7 +2225,8 @@ export default function EnhancedAdminDashboard() {
                       Description
                     </h4>
                     <p className="text-gray-300 leading-relaxed text-lg">
-                      {selectedProject.projectDetails.description}
+                      {selectedProject?.projectDetails?.description ??
+                        "No description"}
                     </p>
                   </div>
 
@@ -2211,7 +2236,8 @@ export default function EnhancedAdminDashboard() {
                         Timeline
                       </p>
                       <p className="text-white font-semibold text-lg">
-                        {selectedProject.projectDetails.timeline}
+                        {selectedProject?.projectDetails?.timeline ??
+                          "No timeline"}
                       </p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
@@ -2219,7 +2245,8 @@ export default function EnhancedAdminDashboard() {
                         Urgency
                       </p>
                       <p className="text-white font-semibold text-lg">
-                        {selectedProject.projectDetails.urgency}
+                        {selectedProject?.projectDetails?.priority ??
+                          "No priority"}
                       </p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
@@ -2227,12 +2254,13 @@ export default function EnhancedAdminDashboard() {
                         Category
                       </p>
                       <p className="text-white font-semibold text-lg">
-                        {selectedProject.projectDetails.category}
+                        {selectedProject?.projectDetails?.category ??
+                          "No category"}
                       </p>
                     </div>
                   </div>
 
-                  {selectedProject.projectDetails.techStack?.length > 0 && (
+                  {selectedProject?.projectDetails?.techStack?.length > 0 && (
                     <div>
                       <h4 className="text-lg font-semibold text-indigo-200 mb-3">
                         Technology Stack
@@ -2257,7 +2285,8 @@ export default function EnhancedAdminDashboard() {
                       Requirements
                     </h4>
                     <p className="text-gray-300 leading-relaxed">
-                      {selectedProject.projectDetails.requirements}
+                      {selectedProject?.projectDetails?.requirements ??
+                        "No requirements"}
                     </p>
                   </div>
                 </div>
@@ -2281,7 +2310,7 @@ export default function EnhancedAdminDashboard() {
                         Pricing Model
                       </p>
                       <p className="text-white font-semibold text-lg capitalize">
-                        {selectedProject.pricing.type}
+                        {selectedProject?.pricing?.type ?? "No pricing type"}
                       </p>
                     </div>
                     <div className="text-right">
@@ -2291,14 +2320,14 @@ export default function EnhancedAdminDashboard() {
                       <p className="text-3xl font-semibold text-green-400">
                         {formatCurrency(
                           calculateProjectBudget(selectedProject),
-                          selectedProject.pricing.currency
+                          selectedProject?.pricing?.currency ?? "USD"
                         )}
                       </p>
                     </div>
                   </div>
 
-                  {selectedProject.pricing.type === "milestone" &&
-                    selectedProject.pricing.milestones && (
+                  {selectedProject?.pricing?.type === "milestone" &&
+                    selectedProject?.pricing?.milestones && (
                       <div>
                         <h4 className="text-lg font-semibold text-indigo-200 mb-4">
                           Project Milestones
@@ -2307,7 +2336,7 @@ export default function EnhancedAdminDashboard() {
                           {selectedProject.pricing.milestones.map(
                             (milestone, index) => (
                               <div
-                                key={milestone.id}
+                                key={milestone?.id ?? index}
                                 className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-all"
                               >
                                 <div className="flex justify-between items-start">
@@ -2317,22 +2346,25 @@ export default function EnhancedAdminDashboard() {
                                         {index + 1}
                                       </span>
                                       <h5 className="text-white font-semibold text-lg">
-                                        {milestone.title}
+                                        {milestone?.title ??
+                                          "Untitled Milestone"}
                                       </h5>
                                     </div>
                                     <p className="text-gray-400 ml-9">
-                                      {milestone.description}
+                                      {milestone?.description ??
+                                        "No description"}
                                     </p>
                                   </div>
                                   <div className="text-right ml-6">
                                     <p className="text-green-400 font-semibold text-xl">
                                       {formatCurrency(
-                                        parseFloat(milestone.budget),
-                                        selectedProject.pricing.currency
+                                        parseFloat(milestone?.budget ?? 0),
+                                        selectedProject?.pricing?.currency ??
+                                          "USD"
                                       )}
                                     </p>
                                     <p className="text-indigo-300 text-sm font-medium">
-                                      {milestone.timeline}
+                                      {milestone?.timeline ?? "No timeline"}
                                     </p>
                                   </div>
                                 </div>
@@ -2363,16 +2395,17 @@ export default function EnhancedAdminDashboard() {
                   <div className="text-center pb-6 border-b border-white/10">
                     <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-white font-semibold text-xl">
-                        {selectedProject.userInfo.firstName[0]}
-                        {selectedProject.userInfo.lastName[0]}
+                        {selectedProject?.userInfo?.firstName?.[0] ?? "U"}
+                        {selectedProject?.userInfo?.lastName?.[0] ?? "U"}
                       </span>
                     </div>
                     <h4 className="text-xl font-semibold text-white">
-                      {selectedProject.userInfo.firstName}{" "}
-                      {selectedProject.userInfo.lastName}
+                      {selectedProject?.userInfo?.firstName ?? "Unknown"}{" "}
+                      {selectedProject?.userInfo?.lastName ?? ""}
                     </h4>
                     <p className="text-indigo-300">
-                      {selectedProject.userInfo.company || "Independent Client"}
+                      {selectedProject?.userInfo?.company ??
+                        "Independent Client"}
                     </p>
                   </div>
 
@@ -2382,18 +2415,18 @@ export default function EnhancedAdminDashboard() {
                       <div>
                         <p className="text-indigo-300 text-sm">Email</p>
                         <p className="text-white font-medium">
-                          {selectedProject.userInfo.email}
+                          {selectedProject?.userInfo?.email ?? "No email"}
                         </p>
                       </div>
                     </div>
 
-                    {selectedProject.userInfo.phone && (
+                    {selectedProject?.userInfo?.phone && (
                       <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                         <FaPhone className="text-indigo-400" />
                         <div>
                           <p className="text-indigo-300 text-sm">Phone</p>
                           <p className="text-white font-medium">
-                            {selectedProject.userInfo.phone}
+                            {selectedProject?.userInfo?.phone ?? "No phone"}
                           </p>
                         </div>
                       </div>
@@ -2411,34 +2444,34 @@ export default function EnhancedAdminDashboard() {
                 <div className="space-y-4">
                   <button
                     onClick={() =>
-                      updateProjectStatus(selectedProject._id, "approved")
+                      updateProjectStatus(selectedProject?._id, "approved")
                     }
-                    className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={selectedProject.status === "approved"}
+                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-green-500/10 disabled:opacity-50 disabled:cursor-not-allowed group"
+                    disabled={selectedProject?.status === "approved"}
                   >
-                    <FaCheck className="text-lg" />
+                    <FaCheck className="text-lg text-green-400 group-hover:text-green-300 transition-colors" />
                     <span>Approve Project</span>
                   </button>
 
                   <button
                     onClick={() =>
-                      updateProjectStatus(selectedProject._id, "reviewed")
+                      updateProjectStatus(selectedProject?._id, "reviewed")
                     }
-                    className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={selectedProject.status === "reviewed"}
+                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed group"
+                    disabled={selectedProject?.status === "reviewed"}
                   >
-                    <FaEye className="text-lg" />
+                    <FaEye className="text-lg text-blue-400 group-hover:text-blue-300 transition-colors" />
                     <span>Mark as Reviewed</span>
                   </button>
 
                   <button
                     onClick={() =>
-                      updateProjectStatus(selectedProject._id, "rejected")
+                      updateProjectStatus(selectedProject?._id, "rejected")
                     }
-                    className="w-full px-6 py-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-semibold shadow-lg hover:shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={selectedProject.status === "rejected"}
+                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-red-500/20 hover:border-red-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed group"
+                    disabled={selectedProject?.status === "rejected"}
                   >
-                    <FaTimes className="text-lg" />
+                    <FaTimes className="text-lg text-red-400 group-hover:text-red-300 transition-colors" />
                     <span>Reject Project</span>
                   </button>
                 </div>
@@ -2648,8 +2681,12 @@ export default function EnhancedAdminDashboard() {
 
     const action = disable ? "disable" : "enable";
     const confirmMessage = disable
-      ? `Are you sure you want to disable access for ${selectedUser.email}? This will prevent them from logging in.`
-      : `Are you sure you want to enable access for ${selectedUser.email}?`;
+      ? `Are you sure you want to disable access for ${
+          selectedUser?.email ?? "Unknown"
+        }? This will prevent them from logging in.`
+      : `Are you sure you want to enable access for ${
+          selectedUser?.email ?? "Unknown"
+        }?`;
 
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
@@ -2662,7 +2699,7 @@ export default function EnhancedAdminDashboard() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          _id: selectedUser._id,
+          _id: selectedUser?._id,
           isActive: !disable,
           accountLocked: disable,
           // Reset login attempts when enabling
@@ -2681,7 +2718,10 @@ export default function EnhancedAdminDashboard() {
           loginAttempts: disable ? prev?.loginAttempts : 0,
         }));
 
-        console.log(`Account ${action}d successfully for:`, selectedUser.email);
+        console.log(
+          `Account ${action}d successfully for:`,
+          selectedUser?.email ?? "Unknown"
+        );
         alert(`Account ${action}d successfully!`);
       } else {
         console.error(`Error ${action}ing account:`, data.error);
@@ -2716,24 +2756,28 @@ export default function EnhancedAdminDashboard() {
     // For MVP, show different messages based on account status
     if (generatedPassword) {
       // Newly generated password
-      const message = `Login Credentials for ${selectedUser.email}:
+      const message = `Login Credentials for ${
+        selectedUser?.email ?? "Unknown"
+      }:
 
-Email: ${selectedUser.email}
+Email: ${selectedUser?.email ?? "Unknown"}
 Password: ${generatedPassword}
 Login URL: ${window.location.origin}/login
 
 This ${
         statusInfo.hasAccount ? "updates their existing" : "creates a new"
       } account.
-Role: ${selectedUser.role}
+Role: ${selectedUser?.role ?? "Unknown"}
 Status: Active`;
 
       alert(message);
     } else if (accountExists) {
       // Existing account
-      const message = `Account Information for ${selectedUser.email}:
+      const message = `Account Information for ${
+        selectedUser?.email ?? "Unknown"
+      }:
 
-Email: ${selectedUser.email}
+Email: ${selectedUser?.email ?? "Unknown"}
 Password: [Hidden for security - generate new to reset]
 Login URL: ${window.location.origin}/login
 
@@ -2761,7 +2805,7 @@ Generate new credentials to reset password.`;
     }
 
     console.log("Credentials info sent:", {
-      email: selectedUser.email,
+      email: selectedUser?.email ?? "Unknown",
       hasNewPassword: !!generatedPassword,
       accountExists: statusInfo.hasAccount,
       isActive: statusInfo.isActive,
@@ -2773,7 +2817,9 @@ Generate new credentials to reset password.`;
   const deleteUserAccount = async () => {
     if (!selectedUser) return;
 
-    const confirmMessage = `Are you sure you want to permanently delete the account for ${selectedUser.email}? This action cannot be undone.`;
+    const confirmMessage = `Are you sure you want to permanently delete the account for ${
+      selectedUser?.email ?? "Unknown"
+    }? This action cannot be undone.`;
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
 
@@ -2784,14 +2830,17 @@ Generate new credentials to reset password.`;
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/users?id=${selectedUser._id}`, {
+      const response = await fetch(`/api/users?id=${selectedUser?._id}`, {
         method: "DELETE",
       });
 
       const data = await response.json();
 
       if (data.success) {
-        console.log("User account deleted successfully:", selectedUser.email);
+        console.log(
+          "User account deleted successfully:",
+          selectedUser?.email ?? "Unknown"
+        );
         alert("User account deleted successfully!");
 
         // Reset local state
@@ -2817,7 +2866,9 @@ Generate new credentials to reset password.`;
   const copyCredentials = async () => {
     if (!selectedUser || !generatedPassword) return;
 
-    const credentials = `Email: ${selectedUser.email}\nPassword: ${generatedPassword}`;
+    const credentials = `Email: ${
+      selectedUser?.email ?? "Unknown"
+    }\nPassword: ${generatedPassword}`;
 
     try {
       await navigator.clipboard.writeText(credentials);
@@ -2862,166 +2913,170 @@ Generate new credentials to reset password.`;
   // Main render
   return (
     <>
-      <div className="">
-        <div className="relative min-h-screen">
-          {/* Navigation */}
-          <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/5 border-b border-white/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-16">
-                <div className="flex items-center space-x-8">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <FaCode className="text-white text-sm" />
-                    </div>
-                    <button
-                      onClick={() => renderOverview()}
-                      className="text-white font-semibold text-lg"
-                    >
-                      Andishi {" | "}
-                      <span className="text-sm monty uppercase text-gray-400">
-                        admin dashboard
-                      </span>
-                    </button>
+      <div className="relative min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover mb-0">
+        {/* Navigation */}
+        <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/5 border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-8">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <FaCode className="text-white text-sm" />
                   </div>
-
-                  <div className="hidden md:flex space-x-4">
-                    {[
-                      {
-                        id: "projects",
-                        label: "Projects",
-                        icon: FaProjectDiagram,
-                      },
-                      { id: "users", label: "Users", icon: FaUsers },
-                      { id: "analytics", label: "Analytics", icon: FaChartBar },
-                      {
-                        id: "dev profiles",
-                        label: "Dev Profiles",
-                        icon: FaUserEdit,
-                      },
-                      { id: "settings", label: "Settings", icon: FaCog },
-                    ].map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id as ActiveTab)}
-                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                          activeTab === tab.id
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-300 hover:bg-white/10 hover:text-white"
-                        }`}
-                      >
-                        <tab.icon className="text-sm" />
-                        <span>{tab.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <button
+                    onClick={() => renderOverview()}
+                    className="text-white font-semibold text-lg"
+                  >
+                    Andishi {" | "}
+                    <span className="text-sm monty uppercase text-gray-400">
+                      admin dashboard
+                    </span>
+                  </button>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2 text-gray-300">
-                    <FaBell className="text-lg" />
-                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-semibold">
-                        {notifications.length}
-                      </span>
-                    </div>
+                <div className="hidden md:flex space-x-4">
+                  {[
+                    {
+                      id: "overview",
+                      label: "Overview",
+                      icon: FaTachometerAlt,
+                    },
+                    {
+                      id: "projects",
+                      label: "Projects",
+                      icon: FaProjectDiagram,
+                    },
+                    { id: "users", label: "Users", icon: FaUsers },
+                    { id: "analytics", label: "Analytics", icon: FaChartBar },
+                    {
+                      id: "dev profiles",
+                      label: "Dev Profiles",
+                      icon: FaUserEdit,
+                    },
+                    { id: "settings", label: "Settings", icon: FaCog },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as ActiveTab)}
+                      className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        activeTab === tab.id
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <tab.icon className="text-sm" />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 text-gray-300">
+                  <FaBell className="text-lg" />
+                  <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-semibold">
+                      {notifications.length}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-          </nav>
-
-          {/* Mobile Navigation */}
-          <div className="md:hidden bg-white/5 border-b border-white/10">
-            <div className="flex space-x-1 p-2">
-              {[
-                { id: "projects", label: "Projects", icon: FaProjectDiagram },
-                { id: "users", label: "Users", icon: FaUsers },
-                { id: "analytics", label: "Analytics", icon: FaChartBar },
-                { id: "devProfiles", label: "Dev Profiles", icon: FaUserEdit },
-                { id: "settings", label: "Settings", icon: FaCog },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as ActiveTab)}
-                  className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <tab.icon className="text-lg" />
-                  <span className="text-xs">{tab.label}</span>
-                </button>
-              ))}
-            </div>
           </div>
+        </nav>
 
-          {/* Main Content */}
-          <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
-            {activeTab === "overview" && renderOverview()}
-            {activeTab === "projects" && renderProjects()}
-            {activeTab === "users" && (
-              <UserManagement
-                activeTab={activeTab}
-                users={users}
-                setUsers={setUsers}
-                userSearchTerm={userSearchTerm}
-                setUserSearchTerm={setUserSearchTerm}
-                userRoleFilter={userRoleFilter}
-                setUserRoleFilter={setUserRoleFilter}
-                userStatusFilter={userStatusFilter}
-                setUserStatusFilter={setUserStatusFilter}
-              />
-            )}
-            {activeTab === "analytics" && renderAnalytics()}
-            {activeTab === "dev profiles" && <DeveloperProfilesOverview />}
-            {activeTab === "settings" && renderSettings()}
+        {/* Mobile Navigation */}
+        <div className="md:hidden bg-white/5 border-b border-white/10">
+          <div className="flex space-x-1 p-2">
+            {[
+              { id: "overview", label: "Overview", icon: FaTachometerAlt },
+              { id: "projects", label: "Projects", icon: FaProjectDiagram },
+              { id: "users", label: "Users", icon: FaUsers },
+              { id: "analytics", label: "Analytics", icon: FaChartBar },
+              { id: "devProfiles", label: "Dev Profiles", icon: FaUserEdit },
+              { id: "settings", label: "Settings", icon: FaCog },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as ActiveTab)}
+                className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <tab.icon className="text-lg" />
+                <span className="text-xs">{tab.label}</span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Loading Overlay */}
-
-        {loading && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-              <span className="text-white font-medium">Processing...</span>
-            </div>
-          </div>
-        )}
-
-        {/* Toast Notifications */}
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-              notification.type === "success"
-                ? "bg-green-500/20 border-green-500/30 text-green-400"
-                : notification.type === "error"
-                ? "bg-red-500/20 border-red-500/30 text-red-400"
-                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-            }`}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-2">
-                {notification.type === "success" && <FaCheck />}
-                {notification.type === "error" && <FaTimes />}
-                {notification.type === "info" && <FaInfoCircle />}
-                <span className="font-medium">{notification.message}</span>
-              </div>
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          </div>
-        ))}
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
+          {activeTab === "overview" && renderOverview()}
+          {activeTab === "projects" && renderProjects()}
+          {activeTab === "users" && (
+            <UserManagement
+              activeTab={activeTab}
+              users={users}
+              setUsers={setUsers}
+              userSearchTerm={userSearchTerm}
+              setUserSearchTerm={setUserSearchTerm}
+              userRoleFilter={userRoleFilter}
+              setUserRoleFilter={setUserRoleFilter}
+              userStatusFilter={userStatusFilter}
+              setUserStatusFilter={setUserStatusFilter}
+            />
+          )}
+          {activeTab === "analytics" && renderAnalytics()}
+          {activeTab === "dev profiles" && <DeveloperProfilesOverview />}
+          {activeTab === "settings" && renderSettings()}
+        </div>
       </div>
+
+      {/* Loading Overlay */}
+
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+            <span className="text-white font-medium">Processing...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notifications */}
+      {notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
+            notification.type === "success"
+              ? "bg-green-500/20 border-green-500/30 text-green-400"
+              : notification.type === "error"
+              ? "bg-red-500/20 border-red-500/30 text-red-400"
+              : "bg-blue-500/20 border-blue-500/30 text-blue-400"
+          }`}
+          style={{
+            animation: "slideInRight 0.3s ease-out",
+          }}
+        >
+          <div className="flex items-center justify-between space-x-4">
+            <div className="flex items-center space-x-2">
+              {notification.type === "success" && <FaCheck />}
+              {notification.type === "error" && <FaTimes />}
+              {notification.type === "info" && <FaInfoCircle />}
+              <span className="font-medium">{notification.message}</span>
+            </div>
+            <button
+              onClick={() => removeNotification(notification.id)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <FaTimes />
+            </button>
+          </div>
+        </div>
+      ))}
     </>
   );
 }

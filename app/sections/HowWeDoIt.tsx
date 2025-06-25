@@ -94,7 +94,7 @@ export default function HowItWorks() {
         <div className="relative">
           {/* Flowing Path */}
           <svg
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full  rotate-90 md:rotate-0"
             viewBox="0 0 1200 800"
             preserveAspectRatio="xMidYMid meet"
           >

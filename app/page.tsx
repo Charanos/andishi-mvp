@@ -12,6 +12,7 @@ import ProjectsShowcase from "./sections/ProjectsShowcase";
 import ClientDashboard from "./client-dashboard/page";
 import ClientDashboardSection from "./sections/ClientDashboardDisplay";
 import DevDashboardSection from "./sections/DevDashboardDisplay";
+import LatestInsights from "./sections/LatestInsights";
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -116,7 +117,7 @@ export default function HomePage() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
       >
-        <BlogsSection />
+        <LatestInsights />
       </motion.div>
 
       <motion.div

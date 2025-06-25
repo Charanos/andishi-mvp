@@ -11,6 +11,16 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+interface ProjectDetails {
+  title: string;
+  description: string;
+  category?: string;
+  timeline?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
+  techStack: string[];
+  requirements?: string;
+}
+
 interface ProjectWithDetails {
   id: string;
   title: string;

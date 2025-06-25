@@ -29,6 +29,16 @@ interface ProjectFile {
   createdAt: Date;
 }
 
+interface ProjectDetails {
+  title: string;
+  description: string;
+  category?: string;
+  timeline?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
+  techStack: string[];
+  requirements?: string;
+}
+
 interface ProjectWithDetails {
   id: string;
   title: string;
@@ -96,11 +106,6 @@ interface CRUDOperations {
   uploadFile: (projectId: string, file: File) => Promise<void>;
   deleteFile: (projectId: string, fileId: string) => Promise<void>;
 }
-deleteUpdate: (projectId: string, updateId: string) => Promise<void>;
-
-// File operations
-uploadFile: (projectId: string, file: File) => Promise<void>;
-deleteFile: (projectId: string, fileId: string) => Promise<void>;
 
 // hooks/useProjectOperations.ts
 const useProjectOperations = () => {

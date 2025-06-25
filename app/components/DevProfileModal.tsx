@@ -58,24 +58,45 @@ export default function DevProfileModal({
 }: DevProfileModalProps) {
   // Skill colors for badges
   const skillColors: { [key: string]: string } = {
-    React: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    "Next.js": "bg-gray-800/20 text-gray-300 border-gray-600/30",
-    "Node.js": "bg-green-500/20 text-green-300 border-green-500/30",
-    TypeScript: "bg-blue-600/20 text-blue-400 border-blue-600/30",
-    Python: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    "Tailwind CSS": "bg-teal-500/20 text-teal-300 border-teal-500/30",
-    MongoDB: "bg-green-600/20 text-green-400 border-green-600/30",
-    PostgreSQL: "bg-blue-700/20 text-blue-400 border-blue-700/30",
-    Firebase: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    AWS: "bg-orange-600/20 text-orange-400 border-orange-600/30",
-    "Vue.js": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    Blockchain: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    DevOps: "bg-red-500/20 text-red-300 border-red-500/30",
-    "Machine Learning": "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
-    "React Native": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-    Docker: "bg-blue-400/20 text-blue-200 border-blue-400/30",
-    Kubernetes: "bg-purple-600/20 text-purple-400 border-purple-600/30",
-    GraphQL: "bg-pink-500/20 text-pink-300 border-pink-500/30",
+    React:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    "Next.js":
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    "Node.js":
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    TypeScript:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Python:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    "Tailwind CSS":
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    MongoDB:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    PostgreSQL:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Firebase:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    AWS: "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    "Vue.js":
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Blockchain:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Flutter:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Django:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Express:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Redis:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Docker:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    ML: "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Kubernetes:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    GraphQL:
+      "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
+    Web3: "bg-indigo-400/10 backdrop-blur-sm text-indigo-400/80 border border-indigo-400/20 hover:border-indigo-400/30 hover:bg-indigo-400/15",
   };
 
   // Lock body scroll when modal is open
@@ -180,23 +201,11 @@ export default function DevProfileModal({
 
           {/* Modal */}
           <motion.div
-            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl"
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            style={{
-              background: `linear-gradient(135deg, 
-                rgba(15, 23, 42, 0.95) 0%, 
-                rgba(30, 41, 59, 0.95) 50%, 
-                rgba(15, 23, 42, 0.95) 100%)`,
-              backdropFilter: "blur(20px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: `
-                0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05)
-              `,
-            }}
           >
             {/* Close Button */}
             <motion.button
@@ -333,7 +342,7 @@ export default function DevProfileModal({
                     </div>
 
                     {/* Social Links */}
-                    <div className="flex space-x-3">
+                    {/* <div className="flex space-x-3">
                       <Link
                         href={developer.portfolioUrl}
                         className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 cursor-pointer"
@@ -352,7 +361,7 @@ export default function DevProfileModal({
                       >
                         LinkedIn
                       </Link>
-                    </div>
+                    </div> */}
                   </div>
                 </motion.div>
 
@@ -487,7 +496,7 @@ export default function DevProfileModal({
                 </motion.div>
 
                 {/* Contact Button */}
-                <motion.div
+                {/* <motion.div
                   className="text-center pt-8 border-t border-white/10"
                   variants={itemVariants}
                 >
@@ -498,13 +507,13 @@ export default function DevProfileModal({
                   >
                     Contact {developer.name}
                   </motion.button>
-                </motion.div>
+                </motion.div> */}
               </motion.div>
             </div>
           </motion.div>
 
           {/* Ambient background effects */}
-          <div className="absolute top-20 left-10 w-32 h-32 bg-green-500/8 rounded-full blur-3xl animate-pulse"></div>
+          {/* <div className="absolute top-20 left-10 w-32 h-32 bg-green-500/8 rounded-full blur-3xl animate-pulse"></div>
           <div
             className="absolute bottom-20 right-10 w-40 h-40 bg-purple-500/8 rounded-full blur-3xl animate-pulse"
             style={{ animationDelay: "1s" }}
@@ -516,7 +525,7 @@ export default function DevProfileModal({
           <div
             className="absolute top-1/3 right-1/4 w-28 h-28 bg-pink-500/8 rounded-full blur-3xl animate-pulse"
             style={{ animationDelay: "3s" }}
-          ></div>
+          ></div> */}
         </motion.div>
       )}
     </AnimatePresence>

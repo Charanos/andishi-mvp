@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React, { JSX } from "react";
 import {
   FaCode,
@@ -87,14 +88,14 @@ export default function DevDashboardSection(): JSX.Element {
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/15 transition-colors duration-300">
                       <feature.icon
-                        className={`text-xl ${feature.iconColor} group-hover:scale-110 transition-transform duration-300`}
+                        className={`text-lg ${feature.iconColor} group-hover:scale-110 transition-transform duration-300`}
                       />
                     </div>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-orange-200 transition-colors duration-300">
+                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-orange-200 transition-colors duration-300">
                       {feature.title}
                     </h3>
                     <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-300 leading-relaxed">
@@ -107,10 +108,16 @@ export default function DevDashboardSection(): JSX.Element {
 
             {/* CTA Button */}
             <div className="pt-4">
-              <button className="group relative overflow-hidden px-8 py-4 bg-gradient-to-r from-orange-600 to-purple-600 rounded-xl text-white font-semibold hover:from-orange-500 hover:to-purple-500 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/25">
-                <span className="relative z-10">Join as Developer</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
+              <Link
+                href="/join-talent-pool"
+                className="group relative inline-flex items-center gap-3 px-6 py-3 mt-6 rounded-xl bg-purple-500/80 shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-orange-400/60"
+              >
+                <span className="relative z-10 text-md font-medium text-white tracking-wide monty drop-shadow-sm group-hover:text-orange-100 transition-colors duration-300">
+                  Join as Developer
+                </span>
+                <FaRocket className="text-white/80 text-xl group-hover:animate-bounce transition-transform duration-300" />
+                <span className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl pointer-events-none"></span>
+              </Link>
             </div>
           </div>
 

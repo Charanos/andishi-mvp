@@ -7,20 +7,31 @@ import React, { useState } from "react";
 export default function ProjectShowcase() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // Tech icons as simple text badges for Next.js compatibility
+  // Tech icons as unified glassmorphic badges
   const techColors: { [key: string]: string } = {
-    React: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    "Next.js": "bg-gray-800/20 text-gray-300 border-gray-600/30",
-    "Node.js": "bg-green-500/20 text-green-300 border-green-500/30",
-    TypeScript: "bg-blue-600/20 text-blue-400 border-blue-600/30",
-    Python: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    "Tailwind CSS": "bg-teal-500/20 text-teal-300 border-teal-500/30",
-    MongoDB: "bg-green-600/20 text-green-400 border-green-600/30",
-    PostgreSQL: "bg-blue-700/20 text-blue-400 border-blue-700/30",
-    Firebase: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    AWS: "bg-orange-600/20 text-orange-400 border-orange-600/30",
-    "Vue.js": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    Blockchain: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+    React:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Next.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Node.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    TypeScript:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Python:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Tailwind CSS":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    MongoDB:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    PostgreSQL:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Firebase:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    AWS: "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Vue.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Blockchain:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
   };
 
   const projects = [
@@ -30,7 +41,7 @@ export default function ProjectShowcase() {
       description:
         "A full-stack e-commerce solution with AI-driven product recommendations, real-time inventory management, and advanced analytics dashboard.",
       category: "Web Development",
-      image: "/images/project1.jpg",
+      image: "/images/project1.webp",
       technologies: ["React", "Node.js", "MongoDB", "AWS", "TypeScript"],
       gradient: "from-blue-500/20 to-cyan-500/10",
       liveUrl: "https://example.com",
@@ -45,7 +56,7 @@ export default function ProjectShowcase() {
       description:
         "A comprehensive DeFi platform for portfolio tracking, yield farming, and cross-chain transactions with real-time market data integration.",
       category: "Blockchain",
-      image: "/images/project2.jpg",
+      image: "/images/project2.webp",
       technologies: ["Next.js", "Blockchain", "TypeScript", "Tailwind CSS"],
       gradient: "from-purple-500/20 to-pink-500/10",
       liveUrl: "https://example.com",
@@ -60,7 +71,7 @@ export default function ProjectShowcase() {
       description:
         "HIPAA-compliant healthcare platform with patient management, appointment scheduling, telemedicine integration, and medical records system.",
       category: "Web Development",
-      image: "/images/project3.jpg",
+      image: "/images/project3.webp",
       technologies: ["Vue.js", "Python", "PostgreSQL", "AWS"],
       gradient: "from-green-500/20 to-emerald-500/10",
       liveUrl: "https://example.com",
@@ -75,7 +86,7 @@ export default function ProjectShowcase() {
       description:
         "A Slack-alternative with real-time messaging, video calls, file sharing, and project management features for remote teams.",
       category: "Mobile Development",
-      image: "/images/project4.jpg",
+      image: "/images/project4.webp",
       technologies: ["React", "Node.js", "Firebase", "TypeScript"],
       gradient: "from-orange-500/20 to-red-500/10",
       liveUrl: "https://example.com",
@@ -90,7 +101,7 @@ export default function ProjectShowcase() {
       description:
         "Advanced data analytics platform with ML models for predictive analysis, data visualization, and automated reporting for enterprise clients.",
       category: "AI/ML",
-      image: "/images/project5.jpg",
+      image: "/images/project5.webp",
       technologies: ["Python", "React", "PostgreSQL", "AWS"],
       gradient: "from-indigo-500/20 to-blue-500/10",
       liveUrl: "https://example.com",
@@ -105,7 +116,7 @@ export default function ProjectShowcase() {
       description:
         "Full-featured NFT marketplace with minting, trading, auctions, and royalty management on multiple blockchain networks.",
       category: "Blockchain",
-      image: "/images/project6.jpg",
+      image: "/images/project6.webp",
       technologies: ["Next.js", "Blockchain", "MongoDB", "Tailwind CSS"],
       gradient: "from-violet-500/20 to-purple-500/10",
       liveUrl: "https://example.com",
@@ -137,7 +148,7 @@ export default function ProjectShowcase() {
           <h2 className="text-3xl lg:text-4xl font-medium text-white mb-4">
             Featured <span className="text-purple-400">Projects</span>
           </h2>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-8">
+          <p className="text-lg text-gray-300 max-w-4xl mx-auto mb-8">
             Discover our portfolio of successful projects across various
             industries and technologies
           </p>
@@ -185,10 +196,10 @@ export default function ProjectShowcase() {
               {/* Project Image */}
               <div className="relative h-48 bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden">
                 <Image
+                  fill
                   src={project.image}
                   alt={project.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="object-cover transition-transform duration-500 group-hover:scale-110 z-30"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
@@ -306,10 +317,10 @@ export default function ProjectShowcase() {
         </div>
 
         {/* View All Button */}
-        <div className="text-center mt-16">
+        <div className="text-center mt-24">
           <Link
             href="/our-portfolio"
-            className="group inline-flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium rounded-full hover:from-purple-600 hover:to-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
+            className="group monty inline-flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium rounded-full hover:from-purple-600 hover:to-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
           >
             <span>View All Projects</span>
             <svg

@@ -223,13 +223,81 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
   const copyCredentials = async () => {
     if (!generatedPassword) return;
+
     try {
       await navigator.clipboard.writeText(
         `Email: ${selectedUser?.email}\nPassword: ${generatedPassword}`
       );
-      // You could add a toast notification here if you have one
+
+      // Success toast notification - glassmorphic
+      if (typeof window !== "undefined") {
+        const toast = document.createElement("div");
+        toast.innerText = "Credentials copied to clipboard!";
+        toast.style.position = "fixed";
+        toast.style.bottom = "32px";
+        toast.style.left = "50%";
+        toast.style.transform = "translateX(-50%)";
+        toast.style.background = "rgba(255,255,255,0.1)";
+        toast.style.backdropFilter = "blur(16px)";
+        toast.style.border = "1px solid rgba(34,197,94,0.3)";
+        toast.style.color = "#10b981";
+        toast.style.padding = "16px 24px";
+        toast.style.borderRadius = "16px";
+        toast.style.fontSize = "0.9rem";
+        toast.style.fontWeight = "500";
+        toast.style.zIndex = "9999";
+        toast.style.boxShadow = "0 8px 32px rgba(0,0,0,0.2)";
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
+          toast.style.opacity = "0";
+          toast.style.transform = "translateX(-50%) translateY(10px)";
+          setTimeout(() => {
+            if (document.body.contains(toast)) {
+              document.body.removeChild(toast);
+            }
+          }, 400);
+        }, 1800);
+      }
     } catch (err) {
-      setError("Failed to copy credentials to clipboard");
+      console.error("Failed to copy to clipboard:", err);
+
+      // Error toast notification - glassmorphic
+      if (typeof window !== "undefined") {
+        const errorToast = document.createElement("div");
+        errorToast.innerText = "Failed to copy credentials to clipboard";
+        errorToast.style.position = "fixed";
+        errorToast.style.bottom = "32px";
+        errorToast.style.left = "50%";
+        errorToast.style.transform = "translateX(-50%)";
+        errorToast.style.background = "rgba(255,255,255,0.1)";
+        errorToast.style.backdropFilter = "blur(16px)";
+        errorToast.style.border = "1px solid rgba(239,68,68,0.3)";
+        errorToast.style.color = "#ef4444";
+        errorToast.style.padding = "16px 24px";
+        errorToast.style.borderRadius = "16px";
+        errorToast.style.fontSize = "0.9rem";
+        errorToast.style.fontWeight = "500";
+        errorToast.style.zIndex = "9999";
+        errorToast.style.boxShadow = "0 8px 32px rgba(0,0,0,0.2)";
+        document.body.appendChild(errorToast);
+
+        setTimeout(() => {
+          errorToast.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
+          errorToast.style.opacity = "0";
+          errorToast.style.transform = "translateX(-50%) translateY(10px)";
+          setTimeout(() => {
+            if (document.body.contains(errorToast)) {
+              document.body.removeChild(errorToast);
+            }
+          }, 400);
+        }, 2500);
+      }
+
+      if (setError) {
+        setError("Failed to copy credentials to clipboard");
+      }
     }
   };
 
@@ -534,26 +602,26 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const getRoleColor = (role: string): string => {
     switch (role) {
       case "admin":
-        return "bg-red-500/20 border-red-500/50 text-red-400";
+        return "bg-red-500/15 border-red-500/30 text-red-400";
       case "developer":
-        return "bg-blue-500/20 border-blue-500/50 text-blue-400";
+        return "bg-blue-500/15 border-blue-500/30 text-blue-400";
       case "client":
-        return "bg-green-500/20 border-green-500/50 text-green-400";
+        return "bg-green-500/15 border-green-500/30 text-green-400";
       default:
-        return "bg-gray-500/20 border-gray-500/50 text-gray-400";
+        return "bg-gray-500/15 border-gray-500/30 text-gray-400";
     }
   };
 
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "active":
-        return "bg-green-500/20 border-green-500/50 text-green-400";
+        return "bg-green-500/15 border-green-500/30 text-green-400";
       case "inactive":
-        return "bg-yellow-500/20 border-yellow-500/50 text-yellow-400";
+        return "bg-yellow-500/15 border-yellow-500/30 text-yellow-400";
       case "suspended":
-        return "bg-red-500/20 border-red-500/50 text-red-400";
+        return "bg-red-500/15 border-red-500/30 text-red-400";
       default:
-        return "bg-gray-500/20 border-gray-500/50 text-gray-400";
+        return "bg-gray-500/15 border-gray-500/30 text-gray-400";
     }
   };
 
@@ -614,7 +682,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         </div>
         <button
           onClick={resetView}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          className="flex cursor-pointer items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
         >
           <FaTimes />
           <span>Cancel</span>
@@ -935,7 +1003,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
     if (!selectedUser) return null;
 
     return (
-      <div className="min-h-screen  rounded-2xl bg-white/5 backdrop-blur-xl">
+      <div className="min-h-screen rounded-2xl bg-white/5 backdrop-blur-xl">
         {/* Header Section */}
         <div className="relative overflow-hidden  rounded-xl">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20"></div>
@@ -946,7 +1014,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 onClick={() => setViewMode("list")}
                 className="flex items-center space-x-3 text-gray-300 hover:text-white transition-all duration-300 group"
               >
-                <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/20 transition-all">
+                <div className="p-2 cursor-pointer rounded-full bg-white/5 group-hover:bg-white/20 transition-all">
                   <FaArrowCircleLeft className="w-5 h-5" />
                 </div>
                 <span className="font-medium">Back to Users</span>
@@ -956,12 +1024,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
                   <FaUser className="text-blue-400" />
-                  <span className="text-white font-medium capitalize">
+                  <span className="text-white font-medium text-sm monty uppercase">
                     {selectedUser.role}
                   </span>
                 </div>
                 <span
-                  className={`px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm border border-white/20 ${getStatusColor(
+                  className={`px-4 py-2 monty rounded-full text-sm font-semibold backdrop-blur-sm border border-white/20 ${getStatusColor(
                     selectedUser.status || "inactive"
                   )}`}
                 >
@@ -1008,13 +1076,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       Personal Information
                     </h3>
                   </div>
-                  <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="px-4 py-2 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded-lg transition-all duration-300 flex items-center space-x-2"
-                  >
-                    <FaEdit className="text-sm" />
-                    <span>{isEditing ? "Cancel Edit" : "Edit Details"}</span>
-                  </button>
                 </div>
 
                 {isEditing ? (
@@ -1222,7 +1283,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <p className="text-blue-300 text-sm font-medium mb-2">
+                        <p className="text-blue-300 text-sm monty uppercase font-medium mb-2">
                           Contact Information
                         </p>
                         <div className="space-y-3">
@@ -1244,7 +1305,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       </div>
 
                       <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <p className="text-blue-300 text-sm font-medium mb-2">
+                        <p className="text-blue-300 monty uppercase text-sm font-medium mb-2">
                           Professional Details
                         </p>
                         <div className="space-y-2">
@@ -1311,7 +1372,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white/5 rounded-xl p-6 border border-white/10">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-white">
+                        <h4 className="text-base font-semibold text-white">
                           Email
                         </h4>
                         <div className="flex items-center space-x-2">
@@ -1323,7 +1384,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             }`}
                           ></div>
                           <span
-                            className={`text-sm ${
+                            className={`text-xs  monty uppercase ${
                               getAccountStatusInfo().isActive
                                 ? "text-green-400"
                                 : "text-red-400"
@@ -1335,17 +1396,17 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           </span>
                         </div>
                       </div>
-                      <p className="text-gray-300 font-mono text-lg bg-black/20 px-4 py-3 rounded-lg border border-white/10">
+                      <p className="text-gray-300 font-mono text-md bg-black/20 px-4 py-3 rounded-lg border border-white/10">
                         {selectedUser.email}
                       </p>
                     </div>
 
                     <div className="bg-white/5 rounded-xl p-6 border border-white/10">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-white">
+                        <h4 className="text-base font-semibold text-white">
                           Password
                         </h4>
-                        <span className="text-yellow-400 text-sm">
+                        <span className="text-yellow-400 monty uppercase text-xs">
                           {generatedPassword
                             ? "Just Generated"
                             : getAccountStatusInfo().lastPasswordChange
@@ -1373,10 +1434,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             </div>
                           ) : accountExists ? (
                             <div className="space-y-2">
-                              <p className="text-blue-300 font-mono text-lg bg-blue-900/20 px-4 py-3 rounded-lg border border-blue-400/30">
+                              <p className="text-blue-300 font-mono text-md bg-blue-900/20 px-4 py-3 rounded-lg border border-blue-400/30">
                                 ••••••••••••
                               </p>
-                              <p className="text-xs text-blue-400">
+                              <p className="text-xs monty uppercase text-blue-400">
                                 ✓ Account has existing password - Generate new
                                 to reset
                               </p>
@@ -1391,7 +1452,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           <button
                             onClick={generateCredentials}
                             disabled={isCreatingAccount}
-                            className="px-4 py-3 bg-blue-600/30 hover:bg-blue-600/50 disabled:bg-gray-600/30 text-blue-300 disabled:text-gray-400 rounded-lg transition-all duration-300"
+                            className="cursor-pointer px-4 py-3 bg-blue-600/30 hover:bg-blue-600/50 disabled:bg-gray-600/30 text-blue-300 disabled:text-gray-400 rounded-lg transition-all duration-300"
                             title={
                               accountExists
                                 ? "Reset password"
@@ -1407,7 +1468,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           {(generatedPassword || accountExists) && (
                             <button
                               onClick={copyCredentials}
-                              className="px-4 py-3 bg-green-600/30 hover:bg-green-600/50 text-green-300 rounded-lg transition-all duration-300"
+                              className="cursor-pointer px-4 py-3 bg-green-600/30 hover:bg-green-600/50 text-green-300 rounded-lg transition-all duration-300"
                               title="Copy credentials info"
                             >
                               <FaCopy className="text-sm" />
@@ -1644,30 +1705,30 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 <div className="space-y-4">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                    className="cursor-pointer w-full px-4 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium hover:shadow-lg hover:shadow-blue-500/10 group"
                   >
-                    <FaEdit />
+                    <FaEdit className="text-blue-400 group-hover:text-blue-300 transition-colors" />
                     <span>Edit User Details</span>
                   </button>
 
                   <button
                     onClick={generateCredentials}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                    className="cursor-pointer w-full px-4 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium hover:shadow-lg hover:shadow-green-500/10 group"
                   >
-                    <FaKey />
+                    <FaKey className="text-green-400 group-hover:text-green-300 transition-colors" />
                     <span>Reset Password</span>
                   </button>
 
                   <button
                     onClick={sendCredentials}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                    className="cursor-pointer w-full px-4 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium hover:shadow-lg hover:shadow-purple-500/10 group"
                   >
-                    <FaPaperPlane />
+                    <FaPaperPlane className="text-purple-400 group-hover:text-purple-300 transition-colors" />
                     <span>Send Login Details</span>
                   </button>
 
-                  <button className="w-full px-4 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2">
-                    <FaBan />
+                  <button className="cursor-pointer w-full px-4 py-3 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-red-500/20 hover:border-red-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium hover:shadow-lg hover:shadow-red-500/10 group">
+                    <FaBan className="text-red-400 group-hover:text-red-300 transition-colors" />
                     <span>Suspend Account</span>
                   </button>
                 </div>
@@ -1684,7 +1745,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
                     <div className="text-3xl font-semibold text-blue-400 mb-1">
                       {selectedUser.projectsCount || 0}
                     </div>
-                    <p className="text-gray-400 text-sm">Total Projects</p>
+                    <p className="text-gray-400 text-sm monty uppercase">
+                      Total Projects
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 text-center">
@@ -1692,13 +1755,17 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       <div className="text-xl font-semibold text-green-400 mb-1">
                         {selectedUser.completedProjects || 0}
                       </div>
-                      <p className="text-gray-400 text-xs">Completed</p>
+                      <p className="text-gray-400 text-xs monty uppercase">
+                        Completed
+                      </p>
                     </div>
                     <div>
                       <div className="text-xl font-semibold text-yellow-400 mb-1">
                         {selectedUser.activeProjects || 0}
                       </div>
-                      <p className="text-gray-400 text-xs">Active</p>
+                      <p className="text-gray-400 text-xs monty uppercase">
+                        Active
+                      </p>
                     </div>
                   </div>
 
@@ -1805,7 +1872,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         </div>
         <button
           onClick={() => setViewMode("create")}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex cursor-pointer monty items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           <FaPlus />
           <span>Add User</span>
@@ -1881,29 +1948,29 @@ const UserManagement: React.FC<UserManagementProps> = ({
       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl overflow-hidden">
         {getFilteredUsers().length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-400">No users found</p>
+            <p className="text-gray-400 monty uppercase">No users found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-white/5">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
                     Company
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
                     Joined
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -1916,14 +1983,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-white">
+                        <div className="text-sm monty font-medium text-white">
                           {user.firstName} {user.lastName}
                         </div>
                         <div className="text-sm text-gray-400">
                           {user.email}
                         </div>
                         {user.phone && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs monty text-gray-500">
                             {user.phone}
                           </div>
                         )}
@@ -1931,7 +1998,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 rounded text-xs border ${getRoleColor(
+                        className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(
                           user.role
                         )}`}
                       >
@@ -1942,7 +2009,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(user.status)}
                         <span
-                          className={`px-2 py-1 rounded text-xs border ${getStatusColor(
+                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(
                             user.status
                           )}`}
                         >
@@ -1963,7 +2030,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             setSelectedUser(user);
                             setViewMode("detail");
                           }}
-                          className="text-blue-400 hover:text-blue-300 p-1"
+                          className="text-blue-400/70 hover:text-blue-300/70 cursor-pointer p-1"
                           title="View Details"
                         >
                           <FaEye />
@@ -1984,7 +2051,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             });
                             setViewMode("edit");
                           }}
-                          className="text-green-400 hover:text-green-300 p-1"
+                          className="text-green-400/70 hover:text-green-300/80 cursor-pointer p-1"
                           title="Edit User"
                         >
                           <FaEdit />
@@ -1995,8 +2062,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           }
                           className={`p-1 ${
                             user.status === "active"
-                              ? "text-yellow-400 hover:text-yellow-300"
-                              : "text-green-400 hover:text-green-300"
+                              ? "text-yellow-400/70 cursor-pointer hover:text-yellow-300870"
+                              : "text-lime-400/70 cursor-pointer hover:text-lime-300/80"
                           }`}
                           title={
                             user.status === "active"
@@ -2009,7 +2076,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         </button>
                         <button
                           onClick={() => deleteUser(user._id)}
-                          className="text-red-400 hover:text-red-300 p-1"
+                          className="text-red-400/70 cursor-pointer  hover:text-red-300/80 p-1"
                           title="Delete User"
                           disabled={loading}
                         >
@@ -2028,28 +2095,28 @@ const UserManagement: React.FC<UserManagementProps> = ({
       {/* User Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-semibold text-white">
+          <div className="text-2xl monty font-semibold text-white">
             {users.length}
           </div>
-          <div className="text-sm text-gray-400">Total Users</div>
+          <div className="text-sm monty text-gray-400">Total Users</div>
         </div>
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-semibold text-green-400">
+          <div className="text-2xl font-semibold monty text-green-400">
             {users.filter((u) => u.status === "active").length}
           </div>
-          <div className="text-sm text-gray-400">Active Users</div>
+          <div className="text-sm text-gray-400 monty">Active Users</div>
         </div>
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-semibold text-blue-400">
+          <div className="text-2xl font-semibold text-blue-400 monty">
             {users.filter((u) => u.role === "client").length}
           </div>
-          <div className="text-sm text-gray-400">Clients</div>
+          <div className="text-sm text-gray-400 monty">Clients</div>
         </div>
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-semibold text-purple-400">
+          <div className="text-2xl font-semibold text-purple-400 monty">
             {users.filter((u) => u.role === "developer").length}
           </div>
-          <div className="text-sm text-gray-400">Developers</div>
+          <div className="text-sm text-gray-400 monty">Developers</div>
         </div>
       </div>
     </div>

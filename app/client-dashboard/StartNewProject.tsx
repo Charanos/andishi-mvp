@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaPlus,
   FaFlag,
@@ -12,19 +12,23 @@ import {
   FaCalendarAlt,
   FaProjectDiagram,
 } from "react-icons/fa";
-import { startProjectFormSchema } from "@/lib/formSchema";
+import {
+  authenticatedStartProjectFormSchema,
+  startProjectFormSchema,
+} from "@/lib/formSchema";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProjectDetails {
   title: string;
   description: string;
-  category: string;
-  timeline: string;
-  urgency: string;
-  techStack: string[];
-  requirements: string;
+  category?: string;
+  timeline?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
+  techStack?: string[];
+  requirements?: string;
 }
 
 interface Milestone {
@@ -39,27 +43,48 @@ interface PricingOption {
   type: "fixed" | "milestone" | "hourly";
   currency: "USD" | "KES";
   fixedBudget?: string;
-  milestones?: Milestone[];
+  milestones: Milestone[];
   hourlyRate?: string;
   estimatedHours?: string;
 }
 
+interface UserInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  company: string;
+  role: string;
+}
+
 interface FormData {
-  pricing: PricingOption;
+  userInfo: UserInfo;
   projectDetails: ProjectDetails;
+  pricing: PricingOption;
 }
 
 export default function ClientDashboardStartProject({}) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [formData, setFormData] = useState<FormData>({
+    userInfo: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      company: "",
+      role: "client",
+    },
     projectDetails: {
       title: "",
       description: "",
       category: "",
       timeline: "",
-      urgency: "",
+      priority: "low",
       techStack: [],
       requirements: "",
     },
@@ -67,8 +92,30 @@ export default function ClientDashboardStartProject({}) {
       type: "fixed",
       currency: "USD",
       milestones: [],
+      fixedBudget: "",
+      hourlyRate: "",
+      estimatedHours: "",
     },
   });
+
+  const { user } = useAuth();
+
+  // Auto-populate user info when user data is available
+  useEffect(() => {
+    if (user) {
+      const nameParts = user.name?.split(" ") || ["", ""];
+      setFormData((prev) => ({
+        ...prev,
+        userInfo: {
+          ...prev.userInfo,
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
+          email: user.email || "",
+          role: "client",
+        },
+      }));
+    }
+  }, [user]);
 
   // Expanded tech stacks with more comprehensive options
   const techStacks = [
@@ -128,11 +175,11 @@ export default function ClientDashboardStartProject({}) {
     "6+ months",
   ];
 
-  const urgencyLevels = [
-    "Low - No rush",
-    "Medium - Standard timeline",
-    "High - ASAP",
-    "Critical - Emergency",
+  const priorityLevels = [
+    { value: "low", label: "Low - No rush" },
+    { value: "medium", label: "Medium - Standard timeline" },
+    { value: "high", label: "High - ASAP" },
+    { value: "urgent", label: "Urgent - Emergency" },
   ];
 
   const steps = [
@@ -167,7 +214,7 @@ export default function ClientDashboardStartProject({}) {
   };
 
   const toggleTechStack = (tech: string) => {
-    const currentTechStack = formData.projectDetails.techStack;
+    const currentTechStack = formData.projectDetails.techStack || [];
     if (currentTechStack.includes(tech)) {
       updateProjectDetails(
         "techStack",
@@ -210,23 +257,58 @@ export default function ClientDashboardStartProject({}) {
     );
   };
 
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          formData.projectDetails.title.trim() !== "" &&
+          formData.projectDetails.description.trim() !== "" &&
+          (formData.projectDetails.techStack?.length || 0) > 0
+        );
+      case 2:
+        if (formData.pricing.type === "fixed") {
+          return formData.pricing.fixedBudget?.trim() !== "";
+        } else if (formData.pricing.type === "hourly") {
+          return (
+            formData.pricing.hourlyRate?.trim() !== "" &&
+            formData.pricing.estimatedHours?.trim() !== ""
+          );
+        } else {
+          // For milestone type
+          return (
+            formData.pricing.milestones.length > 0 &&
+            formData.pricing.milestones.every(
+              (m) =>
+                m.title.trim() !== "" &&
+                m.description.trim() !== "" &&
+                m.budget.trim() !== "" &&
+                m.timeline.trim() !== ""
+            )
+          );
+        }
+      case 3:
+        return termsAccepted;
+      default:
+        return false;
+    }
+  };
+
   const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
+    if (isStepValid()) {
+      setCurrentStep((prev) => prev + 1);
       scrollToTop();
+    } else {
+      toast.error("Please fill in all required fields before proceeding.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
     }
   };
 
   const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      scrollToTop();
-    }
+    setCurrentStep((prev) => prev - 1);
+    scrollToTop();
   };
-
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
 
   const handleSubmit = async () => {
     // Check if terms are accepted
@@ -236,64 +318,94 @@ export default function ClientDashboardStartProject({}) {
     }
 
     try {
-      const result = await startProjectFormSchema.safeParse(formData);
-      if (!result.success) {
-        result.error.issues.forEach((issue) => {
-          toast.error(issue.message);
+      // Prepare the form data
+      const formDataToSubmit = {
+        projectDetails: {
+          ...formData.projectDetails,
+          techStack: formData.projectDetails.techStack || [],
+          priority: formData.projectDetails.priority || "low",
+        },
+        pricing: {
+          ...formData.pricing,
+          type: formData.pricing.type || "fixed",
+          currency: formData.pricing.currency || "USD",
+          milestones: formData.pricing.milestones || [],
+        },
+        // Only include userInfo for unauthenticated users
+        ...(user ? {} : { userInfo: formData.userInfo }),
+      };
+
+      // Validate form data with the appropriate schema
+      const validationResult = user
+        ? authenticatedStartProjectFormSchema.safeParse(formDataToSubmit)
+        : startProjectFormSchema.safeParse(formDataToSubmit);
+
+      if (!validationResult.success) {
+        console.error(
+          "Client-side validation errors:",
+          validationResult.error.format()
+        );
+        validationResult.error.issues.forEach((issue) => {
+          const path = issue.path.join(" > ");
+          toast.error(`${path}: ${issue.message}`, {
+            position: "top-center",
+            autoClose: 5000,
+          });
         });
         return;
       }
 
       setSubmitStatus("loading");
-      toast.info("Submitting your project...");
+      toast.info("Submitting your project...", {
+        position: "top-center",
+        autoClose: 2000,
+      });
 
-      try {
-        const res = await fetch("/api/start-project", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-        const result = await res.json();
+      const res = await fetch("/api/start-project", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formDataToSubmit,
+          userId: user?.id,
+        }),
+      });
 
-        if (result.success) {
-          setSubmitStatus("success");
-          toast.success(
-            "Your project has been submitted successfully! Redirecting..."
-          );
+      const data = await res.json();
 
-          // Redirect to thank you page after a short delay
-          setTimeout(() => {
-            router.push("/thank-you-start-new-project");
-          }, 2000);
-        } else {
-          setSubmitStatus("error");
-          toast.error(result.message || "Submission failed. Please try again.");
-        }
-      } catch (error) {
+      if (!data.success) {
         setSubmitStatus("error");
-        toast.error("An error occurred while submitting. Please try again.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An unexpected error occurred. Please try again.");
-    }
-  };
+        console.error("Server validation errors:", data.errors);
 
-  const isStepValid = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          formData.projectDetails.title && formData.projectDetails.description
-        );
-      case 2:
-        if (formData.pricing.type === "milestone") {
-          return (formData.pricing.milestones?.length || 0) > 0;
+        // If we have structured validation errors, show them
+        if (data.errors) {
+          Object.entries(data.errors).forEach(
+            ([path, error]: [string, any]) => {
+              if (error?._errors) {
+                error._errors.forEach((err: string) => {
+                  toast.error(`${path}: ${err}`, {
+                    position: "top-center",
+                    autoClose: 5000,
+                  });
+                });
+              }
+            }
+          );
+        } else {
+          // Otherwise show the general error message
+          toast.error(data.message || "Failed to submit project");
         }
-        return true;
-      case 3:
-        return termsAccepted;
-      default:
-        return true;
+        return;
+      }
+
+      setSubmitStatus("success");
+      toast.success("Project submitted successfully!");
+
+      // Redirect to thank you page or dashboard
+      router.push("/client-dashboard");
+    } catch (error) {
+      setSubmitStatus("error");
+      toast.error("An error occurred while submitting your project");
+      console.error("Submit error:", error);
     }
   };
 
@@ -422,7 +534,7 @@ export default function ClientDashboardStartProject({}) {
                         type="button"
                         onClick={() => toggleTechStack(tech)}
                         className={`px-3 hover:bg-purple-700 cursor-pointer py-2 rounded-lg border transition-all duration-300 text-sm ${
-                          formData.projectDetails.techStack.includes(tech)
+                          formData.projectDetails.techStack?.includes(tech)
                             ? "bg-blue-500/20 border-blue-400 text-blue-300"
                             : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                         }`}
@@ -431,12 +543,21 @@ export default function ClientDashboardStartProject({}) {
                       </button>
                     ))}
                   </div>
-                  {formData.projectDetails.techStack.length > 0 && (
-                    <div className="mt-3 text-sm text-blue-300">
-                      Selected: {formData.projectDetails.techStack.length}{" "}
-                      services
-                    </div>
-                  )}
+                  {/* Tech Stack Selection */}
+                  <div className="mt-3 text-sm text-blue-300">
+                    Selected: {formData.projectDetails.techStack?.length || 0}{" "}
+                    technologies
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.projectDetails.techStack?.map((tech) => (
+                      <span
+                        key={tech}
+                        className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-lg text-sm"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -485,25 +606,28 @@ export default function ClientDashboardStartProject({}) {
                   <div>
                     <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
                       <FaFlag className="mr-2 text-blue-400" />
-                      Urgency Level
+                      Priority Level
                     </label>
                     <select
-                      value={formData.projectDetails.urgency}
+                      value={formData.projectDetails.priority}
                       onChange={(e) =>
-                        updateProjectDetails("urgency", e.target.value)
+                        updateProjectDetails(
+                          "priority",
+                          e.target.value as "low" | "medium" | "high" | "urgent"
+                        )
                       }
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
                     >
                       <option value="" className="bg-gray-800">
-                        Select urgency
+                        Select priority
                       </option>
-                      {urgencyLevels.map((level) => (
+                      {priorityLevels.map((level) => (
                         <option
-                          key={level}
-                          value={level}
+                          key={level.value}
+                          value={level.value}
                           className="bg-gray-800"
                         >
-                          {level}
+                          {level.label}
                         </option>
                       ))}
                     </select>
@@ -817,9 +941,9 @@ export default function ClientDashboardStartProject({}) {
           )}
 
           {/* Step 4: Review & Submit */}
-          {currentStep === 4 && (
+          {currentStep === 3 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-200 mb-10 flex items-center">
+              <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
                 <FaCheck className="mr-3 text-green-400" />
                 Review Your Project
               </h2>
@@ -831,50 +955,75 @@ export default function ClientDashboardStartProject({}) {
                     <FaProjectDiagram className="mr-2 text-blue-400" />
                     Project Overview
                   </h3>
-                  <div className="space-y-3 text-[15.5px">
-                    <div>
-                      <span className="text-gray-400">Project:</span>
-                      <span className="text-white ml-2">
-                        {formData.projectDetails.title}
-                      </span>
-                    </div>
-                    {formData.projectDetails.category && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <span className="text-gray-400">Category:</span>
-                        <span className="text-white ml-2">
-                          {formData.projectDetails.category}
-                        </span>
+                        <span className="text-gray-400">Project Title:</span>
+                        <p className="text-white font-medium">
+                          {formData.projectDetails.title}
+                        </p>
                       </div>
-                    )}
-                    {formData.projectDetails.techStack.length > 0 && (
-                      <div>
-                        <span className="text-gray-400">Tech Stack:</span>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {formData.projectDetails.techStack.map((tech) => (
-                            <span
-                              key={tech}
-                              className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-sm"
-                            >
-                              {tech}
-                            </span>
-                          ))}
+                      {formData.projectDetails.category && (
+                        <div>
+                          <span className="text-gray-400">Category:</span>
+                          <p className="text-white font-medium">
+                            {formData.projectDetails.category}
+                          </p>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
+
                     <div>
                       <span className="text-gray-400">Description:</span>
                       <p className="text-white mt-1">
                         {formData.projectDetails.description}
                       </p>
                     </div>
-                    {formData.projectDetails.timeline && (
+
+                    {formData.projectDetails.requirements && (
                       <div>
-                        <span className="text-gray-400">Timeline:</span>
-                        <span className="text-white ml-2">
-                          {formData.projectDetails.timeline}
+                        <span className="text-gray-400">
+                          Special Requirements:
                         </span>
+                        <p className="text-white mt-1">
+                          {formData.projectDetails.requirements}
+                        </p>
                       </div>
                     )}
+
+                    <div>
+                      <span className="text-gray-400">Tech Stack:</span>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formData.projectDetails.techStack?.map((tech) => (
+                          <span
+                            key={tech}
+                            className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {formData.projectDetails.timeline && (
+                        <div>
+                          <span className="text-gray-400">Timeline:</span>
+                          <p className="text-white font-medium">
+                            {formData.projectDetails.timeline}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-gray-400">Priority:</span>
+                        <p className="text-white font-medium">
+                          {priorityLevels.find(
+                            (level) =>
+                              level.value === formData.projectDetails.priority
+                          )?.label || formData.projectDetails.priority}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -884,90 +1033,81 @@ export default function ClientDashboardStartProject({}) {
                     <FaDollarSign className="mr-2 text-green-400" />
                     Pricing Structure
                   </h3>
-                  <div className="space-y-3 text-[15.5px">
+                  <div className="space-y-4">
                     <div>
-                      <span className="text-gray-400">Model:</span>
-                      <span className="text-white ml-2 capitalize">
+                      <span className="text-gray-400">Pricing Model:</span>
+                      <p className="text-white font-medium capitalize">
                         {formData.pricing.type} Price
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Currency:</span>
-                      <span className="text-white ml-2">
-                        {formData.pricing.currency}
-                      </span>
+                      </p>
                     </div>
 
                     {formData.pricing.type === "fixed" &&
                       formData.pricing.fixedBudget && (
                         <div>
                           <span className="text-gray-400">Budget:</span>
-                          <span className="text-white ml-2">
+                          <p className="text-white font-medium">
                             {formData.pricing.currency}{" "}
                             {formData.pricing.fixedBudget}
-                          </span>
+                          </p>
                         </div>
                       )}
 
                     {formData.pricing.type === "hourly" && (
-                      <div className="space-y-2">
-                        {formData.pricing.hourlyRate && (
-                          <div>
-                            <span className="text-gray-400">Hourly Rate:</span>
-                            <span className="text-white ml-2">
-                              {formData.pricing.currency}{" "}
-                              {formData.pricing.hourlyRate}/hour
-                            </span>
-                          </div>
-                        )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-gray-400">Hourly Rate:</span>
+                          <p className="text-white font-medium">
+                            {formData.pricing.currency}{" "}
+                            {formData.pricing.hourlyRate}/hr
+                          </p>
+                        </div>
                         {formData.pricing.estimatedHours && (
                           <div>
-                            <span className="text-gray-400">Hours/Week:</span>
-                            <span className="text-white ml-2">
-                              {formData.pricing.estimatedHours} hours
+                            <span className="text-gray-400">
+                              Estimated Hours:
                             </span>
+                            <p className="text-white font-medium">
+                              {formData.pricing.estimatedHours} hours
+                            </p>
                           </div>
                         )}
                       </div>
                     )}
 
                     {formData.pricing.type === "milestone" &&
-                      formData.pricing.milestones &&
-                      formData.pricing.milestones.length > 0 && (
-                        <div>
+                      formData.pricing.milestones && (
+                        <div className="space-y-4">
                           <span className="text-gray-400">Milestones:</span>
-                          <div className="mt-2 space-y-2">
-                            {formData.pricing.milestones.map(
-                              (milestone, index) => (
-                                <div
-                                  key={milestone.id}
-                                  className="p-3 bg-white/5 rounded border-l-2 border-blue-400"
-                                >
-                                  <div className="font-medium text-white">
-                                    {milestone.title ||
-                                      `Milestone ${index + 1}`}
-                                  </div>
-                                  {milestone.budget && (
-                                    <div className="text-sm text-gray-400">
-                                      Budget: {formData.pricing.currency}{" "}
-                                      {milestone.budget}
-                                    </div>
-                                  )}
-                                  {milestone.timeline && (
-                                    <div className="text-sm text-gray-400">
-                                      Timeline: {milestone.timeline}
-                                    </div>
-                                  )}
+                          {formData.pricing.milestones.map(
+                            (milestone, index) => (
+                              <div
+                                key={milestone.id}
+                                className="p-4 bg-white/5 rounded-lg"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="text-white font-medium">
+                                    {milestone.title}
+                                  </h4>
+                                  <span className="text-blue-300">
+                                    {formData.pricing.currency}{" "}
+                                    {milestone.budget}
+                                  </span>
                                 </div>
-                              )
-                            )}
-                          </div>
+                                <p className="text-gray-400 text-sm">
+                                  {milestone.description}
+                                </p>
+                                <div className="text-sm text-gray-500 mt-2">
+                                  Timeline: {milestone.timeline}
+                                </div>
+                              </div>
+                            )
+                          )}
                         </div>
                       )}
                   </div>
                 </div>
 
-                {/* Terms Agreement */}
+                {/* Terms and Conditions */}
                 <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/20 rounded-lg">
                   <div className="flex items-start space-x-3">
                     <input
@@ -979,7 +1119,7 @@ export default function ClientDashboardStartProject({}) {
                     />
                     <label
                       htmlFor="terms"
-                      className="text-[15.5px] text-gray-300 leading-relaxed"
+                      className="text-gray-300 leading-relaxed"
                     >
                       I agree to Andishi's terms of service and privacy policy.
                       I understand that this is a project inquiry and final
@@ -992,7 +1132,7 @@ export default function ClientDashboardStartProject({}) {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center mt-16 pt-6 border-t border-white/10">
+          <div className="flex items-center justify-between mt-8">
             <button
               type="button"
               onClick={prevStep}
@@ -1000,18 +1140,18 @@ export default function ClientDashboardStartProject({}) {
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
                 currentStep === 1
                   ? "text-gray-500 cursor-not-allowed"
-                  : "text-gray-300 hover:text-white hover:bg-white/5  cursor-pointer"
+                  : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
               }`}
             >
-              <FaArrowLeft className="text-[15.5px" />
+              <FaArrowLeft className="text-sm" />
               <span>Previous</span>
             </button>
 
-            <div className="text-center text-[15.5px] text-gray-400">
+            <div className="text-center text-sm text-gray-400">
               Step {currentStep} of {steps.length}
             </div>
 
-            {currentStep < 4 ? (
+            {currentStep < 3 ? (
               <button
                 type="button"
                 onClick={nextStep}
@@ -1023,15 +1163,20 @@ export default function ClientDashboardStartProject({}) {
                 }`}
               >
                 <span>Next</span>
-                <FaArrowRight className="text-[15.5px" />
+                <FaArrowRight className="text-sm" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="cursor-pointer monty uppercase flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25"
+                disabled={!termsAccepted}
+                className={`monty uppercase flex items-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 ${
+                  termsAccepted
+                    ? "bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 cursor-pointer"
+                    : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
+                }`}
               >
-                <FaCheck className="text-[15.5px" />
+                <FaCheck className="text-sm" />
                 <span>Submit Project</span>
               </button>
             )}

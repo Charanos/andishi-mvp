@@ -66,25 +66,42 @@ export default function OurProjectsPage() {
 
   // Tech icons colors mapping
   const techColors: { [key: string]: string } = {
-    React: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    "Next.js": "bg-gray-800/20 text-gray-300 border-gray-600/30",
-    "Node.js": "bg-green-500/20 text-green-300 border-green-500/30",
-    TypeScript: "bg-blue-600/20 text-blue-400 border-blue-600/30",
-    Python: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    "Tailwind CSS": "bg-teal-500/20 text-teal-300 border-teal-500/30",
-    MongoDB: "bg-green-600/20 text-green-400 border-green-600/30",
-    PostgreSQL: "bg-blue-700/20 text-blue-400 border-blue-700/30",
-    Firebase: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    AWS: "bg-orange-600/20 text-orange-400 border-orange-600/30",
-    "Vue.js": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    Blockchain: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    Flutter: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-    Django: "bg-green-700/20 text-green-400 border-green-700/30",
-    Express: "bg-gray-700/20 text-gray-300 border-gray-700/30",
-    Redis: "bg-red-500/20 text-red-300 border-red-500/30",
-    Docker: "bg-blue-800/20 text-blue-400 border-blue-800/30",
-    Kubernetes: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
-    Web3: "bg-purple-600/20 text-purple-300 border-purple-600/30",
+    React:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Next.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Node.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    TypeScript:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Python:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Tailwind CSS":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    MongoDB:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    PostgreSQL:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Firebase:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    AWS: "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    "Vue.js":
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Blockchain:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Flutter:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Django:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Express:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Redis:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Docker:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Kubernetes:
+      "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
+    Web3: "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
   };
 
   // Extended project data
@@ -97,7 +114,7 @@ export default function OurProjectsPage() {
       longDescription:
         "This comprehensive e-commerce platform revolutionizes online shopping with advanced AI algorithms for personalized product recommendations. Features include real-time inventory tracking, multi-vendor support, integrated payment gateways, and a sophisticated analytics dashboard for business insights. The platform handles over 10,000 concurrent users and processes thousands of transactions daily.",
       category: "Web Development",
-      image: "/api/placeholder/600/400",
+      image: "/images/project1.webp",
       technologies: [
         "React",
         "Node.js",
@@ -124,7 +141,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Revolutionary DeFi dashboard that aggregates data from multiple blockchain networks, providing users with a unified view of their cryptocurrency portfolios. Features include yield farming opportunities, cross-chain swapping, liquidity pool management, and advanced charting tools. Built with security-first architecture and supports 15+ blockchain networks.",
       category: "Blockchain",
-      image: "/api/placeholder/600/400",
+      image: "/images/project2.webp",
       technologies: [
         "Next.js",
         "Blockchain",
@@ -150,7 +167,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Enterprise-grade healthcare management system designed for hospitals and clinics. Features comprehensive patient record management, appointment scheduling, telemedicine capabilities, prescription management, and billing integration. Built with strict HIPAA compliance and enterprise-level security protocols.",
       category: "Web Development",
-      image: "/api/placeholder/600/400",
+      image: "/images/project3.webp",
       technologies: ["Vue.js", "Python", "PostgreSQL", "AWS", "Django"],
       gradient: "from-green-500/20 to-emerald-500/10",
       liveUrl: "https://example.com",
@@ -170,7 +187,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Next-generation collaboration platform designed for remote teams. Features include real-time messaging with threading, HD video conferencing, screen sharing, file collaboration, task management, and integration with popular productivity tools. Supports teams of up to 1000 members with enterprise-grade security.",
       category: "Mobile Development",
-      image: "/api/placeholder/600/400",
+      image: "/images/project4.webp",
       technologies: ["React", "Node.js", "Firebase", "TypeScript", "Flutter"],
       gradient: "from-orange-500/20 to-red-500/10",
       liveUrl: "https://example.com",
@@ -178,7 +195,7 @@ export default function OurProjectsPage() {
       client: "RemoteWork Inc.",
       duration: "5 months",
       teamSize: "7 developers",
-      year: "2024",
+      year: "2025",
       status: "completed",
       featured: false,
     },
@@ -190,7 +207,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Sophisticated analytics platform that leverages machine learning for predictive insights and automated decision-making. Features include custom ML model training, real-time data processing, interactive dashboards, automated report generation, and API integrations for data ingestion from multiple sources.",
       category: "AI/ML",
-      image: "/api/placeholder/600/400",
+      image: "/images/project5.webp",
       technologies: [
         "Python",
         "React",
@@ -205,7 +222,7 @@ export default function OurProjectsPage() {
       client: "DataTech Analytics",
       duration: "4 months",
       teamSize: "5 developers",
-      year: "2024",
+      year: "2025",
       status: "completed",
       featured: true,
     },
@@ -217,7 +234,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Comprehensive NFT marketplace supporting multiple blockchain networks including Ethereum, Polygon, and Solana. Features include NFT minting, peer-to-peer trading, timed auctions, royalty distribution, collection management, and social features for creators and collectors. Built with gas optimization and eco-friendly blockchain integration.",
       category: "Blockchain",
-      image: "/api/placeholder/600/400",
+      image: "/images/project6.webp",
       technologies: [
         "Next.js",
         "Blockchain",
@@ -231,7 +248,7 @@ export default function OurProjectsPage() {
       client: "NFT Collective",
       duration: "5 months",
       teamSize: "6 developers",
-      year: "2024",
+      year: "2025",
       status: "completed",
       featured: false,
     },
@@ -243,7 +260,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Cutting-edge IoT platform that connects and manages thousands of sensors across urban infrastructure. Features include traffic flow optimization, environmental monitoring, energy management, waste collection optimization, and emergency response coordination. Processes over 1 million data points daily.",
       category: "IoT",
-      image: "/api/placeholder/600/400",
+      image: "/images/project7.webp",
       technologies: ["Python", "React", "MongoDB", "AWS", "Docker"],
       gradient: "from-cyan-500/20 to-blue-500/10",
       liveUrl: "https://example.com",
@@ -263,7 +280,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Modern learning management system designed for educational institutions. Features include course creation tools, multimedia content delivery, interactive assessments, gradebook management, discussion forums, and detailed analytics for student performance tracking. Supports both synchronous and asynchronous learning.",
       category: "Web Development",
-      image: "/api/placeholder/600/400",
+      image: "/images/project8.webp",
       technologies: ["React", "Node.js", "PostgreSQL", "AWS", "TypeScript"],
       gradient: "from-green-500/20 to-teal-500/10",
       liveUrl: "https://example.com",
@@ -283,7 +300,7 @@ export default function OurProjectsPage() {
       longDescription:
         "Revolutionary mobile banking application with biometric authentication, contactless payments, budget tracking, investment management, and AI-powered financial insights. Features bank-level security with multi-factor authentication and fraud detection algorithms.",
       category: "Mobile Development",
-      image: "/api/placeholder/600/400",
+      image: "/images/project9.webp",
       technologies: ["Flutter", "Node.js", "MongoDB", "AWS", "TypeScript"],
       gradient: "from-purple-500/20 to-indigo-500/10",
       liveUrl: "https://example.com",

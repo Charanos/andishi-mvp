@@ -16,10 +16,12 @@ background-size: cover;
   font-family: 'Nunito', sans-serif;
 }
 
-header, h1, h2, h3, h4, h5, h6 {
+header, h1, h2, h3, h4, h5, h6 button, input, textarea, select{
   color: #ededed;
   font-family: 'Montserrat', sans-serif;
 }
+
+
 
 .monty {
   font-family: 'Montserrat', sans-serif;

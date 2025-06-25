@@ -411,30 +411,67 @@ export default function DeveloperRegistrationForm() {
       setSubmitStatus("loading");
       toast.info("Submitting your application...");
 
-      // Simulate API call
-      const res = await fetch("/api/join-talent-pool", {
+      // First create the user record in the talent pool
+      const userResponse = await fetch("/api/join-talent-pool", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.personalInfo.email,
+          firstName: formData.personalInfo.firstName,
+          lastName: formData.personalInfo.lastName,
+          role: "developer",
+          status: "pending",
+          isActive: true,
+          accountCreated: false,
+          passwordGenerated: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ...formData,
+        }),
       });
 
-      const result = await res.json();
-
-      if (result.success) {
-        setSubmitStatus("success");
-        toast.success(
-          "Application submitted successfully! We'll be in touch soon."
-        );
-        setTimeout(() => {
-          router.push("/thank-you-join-talent-pool");
-        }, 2000);
-      } else {
-        setSubmitStatus("error");
-        toast.error(result.message || "Submission failed. Please try again.");
+      if (!userResponse.ok) {
+        throw new Error("Failed to submit application");
       }
+
+      const { insertedId } = await userResponse.json();
+
+      // Then create the developer profile
+      const response = await fetch("/api/developer-profiles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: insertedId,
+          data: {
+            personalInfo: formData.personalInfo,
+            professionalInfo: formData.professionalInfo,
+            technicalSkills: formData.technicalSkills,
+            workExperience: formData.workExperience,
+            projects: formData.projects,
+            stats: {
+              totalProjects: 0,
+              averageRating: 0,
+              totalEarnings: 0,
+              clientRetention: 0,
+            },
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create developer profile");
+      }
+
+      toast.success("Successfully joined the talent pool!");
+      router.push("/thank-you-join-talent-pool");
     } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to submit form. Please try again.");
       setSubmitStatus("error");
-      toast.error("An error occurred while submitting. Please try again.");
     }
   };
 

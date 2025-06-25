@@ -91,6 +91,26 @@ export async function middleware(request: NextRequest) {
     }
   }
   
+  // If trying to access start-project page and user is logged in as client
+  if (pathname === '/start-project') {
+    if (token) {
+      try {
+        // Verify JWT token
+        const secret = new TextEncoder().encode(
+          process.env.JWT_SECRET || 'your-secret-key-for-development'
+        );
+        const { payload } = await jwtVerify(token, secret);
+        
+        // If user is a client, redirect to client dashboard
+        if (payload.role === 'CLIENT') {
+          return NextResponse.redirect(new URL('/client-dashboard', request.url));
+        }
+      } catch (error) {
+        console.error('Token verification error:', error);
+      }
+    }
+  }
+  
   return NextResponse.next();
 }
 
@@ -104,5 +124,9 @@ export const config = {
   matcher: [
     // Match all routes except static files and API routes
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/start-project',
+    '/client-dashboard/:path*',
+    '/developer-dashboard/:path*',
+    '/admin-dashboard/:path*'
   ]
 };

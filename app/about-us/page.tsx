@@ -310,7 +310,7 @@ export default function AndishiAboutPage() {
                 : "opacity-0 translate-y-10"
             }`}
           >
-            <div className="max-w-6xl mx-auto px-6 relative z-10 my-14">
+            <div className="max-w-6xl mx-auto px-6 relative z-10 mt-14 mb-10">
               <h1 className="text-3xl lg:text-4xl font-medium text-white mb-4">
                 <span className="text-white">About </span>
                 <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -329,7 +329,7 @@ export default function AndishiAboutPage() {
                 <button
                   key={section}
                   onClick={() => setActiveSection(section)}
-                  className={`px-6 py-3 rounded-full font-semibold uppercase text-sm transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-full cursor-pointer font-semibold monty uppercase text-sm transition-all duration-300 ${
                     activeSection === section
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
                       : "bg-white/10 text-gray-300 hover:bg-white/20"
@@ -347,8 +347,8 @@ export default function AndishiAboutPage() {
               <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
                 <div className="text-center mb-12">
                   <div className="flex items-center justify-center mb-6">
-                    <FaBullseye className="text-4xl text-blue-400 mr-4" />
-                    <h2 className="text-4xl font-bold text-white">
+                    <FaBullseye className="text-3xl text-blue-400 mr-4" />
+                    <h2 className="text-3xl font-semibold text-white">
                       Our Mission
                     </h2>
                   </div>
@@ -366,14 +366,14 @@ export default function AndishiAboutPage() {
                       className="group p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:bg-white/10"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="flex items-start space-x-6">
+                      <div className="flex items-start space-x-4">
                         <div
                           className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gradient-to-r ${element.gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}
                         >
                           <element.icon className="text-white text-2xl" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors">
+                          <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-300 transition-colors">
                             {element.title}
                           </h3>
                           <p className="text-gray-400 leading-relaxed">
@@ -394,8 +394,8 @@ export default function AndishiAboutPage() {
               <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
                 <div className="text-center mb-12">
                   <div className="flex items-center justify-center mb-6">
-                    <FaEye className="text-4xl text-purple-400 mr-4" />
-                    <h2 className="text-4xl font-bold text-white">
+                    <FaEye className="text-3xl text-purple-400 mr-4" />
+                    <h2 className="text-3xl font-semibold text-white">
                       Our Vision
                     </h2>
                   </div>
@@ -418,7 +418,7 @@ export default function AndishiAboutPage() {
                         <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                           <element.icon className="text-white text-xl" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                        <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-purple-300 transition-colors">
                           {element.title}
                         </h3>
                         <p className="text-gray-400 leading-relaxed">
@@ -438,8 +438,8 @@ export default function AndishiAboutPage() {
               <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
                 <div className="text-center mb-12">
                   <div className="flex items-center justify-center mb-6">
-                    <FaHeart className="text-4xl text-green-400 mr-4" />
-                    <h2 className="text-4xl font-bold text-white">
+                    <FaHeart className="text-3xl text-green-400 mr-4" />
+                    <h2 className="text-3xl font-semibold text-white">
                       Core Values
                     </h2>
                   </div>
@@ -463,7 +463,7 @@ export default function AndishiAboutPage() {
                       >
                         <value.icon className="text-white text-lg" />
                       </div>
-                      <h3 className="text-lg font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">
+                      <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-300 transition-colors">
                         {value.title}
                       </h3>
                       <p className="text-sm font-medium text-blue-300 mb-3">
@@ -485,8 +485,8 @@ export default function AndishiAboutPage() {
               <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
                 <div className="text-center mb-12">
                   <div className="flex items-center justify-center mb-6">
-                    <FaClock className="text-4xl text-cyan-400 mr-4" />
-                    <h2 className="text-4xl font-bold text-white">
+                    <FaClock className="text-3xl text-cyan-400 mr-4" />
+                    <h2 className="text-3xl font-semibold text-white">
                       Our Journey
                     </h2>
                   </div>
@@ -502,7 +502,7 @@ export default function AndishiAboutPage() {
                     <button
                       key={index}
                       onClick={() => setActiveTimelineItem(index)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      className={`px-4 py-2 cursor-pointer rounded-lg text-sm font-medium transition-all duration-300 ${
                         activeTimelineItem === index
                           ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
                           : "bg-white/10 text-gray-300 hover:bg-white/20"
@@ -544,7 +544,7 @@ export default function AndishiAboutPage() {
                                 })()}
                               </div>
                               <div>
-                                <h3 className="text-2xl font-bold text-white">
+                                <h3 className="text-2xl font-semibold text-white">
                                   {timelineEvents[activeTimelineItem].title}
                                 </h3>
                                 <p className="text-cyan-300 font-medium">
@@ -615,7 +615,7 @@ export default function AndishiAboutPage() {
                         )
                       }
                       disabled={activeTimelineItem === 0}
-                      className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300"
+                      className="flex items-center cursor-pointer px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300"
                     >
                       <FaArrowRight className="rotate-180 mr-2" />
                       Previous
@@ -633,7 +633,7 @@ export default function AndishiAboutPage() {
                       disabled={
                         activeTimelineItem === timelineEvents.length - 1
                       }
-                      className="flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300"
+                      className="flex cursor-pointer items-center px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300"
                     >
                       Next
                       <FaArrowRight className="ml-2" />
@@ -648,7 +648,7 @@ export default function AndishiAboutPage() {
 
           {/* Call to Action */}
           <div className="text-center backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
-            <h3 className="text-2xl font-bold text-white mb-4">
+            <h3 className="text-2xl font-semibold text-white mb-4">
               Ready to Transform the Future?
             </h3>
             <p className="text-gray-300 mb-6 max-w-2xl mx-auto">

@@ -56,7 +56,7 @@ export default function WhyAndishi() {
     <section id="why" className="py-32 mt-0 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
 
-      <div className="max-w-6xl mx-auto flex flex-col items-center px-6 space-y-12 text-center relative z-10">
+      <div className="max-w-6xl mx-auto flex flex-col items-center px-6 space-y-8 text-center relative z-10">
         <h2 className="text-3xl lg:text-4xl font-medium text-white">
           Why Choose <span className="text-purple-400">Andishi</span> for Remote
           Tech Hiring?

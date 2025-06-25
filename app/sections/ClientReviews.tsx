@@ -115,10 +115,10 @@ export default function ClientReviews() {
                       <h4 className="text-white font-semibold text-lg">
                         {review.name}
                       </h4>
-                      <p className="text-purple-300 text-sm">
+                      <p className="text-indigo-300 text-md">
                         {review.position}
                       </p>
-                      <p className="text-gray-400 text-xs">
+                      <p className="text-indigo-400 text-dm monty uppercase">
                         Project: {review.project}
                       </p>
                     </div>
@@ -135,14 +135,14 @@ export default function ClientReviews() {
           {/* Navigation Buttons */}
           <button
             onClick={prevReview}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+            className="absolute cursor-pointer left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-indigo-600/20 transition-all duration-300 hover:scale-110"
           >
             <FaChevronLeft className="text-sm" />
           </button>
 
           <button
             onClick={nextReview}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 w-10 h-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+            className="absolute cursor-pointer right-0 top-1/2 transform -translate-y-1/2 translate-x-4 w-10 h-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-indigo-600/20 transition-all duration-300 hover:scale-110"
           >
             <FaChevronRight className="text-sm" />
           </button>
@@ -156,7 +156,7 @@ export default function ClientReviews() {
               onClick={() => setCurrentReview(index)}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${
                 currentReview === index
-                  ? "bg-blue-400 scale-110"
+                  ? "bg-blue-400/70 scale-110"
                   : "bg-white/20 hover:bg-white/40"
               }`}
             />
@@ -166,16 +166,20 @@ export default function ClientReviews() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 text-center">
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-blue-400">500+</div>
-            <div className="text-gray-400">Happy Clients</div>
+            <div className="text-3xl font-bold text-blue-400 monty">500+</div>
+            <div className="text-gray-400 monty uppercase">Happy Clients</div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-purple-400">4.9/5</div>
-            <div className="text-gray-400">Average Rating</div>
+            <div className="text-3xl font-bold text-purple-400 monty">
+              4.9/5
+            </div>
+            <div className="text-gray-400 monty uppercase">Average Rating</div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-pink-400">98%</div>
-            <div className="text-gray-400">Client Retention</div>
+            <div className="text-3xl font-bold text-pink-400 monty">98%</div>
+            <div className="text-gray-400 monty uppercase">
+              Client Retention
+            </div>
           </div>
         </div>
       </div>

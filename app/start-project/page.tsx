@@ -37,7 +37,7 @@ interface ProjectDetails {
   description: string;
   category: string;
   timeline: string;
-  urgency: string;
+  priority: "low" | "medium" | "high" | "urgent";
   techStack: string[];
   requirements: string;
 }
@@ -83,7 +83,7 @@ export default function StartProjectForm() {
       description: "",
       category: "",
       timeline: "",
-      urgency: "",
+      priority: "low",
       techStack: [],
       requirements: "",
     },
@@ -152,11 +152,11 @@ export default function StartProjectForm() {
     "6+ months",
   ];
 
-  const urgencyLevels = [
-    "Low - No rush",
-    "Medium - Standard timeline",
-    "High - ASAP",
-    "Critical - Emergency",
+  const priorityLevels = [
+    "low - No rush",
+    "medium - Standard timeline",
+    "high - ASAP",
+    "urgent - Emergency",
   ];
 
   const steps = [
@@ -611,7 +611,7 @@ export default function StartProjectForm() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid place-content-center grid-cols-1 items-center md:grid-cols-2 gap-6">
                     <div>
                       <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
                         <FaCalendarAlt className="mr-2 text-blue-400" />
@@ -622,7 +622,7 @@ export default function StartProjectForm() {
                         onChange={(e) =>
                           updateProjectDetails("timeline", e.target.value)
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors cursor-pointer"
                       >
                         <option value="" className="bg-gray-800">
                           Select timeline
@@ -641,24 +641,23 @@ export default function StartProjectForm() {
 
                     <div>
                       <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                        <FaFlag className="mr-2 text-blue-400" />
-                        Urgency Level
+                        Priority Level
                       </label>
                       <select
-                        value={formData.projectDetails.urgency}
+                        value={formData.projectDetails.priority}
                         onChange={(e) =>
-                          updateProjectDetails("urgency", e.target.value)
+                          updateProjectDetails("priority", e.target.value)
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors cursor-pointer"
                       >
                         <option value="" className="bg-gray-800">
-                          Select urgency
+                          Select Priority
                         </option>
-                        {urgencyLevels.map((level) => (
+                        {priorityLevels.map((level) => (
                           <option
                             key={level}
-                            value={level}
                             className="bg-gray-800"
+                            value={level.split(" - ")[0]}
                           >
                             {level}
                           </option>

@@ -168,14 +168,14 @@ export default function ClientDashboardSection(): React.JSX.Element {
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/15 transition-colors duration-300">
                       <feature.icon
-                        className={`text-xl ${feature.iconColor} group-hover:scale-110 transition-transform duration-300`}
+                        className={`text-lg ${feature.iconColor} group-hover:scale-110 transition-transform duration-300`}
                       />
                     </div>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-200 transition-colors duration-300">
+                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-200 transition-colors duration-300">
                       {feature.title}
                     </h3>
                     <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-300 leading-relaxed">
@@ -185,14 +185,6 @@ export default function ClientDashboardSection(): React.JSX.Element {
                 </div>
               </div>
             ))}
-
-            {/* CTA Button */}
-            <div className="pt-4">
-              <button className="group relative overflow-hidden px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-semibold hover:from-blue-500 hover:to-purple-500 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25">
-                <span className="relative z-10">View Live Demo</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
-            </div>
           </div>
         </div>
       </div>

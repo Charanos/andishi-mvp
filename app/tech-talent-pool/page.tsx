@@ -1146,7 +1146,7 @@ export default function TechTalentPool() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
 
                   {/* Social Links */}
-                  <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {/* <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <Link
                       href={developer.portfolioUrl}
                       className="p-2 rounded-full backdrop-blur-md bg-white/10 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
@@ -1183,7 +1183,7 @@ export default function TechTalentPool() {
                         />
                       </svg>
                     </Link>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Content */}

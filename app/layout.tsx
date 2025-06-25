@@ -1,10 +1,11 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { AuthProvider } from "@/hooks/useAuth";
 import { Analytics } from "@vercel/analytics/next";
 import { Nunito, Montserrat } from "next/font/google";
-import ClientMotionProvider from "./components/ClientMotionProvider";
-import { AuthProvider } from "@/hooks/useAuth";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import ConditionalLayout from "./components/ConditionalLayout";
+import ClientMotionProvider from "./components/ClientMotionProvider";
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -43,6 +44,7 @@ export default function RootLayout({
           <ClientMotionProvider>
             <ConditionalLayout>{children}</ConditionalLayout>
             <Analytics />
+            <SpeedInsights />
           </ClientMotionProvider>
         </AuthProvider>
       </body>

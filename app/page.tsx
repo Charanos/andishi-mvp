@@ -102,15 +102,6 @@ export default function HomePage() {
       </motion.div>
 
       <motion.div
-        variants={sectionVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
-        <ClientReviews />
-      </motion.div>
-
-      <motion.div
         id="projects"
         variants={sectionVariants}
         initial="hidden"
@@ -118,6 +109,15 @@ export default function HomePage() {
         viewport={{ once: true, margin: "-100px" }}
       >
         <ProjectsShowcase />
+      </motion.div>
+
+      <motion.div
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+      >
+        <ClientReviews />
       </motion.div>
 
       <motion.div

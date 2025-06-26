@@ -11,6 +11,7 @@ import {
   FaLinkedin,
   FaEnvelope,
   FaMapMarkerAlt,
+  FaInstagram,
 } from "react-icons/fa";
 
 export default function Footer() {
@@ -32,7 +33,7 @@ export default function Footer() {
       { name: "Blockchain/Web3", href: "#blockchain" },
     ],
     resources: [
-      { name: "Blog", href: "#blog" },
+      { name: "Blog", href: "/feaured-blog" },
       { name: "Case Studies", href: "#case-studies" },
       { name: "Developer Guide", href: "#guide" },
       { name: "API Documentation", href: "#docs" },
@@ -43,20 +44,25 @@ export default function Footer() {
     {
       name: "Twitter",
       icon: FaTwitter,
-      href: "#",
+      href: "https://x.com/AndishiSoftware",
+      color: "hover:text-blue-400",
+    },
+    {
+      name: "Instagram",
+      icon: FaInstagram,
+      href: "https://www.instagram.com/andishi.dev/",
       color: "hover:text-blue-400",
     },
     {
       name: "LinkedIn",
       icon: FaLinkedin,
-      href: "#",
+      href: "https://www.linkedin.com/company/andishi/",
       color: "hover:text-blue-500",
     },
-    { name: "GitHub", icon: FaGithub, href: "#", color: "hover:text-gray-300" },
     {
       name: "Email",
       icon: FaEnvelope,
-      href: "mailto:contact@company.com",
+      href: "mailto:info@andishi.dev",
       color: "hover:text-green-400",
     },
   ];

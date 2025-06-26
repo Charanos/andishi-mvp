@@ -16,6 +16,7 @@ const publicRoutes = [
   "/contact-us",
   "/our-portfolio",
   "/start-project",
+   "/featured-blog",
   "/tech-talent-pool",
   "/join-talent-pool",
   "/thank-you-start-project",

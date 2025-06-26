@@ -24,7 +24,7 @@ export default function LatestInsights() {
       "Dive deep into the transformative power of artificial intelligence in remote hiring. From automated candidate screening to predictive analytics, discover how AI is reshaping the entire recruitment landscape and what it means for developers worldwide.",
     author: "Sarah Mitchell",
     date: "June 8, 2025",
-    readTime: "12 min read",
+    readTime: "3 min read",
     views: "2.1K",
     likes: "156",
     category: "AI & Future Tech",
@@ -172,7 +172,7 @@ export default function LatestInsights() {
 
                 <div className="flex items-center justify-between pt-4">
                   <Link
-                    href="#"
+                    href={"/featured-blog"}
                     className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 monty uppercase hover:to-purple-600 transition-all duration-300 hover:scale-105 group/btn"
                   >
                     <span>Read Full Article</span>

@@ -69,11 +69,13 @@ export async function POST(request: NextRequest) {
     });
 
     // Set cookie (optional - for middleware)
+    // Store the token in an httpOnly cookie that is valid for the entire site
     response.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
     return response;

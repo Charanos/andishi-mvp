@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import {
   FaUser,
@@ -194,6 +195,7 @@ export interface DeveloperProfile {
 
 export default function EnhancedDeveloperDashboard() {
   const router = useRouter();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<DeveloperProfile | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -205,12 +207,17 @@ export default function EnhancedDeveloperDashboard() {
   );
 
   useEffect(() => {
+    if (!user) return; // wait until user is loaded
     const fetchProfile = async () => {
       try {
-        const res = await fetch("/api/developer-profile");
-        if (!res.ok) throw new Error("Failed to load profile");
-        const data = await res.json();
-        setProfile(data);
+        const res = await fetch("/api/developer-profiles");
+        if (!res.ok) throw new Error("Failed to load profiles");
+        const list = await res.json();
+        let myProfile = null;
+        if (Array.isArray(list)) {
+          myProfile = list.find((p: any) => (p.user?.email || '').toLowerCase() === (user?.email || '').toLowerCase());
+        }
+        setProfile(myProfile || (Array.isArray(list) ? list[0] : list));
       } catch (err) {
         console.error(err);
       } finally {
@@ -218,7 +225,7 @@ export default function EnhancedDeveloperDashboard() {
       }
     };
     fetchProfile();
-  }, []);
+  }, [user]);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -445,8 +452,8 @@ export default function EnhancedDeveloperDashboard() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-8">
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-2">
+        <div className="mb-8 relative">
+          <div className="backdrop-blur-md sticky top-0 bg-white/5 border border-white/10 rounded-xl p-2">
             <div className="flex space-x-2">
               {[
                 { id: "overview", label: "Overview", icon: FaUser },
@@ -458,7 +465,7 @@ export default function EnhancedDeveloperDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  className={`flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg transition-all ${
                     activeTab === tab.id
                       ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                       : "text-gray-400 hover:text-white hover:bg-white/5"
@@ -566,7 +573,7 @@ export default function EnhancedDeveloperDashboard() {
                   Recent Activity
                 </h2>
                 <div className="space-y-4">
-                  {profile.recentActivity.map((activity, index) => (
+                  {(profile.recentActivity ?? []).map((activity, index) => (
                     <div
                       key={activity.id}
                       className="flex items-center space-x-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
@@ -676,7 +683,7 @@ export default function EnhancedDeveloperDashboard() {
 
             {/* Projects Grid */}
             <div className="space-y-8">
-              {profile.projects.map((project) => (
+              {(profile.projects ?? []).map((project) => (
                 <div
                   key={project.id}
                   className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all"
@@ -780,7 +787,7 @@ export default function EnhancedDeveloperDashboard() {
                   <div className="mb-4">
                     <h4 className="text-sm text-gray-400 mb-2">Technologies</h4>
                     <div className="flex flex-wrap gap-2">
-                      {project.technologies.map((tech) => (
+                      {(project.technologies ?? []).map((tech) => (
                         <span
                           key={tech}
                           className="px-3 py-1 bg-gradient-to-r from-gray-700/50 to-gray-600/50 rounded-lg text-gray-300 text-sm border border-gray-600/30"
@@ -795,7 +802,7 @@ export default function EnhancedDeveloperDashboard() {
                   <div className="mb-4">
                     <h4 className="text-sm text-gray-400 mb-2">Milestones</h4>
                     <div className="space-y-2">
-                      {project.milestones.map((milestone) => (
+                      {(project.milestones ?? []).map((milestone) => (
                         <div
                           key={milestone.id}
                           className="flex items-center justify-between p-2 bg-white/5 rounded-lg"
@@ -844,7 +851,7 @@ export default function EnhancedDeveloperDashboard() {
                       </span>
                     </div>
                     <div className="space-y-1">
-                      {project.tasks.slice(0, 3).map((task) => (
+                      {(project.tasks ?? []).slice(0, 3).map((task) => (
                         <div
                           key={task.id}
                           className="flex items-center space-x-3 p-2 bg-white/5 rounded"
@@ -898,7 +905,7 @@ export default function EnhancedDeveloperDashboard() {
                   Primary Skills
                 </h2>
                 <div className="space-y-4">
-                  {profile.technicalSkills.primarySkills.map((skill) => (
+                  {(profile.technicalSkills?.primarySkills ?? []).map((skill) => (
                     <div
                       key={skill.name}
                       className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
@@ -957,7 +964,7 @@ export default function EnhancedDeveloperDashboard() {
                   Frameworks & Libraries
                 </h2>
                 <div className="space-y-4">
-                  {profile.technicalSkills.frameworks.map((skill) => (
+                  {(profile.technicalSkills?.frameworks ?? []).map((skill) => (
                     <div
                       key={skill.name}
                       className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
@@ -1019,7 +1026,7 @@ export default function EnhancedDeveloperDashboard() {
                   Databases
                 </h3>
                 <div className="space-y-3">
-                  {profile.technicalSkills.databases.map((skill) => (
+                  {(profile.technicalSkills?.databases ?? []).map((skill) => (
                     <div
                       key={skill.name}
                       className="flex items-center justify-between"
@@ -1050,7 +1057,7 @@ export default function EnhancedDeveloperDashboard() {
                   Cloud Platforms
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {profile.technicalSkills.cloudPlatforms.map((platform) => (
+                  {(profile.technicalSkills?.cloudPlatforms ?? []).map((platform) => (
                     <span
                       key={platform}
                       className="px-3 py-1 bg-blue-500/20 border border-blue-400/30 rounded-lg text-blue-400 text-sm"
@@ -1068,7 +1075,7 @@ export default function EnhancedDeveloperDashboard() {
                   Specializations
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {profile.technicalSkills.specializations.map((spec) => (
+                  {(profile.technicalSkills?.specializations ?? []).map((spec) => (
                     <span
                       key={spec}
                       className="px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-lg text-purple-400 text-sm"
@@ -1087,7 +1094,7 @@ export default function EnhancedDeveloperDashboard() {
                 Certifications
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {profile.professionalInfo.certifications.map((cert, index) => (
+                {(profile.professionalInfo?.certifications ?? []).map((cert, index) => (
                   <div
                     key={index}
                     className="p-4 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-400/20 rounded-lg"

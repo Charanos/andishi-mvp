@@ -4,6 +4,7 @@ export interface User {
   name: string;
   firstName?: string;
   lastName?: string;
+  company?: string;
   role: UserRole;
   permissions: Permission[];
   isActive: boolean;

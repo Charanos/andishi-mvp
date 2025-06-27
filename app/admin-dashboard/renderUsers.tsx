@@ -1003,7 +1003,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
     if (!selectedUser) return null;
 
     return (
-      <div className="min-h-screen rounded-2xl bg-white/5 backdrop-blur-xl">
+      <div className="min-h-screen ">
         {/* Header Section */}
         <div className="relative overflow-hidden  rounded-xl">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20"></div>
@@ -1350,7 +1350,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
               {/* Login Credentials Card */}
               {/* Enhanced Login Credentials Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
+              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-black/10 transition-all duration-300">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                     <FaKey className="text-white text-sm" />
@@ -2094,7 +2094,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
       {/* User Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
           <div className="text-2xl monty font-semibold text-white">
             {users.length}
           </div>

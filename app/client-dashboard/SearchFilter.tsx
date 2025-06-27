@@ -10,6 +10,7 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
+import { ProjectWithDetails } from "./types";
 
 interface ProjectDetails {
   title: string;
@@ -21,64 +22,10 @@ interface ProjectDetails {
   requirements?: string;
 }
 
-interface ProjectWithDetails {
-  id: string;
-  title: string;
-  description: string;
-  category?: string;
-  timeline?: string;
-  urgency?: string;
-  techStack: string[];
-  requirements?: string;
-  status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
-  priority: "low" | "medium" | "high" | "urgent";
-  progress: number;
-  startDate?: Date;
-  endDate?: Date;
-  estimatedCompletionDate?: Date;
-  actualCompletionDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  pricing?: {
-    type: "fixed" | "milestone" | "hourly";
-    currency: "USD" | "KES";
-    fixedBudget?: string;
-    hourlyRate?: string;
-    estimatedHours?: number;
-    totalPaid?: string;
-  };
-  milestones?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    budget: string;
-    timeline: string;
-    status: "pending" | "in_progress" | "completed" | "cancelled";
-    dueDate?: Date;
-    completedAt?: Date;
-    order: number;
-  }>;
-  updates?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    type: string;
-    createdAt: Date;
-  }>;
-  files?: Array<{
-    id: string;
-    fileName: string;
-    fileUrl: string;
-    fileSize?: number;
-    fileType?: string;
-    createdAt: Date;
-  }>;
-}
-
-interface SearchFilterComponentProps {
+interface SearchFilterProps {
   projects: ProjectWithDetails[];
   setFilteredProjects: (projects: ProjectWithDetails[]) => void;
-  onViewChange?: React.Dispatch<React.SetStateAction<"grid" | "list">>;
+  onViewChange: (view: "grid" | "list") => void;
 }
 
 type StatusValue = "all" | ProjectWithDetails["status"];
@@ -100,7 +47,7 @@ interface PriorityOption {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-const SearchFilterComponent: React.FC<SearchFilterComponentProps> = ({
+const SearchFilterComponent: React.FC<SearchFilterProps> = ({
   projects = [],
   setFilteredProjects,
   onViewChange,

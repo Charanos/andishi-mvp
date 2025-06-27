@@ -137,6 +137,12 @@ export async function POST(req: NextRequest) {
       } catch (e) {
         return NextResponse.json({ success: false, message: 'Invalid user ID' }, { status: 400 });
       }
+
+      // Get user information for the authenticated user
+      existingUser = await db.collection('users').findOne({ _id: userId });
+      if (!existingUser) {
+        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+      }
     } else {
       // For unauthenticated submissions, validate the full form including user info
       const fullData = {
@@ -170,22 +176,7 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
       parsed = validationResult;
-    }
 
-    if (isAuthenticated) {
-      // Update projects count for authenticated user
-      const updateResult = await db.collection('users').updateOne(
-        { _id: userId },
-        {
-          $inc: { projectsCount: 1 },
-          $set: { updatedAt: new Date() }
-        }
-      );
-
-      if (updateResult.matchedCount === 0) {
-        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
-      }
-    } else {
       // For unauthenticated users, handle user creation/lookup
       const userInfo = (parsed.data as z.infer<typeof startProjectFormSchema>).userInfo;
       existingUser = await db.collection('users').findOne({
@@ -199,27 +190,21 @@ export async function POST(req: NextRequest) {
           firstName: userInfo.firstName,
           lastName: userInfo.lastName,
           email: userInfo.email.toLowerCase(),
-          phone: userInfo.phone || '',
-          company: userInfo.company || '',
+          phone: userInfo.phone,
+          company: userInfo.company,
           role: 'client',
-          status: 'active',
-          createdAt: now,
-          lastLogin: null,
-          projectsCount: 1,
           isActive: true,
-          accountCreated: false,
-          passwordGenerated: false,
-          loginAttempts: 0,
-          accountLocked: false
+          createdAt: now,
+          updatedAt: now,
+          projectsCount: 1
         };
 
-        const userResult = await db.collection('users').insertOne(newUser);
-        userId = userResult.insertedId;
+        const result = await db.collection('users').insertOne(newUser);
+        existingUser = { ...newUser, _id: result.insertedId };
       } else {
-        userId = existingUser._id;
-        // Update projects count for existing user
+        // Update existing user's project count
         await db.collection('users').updateOne(
-          { _id: userId },
+          { _id: existingUser._id },
           {
             $inc: { projectsCount: 1 },
             $set: { updatedAt: new Date() }
@@ -228,55 +213,46 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const now = new Date();
-    const projectData = {
-      projectDetails: {
-        ...parsed.data.projectDetails,
-        techStack: parsed.data.projectDetails.techStack || [],
-        priority: parsed.data.projectDetails.priority || "low"
+    // Prepare project data with user information
+    const projectToSave = {
+      ...(isAuthenticated ? parsed.data : (parsed.data as any)),
+      clientId: existingUser._id.toString(),
+      userInfo: {
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        email: existingUser.email,
+        phone: existingUser.phone || '',
+        company: existingUser.company || '',
+        role: 'client'
       },
-      pricing: {
-        ...parsed.data.pricing,
-        type: parsed.data.pricing.type || "fixed",
-        currency: parsed.data.pricing.currency || "USD",
-        milestones: parsed.data.pricing.type === 'milestone' ?
-          parsed.data.pricing.milestones?.map((m, idx) => ({
-            ...m,
-            status: 'pending',
-            dueDate: null,
-            completedAt: null,
-            order: idx + 1
-          })) : []
+      projectDetails: {
+        ...(isAuthenticated ? parsed.data.projectDetails : (parsed.data as any).projectDetails),
+        priority: parsed.data.projectDetails?.priority || 'low',
+        techStack: parsed.data.projectDetails?.techStack || []
       },
       status: 'pending',
+      priority: parsed.data.projectDetails?.priority || 'low',
       progress: 0,
-      startDate: null,
-      endDate: null,
-      estimatedCompletionDate: null,
-      actualCompletionDate: null,
-      createdAt: now,
-      updatedAt: now,
-      updates: [],
-      files: [],
-      clientId: userId
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
-    const collection = db.collection('projects');
-    const result = await collection.insertOne(projectData);
+    // Save the project
+    const result = await db.collection('projects').insertOne(projectToSave);
 
     return NextResponse.json({
       success: true,
       message: 'Project submitted successfully',
-      insertedId: result.insertedId,
-      isNewUser: !isAuthenticated && !existingUser
+      projectId: result.insertedId
     });
+
   } catch (error) {
-    console.error('Error handling form submission:', error);
+    console.error('Error submitting project:', error);
     return NextResponse.json({
       success: false,
-      message: 'Failed to submit form',
+      message: 'Failed to submit project',
       error: error instanceof Error ? error.message : error
-    });
+    }, { status: 500 });
   }
 }
 

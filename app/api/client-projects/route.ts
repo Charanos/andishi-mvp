@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
 import { ObjectId } from 'mongodb';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// Add type definitions
+interface ProjectMilestone {
+  _id?: ObjectId;
+  id?: string;
+  title: string;
+  description: string;
+  budget: string;
+  timeline: string;
+  status: string;
+  dueDate?: Date;
+  completedAt?: Date;
+  order: number;
+}
+
+interface ProjectUpdate {
+  _id?: ObjectId;
+  id?: string;
+  title: string;
+  description: string;
+  type: string;
+  createdAt: Date;
+}
+
+interface ProjectFile {
+  _id?: ObjectId;
+  id?: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize?: number;
+  fileType?: string;
+  createdAt: Date;
+}
 
 // GET handler to fetch projects for the logged-in client
 export async function GET(req: NextRequest) {
@@ -29,65 +65,104 @@ export async function GET(req: NextRequest) {
       isActive: true
     });
 
-    if (!user || userRole !== 'client') {
+    if (!user) {
       return NextResponse.json(
-        { success: false, message: 'Unauthorized access' },
-        { status: 403 }
+        { success: false, message: 'User not found or not authorized' },
+        { status: 404 }
       );
     }
 
-    // Fetch all projects for this client
-    const projects = await db.collection('projects')
-      .find({
-        'userInfo.email': userEmail
-      })
-      .sort({ createdAt: -1 })
-      .toArray();
+    // Find projects either by clientId or userInfo.email
+    const projects = await db.collection('projects').find({
+      $or: [
+        { clientId: user._id.toString() },
+        { 'userInfo.email': userEmail }
+      ]
+    }).sort({ createdAt: -1 }).toArray();
 
-    // Transform projects to match the client dashboard interface
+    // Update user's project count if it doesn't match
+    const projectCount = projects.length;
+    await db.collection('users').updateOne(
+      { _id: user._id },
+      { $set: { projectCount: projectCount } }
+    );
+
+    // Transform projects to ensure consistent structure
     const transformedProjects = projects.map(project => ({
       id: project._id.toString(),
-      title: project.projectDetails.title,
-      description: project.projectDetails.description,
-      category: project.projectDetails.category,
-      timeline: project.projectDetails.timeline,
-      priority: project.projectDetails.priority || "low",
-      techStack: project.projectDetails.techStack,
-      requirements: project.projectDetails.requirements,
+      title: project.title || '',
+      description: project.description || '',
       status: project.status || 'pending',
+      priority: project.priority || project.projectDetails?.priority || 'low',
       progress: project.progress || 0,
-      startDate: project.startDate,
-      endDate: project.endDate,
-      estimatedCompletionDate: project.estimatedCompletionDate,
-      actualCompletionDate: project.actualCompletionDate,
-      createdAt: project.createdAt,
-      updatedAt: project.updatedAt,
-      pricing: {
-        type: project.pricing?.type || 'fixed',
-        currency: project.pricing?.currency || 'USD',
-        fixedBudget: project.pricing?.fixedBudget,
-        hourlyRate: project.pricing?.hourlyRate,
-        estimatedHours: project.pricing?.estimatedHours,
-        totalPaid: project.pricing?.totalPaid
+      techStack: project.techStack || project.projectDetails?.techStack || [],
+      createdAt: project.createdAt ? new Date(project.createdAt) : new Date(),
+      updatedAt: project.updatedAt ? new Date(project.updatedAt) : new Date(),
+      category: project.category || project.projectDetails?.category,
+      timeline: project.timeline || project.projectDetails?.timeline,
+      requirements: project.requirements || project.projectDetails?.requirements,
+      startDate: project.startDate ? new Date(project.startDate) : undefined,
+      endDate: project.endDate ? new Date(project.endDate) : undefined,
+      estimatedCompletionDate: project.estimatedCompletionDate ? new Date(project.estimatedCompletionDate) : undefined,
+      actualCompletionDate: project.actualCompletionDate ? new Date(project.actualCompletionDate) : undefined,
+      pricing: project.pricing ? {
+        type: project.pricing.type || 'fixed',
+        currency: project.pricing.currency || 'USD',
+        fixedBudget: project.pricing.fixedBudget,
+        hourlyRate: project.pricing.hourlyRate,
+        estimatedHours: project.pricing.estimatedHours,
+        totalPaid: project.pricing.totalPaid
+      } : undefined,
+      milestones: (project.milestones || []).map((m: ProjectMilestone) => ({
+        id: m._id?.toString() || m.id,
+        title: m.title,
+        description: m.description,
+        budget: m.budget,
+        timeline: m.timeline,
+        status: m.status || 'pending',
+        dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+        completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+        order: m.order || 0
+      })),
+      updates: (project.updates || []).map((u: ProjectUpdate) => ({
+        id: u._id?.toString() || u.id,
+        title: u.title,
+        description: u.description,
+        type: u.type || 'general',
+        createdAt: u.createdAt ? new Date(u.createdAt) : new Date()
+      })),
+      files: (project.files || []).map((f: ProjectFile) => ({
+        id: f._id?.toString() || f.id,
+        fileName: f.fileName,
+        fileUrl: f.fileUrl,
+        fileSize: f.fileSize,
+        fileType: f.fileType,
+        createdAt: f.createdAt ? new Date(f.createdAt) : new Date()
+      })),
+      userInfo: project.userInfo || {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone || '',
+        company: user.company || '',
+        role: 'client'
       },
-      milestones: project.milestones || [],
-      updates: project.updates || [],
-      files: project.files || []
+      projectDetails: {
+        ...project.projectDetails,
+        priority: project.projectDetails?.priority || project.priority || 'low',
+        techStack: project.projectDetails?.techStack || []
+      }
     }));
 
-    return NextResponse.json({ 
-      success: true, 
-      projects: transformedProjects 
+    return NextResponse.json({
+      success: true,
+      projects: transformedProjects
     });
 
   } catch (error) {
     console.error('Error fetching client projects:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Failed to fetch projects',
-        error: error instanceof Error ? error.message : error 
-      },
+      { success: false, message: 'Failed to fetch projects', error: error instanceof Error ? error.message : error },
       { status: 500 }
     );
   }
@@ -128,16 +203,37 @@ export async function POST(req: NextRequest) {
     const now = new Date();
     const projectToInsert = {
       ...projectData,
+      projectDetails: {
+        title: projectData.title,
+        description: projectData.description,
+        category: projectData.category,
+        timeline: projectData.timeline,
+        priority: projectData.priority || 'medium',
+        techStack: projectData.techStack || [],
+        requirements: projectData.requirements
+      },
       status: 'pending',
       priority: projectData.priority || 'medium',
       progress: 0,
       createdAt: now,
       updatedAt: now,
       createdBy: user._id,
-      clientId: user._id
+      clientId: user._id,
+      userInfo: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        company: user.company
+      }
     };
 
     const result = await db.collection('projects').insertOne(projectToInsert);
+
+    // Update user's project count
+    await db.collection('users').updateOne(
+      { _id: user._id },
+      { $inc: { projectCount: 1 } }
+    );
 
     return NextResponse.json({
       success: true,
@@ -296,6 +392,12 @@ export async function DELETE(req: NextRequest) {
     const result = await db.collection('projects').deleteOne({
       _id: new ObjectId(projectId)
     });
+
+    // Update user's project count
+    await db.collection('users').updateOne(
+      { _id: user._id },
+      { $inc: { projectCount: -1 } }
+    );
 
     return NextResponse.json({
       success: true,

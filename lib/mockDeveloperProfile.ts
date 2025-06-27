@@ -3,7 +3,9 @@
 // and provides a single source-of-truth for any future seeds or tests.
 // The shape intentionally matches the structure consumed by the developer dashboard.
 
-export const mockDeveloperProfile = {
+import type { DeveloperProfile } from "./types";
+
+export const mockDeveloperProfile: Omit<DeveloperProfile, 'id'> = {
   personalInfo: {
     firstName: "Alex",
     lastName: "Chen",
@@ -74,6 +76,7 @@ export const mockDeveloperProfile = {
       startDate: "2024-01-01",
       deadline: "2024-06-30",
       budget: 75000,
+      team: ["Alex Chen", "Bob Johnson", "Charlie Brown"],
       progress: 68,
       priority: "high",
       client: "TechCorp Inc.",
@@ -167,6 +170,7 @@ export const mockDeveloperProfile = {
       startDate: "2023-09-01",
       deadline: "2024-02-29",
       budget: 95000,
+      team: ["Alex Chen", "David Williams", "Eve Davis"],
       progress: 95,
       priority: "critical",
       client: "MediTech Solutions",
@@ -246,6 +250,7 @@ export const mockDeveloperProfile = {
       startDate: "2023-06-01",
       deadline: "2023-11-30",
       budget: 60000,
+      team: ["Alex Chen", "Frank Miller", "Grace Wilson"],
       progress: 100,
       priority: "medium",
       client: "StartupXYZ",
@@ -429,4 +434,4 @@ export const mockDeveloperProfile = {
       description: "API development and testing"
     }
   ]
-} as const;
+};

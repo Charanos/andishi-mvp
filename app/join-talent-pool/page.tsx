@@ -1547,7 +1547,7 @@ export default function DeveloperRegistrationForm() {
                 Step {currentStep} of {steps.length}
               </div>
 
-              {currentStep < 7 ? (
+              {currentStep < steps.length ? (
                 <button
                   type="button"
                   onClick={nextStep}

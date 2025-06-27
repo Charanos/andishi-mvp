@@ -310,67 +310,51 @@ export default function ClientDashboardStartProject({}) {
     scrollToTop();
   };
 
-  const handleSubmit = async () => {
-    // Check if terms are accepted
-    if (!termsAccepted) {
-      toast.error("Please accept the terms and conditions before submitting.");
-      return;
-    }
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitStatus("loading");
     try {
-      // Prepare the form data
-      const formDataToSubmit = {
-        projectDetails: {
-          ...formData.projectDetails,
-          techStack: formData.projectDetails.techStack || [],
-          priority: formData.projectDetails.priority || "low",
-        },
+      const token = localStorage.getItem("auth_token");
+      const userEmail = localStorage.getItem("user_email");
+      const firstName = localStorage.getItem("user_firstName");
+      const lastName = localStorage.getItem("user_lastName");
+      const company = localStorage.getItem("user_company");
+
+      const projectData = {
+        title: formData.projectDetails.title,
+        description: formData.projectDetails.description,
+        category: formData.projectDetails.category,
+        timeline: formData.projectDetails.timeline,
+        priority: formData.projectDetails.priority,
+        techStack:
+          formData.projectDetails.techStack?.map((tech) => tech.trim()) || [],
+        requirements: formData.projectDetails.requirements,
         pricing: {
-          ...formData.pricing,
-          type: formData.pricing.type || "fixed",
-          currency: formData.pricing.currency || "USD",
-          milestones: formData.pricing.milestones || [],
+          type: formData.pricing.type,
+          currency: formData.pricing.currency,
+          fixedBudget: formData.pricing.fixedBudget,
+          hourlyRate: formData.pricing.hourlyRate,
+          estimatedHours: formData.pricing.estimatedHours,
         },
-        // Only include userInfo for unauthenticated users
-        ...(user ? {} : { userInfo: formData.userInfo }),
+        userInfo: {
+          email: userEmail,
+          firstName,
+          lastName,
+          company,
+        },
       };
 
-      // Validate form data with the appropriate schema
-      const validationResult = user
-        ? authenticatedStartProjectFormSchema.safeParse(formDataToSubmit)
-        : startProjectFormSchema.safeParse(formDataToSubmit);
-
-      if (!validationResult.success) {
-        console.error(
-          "Client-side validation errors:",
-          validationResult.error.format()
-        );
-        validationResult.error.issues.forEach((issue) => {
-          const path = issue.path.join(" > ");
-          toast.error(`${path}: ${issue.message}`, {
-            position: "top-center",
-            autoClose: 5000,
-          });
-        });
-        return;
-      }
-
-      setSubmitStatus("loading");
-      toast.info("Submitting your project...", {
-        position: "top-center",
-        autoClose: 2000,
-      });
-
-      const res = await fetch("/api/start-project", {
+      const response = await fetch("/api/client-projects", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formDataToSubmit,
-          userId: user?.id,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "user-email": userEmail || "",
+        },
+        body: JSON.stringify(projectData),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
       if (!data.success) {
         setSubmitStatus("error");

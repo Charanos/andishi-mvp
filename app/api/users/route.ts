@@ -103,8 +103,24 @@ export async function GET() {
       .sort({ createdAt: -1 }) // Sort by newest first
       .toArray();
 
-    // Derive firstName/lastName if missing
-    users = users.map(deriveNames);
+    // Get project counts for each user
+    const projectCounts = await Promise.all(
+      users.map(async (user) => {
+        const count = await db.collection('projects').countDocuments({
+          clientId: user._id
+        });
+        return { userId: user._id, count };
+      })
+    );
+
+    // Merge project counts with user data
+    users = users.map(user => {
+      const projectCount = projectCounts.find(pc => pc.userId.toString() === user._id.toString());
+      return {
+        ...deriveNames(user),
+        projectsCount: projectCount?.count || 0
+      };
+    });
 
     return NextResponse.json({ 
       success: true, 

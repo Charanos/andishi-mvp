@@ -85,7 +85,8 @@ interface PricingOption {
 
 interface ProjectData {
   _id: string;
-  userInfo: UserInfo;
+  userInfo?: UserInfo; // Make userInfo optional since it might not always be present
+  clientId?: string; // Add clientId field
   projectDetails: ProjectDetails;
   pricing: PricingOption;
   status: "pending" | "reviewed" | "approved" | "rejected";
@@ -248,7 +249,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
         );
 
         setProjects(transformedProjects);
-        setDevProfiles(devProfilesData.profiles || []);
+        const profilesArray = Array.isArray(devProfilesData)
+          ? devProfilesData
+          : Array.isArray(devProfilesData?.profiles)
+          ? devProfilesData.profiles
+          : [];
+        setDevProfiles(profilesArray);
 
         // Ensure users is always an array
         const usersArray = Array.isArray(usersData)
@@ -395,9 +401,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
       // Fetch developer profiles
       const devProfilesRes = await fetch("/api/developer-profiles");
       const devProfilesData = await devProfilesRes.json();
-      if (devProfilesData.success) {
-        setDevProfiles(devProfilesData.profiles);
+      let profiles: any[] = [];
+      if (Array.isArray(devProfilesData)) {
+        profiles = devProfilesData;
+      } else if (Array.isArray(devProfilesData?.profiles)) {
+        profiles = devProfilesData.profiles;
+      } else if (devProfilesData.success && Array.isArray(devProfilesData.profiles)) {
+        profiles = devProfilesData.profiles;
       }
+      setDevProfiles(profiles);
 
       // Generate analytics
       generateAnalytics(projectsData.projects || [], usersData.users || []);
@@ -414,23 +426,45 @@ export default function EnhancedAdminDashboard(): ReactNode {
     usersData: SystemUser[]
   ): void => {
     // Calculate project statistics
-    const projectStats = projectsData.map((project) => ({
-      id: project._id,
-      status: project.status,
-      priority: project.priority,
-      budget: calculateProjectBudget(project),
-      client: project.userInfo.firstName + " " + project.userInfo.lastName,
-      date: project.createdAt,
-    }));
+    const projectStats = projectsData.map((project) => {
+      // Safely get client name, handling potential undefined userInfo
+      let clientName = "Unknown Client";
+      if (
+        project.userInfo &&
+        project.userInfo.firstName &&
+        project.userInfo.lastName
+      ) {
+        clientName = `${project.userInfo.firstName} ${project.userInfo.lastName}`;
+      } else if (project.clientId) {
+        // Try to find user info from usersData if we have clientId
+        const clientUser = usersData.find(
+          (user) => user._id === project.clientId
+        );
+        if (clientUser) {
+          clientName = `${clientUser.firstName} ${clientUser.lastName}`;
+        }
+      }
+
+      return {
+        id: project._id,
+        status: project.status || "pending",
+        priority: project.priority || "low",
+        budget: calculateProjectBudget(project),
+        client: clientName,
+        date: project.createdAt,
+      };
+    });
 
     // Calculate total revenue and project status counts
     const totalRevenue = projectStats.reduce(
-      (sum, project) => sum + project.budget,
+      (sum, project) => sum + (project.budget || 0),
       0
     );
+
     const projectsByStatus = projectStats.reduce(
       (acc: { [key: string]: number }, project) => {
-        acc[project.status] = (acc[project.status] || 0) + 1;
+        const status = project.status || "pending";
+        acc[status] = (acc[status] || 0) + 1;
         return acc;
       },
       {}
@@ -439,19 +473,25 @@ export default function EnhancedAdminDashboard(): ReactNode {
     // Calculate user role distribution
     const usersByRole = usersData.reduce(
       (acc: { [key: string]: number }, user) => {
-        acc[user.role] = (acc[user.role] || 0) + 1;
+        const role = user.role || "client";
+        acc[role] = (acc[role] || 0) + 1;
         return acc;
       },
       {}
     );
 
-    // Calculate monthly revenue
+    // Calculate monthly revenue with safe date handling
     const revenueByMonth = projectStats.reduce(
       (acc: { [key: string]: number }, project) => {
-        const month = new Date(project.date).toLocaleString("default", {
-          month: "short",
-        });
-        acc[month] = (acc[month] || 0) + project.budget;
+        try {
+          const month = new Date(project.date).toLocaleString("default", {
+            month: "short",
+          });
+          acc[month] = (acc[month] || 0) + (project.budget || 0);
+        } catch (error) {
+          console.error("Error processing date:", error);
+          // Skip invalid dates
+        }
         return acc;
       },
       {}
@@ -465,17 +505,18 @@ export default function EnhancedAdminDashboard(): ReactNode {
       })
     );
 
-    // Calculate top clients
+    // Calculate top clients with safe handling of undefined values
     const clientStats = projectStats.reduce(
       (
         acc: { [key: string]: { projects: number; revenue: number } },
         project
       ) => {
-        if (!acc[project.client]) {
-          acc[project.client] = { projects: 0, revenue: 0 };
+        const clientName = project.client || "Unknown Client";
+        if (!acc[clientName]) {
+          acc[clientName] = { projects: 0, revenue: 0 };
         }
-        acc[project.client].projects++;
-        acc[project.client].revenue += project.budget;
+        acc[clientName].projects++;
+        acc[clientName].revenue += project.budget || 0;
         return acc;
       },
       {}
@@ -490,9 +531,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
-    // Calculate top developers
+    // Calculate top developers with safe handling
     const developerStats = usersData
-      .filter((user) => user.role === "developer")
+      .filter(
+        (user) => user.role === "developer" && user.firstName && user.lastName
+      )
       .map((dev) => ({
         name: `${dev.firstName} ${dev.lastName}`,
         projects: dev.projectsCount || 0,
@@ -501,7 +544,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       .sort((a, b) => b.projects - a.projects)
       .slice(0, 5);
 
-    // Calculate monthly growth (comparing to previous month)
+    // Calculate monthly growth with safe handling
     const currentMonthRevenue =
       revenueMonthly[revenueMonthly.length - 1]?.revenue || 0;
     const previousMonthRevenue =

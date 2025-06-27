@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   FaSave,
   FaSyncAlt,
@@ -16,28 +16,72 @@ import {
   FaCheck,
   FaTimes,
   FaInfoCircle,
+  FaUserPlus,
+  FaArrowLeft,
 } from "react-icons/fa";
 
-import type { DeveloperProfile, ToastNotification } from "../../lib/types";
-
-interface Props {
-  profileId?: string;
-  initialProfile?: DeveloperProfile;
-  onSaveSuccess?: (updated: DeveloperProfile) => void;
-  onCancel?: () => void;
+interface Notification {
+  id: string;
+  type: "success" | "error" | "info";
+  message: string;
 }
 
-const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, onSaveSuccess, onCancel }) => {
-  const [profile, setProfile] = useState<DeveloperProfile | null>(initialProfile ?? null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+import type { DeveloperProfile } from "../../lib/types";
+
+interface Props {
+  onCreate: (newProfile: DeveloperProfile) => void;
+  onCancel: () => void;
+}
+
+const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
+  // Initialize with empty profile structure
+  const [profile, setProfile] = useState<DeveloperProfile>({
+    id: `dev_${Date.now()}`, // Temporary ID, will be replaced by backend
+    personalInfo: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      location: "",
+      portfolio: "",
+      tagline: "",
+      bio: "",
+    },
+    professionalInfo: {
+      title: "",
+      experienceLevel: "Mid-level",
+      availability: "Full-time",
+      hourlyRate: 50,
+      bio: "",
+      languages: [],
+      certifications: [],
+      preferredWorkType: [],
+    },
+    technicalSkills: {
+      primarySkills: [],
+      frameworks: [],
+      databases: [],
+      tools: [],
+      cloudPlatforms: [],
+      specializations: [],
+    },
+    stats: {
+      totalProjects: 0,
+      averageRating: 0,
+      totalEarnings: 0,
+      clientRetention: 0,
+    },
+    projects: [],
+    recentActivity: [],
+  });
+
+  const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
-  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Custom toast notification functions
   const addNotification = (type: "success" | "error" | "info", message: string) => {
     const id = Date.now().toString();
-    const notification: ToastNotification = { id, type, message };
+    const notification: Notification = { id, type, message };
     setNotifications(prev => [...prev, notification]);
     
     // Auto remove after 4 seconds
@@ -56,95 +100,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
     info: (message: string) => addNotification("info", message),
   };
 
-  // Load initial or fetch existing profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (initialProfile) {
-        setLoading(false);
-        return;
-      }
-
-      if (!profileId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        console.log(`Fetching profile for ID: ${profileId}...`);
-        const res = await fetch(`/api/developer-profiles?id=${profileId}`);
-        if (!res.ok) {
-          if (res.status === 404) {
-            // Profile not found yet – start with blank template seeded from initialProfile if possible
-            const seed: DeveloperProfile | null = initialProfile ?? null;
-            if (seed) {
-              setProfile(seed);
-            }
-            setLoading(false);
-            return;
-          }
-          throw new Error(
-            `Failed to fetch profile: ${res.status} ${res.statusText}`
-          );
-        }
-        const profileData = await res.json();
-        console.log("Received profile data:", profileData);
-
-        // Initialize missing nested objects with default structures
-        const initializedProfile: DeveloperProfile = {
-          ...profileData,
-          personalInfo: {
-            firstName: "",
-            lastName: "",
-            email: "",
-            location: "",
-            tagline: "",
-            ...profileData.personalInfo,
-          },
-          professionalInfo: {
-            title: "",
-            experienceLevel: "Mid-level",
-            availability: "Full-time",
-            hourlyRate: 50,
-            languages: [],
-            certifications: [],
-            preferredWorkType: [],
-            ...profileData.professionalInfo,
-          },
-          technicalSkills: {
-            primarySkills: [],
-            frameworks: [],
-            databases: [],
-            tools: [],
-            cloudPlatforms: [],
-            specializations: [],
-            ...profileData.technicalSkills,
-          },
-          stats: {
-            totalProjects: 0,
-            averageRating: 0,
-            totalEarnings: 0,
-            clientRetention: 0,
-            ...profileData.stats,
-          },
-          projects: profileData.projects || [],
-          recentActivity: profileData.recentActivity || [],
-        };
-
-        setProfile(initializedProfile);
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-        toast.error("Error loading developer profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [profileId]);
-
   const handleChange = (section: string, field: string, value: any) => {
-    if (!profile) return;
     setProfile((prev) => {
-      if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore – dynamic indexing
       updated[section][field] = value;
@@ -158,9 +115,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
     index: number,
     value: any
   ) => {
-    if (!profile) return;
     setProfile((prev) => {
-      if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore
       updated[section][field][index] = value;
@@ -180,9 +135,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
   };
 
   const addArrayItem = (section: string, field: string, defaultItem: any) => {
-    if (!profile) return;
     setProfile((prev) => {
-      if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
 
       if (!isValidSection(section)) return prev;
@@ -197,9 +150,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
   };
 
   const removeArrayItem = (section: string, field: string, index: number) => {
-    if (!profile) return;
     setProfile((prev) => {
-      if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore
       updated[section][field].splice(index, 1);
@@ -207,119 +158,79 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
     });
   };
 
-  const handleSave = async () => {
-    if (!profile) return;
-    setSaving(true);
+  const validateProfile = (): boolean => {
+    const { personalInfo, professionalInfo, technicalSkills } = profile;
+    
+    // Required fields validation
+    if (!personalInfo.firstName.trim()) {
+      toast.error("First name is required");
+      setActiveTab("personal");
+      return false;
+    }
+    
+    if (!personalInfo.lastName.trim()) {
+      toast.error("Last name is required");
+      setActiveTab("personal");
+      return false;
+    }
+    
+    if (!personalInfo.email.trim()) {
+      toast.error("Email is required");
+      setActiveTab("personal");
+      return false;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(personalInfo.email)) {
+      toast.error("Please enter a valid email address");
+      setActiveTab("personal");
+      return false;
+    }
+    
+    if (!professionalInfo.title.trim()) {
+      toast.error("Professional title is required");
+      setActiveTab("professional");
+      return false;
+    }
+    
+    if (technicalSkills.primarySkills.length === 0) {
+      toast.error("At least one primary skill is required");
+      setActiveTab("skills");
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleCreate = async () => {
+    if (!validateProfile()) return;
+    
+    setCreating(true);
     try {
-      console.log("Saving profile to /api/developer-profiles...");
+      console.log("Creating new developer profile...");
       const res = await fetch("/api/developer-profiles", {
-        method: "PUT",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
+      
       if (!res.ok) {
-        throw new Error(`Save failed: ${res.status} ${res.statusText}`);
+        throw new Error(`Creation failed: ${res.status} ${res.statusText}`);
       }
-      const data = await res.json();
-      console.log("Profile saved successfully:", data);
-      toast.success("Profile updated successfully");
-      if (onSaveSuccess) {
-        onSaveSuccess(data as DeveloperProfile);
-      }
+      
+      const newProfile = await res.json();
+      console.log("Developer profile created successfully:", newProfile);
+      toast.success("Developer profile created successfully!");
+      
+      onCreate(newProfile as DeveloperProfile);
     } catch (err) {
-      console.error("Error saving profile:", err);
-      toast.error("Error saving profile");
+      console.error("Error creating profile:", err);
+      toast.error("Error creating developer profile");
     } finally {
-      setSaving(false);
+      setCreating(false);
     }
   };
-
-  if (loading) {
-    return (
-      <>
-        {/* Custom Toast Notifications */}
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-              notification.type === "success"
-                ? "bg-green-500/20 border-green-500/30 text-green-400"
-                : notification.type === "error"
-                ? "bg-red-500/20 border-red-500/30 text-red-400"
-                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-            }`}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-2">
-                {notification.type === "success" && <FaCheck />}
-                {notification.type === "error" && <FaTimes />}
-                {notification.type === "info" && <FaInfoCircle />}
-                <span className="font-medium">{notification.message}</span>
-              </div>
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="flex items-center justify-center min-h-screen bg-white/5 backdrop-blur-none">
-          <div className="text-center">
-            <FaSyncAlt className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
-            <p className="text-gray-400">Loading developer profile...</p>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <>
-        {/* Custom Toast Notifications */}
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-              notification.type === "success"
-                ? "bg-green-500/20 border-green-500/30 text-green-400"
-                : notification.type === "error"
-                ? "bg-red-500/20 border-red-500/30 text-red-400"
-                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-            }`}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-2">
-                {notification.type === "success" && <FaCheck />}
-                {notification.type === "error" && <FaTimes />}
-                {notification.type === "info" && <FaInfoCircle />}
-                <span className="font-medium">{notification.message}</span>
-              </div>
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="min-h-screen bg-white/5 backdrop-blur-none">
-          <div className="text-center py-12">
-            <p className="text-red-400 text-lg">No developer profile found.</p>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   const tabs = [
     { id: "personal", label: "Personal Info", icon: FaUsers },
@@ -333,28 +244,44 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaUsers className="text-blue-400" />
         Personal Information
+        <span className="text-red-400 text-sm ml-2">* Required</span>
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Object.entries(profile.personalInfo).map(([key, value]) => (
           <div key={key} className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-2 capitalize">
+            <label className="text-sm text-gray-300 mb-2 capitalize flex items-center gap-1">
               {key.replace(/([A-Z])/g, " $1")}
+              {["firstName", "lastName", "email"].includes(key) && (
+                <span className="text-red-400">*</span>
+              )}
             </label>
             {key === "bio" ? (
               <textarea
-                className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white min-h-[100px] resize-vertical"
+                className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white min-h-[100px] resize-vertical focus:border-blue-400 focus:outline-none transition-colors"
                 value={(value as string) || ""}
                 onChange={(e) =>
                   handleChange("personalInfo", key, e.target.value)
                 }
+                placeholder="Tell us about yourself..."
               />
             ) : (
               <input
-                className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
+                className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white focus:border-blue-400 focus:outline-none transition-colors"
+                type={key === "email" ? "email" : "text"}
                 value={(value as string) || ""}
                 onChange={(e) =>
                   handleChange("personalInfo", key, e.target.value)
                 }
+                placeholder={
+                  key === "firstName" ? "John" :
+                  key === "lastName" ? "Doe" :
+                  key === "email" ? "john.doe@example.com" :
+                  key === "location" ? "New York, NY" :
+                  key === "portfolio" ? "https://johndoe.dev" :
+                  key === "tagline" ? "Full-stack developer with passion for clean code" :
+                  ""
+                }
+                required={["firstName", "lastName", "email"].includes(key)}
               />
             )}
           </div>
@@ -368,6 +295,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaCode className="text-green-400" />
         Professional Information
+        <span className="text-red-400 text-sm ml-2">* Title Required</span>
       </h3>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -380,20 +308,22 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
             )
             .map(([key, value]) => (
               <div key={key} className="flex flex-col">
-                <label className="text-sm text-gray-300 mb-2 capitalize">
+                <label className="text-sm text-gray-300 mb-2 capitalize flex items-center gap-1">
                   {key.replace(/([A-Z])/g, " $1")}
+                  {key === "title" && <span className="text-red-400">*</span>}
                 </label>
                 {key === "bio" ? (
                   <textarea
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white min-h-[120px] resize-vertical"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white min-h-[120px] resize-vertical focus:border-blue-400 focus:outline-none transition-colors"
                     value={(value as string) || ""}
                     onChange={(e) =>
                       handleChange("professionalInfo", key, e.target.value)
                     }
+                    placeholder="Describe your professional experience and expertise..."
                   />
                 ) : key === "experienceLevel" ? (
                   <select
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white focus:border-blue-400 focus:outline-none transition-colors"
                     value={(value as string) || "Mid-level"}
                     onChange={(e) =>
                       handleChange("professionalInfo", key, e.target.value)
@@ -406,7 +336,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                   </select>
                 ) : key === "availability" ? (
                   <select
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white focus:border-blue-400 focus:outline-none transition-colors"
                     value={(value as string) || "Full-time"}
                     onChange={(e) =>
                       handleChange("professionalInfo", key, e.target.value)
@@ -421,7 +351,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 ) : key === "hourlyRate" ? (
                   <input
                     type="number"
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
+                    min="0"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white focus:border-blue-400 focus:outline-none transition-colors"
                     value={value as number}
                     onChange={(e) =>
                       handleChange(
@@ -430,14 +361,19 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                         parseInt(e.target.value) || 0
                       )
                     }
+                    placeholder="50"
                   />
                 ) : (
                   <input
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white focus:border-blue-400 focus:outline-none transition-colors"
                     value={(value as string) || ""}
                     onChange={(e) =>
                       handleChange("professionalInfo", key, e.target.value)
                     }
+                    placeholder={
+                      key === "title" ? "Full Stack Developer" : ""
+                    }
+                    required={key === "title"}
                   />
                 )}
               </div>
@@ -451,7 +387,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
             {(profile.professionalInfo.languages || []).map((lang, index) => (
               <div key={index} className="flex gap-2">
                 <input
-                  className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
+                  className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
                   value={lang}
                   onChange={(e) =>
                     handleArrayChange(
@@ -467,7 +403,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                   onClick={() =>
                     removeArrayItem("professionalInfo", "languages", index)
                   }
-                  className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded"
+                  className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
                 >
                   <FaTrash />
                 </button>
@@ -475,7 +411,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
             ))}
             <button
               onClick={() => addArrayItem("professionalInfo", "languages", "")}
-              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2"
+              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
             >
               <FaPlus /> Add Language
             </button>
@@ -490,7 +426,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
               (cert, index) => (
                 <div key={index} className="flex gap-2">
                   <input
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
                     value={cert}
                     onChange={(e) =>
                       handleArrayChange(
@@ -510,7 +446,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                         index
                       )
                     }
-                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded"
+                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
                   >
                     <FaTrash />
                   </button>
@@ -521,7 +457,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
               onClick={() =>
                 addArrayItem("professionalInfo", "certifications", "")
               }
-              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2"
+              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
             >
               <FaPlus /> Add Certification
             </button>
@@ -538,7 +474,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
               (workType, index) => (
                 <div key={index} className="flex gap-2">
                   <select
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
                     value={workType}
                     onChange={(e) =>
                       handleArrayChange(
@@ -563,7 +499,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                         index
                       )
                     }
-                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded"
+                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
                   >
                     <FaTrash />
                   </button>
@@ -574,7 +510,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
               onClick={() =>
                 addArrayItem("professionalInfo", "preferredWorkType", "")
               }
-              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2"
+              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
             >
               <FaPlus /> Add Work Type
             </button>
@@ -600,6 +536,9 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
         <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <IconComponent className="text-purple-400" />
           {sectionTitle}
+          {skillKey === "primarySkills" && (
+            <span className="text-red-400 text-sm ml-2">* At least one required</span>
+          )}
         </h4>
         <div className="space-y-3">
           {skills.map((skill, index) => (
@@ -607,10 +546,10 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col">
                   <label className="text-xs text-gray-400 mb-1">
-                    Skill Name
+                    Skill Name {skillKey === "primarySkills" && <span className="text-red-400">*</span>}
                   </label>
                   <input
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm focus:border-blue-400 focus:outline-none transition-colors"
                     value={skill.name || ""}
                     onChange={(e) => {
                       const updatedSkill = { ...skill, name: e.target.value };
@@ -632,7 +571,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                     type="number"
                     min="1"
                     max="10"
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm focus:border-blue-400 focus:outline-none transition-colors"
                     value={skill.level || 1}
                     onChange={(e) => {
                       const updatedSkill = {
@@ -651,7 +590,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 <div className="flex flex-col">
                   <label className="text-xs text-gray-400 mb-1">Category</label>
                   <input
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm focus:border-blue-400 focus:outline-none transition-colors"
                     value={skill.category || ""}
                     onChange={(e) => {
                       const updatedSkill = {
@@ -676,7 +615,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                   </label>
                   <input
                     type="date"
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm focus:border-blue-400 focus:outline-none transition-colors"
                     value={skill.lastUsed || ""}
                     onChange={(e) => {
                       const updatedSkill = {
@@ -699,7 +638,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                   <input
                     type="number"
                     min="0"
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm focus:border-blue-400 focus:outline-none transition-colors"
                     value={skill.endorsements || 0}
                     onChange={(e) => {
                       const updatedSkill = {
@@ -720,7 +659,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                     onClick={() =>
                       removeArrayItem("technicalSkills", skillKey, index)
                     }
-                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded text-sm"
+                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded text-sm transition-colors"
                   >
                     <FaTrash />
                   </button>
@@ -739,7 +678,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 lastUsed: "",
               })
             }
-            className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2"
+            className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
           >
             <FaPlus /> Add {sectionTitle.slice(0, -1)}
           </button>
@@ -753,6 +692,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaStar className="text-yellow-400" />
         Technical Skills
+        <span className="text-red-400 text-sm ml-2">* At least one primary skill required</span>
       </h3>
       <div className="space-y-8">
         {renderSkillSection("Primary Skills", "primarySkills", FaStar)}
@@ -771,7 +711,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 (platform, index) => (
                   <div key={index} className="flex gap-2">
                     <input
-                      className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
+                      className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
                       value={platform}
                       onChange={(e) =>
                         handleArrayChange(
@@ -791,7 +731,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                           index
                         )
                       }
-                      className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded"
+                      className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
                     >
                       <FaTrash />
                     </button>
@@ -802,7 +742,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 onClick={() =>
                   addArrayItem("technicalSkills", "cloudPlatforms", "")
                 }
-                className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2"
+                className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
               >
                 <FaPlus /> Add Platform
               </button>
@@ -816,7 +756,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 (spec, index) => (
                   <div key={index} className="flex gap-2">
                     <input
-                      className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
+                      className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
                       value={spec}
                       onChange={(e) =>
                         handleArrayChange(
@@ -836,7 +776,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                           index
                         )
                       }
-                      className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded"
+                      className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
                     >
                       <FaTrash />
                     </button>
@@ -847,7 +787,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 onClick={() =>
                   addArrayItem("technicalSkills", "specializations", "")
                 }
-                className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2"
+                className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
               >
                 <FaPlus /> Add Specialization
               </button>
@@ -862,161 +802,189 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
     <section className="bg-white/5 p-6 rounded-lg">
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaTrophy className="text-orange-400" />
-        Statistics & Performance
+        Initial Statistics
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Object.entries(profile.stats).map(([key, value]) => (
           <div key={key} className="flex flex-col">
             <label className="text-sm text-gray-300 mb-2 capitalize">
               {key.replace(/([A-Z])/g, " $1")}
+              {key === "averageRating" && " (0-5)"}
+              {key === "clientRetention" && " (0-100%)"}
             </label>
-            {key === "averageRating" || key === "clientRetention" ? (
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max={key === "averageRating" ? "5" : "100"}
-                className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
-                value={value as number}
-                onChange={(e) =>
-                  handleChange("stats", key, parseFloat(e.target.value) || 0)
-                }
-              />
-            ) : (
-              <input
-                type="number"
-                min="0"
-                className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
-                value={value as number}
-                onChange={(e) =>
-                  handleChange("stats", key, parseInt(e.target.value) || 0)
-                }
-              />
-            )}
+            <input
+              type="number"
+              min="0"
+              max={
+                key === "averageRating" ? 5 : 
+                key === "clientRetention" ? 100 : 
+                undefined
+              }
+              step={key === "averageRating" ? "0.1" : "1"}
+              className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white focus:border-blue-400 focus:outline-none transition-colors"
+              value={value}
+              onChange={(e) =>
+                handleChange(
+                  "stats",
+                  key,
+                  key === "averageRating" 
+                    ? parseFloat(e.target.value) || 0
+                    : parseInt(e.target.value) || 0
+                )
+              }
+              placeholder={
+                key === "totalProjects" ? "0" :
+                key === "averageRating" ? "0.0" :
+                key === "totalEarnings" ? "0" :
+                key === "clientRetention" ? "0" : "0"
+              }
+            />
           </div>
         ))}
       </div>
     </section>
   );
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "personal":
+        return renderPersonalInfo();
+      case "professional":
+        return renderProfessionalInfo();
+      case "skills":
+        return renderTechnicalSkills();
+      case "stats":
+        return renderStats();
+      default:
+        return renderPersonalInfo();
+    }
+  };
+
   return (
-    <div className="min-h-screen ">
-      {/* Custom Toast Notifications */}
-      {notifications.map((notification) => (
-        <div
-          key={notification.id}
-          className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-            notification.type === "success"
-              ? "bg-green-500/20 border-green-500/30 text-green-400"
-              : notification.type === "error"
-              ? "bg-red-500/20 border-red-500/30 text-red-400"
-              : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-          }`}
-          style={{
-            animation: "slideInRight 0.3s ease-out",
-          }}
-        >
-          <div className="flex items-center justify-between space-x-4">
-            <div className="flex items-center space-x-2">
-              {notification.type === "success" && <FaCheck />}
-              {notification.type === "error" && <FaTimes />}
-              {notification.type === "info" && <FaInfoCircle />}
-              <span className="font-medium">{notification.message}</span>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4">
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 max-w-sm animate-slide-in ${
+              notification.type === "success"
+                ? "bg-green-900/90 border-green-400 text-green-100"
+                : notification.type === "error"
+                ? "bg-red-900/90 border-red-400 text-red-100"
+                : "bg-blue-900/90 border-blue-400 text-blue-100"
+            }`}
+          >
+            {notification.type === "success" && <FaCheck className="text-green-400" />}
+            {notification.type === "error" && <FaTimes className="text-red-400" />}
+            {notification.type === "info" && <FaInfoCircle className="text-blue-400" />}
+            <span className="text-sm font-medium">{notification.message}</span>
             <button
               onClick={() => removeNotification(notification.id)}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="ml-auto text-gray-400 hover:text-white"
             >
-              <FaTimes />
+              <FaTimes size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            {onCancel && (
+              <button
+                onClick={onCancel}
+                className="bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 px-4 py-2 rounded flex items-center gap-2 transition-colors"
+              >
+                <FaArrowLeft /> Back
+              </button>
+            )}
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <FaUserPlus className="text-blue-400" />
+              Add New Developer
+            </h1>
+          </div>
+          <p className="text-gray-300">
+            Create a comprehensive profile for a new developer. Fill in all required fields marked with *.
+          </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white/10 rounded-lg p-2 mb-8">
+          <div className="flex flex-wrap gap-2">
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                    activeTab === tab.id
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <IconComponent />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="mb-8">
+          {renderTabContent()}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="bg-white/5 p-6 rounded-lg">
+          <div className="flex flex-col sm:flex-row gap-4 justify-end">
+            {onCancel && (
+              <button
+                onClick={onCancel}
+                disabled={creating}
+                className="px-6 py-3 bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaTimes />
+                Cancel
+              </button>
+            )}
+            <button
+              onClick={handleCreate}
+              disabled={creating}
+              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[150px]"
+            >
+              {creating ? (
+                <>
+                  <FaSyncAlt className="animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <FaSave />
+                  Create Profile
+                </>
+              )}
             </button>
           </div>
         </div>
-      ))}
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">
-                  Developer Profile Editor
-                </h1>
-                <p className="text-gray-300">
-                  Manage your professional developer profile
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={onCancel}
-                  className="bg-white/10 cursor-pointer hover:bg-white/20 text-slate-300 hover:text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
-                >
-                  <FaTimes className="mr-2" />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="bg-blue-600 cursor-pointer hover:bg-blue-700 disabled:bg-blue-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
-                >
-                  {saving ? (
-                    <FaSyncAlt className="animate-spin" />
-                  ) : (
-                    <FaSave />
-                  )}
-                  {saving ? "Saving..." : "Save Profile"}
-                </button>
-              </div>
-            </div>
+        {/* Debug Info (development only) */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-8 bg-black/20 p-4 rounded-lg">
+            <h3 className="text-white mb-2">Debug: Current Profile State</h3>
+            <pre className="text-xs text-gray-300 overflow-auto max-h-40">
+              {JSON.stringify(profile, null, 2)}
+            </pre>
           </div>
-
-          {/* Navigation Tabs */}
-          <div className="bg-white/10 backdrop-blur-md p-2 rounded-lg mb-8">
-            <div className="flex flex-wrap gap-2">
-              {tabs.map((tab) => {
-                const IconComponent = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                      activeTab === tab.id
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-white/10"
-                    }`}
-                  >
-                    <IconComponent />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="space-y-8">
-            {activeTab === "personal" && renderPersonalInfo()}
-            {activeTab === "professional" && renderProfessionalInfo()}
-            {activeTab === "skills" && renderTechnicalSkills()}
-            {activeTab === "stats" && renderStats()}
-          </div>
-
-          {/* Footer */}
-          <div className="mt-12 text-center">
-            <div className="bg-white/5 p-4 rounded-lg">
-              <p className="text-gray-400 text-sm">
-                Last updated: {new Date().toLocaleDateString()}
-              </p>
-              <p className="text-gray-500 text-xs mt-2">
-                Your profile information is securely stored and can be updated at any time.
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       <style jsx>{`
-        @keyframes slideInRight {
+        @keyframes slide-in {
           from {
             transform: translateX(100%);
             opacity: 0;
@@ -1026,9 +994,12 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
             opacity: 1;
           }
         }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
       `}</style>
     </div>
   );
 };
 
-export default DeveloperProfileEditor;
+export default AddNewDeveloper;

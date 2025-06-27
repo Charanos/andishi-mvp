@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+
 import { mockDeveloperProfile } from "../../../lib/mockDeveloperProfile";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
@@ -36,7 +36,35 @@ type DeveloperProfileData = {
 // if NODE_ENV is not production. Replace this with real admin checks later.
 const isReadOnly = process.env.NODE_ENV === "production";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+
+  // If an ID is provided, fetch a single profile
+  if (id) {
+    try {
+      const client = await clientPromise;
+      const db = client.db();
+      const profile = await db
+        .collection('developerProfiles')
+        .findOne({ _id: new ObjectId(id) });
+
+      if (!profile) {
+        return new NextResponse('Profile not found', { status: 404 });
+      }
+
+      // Get associated user
+      const user = await db
+        .collection('developers')
+        .findOne({ _id: new ObjectId(profile.userId) });
+
+      return NextResponse.json({ ...profile, id: profile._id.toString(), user });
+    } catch (err) {
+      console.error(`GET /api/developer-profiles?id=${id} error`, err);
+      return new NextResponse('Internal Server Error', { status: 500 });
+    }
+  }
+
   try {
     console.log('Fetching developer profiles from database...');
     const client = await clientPromise;
@@ -44,34 +72,30 @@ export async function GET(): Promise<NextResponse> {
     const records = await db.collection('developerProfiles').find({}).toArray();
     console.log(`Found ${records.length} developer profiles`);
 
-    // Only create mock profile if no records exist at all
-    if (records.length === 0) {
-      console.log('No profiles found, creating mock profile...');
-      const created = await db.collection('developerProfiles').insertOne({
-        data: mockDeveloperProfile,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      return NextResponse.json([created], { status: 200 });
-    }
+    // Grab all developers (used to fill gaps where profile missing)
+    const developers = await db.collection('developers').find({}).toArray();
 
-    const payload = await Promise.all(records.map(async (rec) => {
-      const data = rec.data as DeveloperProfileData;
-      const personalInfo = data?.personalInfo || {};
-      const professionalInfo = data?.professionalInfo || {};
-      const technicalSkills = data?.technicalSkills || {};
-      const stats = data?.stats || {};
+    // Map of profiles by userId for quick lookup
+    const profileByUserId: Record<string, any> = {};
+    records.forEach((rec) => {
+      if (rec.userId) profileByUserId[rec.userId.toString()] = rec;
+    });
 
-      // Get associated user
-      const user = await db.collection('developers').findOne({ _id: new ObjectId(rec.userId) });
-
+    const merged = await Promise.all(
+      developers.map(async (dev: any) => {
+        const profileDoc = profileByUserId[dev._id.toString()];
+        const data = (profileDoc?.data || {}) as DeveloperProfileData;
+        const personalInfo = data?.personalInfo || {};
+        const professionalInfo = data?.professionalInfo || {};
+        const technicalSkills = data?.technicalSkills || {};
+        const stats = data?.stats || {};
       return {
-        id: rec._id.toString(),
-        user,
+        id: profileDoc?._id?.toString() || dev._id.toString(),
+        user: dev,
         personalInfo: {
-          firstName: personalInfo.firstName || user?.firstName || 'Unknown',
-          lastName: personalInfo.lastName || user?.lastName || 'Developer',
-          email: personalInfo.email || user?.email || '',
+          firstName: personalInfo.firstName || dev.firstName || 'Unknown',
+          lastName: personalInfo.lastName || dev.lastName || 'Developer',
+          email: personalInfo.email || dev.email || '',
           location: personalInfo.location || 'Unknown',
           portfolio: personalInfo.portfolio || undefined,
           tagline: personalInfo.tagline || 'Full Stack Developer',
@@ -80,7 +104,8 @@ export async function GET(): Promise<NextResponse> {
           title: professionalInfo.title || 'Developer',
           experienceLevel: professionalInfo.experienceLevel || 'Mid-level',
           availability: professionalInfo.availability || 'Full-time',
-          hourlyRate: Number(professionalInfo.hourlyRate) || 50,
+          hourlyRate:
+            Number(professionalInfo.hourlyRate) || dev.hourlyRate || 50,
         },
         technicalSkills: {
           primarySkills: Array.isArray(technicalSkills.primarySkills)
@@ -102,7 +127,7 @@ export async function GET(): Promise<NextResponse> {
       };
     }));
     
-    return NextResponse.json(payload, { status: 200 });
+    return NextResponse.json(merged, { status: 200 });
   } catch (err) {
     console.error("GET /api/developer-profile error", err);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -110,94 +135,165 @@ export async function GET(): Promise<NextResponse> {
 }
 
 export async function POST(req: NextRequest) {
+  if (isReadOnly) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
   try {
     const { userId, data } = await req.json();
 
     if (!userId) {
       return new NextResponse("User ID is required", { status: 400 });
     }
-
-    // Check if user exists
-    const client = await clientPromise;
-    const db = client.db();
-    const user = await db.collection('developers').findOne({ _id: new ObjectId(userId) });
-
-    if (!user) {
-      return new NextResponse("User not found", { status: 404 });
+    if (!data) {
+      return new NextResponse("Profile data is required", { status: 400 });
     }
 
-    // Create developer profile
-    const profile = await db.collection('developerProfiles').insertOne({
-      data,
+    const client = await clientPromise;
+    const db = client.db();
+
+    const newProfile = {
       userId: new ObjectId(userId),
+      data,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    };
 
-    // Return the created profile with user data
-    const createdProfile = await db.collection('developerProfiles').findOne(
-      { _id: profile.insertedId },
-      {
-        projection: {
-          _id: 1,
-          data: 1,
-          userId: 1,
-          createdAt: 1,
-          updatedAt: 1,
-        },
-      }
-    );
+    const result = await db
+      .collection("developerProfiles")
+      .insertOne(newProfile);
 
-    return NextResponse.json({
-      ...createdProfile,
-      id: createdProfile?._id.toString(),
-      user,
-    }, { status: 201 });
+    return NextResponse.json({ insertedId: result.insertedId }, { status: 201 });
   } catch (err) {
-    console.error("POST /api/developer-profiles error:", err);
+    console.error("POST /api/developer-profiles error", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest) {
   if (isReadOnly) {
-    return new NextResponse("Forbidden", { status: 403 });
+    return new NextResponse('Forbidden', { status: 403 });
   }
 
   try {
-    const { id, data } = await req.json();
+    const profileData = await req.json();
+    const userId = profileData?.user?._id;
 
-    if (!id) {
-      return new NextResponse("Profile ID is required", { status: 400 });
+    if (!userId) {
+      return new NextResponse('User ID is required', { status: 400 });
     }
+
+    // Prepare the data for insertion/update, excluding fields that shouldn't be in the 'data' object
+    const { id, _id, user, ...dataToSave } = profileData;
 
     const client = await clientPromise;
     const db = client.db();
-    const profile = await db.collection('developerProfiles').findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          data,
-          updatedAt: new Date(),
+    const result = await db
+      .collection('developerProfiles')
+      .findOneAndUpdate(
+        { userId: new ObjectId(userId) },
+        {
+          $set: {
+            data: dataToSave,
+            updatedAt: new Date(),
+          },
+          $setOnInsert: {
+            userId: new ObjectId(userId),
+            createdAt: new Date(),
+          },
         },
-      },
-      { returnDocument: 'after' }
-    );
+        { returnDocument: 'after', upsert: true }
+      );
 
-    if (!profile) {
-      return new NextResponse("Profile not found", { status: 404 });
+    const updatedProfile = result ? result.value : null;
+
+    if (!updatedProfile) {
+      return new NextResponse('Profile not found or created', { status: 500 });
     }
 
-    // Get associated user
-    const user = await db.collection('developers').findOne({ _id: new ObjectId(profile.userId) });
+    // Get associated user to return with the profile
+    const developer = await db
+      .collection('developers')
+      .findOne({ _id: new ObjectId(userId) });
 
-    return NextResponse.json({
-      ...profile,
-      id: profile._id.toString(),
-      user,
-    }, { status: 200 });
+    // The profile data is nested inside the 'data' property. We need to un-nest it
+    // and reconstruct the object to match the DeveloperProfile type, ensuring all
+    // required nested objects exist to prevent frontend errors.
+    const data = updatedProfile.data || {};
+    const responseData = {
+      id: updatedProfile._id.toString(),
+      user: developer,
+      personalInfo: data.personalInfo || {},
+      professionalInfo: data.professionalInfo || {},
+      technicalSkills: data.technicalSkills || { primarySkills: [] },
+      stats: data.stats || {},
+      projects: data.projects || [],
+      achievements: data.achievements || [],
+      recentActivity: data.recentActivity || [],
+      notifications: data.notifications || [],
+      timeEntries: data.timeEntries || [],
+    };
+
+    return NextResponse.json(responseData, { status: 200 });
   } catch (err) {
-    console.error("PUT /api/developer-profile error", err);
+    console.error('PUT /api/developer-profiles error', err);
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  if (isReadOnly) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return new NextResponse("Profile ID is required", { status: 400 });
+  }
+
+  try {
+    const client = await clientPromise;
+    const db = client.db();
+    const objectId = new ObjectId(id);
+
+    let deleted = false;
+
+    // Case 1: The ID belongs to a developer profile.
+    const profile = await db
+      .collection("developerProfiles")
+      .findOne({ _id: objectId });
+
+    if (profile) {
+      // Delete the profile
+      await db.collection("developerProfiles").deleteOne({ _id: objectId });
+      // If there's an associated user, delete them too.
+      if (profile.userId) {
+        await db
+          .collection("developers")
+          .deleteOne({ _id: new ObjectId(profile.userId) });
+      }
+      deleted = true;
+    } else {
+      // Case 2: The ID belongs to a developer record (but not a profile).
+      const devDeleteResult = await db
+        .collection("developers")
+        .deleteOne({ _id: objectId });
+      if (devDeleteResult.deletedCount > 0) {
+        // Also attempt to delete any orphaned profile that might be linked to this developer.
+        await db.collection("developerProfiles").deleteOne({ userId: objectId });
+        deleted = true;
+      }
+    }
+
+    if (!deleted) {
+      return new NextResponse("Profile or Developer not found", { status: 404 });
+    }
+
+    return new NextResponse(null, { status: 204 }); // Success
+  } catch (err) {
+    console.error(`DELETE /api/developer-profiles?id=${id} error`, err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

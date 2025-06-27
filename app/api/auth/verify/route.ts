@@ -1,25 +1,44 @@
 import { jwtVerify } from 'jose';
-import { UserRole } from '@/types/auth';
 import clientPromise from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
+    // Try to get token from Authorization header first
     const authHeader = request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    let token = authHeader?.replace('Bearer ', '');
+
+    // If no token in header, try cookie
+    if (!token) {
+      token = request.cookies.get('auth_token')?.value; 
+    }
+
+    // If still no token, check server-side cookies
+    if (!token) {
+      const cookieStore = await cookies();
+      token = cookieStore.get('auth_token')?.value;
+    }
 
     if (!token) {
       return NextResponse.json(
-        { error: 'No token provided' },
+        { success: false, error: 'No authentication token found' },
         { status: 401 }
       );
     }
 
-    // Verify JWT token
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'your-secret-key-for-development'
-    );
+    // Get JWT secret from environment
+    const secretValue = process.env.JWT_SECRET || process.env.NEXT_PUBLIC_JWT_SECRET;
+    if (!secretValue) {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json(
+        { success: false, error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
 
+    // Verify JWT token
+    const secret = new TextEncoder().encode(secretValue);
     const { payload } = await jwtVerify(token, secret);
     
     // Get user data from payload
@@ -27,29 +46,46 @@ export async function GET(request: NextRequest) {
 
     const client = await clientPromise;
     const db = client.db();
-    let user: any = await db.collection('users').findOne({ email: userEmail });
+    const user = await db.collection('users').findOne({ email: userEmail });
 
     if (!user || !user.isActive) {
       return NextResponse.json(
-        { error: 'Invalid or inactive user' },
+        { success: false, error: 'Invalid or inactive user' },
         { status: 401 }
       );
     }
 
-    // Return user data
-    return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      isActive: user.isActive,
-      permissions: user.permissions
+    // Create response with user data
+    const response = NextResponse.json({
+      success: true,
+      data: {
+        id: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isActive: user.isActive,
+        permissions: user.permissions
+      }
     });
+
+    // Set cookie in response to ensure it persists
+    response.cookies.set({
+      name: 'auth_token',
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      // Set max age to 7 days
+      maxAge: 7 * 24 * 60 * 60
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Token verification error:', error);
     return NextResponse.json(
-      { error: 'Invalid token' },
+      { success: false, error: 'Invalid or expired token' },
       { status: 401 }
     );
   }

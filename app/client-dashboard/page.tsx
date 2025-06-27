@@ -56,62 +56,9 @@ import {
 } from "react-icons/fa";
 import ClientDashboardStartProject from "./StartNewProject";
 import { useAuth } from "@/hooks/useAuth";
+import { ProjectWithDetails } from "./types";
 
 type ActiveTab = "projects" | "analytics" | "create" | "settings";
-
-// Types based on your schema
-interface ProjectWithDetails {
-  id: string;
-  title: string;
-  description: string;
-  category?: string;
-  timeline?: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  techStack: string[];
-  requirements?: string;
-  status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
-  progress: number;
-  startDate?: Date;
-  endDate?: Date;
-  estimatedCompletionDate?: Date;
-  actualCompletionDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  pricing?: {
-    type: "fixed" | "milestone" | "hourly";
-    currency: "USD" | "KES";
-    fixedBudget?: string;
-    hourlyRate?: string;
-    estimatedHours?: number;
-    totalPaid?: string;
-  };
-  milestones?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    budget: string;
-    timeline: string;
-    status: "pending" | "in_progress" | "completed" | "cancelled";
-    dueDate?: Date;
-    completedAt?: Date;
-    order: number;
-  }>;
-  updates?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    type: string;
-    createdAt: Date;
-  }>;
-  files?: Array<{
-    id: string;
-    fileName: string;
-    fileUrl: string;
-    fileSize?: number;
-    fileType?: string;
-    createdAt: Date;
-  }>;
-}
 
 interface ProjectStats {
   total: number;
@@ -193,37 +140,82 @@ const ClientDashboard: React.FC = () => {
         if (data.success) {
           // Transform dates in the projects data
           const transformedProjects = data.projects.map((project: any) => ({
-            ...project,
+            id: project.id || project._id?.toString(),
+            title: project.projectDetails?.title || project.title || "",
+            description:
+              project.projectDetails?.description || project.description || "",
+            status: project.status || "pending",
+            priority:
+              project.projectDetails?.priority || project.priority || "low",
+            progress: project.progress || 0,
+            techStack:
+              project.projectDetails?.techStack || project.techStack || [],
+            category:
+              project.projectDetails?.category || project.category || "",
+            timeline:
+              project.projectDetails?.timeline || project.timeline || "",
+            requirements:
+              project.projectDetails?.requirements ||
+              project.requirements ||
+              "",
             createdAt: project.createdAt
               ? new Date(project.createdAt)
               : new Date(),
             updatedAt: project.updatedAt
               ? new Date(project.updatedAt)
               : new Date(),
-            startDate: project.startDate ? new Date(project.startDate) : null,
-            endDate: project.endDate ? new Date(project.endDate) : null,
+            startDate: project.startDate
+              ? new Date(project.startDate)
+              : undefined,
+            endDate: project.endDate ? new Date(project.endDate) : undefined,
             estimatedCompletionDate: project.estimatedCompletionDate
               ? new Date(project.estimatedCompletionDate)
-              : null,
+              : undefined,
             actualCompletionDate: project.actualCompletionDate
               ? new Date(project.actualCompletionDate)
-              : null,
-            milestones:
-              project.milestones?.map((m: any) => ({
-                ...m,
-                dueDate: m.dueDate ? new Date(m.dueDate) : null,
-                completedAt: m.completedAt ? new Date(m.completedAt) : null,
-              })) || [],
-            updates:
-              project.updates?.map((u: any) => ({
-                ...u,
-                createdAt: u.createdAt ? new Date(u.createdAt) : new Date(),
-              })) || [],
-            files:
-              project.files?.map((f: any) => ({
-                ...f,
-                createdAt: f.createdAt ? new Date(f.createdAt) : new Date(),
-              })) || [],
+              : undefined,
+            pricing: project.pricing
+              ? {
+                  type: project.pricing.type || "fixed",
+                  currency: project.pricing.currency || "USD",
+                  fixedBudget: project.pricing.fixedBudget,
+                  hourlyRate: project.pricing.hourlyRate,
+                  estimatedHours: project.pricing.estimatedHours,
+                  totalPaid: project.pricing.totalPaid,
+                }
+              : undefined,
+            milestones: (project.milestones || []).map((m: any) => ({
+              id: m.id || m._id?.toString(),
+              title: m.title || "",
+              description: m.description || "",
+              budget: m.budget || "0",
+              timeline: m.timeline || "",
+              status: m.status || "pending",
+              dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+              completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+              order: m.order || 0,
+            })),
+            updates: (project.updates || []).map((u: any) => ({
+              id: u.id || u._id?.toString(),
+              title: u.title || "",
+              description: u.description || "",
+              type: u.type || "general",
+              createdAt: u.createdAt ? new Date(u.createdAt) : new Date(),
+            })),
+            files: (project.files || []).map((f: any) => ({
+              id: f.id || f._id?.toString(),
+              fileName: f.fileName || "",
+              fileUrl: f.fileUrl || "",
+              fileSize: f.fileSize,
+              fileType: f.fileType,
+              createdAt: f.createdAt ? new Date(f.createdAt) : new Date(),
+            })),
+            userInfo: project.userInfo || {
+              email: user.email,
+              firstName: user.firstName || "",
+              lastName: user.lastName || "",
+              company: user.company || "",
+            },
           }));
 
           setProjects(transformedProjects);
@@ -286,13 +278,13 @@ const ClientDashboard: React.FC = () => {
 
     if (selectedStatus !== "all") {
       filtered = filtered.filter(
-        (project) => project.status === selectedStatus
+        (project) => (project.status || "pending") === selectedStatus
       );
     }
 
     if (selectedPriority !== "all") {
       filtered = filtered.filter(
-        (project) => project.priority === selectedPriority
+        (project) => (project.priority || "low") === selectedPriority
       );
     }
 
@@ -303,7 +295,7 @@ const ClientDashboard: React.FC = () => {
           project.description
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          project.techStack.some((tech) =>
+          (project.techStack || []).some((tech) =>
             tech.toLowerCase().includes(searchQuery.toLowerCase())
           )
       );
@@ -581,7 +573,8 @@ const ClientDashboard: React.FC = () => {
   const averageProgress =
     projects.length > 0
       ? Math.round(
-          projects.reduce((sum, p) => sum + p.progress, 0) / projects.length
+          projects.reduce((sum, p) => sum + (p.progress || 0), 0) /
+            (projects.length || 1)
         )
       : 0;
 
@@ -698,7 +691,10 @@ const ClientDashboard: React.FC = () => {
     const oldestProject =
       projects.length > 0
         ? projects.reduce((oldest, project) =>
-            new Date(project.createdAt) < new Date(oldest.createdAt)
+            project.createdAt &&
+            oldest.createdAt &&
+            new Date(project.createdAt).getTime() <
+              new Date(oldest.createdAt).getTime()
               ? project
               : oldest
           )
@@ -1461,7 +1457,8 @@ const ClientDashboard: React.FC = () => {
             <div className="space-y-3">
               {(() => {
                 const techStackCount = projects
-                  .flatMap((p) => p.techStack)
+                  .flatMap((p) => p.techStack || [])
+                  .filter((tech): tech is string => tech !== undefined)
                   .reduce((acc, tech) => {
                     acc[tech] = (acc[tech] || 0) + 1;
                     return acc;
@@ -1590,17 +1587,17 @@ const ClientDashboard: React.FC = () => {
               {/* Quick Actions */}
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
-                  {getStatusIcon(project.status)}
+                  {getStatusIcon(project.status || "pending")}
                   <span className="text-white font-medium capitalize">
-                    {project.status.replace("_", " ")}
+                    {project.status?.replace("_", " ") || "pending"}
                   </span>
                 </div>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                    project.priority
+                    project.priority || "low"
                   )}`}
                 >
-                  {project.priority.toUpperCase()}
+                  {project.priority?.toUpperCase() || "LOW"}
                 </span>
               </div>
             </div>
@@ -1630,7 +1627,7 @@ const ClientDashboard: React.FC = () => {
                 ></div>
               </div>
               <p className="text-gray-400 text-sm mt-2">
-                {100 - project.progress}% remaining
+                {100 - (project.progress ?? 0)}% remaining
               </p>
             </div>
 
@@ -1792,7 +1789,7 @@ const ClientDashboard: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {project.techStack.map((tech: string, index: number) => (
+                  {project.techStack?.map((tech: string, index: number) => (
                     <div
                       key={index}
                       className="group relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 hover:scale-105 transition-all duration-200 text-center"
@@ -1923,7 +1920,7 @@ const ClientDashboard: React.FC = () => {
                       Created
                     </label>
                     <p className="text-white font-medium">
-                      {project.createdAt.toLocaleDateString("en-US", {
+                      {project.createdAt?.toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -2288,20 +2285,20 @@ const ClientDashboard: React.FC = () => {
               <div className="flex items-center space-x-2 mb-4">
                 <span
                   className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(
-                    project.status
+                    project.status || "pending"
                   )}`}
                 >
-                  {getStatusIcon(project.status)}
+                  {getStatusIcon(project.status || "pending")}
                   <span className="capitalize">
-                    {project.status.replace("_", " ")}
+                    {project.status?.replace("_", " ") || "pending"}
                   </span>
                 </span>
                 <span
                   className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(
-                    project.priority
+                    project.priority || "low"
                   )}`}
                 >
-                  {project.priority.toUpperCase()}
+                  {(project.priority || "low").toUpperCase()}
                 </span>
               </div>
 
@@ -2324,7 +2321,7 @@ const ClientDashboard: React.FC = () => {
               {/* Tech Stack */}
               <div className="mb-4">
                 <div className="flex flex-wrap gap-1">
-                  {project.techStack.slice(0, 3).map((tech, index) => (
+                  {(project.techStack || []).slice(0, 3).map((tech, index) => (
                     <span
                       key={index}
                       className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md"
@@ -2332,9 +2329,9 @@ const ClientDashboard: React.FC = () => {
                       {tech}
                     </span>
                   ))}
-                  {project.techStack.length > 3 && (
+                  {(project.techStack || []).length > 3 && (
                     <span className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md">
-                      +{project.techStack.length - 3} more
+                      +{(project.techStack || []).length - 3} more
                     </span>
                   )}
                 </div>
@@ -2398,7 +2395,7 @@ const ClientDashboard: React.FC = () => {
                 </div>
 
                 <div className="text-xs text-gray-500">
-                  Updated {project.updatedAt.toLocaleDateString()}
+                  Updated {project.updatedAt?.toLocaleDateString()}
                 </div>
               </div>
             </div>
@@ -2465,7 +2462,7 @@ const ClientDashboard: React.FC = () => {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as ActiveTab)}
-                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                           activeTab === tab.id
                             ? "bg-blue-600 text-white"
                             : "text-gray-300 hover:bg-white/10 hover:text-white"

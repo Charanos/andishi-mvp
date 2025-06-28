@@ -189,7 +189,7 @@ export default function Navbar() {
                 whileTap={{ scale: 0.95 }}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xs opacity-80 capitalize">
+                  <span className="text-xs opacity-80 capitalize text-indigo-200">
                     Hi, {user.name?.split(" ")[0] || user.email?.split("@")[0]}
                   </span>
                   <button
@@ -311,7 +311,7 @@ export default function Navbar() {
                     variants={linkItemVariants}
                     className="border-b border-white/20 pb-2"
                   >
-                    <div className="text-xs opacity-80 mb-2">
+                    <div className="text-xs opacity-80 mb-2 text-indigo-200">
                       Welcome, {user.name || user.email?.split("@")[0]}
                     </div>
                     <Link

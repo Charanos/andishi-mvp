@@ -406,7 +406,7 @@ const renderProjectDetail = (
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
+    <div className="min-h-screen">
       {/* Header Section with CRUD Actions */}
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-gray-900/80 border-b border-white/10">
         <div className="p-6">
@@ -429,7 +429,7 @@ const renderProjectDetail = (
                       onChange={(e) =>
                         handleInputChange("title", e.target.value)
                       }
-                      className="text-2xl font-bold bg-white/10 text-white px-3 py-1 rounded-lg border border-white/20 focus:border-blue-500 focus:outline-none"
+                      className="text-2xl font-semibold bg-white/10 text-white px-3 py-1 rounded-lg border border-white/20 focus:border-blue-500 focus:outline-none"
                     />
                     <input
                       type="text"
@@ -531,7 +531,7 @@ const renderProjectDetail = (
         {/* Project Overview Dashboard */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Progress Card */}
-          <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
+          <div className=" backdrop-blur-xl border border-blue-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-500/20 rounded-xl">
                 <Target className="w-6 h-6 text-blue-300" />
@@ -694,7 +694,7 @@ const renderProjectDetail = (
           {/* Left Column - Project Details */}
           <div className="xl:col-span-2 space-y-8">
             {/* Project Information */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
+            <div className=" backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">

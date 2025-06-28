@@ -34,7 +34,6 @@ type DeveloperProfileData = {
 
 // NOTE: Proper authentication / RBAC is not yet wired. For now, we only allow writes
 // if NODE_ENV is not production. Replace this with real admin checks later.
-const isReadOnly = process.env.NODE_ENV === "production";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
@@ -50,15 +49,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         .findOne({ _id: new ObjectId(id) });
 
       if (!profile) {
-        return new NextResponse('Profile not found', { status: 404 });
+        return new NextResponse("Profile not found", { status: 404 });
       }
 
       // Get associated user
       const user = await db
-        .collection('developers')
+        .collection("developers")
         .findOne({ _id: new ObjectId(profile.userId) });
 
-      return NextResponse.json({ ...profile, id: profile._id.toString(), user });
+      // Reconstruct the profile to match the shape expected by the frontend
+      const data = profile.data || {};
+      const responseData = {
+        id: profile._id.toString(),
+        user: user,
+        personalInfo: data.personalInfo || {},
+        professionalInfo: data.professionalInfo || {},
+        technicalSkills: data.technicalSkills || { primarySkills: [] },
+        stats: data.stats || {},
+        projects: data.projects || [],
+        achievements: data.achievements || [],
+        recentActivity: data.recentActivity || [],
+        notifications: data.notifications || [],
+        timeEntries: data.timeEntries || [],
+      };
+
+      return NextResponse.json(responseData);
     } catch (err) {
       console.error(`GET /api/developer-profiles?id=${id} error`, err);
       return new NextResponse('Internal Server Error', { status: 500 });
@@ -135,9 +150,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 }
 
 export async function POST(req: NextRequest) {
-  if (isReadOnly) {
-    return new NextResponse("Forbidden", { status: 403 });
-  }
+  
 
   try {
     const { userId, data } = await req.json();
@@ -171,80 +184,59 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (isReadOnly) {
-    return new NextResponse('Forbidden', { status: 403 });
-  }
-
   try {
     const profileData = await req.json();
-    const userId = profileData?.user?._id;
+    const profileId = profileData?.id;
 
-    if (!userId) {
-      return new NextResponse('User ID is required', { status: 400 });
+    if (!profileId) {
+      return new NextResponse("Profile ID is required", { status: 400 });
     }
 
-    // Prepare the data for insertion/update, excluding fields that shouldn't be in the 'data' object
-    const { id, _id, user, ...dataToSave } = profileData;
+    let profileObjectId;
+    try {
+      profileObjectId = new ObjectId(profileId);
+    } catch (error) {
+      console.error("Invalid profileId for ObjectId:", profileId, error);
+      return new NextResponse("Invalid profile ID format", { status: 400 });
+    }
 
     const client = await clientPromise;
     const db = client.db();
-    const result = await db
-      .collection('developerProfiles')
-      .findOneAndUpdate(
-        { userId: new ObjectId(userId) },
-        {
-          $set: {
-            data: dataToSave,
-            updatedAt: new Date(),
-          },
-          $setOnInsert: {
-            userId: new ObjectId(userId),
-            createdAt: new Date(),
-          },
-        },
-        { returnDocument: 'after', upsert: true }
-      );
 
-    const updatedProfile = result ? result.value : null;
+    // Exclude user and id fields from the data to be saved
+    const { id, user, ...dataToSave } = profileData;
+
+    console.log(`Attempting to update profile with _id: ${profileObjectId}`);
+
+    const result = await db.collection("developerProfiles").findOneAndUpdate(
+      { _id: profileObjectId },
+      {
+        $set: {
+          data: dataToSave,
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: "after" }
+    );
+
+    console.log("findOneAndUpdate result:", result);
+
+    const updatedProfile = result?.value;
 
     if (!updatedProfile) {
-      return new NextResponse('Profile not found or created', { status: 500 });
+      console.log(`Profile with _id: ${profileObjectId} not found.`);
+      return new NextResponse("Profile not found", { status: 404 });
     }
 
-    // Get associated user to return with the profile
-    const developer = await db
-      .collection('developers')
-      .findOne({ _id: new ObjectId(userId) });
-
-    // The profile data is nested inside the 'data' property. We need to un-nest it
-    // and reconstruct the object to match the DeveloperProfile type, ensuring all
-    // required nested objects exist to prevent frontend errors.
-    const data = updatedProfile.data || {};
-    const responseData = {
-      id: updatedProfile._id.toString(),
-      user: developer,
-      personalInfo: data.personalInfo || {},
-      professionalInfo: data.professionalInfo || {},
-      technicalSkills: data.technicalSkills || { primarySkills: [] },
-      stats: data.stats || {},
-      projects: data.projects || [],
-      achievements: data.achievements || [],
-      recentActivity: data.recentActivity || [],
-      notifications: data.notifications || [],
-      timeEntries: data.timeEntries || [],
-    };
-
-    return NextResponse.json(responseData, { status: 200 });
+    return NextResponse.json(updatedProfile);
   } catch (err) {
-    console.error('PUT /api/developer-profiles error', err);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error("PUT /api/developer-profiles error", err);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
-  if (isReadOnly) {
-    return new NextResponse("Forbidden", { status: 403 });
-  }
+  
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

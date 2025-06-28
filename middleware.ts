@@ -138,14 +138,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * 1. Matches any request that starts with:
-     *  - api/auth/ (authentication routes)
-     *  - _next/ (Next.js internals)
-     *  - public files (static files)
-     * 2. Matches public routes defined above
-     */
-    '/((?!api/auth/|_next/static|_next/image|favicon.ico).*)',
+    '/admin-dashboard/:path*',
+    '/client-dashboard/:path*',
+    '/developer-dashboard/:path*',
   ],
-}
+};

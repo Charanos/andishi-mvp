@@ -75,7 +75,9 @@ export default function ConditionalLayout({
   // Enhanced route checking
   const isAuthRoute = ROUTE_CONFIG.AUTH_ROUTES.includes(pathname);
   const isPublicRoute =
-    ROUTE_CONFIG.PUBLIC_ROUTES.includes(pathname) || isAuthRoute;
+    ROUTE_CONFIG.PUBLIC_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`)
+    ) || isAuthRoute;
   const isDashboardRoute = ROUTE_CONFIG.DASHBOARD_ROUTES.some((route) =>
     pathname.startsWith(route)
   );

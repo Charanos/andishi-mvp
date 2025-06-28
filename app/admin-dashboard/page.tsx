@@ -41,91 +41,22 @@ import {
   FaInfoCircle,
   FaBell,
   FaTachometerAlt,
+  FaBuilding,
+  FaFlag,
 } from "react-icons/fa";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
+import {
+  listProjects,
+  createProject as apiCreateProject,
+  updateProject as apiUpdateProject,
+  deleteProject as apiDeleteProject,
+} from "~/services/clientProjects";
 import { UserRole } from "@/types/auth";
 import UserManagement from "./renderUsers";
+import ProjectOverview from "./ProjectOverview";
+import { ProjectData, Milestone, ProjectFile } from "~/types";
 
 // Types
-interface UserInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  company: string;
-  role: string;
-}
-
-interface ProjectDetails {
-  title: string;
-  description: string;
-  category: string;
-  timeline: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  techStack: string[];
-  requirements: string;
-}
-
-interface Milestone {
-  id: string;
-  title: string;
-  description: string;
-  budget: string;
-  timeline: string;
-}
-
-interface PricingOption {
-  type: "fixed" | "milestone" | "hourly";
-  currency: "USD" | "KES";
-  fixedBudget?: string;
-  milestones?: Milestone[];
-  hourlyRate?: string;
-  estimatedHours?: string;
-}
-
-interface ProjectData {
-  _id: string;
-  userInfo?: UserInfo; // Make userInfo optional since it might not always be present
-  clientId?: string; // Add clientId field
-  projectDetails: ProjectDetails;
-  pricing: PricingOption;
-  status: "pending" | "reviewed" | "approved" | "rejected";
-  priority: "low" | "medium" | "high" | "critical";
-  progress: number;
-  startDate?: Date;
-  endDate?: Date;
-  estimatedCompletionDate?: Date;
-  actualCompletionDate?: Date;
-  createdAt: string;
-  updatedAt: string;
-  milestones?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    budget: string;
-    timeline: string;
-    status: "pending" | "in_progress" | "completed" | "cancelled";
-    dueDate?: Date;
-    completedAt?: Date;
-    order: number;
-  }>;
-  updates?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    type: string;
-    createdAt: Date;
-  }>;
-  files?: Array<{
-    id: string;
-    fileName: string;
-    fileUrl: string;
-    fileSize?: number;
-    fileType?: string;
-    createdAt: Date;
-  }>;
-}
-
 interface SystemUser {
   _id: string;
   firstName: string;
@@ -223,32 +154,23 @@ export default function EnhancedAdminDashboard(): ReactNode {
     const loadDashboardData = async () => {
       setLoading(true);
       try {
-        // Fetch all required data in parallel
-        const [projectsRes, devProfilesRes, usersRes] = await Promise.all([
-          fetch("/api/start-project"),
-          fetch("/api/developer-profiles"),
-          fetch("/api/users"),
-        ]);
-
-        if (!projectsRes.ok || !devProfilesRes.ok || !usersRes.ok) {
-          throw new Error("Failed to load dashboard data");
-        }
-
+        // Fetch all required data in parallel via service / API endpoints
         const [projectsData, devProfilesData, usersData] = await Promise.all([
-          projectsRes.json(),
-          devProfilesRes.json(),
-          usersRes.json(),
+          listProjects(),
+          fetch("/api/developer-profiles").then((r) => r.json()),
+          fetch("/api/users").then((r) => r.json()),
         ]);
 
-        // Transform and set the data
-        const transformedProjects = (projectsData.projects || []).map(
+        // Normalise / transform projects
+        const transformedProjects = (projectsData || []).map(
           (project: any) => ({
             ...project,
             priority: project.priority || "low",
           })
         );
-
         setProjects(transformedProjects);
+
+        // Developer profiles may come in various envelope shapes
         const profilesArray = Array.isArray(devProfilesData)
           ? devProfilesData
           : Array.isArray(devProfilesData?.profiles)
@@ -256,16 +178,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
           : [];
         setDevProfiles(profilesArray);
 
-        // Ensure users is always an array
+        // Users array normalisation
         const usersArray = Array.isArray(usersData)
           ? usersData
-          : Array.isArray(usersData.users)
+          : Array.isArray(usersData?.users)
           ? usersData.users
           : [];
-
         setUsers(usersArray);
 
-        // Generate analytics from the fetched data
+        // Generate dashboard analytics
         generateAnalytics(transformedProjects, usersArray);
       } catch (err) {
         console.error("Error loading dashboard data:", err);
@@ -378,18 +299,13 @@ export default function EnhancedAdminDashboard(): ReactNode {
     setLoading(true);
     setError(null);
     try {
-      // Fetch projects
-      const projectsRes = await fetch("/api/start-project");
-      const projectsData = await projectsRes.json();
-      if (projectsData.success) {
-        const transformedProjects = projectsData.projects.map(
-          (project: any) => ({
-            ...project,
-            priority: project.priority || "low",
-          })
-        );
-        setProjects(transformedProjects);
-      }
+      // Fetch projects via service wrapper to ensure consistent response shape
+      const projectsArray = await listProjects();
+      const transformedProjects = (projectsArray || []).map((project: any) => ({
+        ...project,
+        priority: project.priority || "low",
+      }));
+      setProjects(transformedProjects);
 
       // Fetch users
       const usersRes = await fetch("/api/users");
@@ -406,13 +322,21 @@ export default function EnhancedAdminDashboard(): ReactNode {
         profiles = devProfilesData;
       } else if (Array.isArray(devProfilesData?.profiles)) {
         profiles = devProfilesData.profiles;
-      } else if (devProfilesData.success && Array.isArray(devProfilesData.profiles)) {
+      } else if (
+        devProfilesData.success &&
+        Array.isArray(devProfilesData.profiles)
+      ) {
         profiles = devProfilesData.profiles;
       }
       setDevProfiles(profiles);
 
-      // Generate analytics
-      generateAnalytics(projectsData.projects || [], usersData.users || []);
+      // Generate analytics with transformed data
+      const usersArray = Array.isArray(usersData)
+        ? usersData
+        : Array.isArray(usersData?.users)
+        ? usersData.users
+        : [];
+      generateAnalytics(transformedProjects, usersArray);
     } catch (err) {
       setError("Failed to fetch data");
       console.error("Error fetching data:", err);
@@ -571,8 +495,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
     if (project.pricing.type === "fixed") {
       return parseFloat(project.pricing.fixedBudget || "0");
     } else if (project.pricing.type === "milestone") {
+      const milestonesArr =
+        project.milestones && project.milestones.length
+          ? project.milestones
+          : project.pricing.milestones || [];
       return (
-        project.pricing.milestones?.reduce(
+        milestonesArr.reduce(
           (sum, m) => sum + parseFloat(m.budget || "0"),
           0
         ) || 0
@@ -586,28 +514,30 @@ export default function EnhancedAdminDashboard(): ReactNode {
   };
 
   // Project functions
+
+  // 1. Update Project Status (Already implemented)
+
   const updateProjectStatus = async (
     projectId: string,
     newStatus: "pending" | "reviewed" | "approved" | "rejected"
   ) => {
     const prevProjects = [...projects];
+    let updatedProject: ProjectData | undefined;
     setProjects((prev) =>
-      prev.map((project) =>
-        project._id === projectId ? { ...project, status: newStatus } : project
-      )
+      prev.map((project) => {
+        if (project._id === projectId) {
+          updatedProject = { ...project, status: newStatus };
+          return updatedProject;
+        }
+        return project;
+      })
     );
 
     try {
-      const res = await fetch("/api/start-project", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: projectId, status: newStatus }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.message || "Failed to update status");
+      await apiUpdateProject(projectId, { status: newStatus });
+      if (updatedProject) {
+        setSelectedProject(updatedProject);
       }
-
       const statusMessages = {
         approved: "Project approved successfully! 🎉",
         reviewed: "Project marked as reviewed 👍",
@@ -619,10 +549,291 @@ export default function EnhancedAdminDashboard(): ReactNode {
       setProjects(prevProjects);
       toast.error(error?.message || "Failed to update project status");
     } finally {
-      setSelectedProject(null);
+      if (newStatus === "rejected" || newStatus === "approved") {
+        setViewMode("list");
+        setSelectedProject(null);
+      }
     }
   };
 
+  // 2. Update Project Progress
+  const updateProjectProgress = async (projectId: string, progress: number) => {
+    const prevProjects = [...projects];
+    let updatedProject: ProjectData | undefined;
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project._id === projectId) {
+          updatedProject = { ...project, progress };
+          return updatedProject;
+        }
+        return project;
+      })
+    );
+
+    try {
+      await apiUpdateProject(projectId, { progress });
+      if (updatedProject) {
+        setSelectedProject(updatedProject);
+      }
+      toast.success("Project progress updated ✅");
+    } catch (error: any) {
+      setProjects(prevProjects);
+      toast.error(error?.message || "Failed to update project progress");
+    }
+  };
+
+  // 3. Update Milestone details
+  const updateMilestone = async (
+    projectId: string,
+    milestoneId: string,
+    updates: Partial<Milestone>
+  ) => {
+    const prevProjects = [...projects];
+    const prevSelectedProject =
+      selectedProject?._id === projectId ? selectedProject : null;
+
+    // Optimistically update the UI
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project._id !== projectId) return project;
+
+        const updatedMilestones = (project.milestones || []).map((milestone) =>
+          milestone.id === milestoneId
+            ? { ...milestone, ...updates }
+            : milestone
+        );
+
+        // Create the updated project with proper typing
+        const updatedProject: ProjectData = {
+          ...project,
+          milestones: updatedMilestones,
+          // Ensure pricing is always a valid PricingOption
+          pricing: project.pricing
+            ? {
+                ...project.pricing,
+                milestones: updatedMilestones,
+              }
+            : {
+                // Provide default values that match PricingOption type
+                type: "fixed", // or whatever default makes sense
+                currency: "USD",
+                milestones: updatedMilestones,
+              },
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Update selected project if it's the one being edited
+        if (selectedProject?._id === projectId) {
+          setSelectedProject(updatedProject);
+        }
+
+        return updatedProject;
+      })
+    );
+
+    try {
+      // Send update to the backend
+      await apiUpdateProject(projectId, {
+        milestones: { id: milestoneId, ...updates },
+      });
+
+      // Refresh the data to ensure consistency
+      const updatedProjects = await listProjects();
+      setProjects(updatedProjects);
+
+      // Update selected project if needed
+      if (selectedProject?._id === projectId) {
+        const updated =
+          updatedProjects.find((p) => p._id === projectId) || null;
+        setSelectedProject(updated);
+      }
+
+      toast.success("Milestone updated successfully!");
+    } catch (error: any) {
+      // Revert to previous state on error
+      setProjects(prevProjects);
+      if (prevSelectedProject) {
+        setSelectedProject(prevSelectedProject);
+      }
+      toast.error(error?.message || "Failed to update milestone");
+    }
+  };
+
+  // 4. Add project update/comment
+  const addProjectUpdate = async (
+    projectId: string,
+    update: { title: string; description: string; type: string }
+  ) => {
+    const prevProjects = [...projects];
+    const newUpdate = {
+      ...update,
+      id: new Date().toISOString(),
+      createdAt: new Date(),
+    };
+
+    let updatedProject: ProjectData | undefined;
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project._id === projectId) {
+          updatedProject = {
+            ...project,
+            updates: [newUpdate, ...(project.updates || [])],
+          };
+          return updatedProject;
+        }
+        return project;
+      })
+    );
+
+    try {
+      await apiUpdateProject(projectId, { updates: [newUpdate] });
+      if (updatedProject) {
+        setSelectedProject(updatedProject);
+      }
+      toast.success("Update added ✅");
+    } catch (error: any) {
+      setProjects(prevProjects);
+      toast.error(error?.message || "Failed to add update");
+    }
+  };
+
+  // 5. Upload project file
+  const uploadProjectFile = async (projectId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("projectId", projectId);
+
+    const prevProjects = [...projects];
+    const tempFileUrl = URL.createObjectURL(file);
+    const newFile: ProjectFile = {
+      id: tempFileUrl, // Use temp url as unique key for optimistic update
+      fileName: file.name,
+      fileUrl: tempFileUrl,
+      fileSize: file.size,
+      fileType: file.type,
+      createdAt: new Date(),
+    };
+
+    let optimisticallyUpdatedProject: ProjectData | undefined;
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project._id === projectId) {
+          optimisticallyUpdatedProject = {
+            ...project,
+            files: [newFile, ...(project.files || [])],
+          };
+          return optimisticallyUpdatedProject;
+        }
+        return project;
+      })
+    );
+    if (optimisticallyUpdatedProject) {
+      setSelectedProject(optimisticallyUpdatedProject);
+    }
+
+    try {
+      const res = await fetch("/api/client-projects/files", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to upload file");
+      }
+
+      let finalUpdatedProject: ProjectData | undefined;
+      setProjects((prev) =>
+        prev.map((project) => {
+          if (project._id === projectId) {
+            const updatedFiles = project.files?.map((f) =>
+              f.id === tempFileUrl ? data.file : f
+            );
+            finalUpdatedProject = { ...project, files: updatedFiles };
+            return finalUpdatedProject;
+          }
+          return project;
+        })
+      );
+      if (finalUpdatedProject) {
+        setSelectedProject(finalUpdatedProject);
+      }
+
+      toast.success("File uploaded ✅");
+    } catch (error: any) {
+      setProjects(prevProjects);
+      if (selectedProject?._id === projectId) {
+        const revertedProject = prevProjects.find((p) => p._id === projectId);
+        setSelectedProject(revertedProject || null);
+      }
+      toast.error(error?.message || "Failed to upload file");
+    }
+  };
+
+  // 6. Record payment
+  const recordProjectPayment = async (
+    projectId: string,
+    payment: { amount: number; method: string; notes?: string }
+  ) => {
+    const newPayment = {
+      ...payment,
+      id: new Date().toISOString(),
+      date: new Date().toISOString(),
+      status: "completed",
+    };
+
+    const prevProjects = [...projects];
+    let updatedProject: ProjectData | undefined;
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project._id === projectId) {
+          updatedProject = {
+            ...project,
+            payments: [newPayment, ...(project.payments || [])],
+          };
+          return updatedProject;
+        }
+        return project;
+      })
+    );
+
+    try {
+      await apiUpdateProject(projectId, { payments: [newPayment] });
+      if (updatedProject) {
+        setSelectedProject(updatedProject);
+      }
+      toast.success("Payment recorded");
+    } catch (error: any) {
+      setProjects(prevProjects);
+      toast.error(error?.message || "Failed to record payment");
+    }
+  };
+
+  // 7. Create New Project (POST)
+  const createNewProject = async (project: Partial<ProjectData>) => {
+    const tempId = `temp-${Date.now()}`;
+    const newProject = {
+      ...project,
+      _id: tempId,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    } as ProjectData;
+
+    setProjects((prev) => [newProject, ...prev]);
+
+    try {
+      const savedProject = await apiCreateProject(project);
+      setProjects((prev) =>
+        prev.map((p) => (p._id === tempId ? savedProject : p))
+      );
+      toast.success("Project created successfully!");
+    } catch (error: any) {
+      setProjects((prev) => prev.filter((p) => p._id !== tempId));
+      toast.error(error?.message || "Failed to create project");
+    }
+  };
+
+  // 8. Delete Project
   const deleteProject = async (projectId: string) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this project?"
@@ -633,15 +844,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     setProjects((prev) => prev.filter((p) => p._id !== projectId));
 
     try {
-      const res = await fetch("/api/start-project", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: projectId }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.message || "Failed to delete project");
-      }
+      await apiDeleteProject(projectId);
       toast.success("Project deleted successfully!");
     } catch (error: any) {
       setProjects(prevProjects);
@@ -1005,80 +1208,144 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   const renderProjects = (): ReactNode => {
     if (viewMode === "detail" && selectedProject) {
-      return renderProjectDetail();
+      return (
+        <ProjectOverview
+          selectedProject={selectedProject}
+          onBack={() => setViewMode("list")}
+          onStatusUpdate={updateProjectStatus}
+          onProgressUpdate={async (projectId, progress) => {
+            /* kept original stub structure */
+            await updateProjectProgress(projectId, progress);
+          }}
+          onMilestoneUpdate={async (
+            projectId,
+            milestoneId,
+            updates: Partial<Milestone>
+          ) => {
+            /* kept original stub structure */
+            await updateMilestone(projectId, milestoneId, updates);
+          }}
+          onAddUpdate={async (projectId, update) => {
+            /* kept original stub structure */
+            await addProjectUpdate(projectId, update);
+          }}
+          onFileUpload={async (projectId, file) => {
+            /* kept original stub structure */
+            await uploadProjectFile(projectId, file);
+          }}
+          onPaymentRecord={async (projectId, payment) => {
+            /* kept original stub structure */
+            await recordProjectPayment(projectId, payment);
+          }}
+        />
+      );
     }
 
     return (
-      <>
-        <div className="space-y-6">
-          {/* Header */}
+      <div className="min-h-screen">
+        <div className="space-y-8 p-6">
+          {/* Enhanced Header with Statistics */}
           <div className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
-                <h1 className="text-3xl font-semibold text-white mb-2">
+                <h1 className="text-4xl font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
                   Client Projects
                 </h1>
-                <p className="text-gray-400">
-                  Manage and overview all client Projects
+                <p className="text-gray-300 text-lg">
+                  Manage and track all client projects with real-time insights
                 </p>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="flex gap-4">
+                <div className="flex items-center gap-3  backdrop-blur-sm border border-blue-400/30 rounded-xl p-4 min-w-[120px]">
+                  <div className="text-2xl monty font-semibold text-blue-400">
+                    {projects?.filter((p) => p?.status === "approved").length ||
+                      0}
+                  </div>
+                  <div className="text-xs text-blue-300 monty uppercase">
+                    Active
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 backdrop-blur-sm border border-green-400/30 rounded-xl p-4 min-w-[120px]">
+                  <div className="text-2xl monty font-semibold text-green-400">
+                    {projects?.filter((p) => p?.status === "reviewed").length ||
+                      0}
+                  </div>
+                  <div className="text-xs text-green-300 monty uppercase">
+                    Reviewed
+                  </div>
+                </div>
+                <div className="flex items-center gap-3  backdrop-blur-sm border border-orange-400/30 rounded-xl p-4 min-w-[120px]">
+                  <div className="text-2xl monty font-semibold text-orange-400">
+                    {projects?.filter((p) => p?.status === "pending").length ||
+                      0}
+                  </div>
+                  <div className="text-xs text-orange-300 monty uppercase">
+                    Pending
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          {/* Project Filters */}
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+
+          {/* Enhanced Filters */}
+          <div className="bg-white/5 my-12 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 shadow-2xl">
+            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
               <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <div className="relative group">
+                  <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
                   <input
                     type="text"
-                    placeholder="Search projects..."
+                    placeholder="Search projects by name, client, or category..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-slate-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
                   />
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
+
+              <div className="flex items-center gap-4">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  className="px-4 py-3 bg-black/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
                 >
-                  <option value="all" className="bg-gray-800">
+                  <option value="all" className="bg-black/50">
                     All Status
                   </option>
-                  <option value="pending" className="bg-gray-800">
+                  <option value="pending" className="bg-black/50">
                     Pending
                   </option>
-                  <option value="reviewed" className="bg-gray-800">
+                  <option value="reviewed" className="bg-black/50">
                     Reviewed
                   </option>
-                  <option value="approved" className="bg-gray-800">
+                  <option value="approved" className="bg-black/50">
                     Approved
                   </option>
-                  <option value="rejected" className="bg-gray-800">
+                  <option value="rejected" className="bg-black/50">
                     Rejected
                   </option>
                 </select>
+
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  className="px-4 py-3 bg-black/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
                 >
-                  <option value="all" className="bg-gray-800">
+                  <option value="all" className="bg-black/50">
                     All Priority
                   </option>
-                  <option value="critical" className="bg-gray-800">
+                  <option value="critical" className="bg-black/50">
                     Critical
                   </option>
-                  <option value="high" className="bg-gray-800">
+                  <option value="high" className="bg-black/50">
                     High
                   </option>
-                  <option value="medium" className="bg-gray-800">
+                  <option value="medium" className="bg-black/50">
                     Medium
                   </option>
-                  <option value="low" className="bg-gray-800">
+                  <option value="low" className="bg-black/50">
                     Low
                   </option>
                 </select>
@@ -1086,89 +1353,216 @@ export default function EnhancedAdminDashboard(): ReactNode {
             </div>
           </div>
 
-          {/* Projects Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {(projects ?? []).map((project) => (
-              <div
-                key={project?._id}
-                className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all cursor-pointer"
-                onClick={() => setSelectedProject(project)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white mb-1">
-                      {project?.projectDetails?.title ?? "Untitled Project"}
-                    </h3>
-                    <p className="text-sm text-gray-400">
-                      {project?.userInfo?.firstName ?? "Unknown"}{" "}
-                      {project?.userInfo?.lastName ?? ""} •{" "}
-                      {project?.userInfo?.company ?? "No Company"}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(project?.status ?? "unknown")}
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${getPriorityColor(
-                        project?.priority ?? "low"
-                      )}`}
-                    >
-                      {project?.priority ?? "low"}
-                    </span>
-                  </div>
-                </div>
+          {/* Enhanced Projects Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {(projects ?? []).map((project) => {
+              const progress = project?.progress || 0;
+              const status = project?.status || "pending";
+              const priority = project?.priority || "low";
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-300">
-                    <FaProjectDiagram className="mr-2 text-blue-400" />
-                    <span>
-                      {project?.projectDetails?.category ?? "Uncategorized"}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-300">
-                    <FaDollarSign className="mr-2 text-green-400" />
-                    <span>
-                      {formatCurrency(
-                        calculateProjectBudget(project),
-                        project?.pricing?.currency ?? "USD"
-                      )}
-                    </span>
-                  </div>
-                </div>
+              return (
+                <div
+                  key={project?._id}
+                  className="group relative bg-white/5 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 hover:border-slate-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                  onClick={() => setSelectedProject(project)}
+                >
+                  {/* Priority Indicator */}
+                  <div
+                    className={`absolute top-4 right-4 w-3 h-3 rounded-full ${
+                      priority === "critical"
+                        ? "bg-red-500/20 shadow-lg shadow-red-500/30"
+                        : priority === "high"
+                        ? "bg-orange-500/20 shadow-lg shadow-orange-500/30"
+                        : priority === "medium"
+                        ? "bg-yellow-500/20 shadow-lg shadow-yellow-500/30"
+                        : "bg-green-500/20 shadow-lg shadow-green-500/30"
+                    }`}
+                  />
 
-                <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                  <span className="text-sm text-gray-400">
-                    {project?.createdAt
-                      ? formatDate(project.createdAt)
-                      : "No date"}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => {
-                        setSelectedProject(project);
-                        setViewMode("detail");
-                      }}
-                      className="p-2 cursor-pointer text-gray-400 hover:text-blue-400 transition-colors"
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (project?._id) {
-                          deleteProject(project._id);
-                        }
-                      }}
-                      className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-                    >
-                      <FaTrash />
-                    </button>
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1 pr-4">
+                      <h3 className="text-lg font-semibold text-white mb-4 group-hover:text-blue-400 transition-colors line-clamp-2">
+                        {project?.projectDetails?.title ?? "Untitled Project"}
+                      </h3>
+                      <p className="text-sm text-gray-400 flex items-center gap-2">
+                        <FaUser className="text-blue-400" />
+                        {project?.userInfo?.firstName ?? "Unknown"}{" "}
+                        {project?.userInfo?.lastName ?? ""}
+                      </p>
+                      <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
+                        <FaBuilding className="text-purple-400" />
+                        {project?.userInfo?.company ?? "No Company"}
+                      </p>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="flex flex-col items-end gap-2">
+                      <div
+                        className={`flex items-center monty uppercase gap-1 px-3 py-1 rounded-full text-xs font-medium ${
+                          status === "approved"
+                            ? " text-green-400 border border-green-500/30"
+                            : status === "reviewed"
+                            ? " text-blue-400 border border-blue-500/30"
+                            : status === "pending"
+                            ? " text-orange-400 border border-orange-500/30"
+                            : " text-red-400 border border-red-500/30"
+                        }`}
+                      >
+                        {getStatusIcon(status)}
+                        {status}
+                      </div>
+                      <div
+                        className={`px-2 py-1 monty uppercase rounded-full text-xs font-medium ${getPriorityColor(
+                          priority
+                        )}`}
+                      >
+                        {priority}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Project Details */}
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center text-sm text-gray-300">
+                      <FaProjectDiagram className="mr-3 text-blue-400" />
+                      <span className="font-medium monty uppercase">
+                        {project?.projectDetails?.category ?? "Uncategorized"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-300">
+                      <FaDollarSign className="mr-3 text-indigo-400" />
+                      <span className="font-semibold text-xl text-green-400">
+                        {formatCurrency(
+                          calculateProjectBudget(project),
+                          project?.pricing?.currency ?? "USD"
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-400">Progress</span>
+                      <span className="text-sm font-medium text-white">
+                        {progress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ease-out ${
+                          progress < 25
+                            ? "bg-gradient-to-r from-red-500 to-red-400"
+                            : progress < 50
+                            ? "bg-gradient-to-r from-orange-500 to-orange-400"
+                            : progress < 75
+                            ? "bg-gradient-to-r from-yellow-500 to-yellow-400"
+                            : progress < 100
+                            ? "bg-gradient-to-r from-blue-500 to-blue-400"
+                            : "bg-gradient-to-r from-green-500 to-green-400"
+                        }`}
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Milestones Indicator */}
+                  {project?.milestones && project.milestones.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                        <FaFlag className="text-purple-400" />
+                        <span>Milestones</span>
+                      </div>
+                      <div className="flex gap-1">
+                        {project.milestones
+                          .slice(0, 5)
+                          .map((milestone: any, index: number) => (
+                            <div
+                              key={index}
+                              className={`w-2 h-2 rounded-full ${
+                                milestone.completed
+                                  ? "bg-green-400"
+                                  : "bg-gray-600"
+                              }`}
+                            />
+                          ))}
+                        {project.milestones.length > 5 && (
+                          <span className="text-xs text-gray-500 ml-1">
+                            +{project.milestones.length - 5}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-600/30">
+                    <div className="flex items-center monty uppercase gap-2 text-sm text-gray-400">
+                      <FaCalendarAlt className="text-blue-400" />
+                      <span>
+                        {project?.createdAt
+                          ? formatDate(project.createdAt)
+                          : "No date"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProject(project);
+                          setViewMode("detail");
+                        }}
+                        className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all duration-200"
+                        title="View Details"
+                      >
+                        <FaEye />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (project?._id) {
+                            deleteProject(project._id);
+                          }
+                        }}
+                        className="cursor-pointer p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200"
+                        title="Delete Project"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Empty State */}
+          {(!projects || projects.length === 0) && (
+            <div className="text-center py-16">
+              <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-12 max-w-md mx-auto">
+                <FaProjectDiagram className="mx-auto text-6xl text-gray-500 mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  No Projects Found
+                </h3>
+                <p className="text-gray-400">
+                  {searchTerm ||
+                  statusFilter !== "all" ||
+                  priorityFilter !== "all"
+                    ? "Try adjusting your filters to see more projects."
+                    : "Start by creating your first project to see it here."}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-      </>
+      </div>
     );
   };
 
@@ -2193,338 +2587,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
       </div>
     </div>
   );
-
-  // Project Detail Modal
-  const renderProjectDetail = (): ReactNode => {
-    if (!selectedProject) return null;
-
-    return (
-      <div className="bg-white/5 min-h-screen rounded-lg">
-        {/* Header Section */}
-
-        <div className="backdrop-blur-xl bg-indigo-900/80 border-b border-white/10 rounded-lg">
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setViewMode("list")}
-                  className="flex cursor-pointer items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 hover:bg-white/5 px-3 py-2 rounded-lg"
-                >
-                  <FaArrowCircleLeft className="w-5 h-5" />
-                  <span>Back to Projects</span>
-                </button>
-                <div className="h-6 w-px bg-white/20"></div>
-                <div>
-                  <h1 className="text-2xl font-semibold text-white">
-                    {selectedProject?.projectDetails?.title ??
-                      "Untitled Project"}
-                  </h1>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {selectedProject?.projectDetails?.category ??
-                      "Uncategorized"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon(selectedProject?.status ?? "unknown")}
-                  <span className="text-white font-medium capitalize">
-                    {(selectedProject?.status ?? "").replace("_", " ")}
-                  </span>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                    selectedProject?.priority ?? "low"
-                  )}`}
-                >
-                  {(selectedProject?.priority ?? "low").toUpperCase()}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Main Details */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Project Overview Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
-                    <FaProjectDiagram className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-white">
-                    Project Overview
-                  </h3>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-lg font-semibold text-indigo-200 mb-3">
-                      Description
-                    </h4>
-                    <p className="text-gray-300 leading-relaxed text-lg">
-                      {selectedProject?.projectDetails?.description ??
-                        "No description"}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-indigo-300 text-sm font-medium mb-2">
-                        Timeline
-                      </p>
-                      <p className="text-white font-semibold text-lg">
-                        {selectedProject?.projectDetails?.timeline ??
-                          "No timeline"}
-                      </p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-indigo-300 text-sm font-medium mb-2">
-                        Urgency
-                      </p>
-                      <p className="text-white font-semibold text-lg">
-                        {selectedProject?.projectDetails?.priority ??
-                          "No priority"}
-                      </p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-indigo-300 text-sm font-medium mb-2">
-                        Category
-                      </p>
-                      <p className="text-white font-semibold text-lg">
-                        {selectedProject?.projectDetails?.category ??
-                          "No category"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {selectedProject?.projectDetails?.techStack?.length > 0 && (
-                    <div>
-                      <h4 className="text-lg font-semibold text-indigo-200 mb-3">
-                        Technology Stack
-                      </h4>
-                      <div className="flex flex-wrap gap-3">
-                        {selectedProject.projectDetails.techStack.map(
-                          (tech, index) => (
-                            <span
-                              key={index}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-300 rounded-full text-sm font-medium border border-blue-400/30 hover:from-blue-500/30 hover:to-indigo-500/30 transition-all"
-                            >
-                              {tech}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h4 className="text-lg font-semibold text-indigo-200 mb-3">
-                      Requirements
-                    </h4>
-                    <p className="text-gray-300 leading-relaxed">
-                      {selectedProject?.projectDetails?.requirements ??
-                        "No requirements"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pricing Information Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                    <FaDollarSign className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-white">
-                    Pricing Details
-                  </h3>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-indigo-300 text-sm font-medium mb-1">
-                        Pricing Model
-                      </p>
-                      <p className="text-white font-semibold text-lg capitalize">
-                        {selectedProject?.pricing?.type ?? "No pricing type"}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-indigo-300 text-sm font-medium mb-1">
-                        Total Budget
-                      </p>
-                      <p className="text-3xl font-semibold text-green-400">
-                        {formatCurrency(
-                          calculateProjectBudget(selectedProject),
-                          selectedProject?.pricing?.currency ?? "USD"
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {selectedProject?.pricing?.type === "milestone" &&
-                    selectedProject?.pricing?.milestones && (
-                      <div>
-                        <h4 className="text-lg font-semibold text-indigo-200 mb-4">
-                          Project Milestones
-                        </h4>
-                        <div className="space-y-4">
-                          {selectedProject.pricing.milestones.map(
-                            (milestone, index) => (
-                              <div
-                                key={milestone?.id ?? index}
-                                className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-all"
-                              >
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <div className="flex items-center space-x-3 mb-2">
-                                      <span className="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-semibold">
-                                        {index + 1}
-                                      </span>
-                                      <h5 className="text-white font-semibold text-lg">
-                                        {milestone?.title ??
-                                          "Untitled Milestone"}
-                                      </h5>
-                                    </div>
-                                    <p className="text-gray-400 ml-9">
-                                      {milestone?.description ??
-                                        "No description"}
-                                    </p>
-                                  </div>
-                                  <div className="text-right ml-6">
-                                    <p className="text-green-400 font-semibold text-xl">
-                                      {formatCurrency(
-                                        parseFloat(milestone?.budget ?? 0),
-                                        selectedProject?.pricing?.currency ??
-                                          "USD"
-                                      )}
-                                    </p>
-                                    <p className="text-indigo-300 text-sm font-medium">
-                                      {milestone?.timeline ?? "No timeline"}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Client Info & Actions */}
-            <div className="space-y-8">
-              {/* Client Information Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                    <FaUser className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-white">
-                    Client Details
-                  </h3>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="text-center pb-6 border-b border-white/10">
-                    <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-white font-semibold text-xl">
-                        {selectedProject?.userInfo?.firstName?.[0] ?? "U"}
-                        {selectedProject?.userInfo?.lastName?.[0] ?? "U"}
-                      </span>
-                    </div>
-                    <h4 className="text-xl font-semibold text-white">
-                      {selectedProject?.userInfo?.firstName ?? "Unknown"}{" "}
-                      {selectedProject?.userInfo?.lastName ?? ""}
-                    </h4>
-                    <p className="text-indigo-300">
-                      {selectedProject?.userInfo?.company ??
-                        "Independent Client"}
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                      <FaEnvelope className="text-indigo-400" />
-                      <div>
-                        <p className="text-indigo-300 text-sm">Email</p>
-                        <p className="text-white font-medium">
-                          {selectedProject?.userInfo?.email ?? "No email"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {selectedProject?.userInfo?.phone && (
-                      <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                        <FaPhone className="text-indigo-400" />
-                        <div>
-                          <p className="text-indigo-300 text-sm">Phone</p>
-                          <p className="text-white font-medium">
-                            {selectedProject?.userInfo?.phone ?? "No phone"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  Project Actions
-                </h3>
-
-                <div className="space-y-4">
-                  <button
-                    onClick={() =>
-                      updateProjectStatus(selectedProject?._id, "approved")
-                    }
-                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-green-500/10 disabled:opacity-50 disabled:cursor-not-allowed group"
-                    disabled={selectedProject?.status === "approved"}
-                  >
-                    <FaCheck className="text-lg text-green-400 group-hover:text-green-300 transition-colors" />
-                    <span>Approve Project</span>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      updateProjectStatus(selectedProject?._id, "reviewed")
-                    }
-                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed group"
-                    disabled={selectedProject?.status === "reviewed"}
-                  >
-                    <FaEye className="text-lg text-blue-400 group-hover:text-blue-300 transition-colors" />
-                    <span>Mark as Reviewed</span>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      updateProjectStatus(selectedProject?._id, "rejected")
-                    }
-                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-red-500/20 hover:border-red-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed group"
-                    disabled={selectedProject?.status === "rejected"}
-                  >
-                    <FaTimes className="text-lg text-red-400 group-hover:text-red-300 transition-colors" />
-                    <span>Reject Project</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // Check if account already exists when component loads or user changes
   useEffect(() => {

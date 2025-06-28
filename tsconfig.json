@@ -25,12 +25,16 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "~/*": [
+        "./*"
       ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".next/standalone/types/**/*.ts",
     ".next/standalone/types/**/*.ts",
     ".next/standalone/types/**/*.ts",
     ".next/standalone/types/**/*.ts",

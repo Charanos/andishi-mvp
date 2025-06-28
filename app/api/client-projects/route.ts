@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 import clientPromise from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
 import { ObjectId } from 'mongodb';
@@ -39,15 +40,35 @@ interface ProjectFile {
   createdAt: Date;
 }
 
+// Helper to extract auth info if middleware headers are missing
+const authenticateRequest = async (req: NextRequest) => {
+  const headerEmail = req.headers.get('user-email');
+  const headerRole = req.headers.get('user-role');
+  if (headerEmail && headerRole) {
+    return { userEmail: headerEmail, userRole: headerRole };
+  }
+
+  // Fallback to cookie verification (for routes that bypass middleware)
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token) return { userEmail: null, userRole: null };
+
+  try {
+    const secretValue = process.env.JWT_SECRET || process.env.NEXT_PUBLIC_JWT_SECRET;
+    if (!secretValue) throw new Error('JWT secret missing');
+    const secret = new TextEncoder().encode(secretValue);
+    const { payload } = await jwtVerify(token, secret);
+    return { userEmail: payload.email as string, userRole: payload.role as string };
+  } catch {
+    return { userEmail: null, userRole: null };
+  }
+};
+
 // GET handler to fetch projects for the logged-in client
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const userEmail = req.headers.get('user-email');
-    const userRole = req.headers.get('user-role');
-    const token = authHeader?.replace('Bearer ', '');
+    const { userEmail, userRole } = await authenticateRequest(req);
 
-    if (!token || !userEmail) {
+    if (!userEmail || !userRole) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
@@ -58,38 +79,55 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    // First, get the user to verify they are a client
-    const user = await db.collection('users').findOne({
-      email: userEmail,
-      role: 'client',
-      isActive: true
-    });
+    let projects: any[] = [];
+    let clientUser: any = null; // populated for client role
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'User not found or not authorized' },
-        { status: 404 }
+    if (userRole === 'admin') {
+      // Admins have access to all projects
+      projects = await db
+        .collection('projects')
+        .find({})
+        .sort({ createdAt: -1 })
+        .toArray();
+    } else {
+      // First, get the user to verify they are a client
+      const user = await db.collection('users').findOne({
+        email: userEmail,
+        role: 'client',
+        isActive: true
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          { success: false, message: 'User not found or not authorized' },
+          { status: 404 }
+        );
+      }
+
+      // Find projects either by clientId or userInfo.email
+      projects = await db
+        .collection('projects')
+        .find({
+          $or: [
+            { clientId: user._id.toString() },
+            { 'userInfo.email': userEmail }
+          ]
+        })
+        .sort({ createdAt: -1 })
+        .toArray();
+
+      // Update user's project count if it doesn't match
+      const projectCount = projects.length;
+      await db.collection('users').updateOne(
+        { _id: user._id },
+        { $set: { projectCount } }
       );
     }
 
-    // Find projects either by clientId or userInfo.email
-    const projects = await db.collection('projects').find({
-      $or: [
-        { clientId: user._id.toString() },
-        { 'userInfo.email': userEmail }
-      ]
-    }).sort({ createdAt: -1 }).toArray();
-
-    // Update user's project count if it doesn't match
-    const projectCount = projects.length;
-    await db.collection('users').updateOne(
-      { _id: user._id },
-      { $set: { projectCount: projectCount } }
-    );
-
     // Transform projects to ensure consistent structure
     const transformedProjects = projects.map(project => ({
-      id: project._id.toString(),
+      _id: project._id.toString(),
+        id: project._id.toString(),
       title: project.title || '',
       description: project.description || '',
       status: project.status || 'pending',
@@ -113,7 +151,7 @@ export async function GET(req: NextRequest) {
         estimatedHours: project.pricing.estimatedHours,
         totalPaid: project.pricing.totalPaid
       } : undefined,
-      milestones: (project.milestones || []).map((m: ProjectMilestone) => ({
+      milestones: (project.milestones && project.milestones.length ? project.milestones : project.pricing?.milestones || []).map((m: ProjectMilestone) => ({
         id: m._id?.toString() || m.id,
         title: m.title,
         description: m.description,
@@ -131,6 +169,13 @@ export async function GET(req: NextRequest) {
         type: u.type || 'general',
         createdAt: u.createdAt ? new Date(u.createdAt) : new Date()
       })),
+      payments: (project.payments || []).map((p: any) => ({
+        id: p._id?.toString() || p.id,
+        amount: p.amount,
+        method: p.method,
+        notes: p.notes,
+        date: p.date ? new Date(p.date) : undefined,
+      })),
       files: (project.files || []).map((f: ProjectFile) => ({
         id: f._id?.toString() || f.id,
         fileName: f.fileName,
@@ -139,14 +184,14 @@ export async function GET(req: NextRequest) {
         fileType: f.fileType,
         createdAt: f.createdAt ? new Date(f.createdAt) : new Date()
       })),
-      userInfo: project.userInfo || {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone || '',
-        company: user.company || '',
+      userInfo: project.userInfo || (clientUser ? {
+        firstName: clientUser.firstName,
+        lastName: clientUser.lastName,
+        email: clientUser.email,
+        phone: clientUser.phone || '',
+        company: clientUser.company || '',
         role: 'client'
-      },
+      } : {}),
       projectDetails: {
         ...project.projectDetails,
         priority: project.projectDetails?.priority || project.priority || 'low',
@@ -156,7 +201,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      projects: transformedProjects
+      data: transformedProjects
     });
 
   } catch (error) {
@@ -257,10 +302,9 @@ export async function POST(req: NextRequest) {
 // PATCH handler to update a project
 export async function PATCH(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    const { userEmail, userRole } = await authenticateRequest(req);
 
-    if (!token) {
+    if (!userEmail || !userRole) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
@@ -270,34 +314,48 @@ export async function PATCH(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    // Verify user is a client
-    const user = await db.collection('users').findOne({
-      email: req.headers.get('user-email'),
-      role: 'client',
-      isActive: true
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized access' },
-        { status: 403 }
-      );
+    // For client role ensure user exists and active, for admin skip
+    let clientUser: any = null;
+    if (userRole === 'client') {
+      clientUser = await db.collection('users').findOne({
+        email: userEmail,
+        role: 'client',
+        isActive: true
+      });
+      if (!clientUser) {
+        return NextResponse.json(
+          { success: false, message: 'Unauthorized access' },
+          { status: 403 }
+        );
+      }
     }
 
-    const { projectId, updates } = await req.json();
+    const body = await req.json();
+    console.log('Received PATCH request with body:', body);
+    const { projectId, ...updates } = body;
 
-    if (!projectId || !updates) {
+    if (!projectId || Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Project ID and updates are required' },
+        {
+          success: false,
+          message: 'Project ID and at least one update field are required',
+        },
         { status: 400 }
       );
     }
 
-    // Verify the project belongs to this client
-    const project = await db.collection('projects').findOne({
-      _id: new ObjectId(projectId),
-      clientId: user._id
-    });
+    // Verify the project belongs to the client or allow admin
+    let project;
+    if (userRole === 'admin') {
+      project = await db.collection('projects').findOne({
+        _id: new ObjectId(projectId)
+      });
+    } else {
+      project = await db.collection('projects').findOne({
+        _id: new ObjectId(projectId),
+        clientId: clientUser._id
+      });
+    }
 
     if (!project) {
       return NextResponse.json(
@@ -306,21 +364,93 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // Update the project
-    const result = await db.collection('projects').updateOne(
-      { _id: new ObjectId(projectId) },
-      { 
-        $set: {
-          ...updates,
-          updatedAt: new Date()
-        }
+    // Build dynamic update operations
+    const setOps: Record<string, any> = { updatedAt: new Date() };
+    const pushOps: Record<string, any> = {};
+
+    if (updates.status !== undefined) setOps.status = updates.status;
+    if (updates.progress !== undefined) setOps.progress = updates.progress;
+
+    // Push array-like updates
+    if (Array.isArray(updates.updates) && updates.updates.length) {
+      pushOps.updates = { $each: updates.updates };
+    }
+    if (Array.isArray(updates.files) && updates.files.length) {
+      pushOps.files = { $each: updates.files };
+    }
+    if (Array.isArray(updates.payments) && updates.payments.length) {
+      const paymentsToPush = updates.payments.map((p: any) => ({
+        ...p,
+        _id: new ObjectId(),
+        date: p.date ? new Date(p.date) : new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+      pushOps.payments = { $each: paymentsToPush };
+    }
+
+    const updateQuery: Record<string, any> = {};
+    if (Object.keys(setOps).length) updateQuery.$set = setOps;
+    if (Object.keys(pushOps).length) updateQuery.$push = pushOps;
+
+    // Milestone updates can be either add new or modify existing
+    let milestoneResult = { modifiedCount: 0 };
+    if (updates.milestones) {
+      const ms = updates.milestones as any; // expected { id, ...fields }
+      if (ms.id) {
+        // update existing milestone
+        const milestoneSet: Record<string, any> = {};
+        if (ms.title !== undefined) milestoneSet['milestones.$.title'] = ms.title;
+        if (ms.description !== undefined) milestoneSet['milestones.$.description'] = ms.description;
+        if (ms.budget !== undefined) milestoneSet['milestones.$.budget'] = ms.budget; // Fixing the typo from 'budget' to 'budget'
+        if (ms.timeline !== undefined) milestoneSet['milestones.$.timeline'] = ms.timeline;
+        if (ms.status !== undefined) milestoneSet['milestones.$.status'] = ms.status;
+        if (ms.dueDate !== undefined) milestoneSet['milestones.$.dueDate'] = new Date(ms.dueDate);
+        if (ms.completedAt !== undefined) milestoneSet['milestones.$.completedAt'] = new Date(ms.completedAt);
+        milestoneSet['milestones.$.updatedAt'] = new Date();
+
+        const isValidObjectId = typeof ms.id === 'string' && /^[a-fA-F0-9]{24}$/.test(ms.id);
+        const milestoneQuery = isValidObjectId
+          ? { _id: new ObjectId(projectId), 'milestones._id': new ObjectId(ms.id) }
+          : { _id: new ObjectId(projectId), 'milestones.id': ms.id };
+
+        milestoneResult = await db.collection('projects').updateOne(
+          milestoneQuery,
+          { $set: milestoneSet }
+        );
+      } else {
+        // add new milestone
+        const generatedId = new ObjectId();
+        const newMilestoneWithId = {
+          ...ms,
+          _id: generatedId,
+          id: generatedId.toString(),
+          status: ms.status || 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        updateQuery.$push = {
+          ...updateQuery.$push,
+          milestones: newMilestoneWithId,
+        };
       }
-    );
+    }
+
+    // Execute main update if there is something to do
+    let result = { modifiedCount: 0 };
+    if (Object.keys(updateQuery).length) {
+      result = await db.collection('projects').updateOne(
+        { _id: new ObjectId(projectId) },
+        updateQuery
+      );
+    }
+
+    const modifiedCount = (result?.modifiedCount || 0) + (milestoneResult?.modifiedCount || 0);
 
     return NextResponse.json({
       success: true,
       message: 'Project updated successfully',
-      modifiedCount: result.modifiedCount
+      modifiedCount: modifiedCount
     });
 
   } catch (error) {
@@ -339,10 +469,9 @@ export async function PATCH(req: NextRequest) {
 // DELETE handler to delete a project
 export async function DELETE(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    const { userEmail, userRole } = await authenticateRequest(req);
 
-    if (!token) {
+    if (!userEmail || !userRole) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
@@ -352,18 +481,19 @@ export async function DELETE(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    // Verify user is a client
-    const user = await db.collection('users').findOne({
-      email: req.headers.get('user-email'),
-      role: 'client',
-      isActive: true
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized access' },
-        { status: 403 }
-      );
+    let clientUser: any = null;
+    if (userRole === 'client') {
+      clientUser = await db.collection('users').findOne({
+        email: userEmail,
+        role: 'client',
+        isActive: true
+      });
+      if (!clientUser) {
+        return NextResponse.json(
+          { success: false, message: 'Unauthorized access' },
+          { status: 403 }
+        );
+      }
     }
 
     const { projectId } = await req.json();
@@ -375,11 +505,17 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Verify the project belongs to this client
-    const project = await db.collection('projects').findOne({
-      _id: new ObjectId(projectId),
-      clientId: user._id
-    });
+    let project;
+    if (userRole === 'admin') {
+      project = await db.collection('projects').findOne({
+        _id: new ObjectId(projectId)
+      });
+    } else {
+      project = await db.collection('projects').findOne({
+        _id: new ObjectId(projectId),
+        clientId: clientUser._id
+      });
+    }
 
     if (!project) {
       return NextResponse.json(
@@ -393,11 +529,13 @@ export async function DELETE(req: NextRequest) {
       _id: new ObjectId(projectId)
     });
 
-    // Update user's project count
-    await db.collection('users').updateOne(
-      { _id: user._id },
-      { $inc: { projectCount: -1 } }
-    );
+    // Decrement project count for client user
+    if (userRole === 'client') {
+      await db.collection('users').updateOne(
+        { _id: clientUser._id },
+        { $inc: { projectCount: -1 } }
+      );
+    }
 
     return NextResponse.json({
       success: true,

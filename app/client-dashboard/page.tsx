@@ -135,11 +135,11 @@ const ClientDashboard: React.FC = () => {
           );
         }
 
-        const data = await response.json();
+        const responseData = await response.json();
 
-        if (data.success) {
+        if (responseData.success) {
           // Transform dates in the projects data
-          const transformedProjects = data.projects.map((project: any) => ({
+          const transformedProjects = responseData.data.map((project: any) => ({
             id: project.id || project._id?.toString(),
             title: project.projectDetails?.title || project.title || "",
             description:

@@ -23,6 +23,7 @@ const publicRoutes = [
   '/thank-you-start-project',
   '/thanks',
   '/blogs',
+  '/project-details',
   '/featured-blog',
   '/api/auth/login',
   '/api/auth/verify',

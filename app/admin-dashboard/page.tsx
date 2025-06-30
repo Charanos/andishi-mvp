@@ -770,42 +770,81 @@ export default function EnhancedAdminDashboard(): ReactNode {
     }
   };
 
-  // 6. Record payment
+  // 6. Record payment with proper validation and error handling
   const recordProjectPayment = async (
     projectId: string,
-    payment: { amount: number; method: string; notes?: string }
+    payment: {
+      amount: number;
+      method: string;
+      notes?: string;
+      currency?: "USD" | "KES";
+      description?: string;
+      invoiceUrl?: string;
+    }
   ) => {
-    const newPayment = {
-      ...payment,
-      id: new Date().toISOString(),
-      date: new Date().toISOString(),
-      status: "completed",
-    };
-
-    const prevProjects = [...projects];
-    let updatedProject: ProjectData | undefined;
-    setProjects((prev) =>
-      prev.map((project) => {
-        if (project._id === projectId) {
-          updatedProject = {
-            ...project,
-            payments: [newPayment, ...(project.payments || [])],
-          };
-          return updatedProject;
-        }
-        return project;
-      })
-    );
-
     try {
-      await apiUpdateProject(projectId, { payments: [newPayment] });
-      if (updatedProject) {
-        setSelectedProject(updatedProject);
+      // Input validation
+      if (!projectId) {
+        throw new Error("Project ID is required");
       }
-      toast.success("Payment recorded");
-    } catch (error: any) {
+      if (!payment.amount || payment.amount <= 0) {
+        throw new Error("Payment amount must be greater than 0");
+      }
+      if (!payment.method) {
+        throw new Error("Payment method is required");
+      }
+
+      // Create new payment with proper typing
+      const newPayment: import("~/types").Payment = {
+        id: `pay_${Date.now()}`,
+        amount: Number(payment.amount),
+        date: new Date().toISOString(),
+        method: payment.method,
+        status: "paid",
+        ...(payment.notes && { notes: payment.notes }),
+        ...(payment.currency && { currency: payment.currency }),
+        ...(payment.description && { description: payment.description }),
+        ...(payment.invoiceUrl && { invoiceUrl: payment.invoiceUrl }),
+      };
+
+      // Optimistically update the UI
+      const prevProjects = [...projects];
+      setProjects((prevProjects) =>
+        prevProjects.map((project) =>
+          project._id === projectId
+            ? {
+                ...project,
+                payments: [newPayment, ...(project.payments || [])],
+                updatedAt: new Date().toISOString(),
+              }
+            : project
+        )
+      );
+
+      // Make API call to save the payment
+      await apiUpdateProject(projectId, {
+        payments: [newPayment],
+        updatedAt: new Date().toISOString(),
+      });
+
+      toast.success(
+        `Payment of ${payment.amount} ${
+          payment.currency || "USD"
+        } recorded successfully`,
+        { autoClose: 3000 }
+      );
+    } catch (error) {
+      // Revert on error
+      const prevProjects = [...projects];
       setProjects(prevProjects);
-      toast.error(error?.message || "Failed to record payment");
+      console.error("Error recording payment:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to record payment. Please try again.",
+        { autoClose: 5000 }
+      );
+      throw error; // Re-throw to allow component to handle if needed
     }
   };
 
@@ -1886,227 +1925,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
       throw error;
     }
   };
-
-  // const renderUsers = () => {
-  //   if (viewMode === "detail" || viewMode === "edit") {
-  //     return renderUserDetails();
-  //   }
-
-  //   return (
-  //     <div className="space-y-6">
-  //       {/* User Management Header */}
-  //       <div className="flex items-center justify-between">
-  //         <div>
-  //           <h2 className="text-3xl font-semibold text-white mb-2">
-  //             {activeTab === "clients"
-  //               ? "Client Management"
-  //               : activeTab === "dev profiles"
-  //               ? "Developer Management"
-  //               : "User Management"}
-  //           </h2>
-  //           <p className="text-gray-400 mt-1">
-  //             {activeTab === "clients"
-  //               ? "Manage client accounts and information"
-  //               : activeTab === "dev profiles"
-  //               ? "Manage developer accounts and profiles"
-  //               : "Manage all user accounts and permissions"}
-  //           </p>
-  //         </div>
-  //         <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-  //           <FaPlus />
-  //           <span>Add User</span>
-  //         </button>
-  //       </div>
-
-  //       {/* User Filters */}
-  //       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-  //         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-  //           <div className="flex-1 max-w-md">
-  //             <div className="relative">
-  //               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-  //               <input
-  //                 type="text"
-  //                 placeholder="Search users..."
-  //                 value={userSearchTerm}
-  //                 onChange={(e) => setUserSearchTerm(e.target.value)}
-  //                 className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-  //               />
-  //             </div>
-  //           </div>
-  //           <div className="flex items-center space-x-4">
-  //             {activeTab === "users" && (
-  //               <select
-  //                 value={userRoleFilter}
-  //                 onChange={(e) => setUserRoleFilter(e.target.value)}
-  //                 className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
-  //               >
-  //                 <option value="all" className="bg-gray-800">
-  //                   All Roles
-  //                 </option>
-  //                 <option value="admin" className="bg-gray-800">
-  //                   Admin
-  //                 </option>
-  //                 <option value="developer" className="bg-gray-800">
-  //                   Developer
-  //                 </option>
-  //                 <option value="client" className="bg-gray-800">
-  //                   Client
-  //                 </option>
-  //               </select>
-  //             )}
-  //             <select
-  //               value={userStatusFilter}
-  //               onChange={(e) => setUserStatusFilter(e.target.value)}
-  //               className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
-  //             >
-  //               <option value="all" className="bg-gray-800">
-  //                 All Status
-  //               </option>
-  //               <option value="active" className="bg-gray-800">
-  //                 Active
-  //               </option>
-  //               <option value="inactive" className="bg-gray-800">
-  //                 Inactive
-  //               </option>
-  //               <option value="suspended" className="bg-gray-800">
-  //                 Suspended
-  //               </option>
-  //             </select>
-  //           </div>
-  //         </div>
-  //       </div>
-
-  //       {/* Users Table */}
-  //       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-  //         <div className="overflow-x-auto">
-  //           <table className="w-full">
-  //             <thead className="bg-white/5 border-b border-white/10">
-  //               <tr>
-  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-  //                   User
-  //                 </th>
-  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-  //                   Contact
-  //                 </th>
-  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-  //                   Role
-  //                 </th>
-  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-  //                   Status
-  //                 </th>
-  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-  //                   Joined
-  //                 </th>
-  //                 <th className="text-left py-4 px-6 text-sm font-medium text-gray-300 uppercase tracking-wide">
-  //                   Actions
-  //                 </th>
-  //               </tr>
-  //             </thead>
-  //             <tbody className="divide-y divide-white/10">
-  //               {getFilteredUsers().map((user) => (
-  //                 <tr
-  //                   key={user._id}
-  //                   className="hover:bg-white/5 transition-colors"
-  //                 >
-  //                   <td className="py-4 px-6">
-  //                     <div className="flex items-center space-x-3">
-  //                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-  //                         <span className="text-white font-medium">
-  //                           {user.firstName.charAt(0)}
-  //                           {user.lastName.charAt(0)}
-  //                         </span>
-  //                       </div>
-  //                       <div>
-  //                         <p className="text-white font-medium">
-  //                           {user.firstName} {user.lastName}
-  //                         </p>
-  //                         <p className="text-gray-400 text-sm">
-  //                           {user.company || "No company"}
-  //                         </p>
-  //                       </div>
-  //                     </div>
-  //                   </td>
-  //                   <td className="py-4 px-6">
-  //                     <div>
-  //                       <p className="text-white text-sm">{user.email}</p>
-  //                       <p className="text-gray-400 text-sm">
-  //                         {user.phone || "No phone"}
-  //                       </p>
-  //                     </div>
-  //                   </td>
-  //                   <td className="py-4 px-6">
-  //                     <span
-  //                       className={`px-2 py-1 rounded text-xs border ${getRoleColor(
-  //                         user.role
-  //                       )}`}
-  //                     >
-  //                       {user.role}
-  //                     </span>
-  //                   </td>
-  //                   <td className="py-4 px-6">
-  //                     <div className="flex items-center space-x-2">
-  //                       {getStatusIcon(user.status)}
-  //                       <span
-  //                         className={`px-2 py-1 rounded text-xs border ${getStatusColor(
-  //                           user.status
-  //                         )}`}
-  //                       >
-  //                         {user.status}
-  //                       </span>
-  //                     </div>
-  //                   </td>
-  //                   <td className="py-4 px-6">
-  //                     <span className="text-gray-400 text-sm">
-  //                       {formatDate(user.createdAt)}
-  //                     </span>
-  //                   </td>
-  //                   <td className="py-4 px-6">
-  //                     <div className="flex items-center space-x-2">
-  //                       <button
-  //                         onClick={() => {
-  //                           setSelectedUser(user);
-  //                           setViewMode("detail");
-  //                           setShowUserModal(true);
-  //                         }}
-  //                         className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
-  //                       >
-  //                         <FaEye />
-  //                       </button>
-  //                       {/* <button
-  //                         onClick={() => {
-  //                           setSelectedUser(user);
-  //                           setUserModalMode("edit");
-  //                           setShowUserModal(true);
-  //                         }}
-  //                         className="p-2 text-gray-400 hover:text-yellow-400 transition-colors"
-  //                       >
-  //                         <FaEdit />
-  //                       </button> */}
-  //                       <button
-  //                         onClick={() =>
-  //                           toggleUserStatus(user._id, user.status)
-  //                         }
-  //                         className="p-2 text-gray-400 hover:text-orange-400 transition-colors"
-  //                       >
-  //                         {user.status === "active" ? <FaLock /> : <FaUnlock />}
-  //                       </button>
-  //                       <button
-  //                         onClick={() => deleteUser(user._id)}
-  //                         className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-  //                       >
-  //                         <FaTrash />
-  //                       </button>
-  //                     </div>
-  //                   </td>
-  //                 </tr>
-  //               ))}
-  //             </tbody>
-  //           </table>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
 
   const renderAnalytics = (): ReactNode => (
     <div className="space-y-6">

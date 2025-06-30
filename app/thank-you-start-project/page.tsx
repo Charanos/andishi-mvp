@@ -13,7 +13,8 @@ import {
 } from "react-icons/fa";
 
 export default function ThankYouPage() {
-  const slackInviteUrl = "https://join.slack.com/t/andishiworkspace/shared_invite/zt-377bxw976-KMC2vBV90CyMN_6czjfwdQ";
+  const slackInviteUrl =
+    "https://join.slack.com/t/andishiworkspace/shared_invite/zt-377bxw976-KMC2vBV90CyMN_6czjfwdQ";
 
   const nextSteps = [
     {
@@ -70,14 +71,18 @@ export default function ThankYouPage() {
               Thank You!
             </span>
           </h1>
-          
+
           <p className="text-xl text-gray-300 mb-4 max-w-2xl mx-auto leading-relaxed">
-            Your project submission has been received successfully. We're excited to bring your vision to life!
+            Your project submission has been received successfully. We're
+            excited to bring your vision to life!
           </p>
-          
+
           <div className="flex items-center justify-center space-x-2 text-green-400 font-medium">
             <FaStar className="text-md" />
-            <span>Project ID: #{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+            <span>
+              Project ID: #
+              {Math.random().toString(36).substr(2, 9).toUpperCase()}
+            </span>
             <FaStar className="text-md" />
           </div>
         </div>
@@ -88,13 +93,14 @@ export default function ThankYouPage() {
             <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/25">
               <FaSlack className="text-2xl text-white" />
             </div>
-            
+
             <h2 className="text-2xl font-bold text-white mb-4">
               Join Our <span className="text-purple-400">Slack Workspace</span>
             </h2>
-            
+
             <p className="text-gray-300 mb-6 max-w-md mx-auto">
-              Connect with our team instantly for real-time collaboration, updates, and support throughout your project journey.
+              Connect with our team instantly for real-time collaboration,
+              updates, and support throughout your project journey.
             </p>
 
             <a
@@ -112,7 +118,10 @@ export default function ThankYouPage() {
           {/* Slack Benefits */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center space-x-3 text-gray-300">
+              <div
+                key={index}
+                className="flex items-center space-x-3 text-gray-300"
+              >
                 <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></div>
                 <span className="text-md">{benefit}</span>
               </div>
@@ -138,22 +147,28 @@ export default function ThankYouPage() {
                 }`}
               >
                 <div className="flex items-start space-x-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    step.action
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25"
-                      : "bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/25"
-                  }`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      step.action
+                        ? "bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25"
+                        : "bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/25"
+                    }`}
+                  >
                     <step.icon className="text-white text-lg" />
                   </div>
-                  
+
                   <div className="flex-1">
-                    <h3 className="text-white font-semibold mb-2">{step.title}</h3>
+                    <h3 className="text-white font-semibold mb-2">
+                      {step.title}
+                    </h3>
                     <p className="text-gray-400 text-md mb-3 leading-relaxed">
                       {step.description}
                     </p>
-                    <div className={`text-xs font-medium uppercase tracking-wide ${
-                      step.action ? "text-purple-300" : "text-blue-300"
-                    }`}>
+                    <div
+                      className={`text-xs font-medium uppercase tracking-wide ${
+                        step.action ? "text-purple-300" : "text-blue-300"
+                      }`}
+                    >
                       {step.time}
                     </div>
                   </div>
@@ -169,15 +184,16 @@ export default function ThankYouPage() {
             Questions? We're Here to Help
           </h3>
           <p className="text-gray-400 mb-4">
-            If you have any immediate questions or concerns, don't hesitate to reach out.
+            If you have any immediate questions or concerns, don't hesitate to
+            reach out.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-gray-300">
             <a
-              href="mailto:hello@andishi.co.ke"
+              href="mailto:info@andishi.dev"
               className="flex items-center space-x-2 hover:text-blue-400 transition-colors"
             >
               <FaEnvelope className="text-md" />
-              <span>hello@andishi.co.ke</span>
+              <span>info@andishi.dev</span>
             </a>
             <div className="hidden sm:block w-px h-4 bg-gray-600"></div>
             <div className="flex items-center space-x-2">

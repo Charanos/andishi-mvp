@@ -33,6 +33,7 @@ const ROUTE_CONFIG = {
     "/featured-blog",
     "/tech-talent-pool",
     "/start-project",
+    "/project-details",
     "/join-talent-pool",
     "/thank-you-start-project",
     "/thank-you-join-talent-pool",

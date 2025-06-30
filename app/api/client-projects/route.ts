@@ -63,6 +63,40 @@ const authenticateRequest = async (req: NextRequest) => {
   }
 };
 
+// Helper function to check if a string is a valid ObjectId
+const isValidObjectId = (id: string): boolean => {
+  return typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
+};
+
+// Helper function to perform delete operation that handles both _id and id fields
+const performDeleteOperation = async (db: any, projectId: string, itemId: string, arrayField: string) => {
+  let result = { modifiedCount: 0 };
+  
+  if (isValidObjectId(itemId)) {
+    // First try to delete by _id (ObjectId)
+    result = await db.collection('projects').updateOne(
+      { _id: new ObjectId(projectId) },
+      { $pull: { [arrayField]: { _id: new ObjectId(itemId) } } }
+    );
+    
+    // If no document was modified, try deleting by id (string)
+    if (result.modifiedCount === 0) {
+      result = await db.collection('projects').updateOne(
+        { _id: new ObjectId(projectId) },
+        { $pull: { [arrayField]: { id: itemId } } }
+      );
+    }
+  } else {
+    // For non-ObjectId strings, only try the id field
+    result = await db.collection('projects').updateOne(
+      { _id: new ObjectId(projectId) },
+      { $pull: { [arrayField]: { id: itemId } } }
+    );
+  }
+  
+  return result;
+};
+
 // GET handler to fetch projects for the logged-in client
 export async function GET(req: NextRequest) {
   try {
@@ -393,24 +427,186 @@ export async function PATCH(req: NextRequest) {
     if (Object.keys(setOps).length) updateQuery.$set = setOps;
     if (Object.keys(pushOps).length) updateQuery.$push = pushOps;
 
-    // Milestone updates can be either add new or modify existing
+    // Handle different CRUD operations based on request type
+    let operationResult = { modifiedCount: 0 };
+    
+    // Handle individual CRUD operations
+    if (updates.operation) {
+      const { operation, data, itemId } = updates;
+      
+      try {
+        switch (operation) {
+          case 'milestone_create':
+            const newMilestone = {
+              ...data,
+              _id: new ObjectId(),
+              id: new ObjectId().toString(),
+              status: data.status || 'pending',
+              dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+            operationResult = await db.collection('projects').updateOne(
+              { _id: new ObjectId(projectId) },
+              { $push: { milestones: newMilestone } }
+            );
+            break;
+            
+          case 'milestone_update':
+            const milestoneSet: Record<string, any> = {};
+            if (data.title !== undefined) milestoneSet['milestones.$.title'] = data.title;
+            if (data.description !== undefined) milestoneSet['milestones.$.description'] = data.description;
+            if (data.budget !== undefined) milestoneSet['milestones.$.budget'] = data.budget;
+            if (data.timeline !== undefined) milestoneSet['milestones.$.timeline'] = data.timeline;
+            if (data.status !== undefined) milestoneSet['milestones.$.status'] = data.status;
+            if (data.dueDate !== undefined) milestoneSet['milestones.$.dueDate'] = new Date(data.dueDate);
+            if (data.completedAt !== undefined) milestoneSet['milestones.$.completedAt'] = new Date(data.completedAt);
+            milestoneSet['milestones.$.updatedAt'] = new Date();
+            
+            const milestoneQuery = isValidObjectId(itemId)
+              ? { _id: new ObjectId(projectId), 'milestones._id': new ObjectId(itemId) }
+              : { _id: new ObjectId(projectId), 'milestones.id': itemId };
+              
+            operationResult = await db.collection('projects').updateOne(
+              milestoneQuery,
+              { $set: milestoneSet }
+            );
+            break;
+            
+          case 'milestone_delete':
+            operationResult = await performDeleteOperation(db, projectId, itemId, 'milestones');
+            break;
+            
+          case 'file_create':
+            const newFile = {
+              ...data,
+              _id: new ObjectId(),
+              id: new ObjectId().toString(),
+              createdAt: new Date(),
+            };
+            operationResult = await db.collection('projects').updateOne(
+              { _id: new ObjectId(projectId) },
+              { $push: { files: newFile } }
+            );
+            break;
+            
+          case 'file_update':
+            const fileSet: Record<string, any> = {};
+            Object.keys(data).forEach(key => {
+              if (data[key] !== undefined) {
+                fileSet[`files.$.${key}`] = data[key];
+              }
+            });
+            fileSet['files.$.updatedAt'] = new Date();
+            
+            const fileQuery = isValidObjectId(itemId)
+              ? { _id: new ObjectId(projectId), 'files._id': new ObjectId(itemId) }
+              : { _id: new ObjectId(projectId), 'files.id': itemId };
+            operationResult = await db.collection('projects').updateOne(
+              fileQuery,
+              { $set: fileSet }
+            );
+            break;
+            
+          case 'file_delete':
+            operationResult = await performDeleteOperation(db, projectId, itemId, 'files');
+            break;
+            
+          case 'payment_create':
+            const newPayment = {
+              ...data,
+              _id: new ObjectId(),
+              id: new ObjectId().toString(),
+              date: data.date || new Date().toISOString().split('T')[0],
+              createdAt: new Date(),
+            };
+            operationResult = await db.collection('projects').updateOne(
+              { _id: new ObjectId(projectId) },
+              { $push: { payments: newPayment } }
+            );
+            break;
+            
+          case 'payment_update':
+            const paymentSet: Record<string, any> = {};
+            Object.keys(data).forEach(key => {
+              if (data[key] !== undefined) {
+                paymentSet[`payments.$.${key}`] = data[key];
+              }
+            });
+            paymentSet['payments.$.updatedAt'] = new Date();
+            
+            const paymentQuery = isValidObjectId(itemId)
+              ? { _id: new ObjectId(projectId), 'payments._id': new ObjectId(itemId) }
+              : { _id: new ObjectId(projectId), 'payments.id': itemId };
+            operationResult = await db.collection('projects').updateOne(
+              paymentQuery,
+              { $set: paymentSet }
+            );
+            break;
+            
+          case 'payment_delete':
+            operationResult = await performDeleteOperation(db, projectId, itemId, 'payments');
+            break;
+            
+          case 'update_create':
+            const newUpdate = {
+              ...data,
+              _id: new ObjectId(),
+              id: new ObjectId().toString(),
+              createdAt: new Date(),
+              author: data.author || 'Client',
+            };
+            operationResult = await db.collection('projects').updateOne(
+              { _id: new ObjectId(projectId) },
+              { $push: { updates: newUpdate } }
+            );
+            break;
+            
+          case 'update_delete':
+            operationResult = await performDeleteOperation(db, projectId, itemId, 'updates');
+            break;
+            
+          default:
+            throw new Error(`Unknown operation: ${operation}`);
+        }
+        
+        // For CRUD operations, return immediately
+        return NextResponse.json({
+          success: true,
+          message: `${operation} completed successfully`,
+          modifiedCount: operationResult.modifiedCount
+        });
+        
+      } catch (operationError) {
+        console.error(`Error in ${operation}:`, operationError);
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: `Failed to ${operation}`,
+            error: operationError instanceof Error ? operationError.message : operationError 
+          },
+          { status: 500 }
+        );
+      }
+    }
+    
+    // Legacy milestone handling for backwards compatibility
     let milestoneResult = { modifiedCount: 0 };
-    if (updates.milestones) {
-      const ms = updates.milestones as any; // expected { id, ...fields }
+    if (updates.milestones && !updates.operation) {
+      const ms = updates.milestones as any;
       if (ms.id) {
         // update existing milestone
         const milestoneSet: Record<string, any> = {};
         if (ms.title !== undefined) milestoneSet['milestones.$.title'] = ms.title;
         if (ms.description !== undefined) milestoneSet['milestones.$.description'] = ms.description;
-        if (ms.budget !== undefined) milestoneSet['milestones.$.budget'] = ms.budget; // Fixing the typo from 'budget' to 'budget'
+        if (ms.budget !== undefined) milestoneSet['milestones.$.budget'] = ms.budget;
         if (ms.timeline !== undefined) milestoneSet['milestones.$.timeline'] = ms.timeline;
         if (ms.status !== undefined) milestoneSet['milestones.$.status'] = ms.status;
         if (ms.dueDate !== undefined) milestoneSet['milestones.$.dueDate'] = new Date(ms.dueDate);
         if (ms.completedAt !== undefined) milestoneSet['milestones.$.completedAt'] = new Date(ms.completedAt);
         milestoneSet['milestones.$.updatedAt'] = new Date();
 
-        const isValidObjectId = typeof ms.id === 'string' && /^[a-fA-F0-9]{24}$/.test(ms.id);
-        const milestoneQuery = isValidObjectId
+        const milestoneQuery = isValidObjectId(ms.id)
           ? { _id: new ObjectId(projectId), 'milestones._id': new ObjectId(ms.id) }
           : { _id: new ObjectId(projectId), 'milestones.id': ms.id };
 
@@ -554,4 +750,4 @@ export async function DELETE(req: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

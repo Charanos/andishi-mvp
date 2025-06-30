@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaArrowCircleLeft,
   FaProjectDiagram,
@@ -18,10 +18,54 @@ import {
   FaClock,
   FaExclamationTriangle,
   FaPlus,
+  FaCode,
+  FaCalendar,
+  FaChartLine,
+  FaBell,
+  FaTag,
+  FaDatabase,
+  FaDownload,
+  FaTrashAlt,
+  FaSave,
+  FaPaperPlane,
+  FaReply,
 } from "react-icons/fa";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
+import {
+  Target,
+  Calendar,
+  CheckCircle,
+  DollarSign,
+  FileText,
+  Activity,
+  Code,
+  Clock,
+  MessageSquare,
+  ExternalLink,
+  Upload,
+  Download,
+  Trash2,
+  Edit,
+  Plus,
+  Save,
+  X,
+  Reply,
+  Send,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
-import { ProjectDetails, Milestone, PricingOption, ProjectData } from "~/types";
+import {
+  ProjectDetails,
+  Milestone,
+  PricingOption,
+  ProjectData,
+  ProjectFile,
+  Payment,
+  ProjectUpdate,
+} from "~/types";
 
 interface ProjectOverviewProps {
   selectedProject: ProjectData | null;
@@ -47,6 +91,62 @@ interface ProjectOverviewProps {
   ) => Promise<void>;
 }
 
+type TrackingView =
+  | "overview"
+  | "timeline"
+  | "milestones"
+  | "budget"
+  | "files"
+  | "activity"
+  | "updates";
+
+type MilestoneStatus = "pending" | "in_progress" | "completed" | "cancelled";
+type PaymentStatus = "pending" | "paid" | "overdue" | "partial";
+type FileType = "document" | "image" | "video" | "other";
+type UpdateType =
+  | "general"
+  | "milestone"
+  | "payment"
+  | "file"
+  | "admin_response";
+
+// Utility functions
+const formatCurrency = (amount: number, currency: "USD" | "KES") => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency,
+  }).format(amount);
+};
+
+const getStatusColor = (status: string) => {
+  const colors: Record<string, string> = {
+    pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+    in_progress: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    completed: "bg-green-500/20 text-green-300 border-green-500/30",
+    overdue: "bg-red-500/20 text-red-300 border-red-500/30",
+    paid: "bg-green-500/20 text-green-300 border-green-500/30",
+    partial: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+    reviewed: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+    approved: "bg-teal-500/20 text-teal-300 border-teal-500/30",
+    rejected: "bg-red-500/20 text-red-300 border-red-500/30",
+  };
+  return colors[status] || colors.pending;
+};
+
+const getStatusIcon = (status: string) => {
+  const icons: Record<string, React.ReactElement> = {
+    pending: <Clock className="w-4 h-4 text-yellow-400" />,
+    in_progress: <Activity className="w-4 h-4 text-blue-400" />,
+    completed: <CheckCircle className="w-4 h-4 text-green-400" />,
+    on_hold: <AlertCircle className="w-4 h-4 text-orange-400" />,
+    cancelled: <X className="w-4 h-4 text-red-400" />,
+    reviewed: <Eye className="w-4 h-4 text-purple-400" />,
+    approved: <CheckCircle2 className="w-4 h-4 text-teal-400" />,
+    rejected: <X className="w-4 h-4 text-red-400" />,
+  };
+  return icons[status] || icons.pending;
+};
+
 const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   selectedProject,
   onBack,
@@ -57,26 +157,45 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   onFileUpload,
   onPaymentRecord,
 }) => {
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "milestones" | "updates" | "files" | "payments"
-  >("overview");
+  const [trackingView, setTrackingView] = useState<TrackingView>("overview");
+  const [projectData, setProjectData] = useState<ProjectData>(selectedProject!);
+
+  const [files, setFiles] = useState<ProjectFile[]>(projectData.files || []);
+  const [editingFile, setEditingFile] = useState<string | null>(null);
+  const [newFile, setNewFile] = useState<Partial<ProjectFile>>({});
+  const [showAddFile, setShowAddFile] = useState(false);
+
+  const [milestones, setMilestones] = useState<Milestone[]>(
+    projectData.milestones || []
+  );
+  const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
+  const [newMilestone, setNewMilestone] = useState<Partial<Milestone>>({});
+  const [showAddMilestone, setShowAddMilestone] = useState(false);
+
+  const [payments, setPayments] = useState<Payment[]>(
+    projectData.payments || []
+  );
+  const [editingPayment, setEditingPayment] = useState<string | null>(null);
+  const [newPayment, setNewPayment] = useState<Partial<Payment>>({});
+  const [showAddPayment, setShowAddPayment] = useState(false);
+
+  const [updates, setUpdates] = useState<ProjectUpdate[]>(
+    projectData.updates || []
+  );
+  const [newUpdate, setNewUpdate] = useState<Partial<ProjectUpdate>>({});
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const projectMilestones: Milestone[] = selectedProject?.milestones ?? [];
   const [progressValue, setProgressValue] = useState(
     selectedProject?.progress || 0
   );
-  const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
-  const [milestoneForm, setMilestoneForm] = useState({
-    title: "",
-    description: "",
-    budget: "",
-    timeline: "",
-  });
+
   const [updateForm, setUpdateForm] = useState({
     title: "",
     description: "",
@@ -95,10 +214,104 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     status: "completed",
     notes: "",
   });
+  const [editMilestone, setEditMilestone] = useState<Milestone | null>(null);
+  const [milestoneForm, setMilestoneForm] = useState({
+    title: "",
+    description: "",
+    budget: "",
+    timeline: "",
+  });
+
+  // Convert date strings to Date objects
+  useEffect(() => {
+    if (selectedProject) {
+      const convertDates = (data: ProjectData): ProjectData => {
+        return {
+          ...data,
+          startDate: data.startDate ? new Date(data.startDate) : undefined,
+          endDate: data.endDate ? new Date(data.endDate) : undefined,
+          estimatedCompletionDate: data.estimatedCompletionDate
+            ? new Date(data.estimatedCompletionDate)
+            : undefined,
+          actualCompletionDate: data.actualCompletionDate
+            ? new Date(data.actualCompletionDate)
+            : undefined,
+          milestones: data.milestones?.map((m) => ({
+            ...m,
+            dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+            completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+          })),
+          updates: data.updates?.map((u) => ({
+            ...u,
+            createdAt: new Date(u.createdAt),
+          })),
+          files: data.files?.map((f) => ({
+            ...f,
+            createdAt: new Date(f.createdAt),
+          })),
+          payments: data.payments?.map((p) => ({
+            ...p,
+            date: p.date,
+          })),
+        };
+      };
+
+      setProjectData(convertDates(selectedProject));
+      setFiles(selectedProject.files || []);
+      setMilestones(selectedProject.milestones || []);
+      setPayments(selectedProject.payments || []);
+      setUpdates(selectedProject.updates || []);
+    }
+  }, [selectedProject]);
+
+  // Calculate project statistics
+  const totalMilestones = milestones.length;
+  const completedMilestones = milestones.filter(
+    (m) => m.status === "completed"
+  ).length;
+  const milestoneProgress =
+    totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
+
+  const totalBudget =
+    projectData.pricing?.type === "fixed" && projectData.pricing.fixedBudget
+      ? parseFloat(projectData.pricing.fixedBudget)
+      : milestones.reduce((sum, m) => sum + parseFloat(m.budget), 0);
+
+  const spentBudget = payments.reduce((sum, p) => sum + p.amount, 0);
+  const budgetProgress =
+    totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
+
+  // Calculate timeline
+  const startDate = projectData.startDate;
+  const endDate =
+    projectData.actualCompletionDate || projectData.estimatedCompletionDate;
+  const daysPassed = startDate
+    ? Math.floor(
+        (Date.now() -
+          (typeof startDate === "string"
+            ? new Date(startDate).getTime()
+            : startDate.getTime())) /
+          (1000 * 3600 * 24)
+      )
+    : 0;
+  const totalDays =
+    startDate && endDate
+      ? Math.floor(
+          ((typeof endDate === "string"
+            ? new Date(endDate)
+            : endDate
+          ).getTime() -
+            (typeof startDate === "string"
+              ? new Date(startDate)
+              : startDate
+            ).getTime()) /
+            (1000 * 3600 * 24)
+        )
+      : 0;
 
   if (!selectedProject) return null;
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIconLocal = (status: string) => {
     switch (status) {
       case "approved":
         return <FaCheckCircle className="text-green-400" />;
@@ -128,7 +341,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     }
   };
 
-  const formatCurrency = (amount: number, currency: string) => {
+  const formatCurrencyLocal = (amount: number, currency: string) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency,
@@ -180,8 +393,6 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     }
   };
 
-
-
   const handleUpdateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
@@ -227,6 +438,171 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     });
   };
 
+  // File CRUD operations
+  const handleAddFile = () => {
+    if (newFile.fileName && newFile.fileUrl) {
+      const file: ProjectFile = {
+        id: Date.now().toString(),
+        fileName: newFile.fileName,
+        fileUrl: newFile.fileUrl,
+        createdAt: new Date(),
+        ...(newFile.fileSize && { fileSize: newFile.fileSize }),
+        ...(newFile.fileType && { fileType: newFile.fileType as FileType }),
+        ...(newFile.uploadedBy && { uploadedBy: newFile.uploadedBy }),
+        ...(newFile.description && { description: newFile.description }),
+      };
+      setFiles([...files, file]);
+      setNewFile({});
+      setShowAddFile(false);
+    }
+  };
+
+  const handleUpdateFile = (id: string, updatedFile: Partial<ProjectFile>) => {
+    setFiles(
+      files.map((file) => (file.id === id ? { ...file, ...updatedFile } : file))
+    );
+    setEditingFile(null);
+  };
+
+  const handleDeleteFile = (id: string) => {
+    setFiles(files.filter((file) => file.id !== id));
+  };
+
+  // Milestone CRUD operations
+  const handleAddMilestone = () => {
+    if (newMilestone.title && newMilestone.description) {
+      const milestone: Milestone = {
+        id: Date.now().toString(),
+        title: newMilestone.title,
+        description: newMilestone.description,
+        budget: newMilestone.budget || "0",
+        timeline: newMilestone.timeline || "",
+        status: (newMilestone.status || "pending") as MilestoneStatus,
+        dueDate: newMilestone.dueDate || new Date(),
+        order: milestones.length + 1,
+        deliverables: newMilestone.deliverables || [],
+      };
+      setMilestones([...milestones, milestone]);
+      setNewMilestone({});
+      setShowAddMilestone(false);
+    }
+  };
+
+  const handleUpdateMilestone = (
+    id: string,
+    updatedMilestone: Partial<Milestone>
+  ) => {
+    setMilestones(
+      milestones.map((milestone) =>
+        milestone.id === id ? { ...milestone, ...updatedMilestone } : milestone
+      )
+    );
+    setEditingMilestone(null);
+  };
+
+  const handleDeleteMilestone = (id: string) => {
+    setMilestones(milestones.filter((milestone) => milestone.id !== id));
+  };
+
+  // Payment CRUD operations
+  const handleAddPaymentLocal = () => {
+    if (newPayment.amount && newPayment.date) {
+      const payment: Payment = {
+        id: Date.now().toString(),
+        amount: Number(newPayment.amount),
+        date: newPayment.date,
+        method: newPayment.method || "Unknown",
+        ...(newPayment.currency && {
+          currency: newPayment.currency as "USD" | "KES",
+        }),
+        ...(newPayment.status && {
+          status: newPayment.status as PaymentStatus,
+        }),
+        ...(newPayment.description && { description: newPayment.description }),
+        ...(newPayment.notes && { notes: newPayment.notes }),
+        ...(newPayment.invoiceUrl && { invoiceUrl: newPayment.invoiceUrl }),
+      };
+      setPayments([...payments, payment]);
+      setNewPayment({});
+      setShowAddPayment(false);
+    }
+  };
+
+  const handleUpdatePayment = (
+    id: string,
+    updatedPayment: Partial<Payment>
+  ) => {
+    setPayments(
+      payments.map((payment) =>
+        payment.id === id ? { ...payment, ...updatedPayment } : payment
+      )
+    );
+    setEditingPayment(null);
+  };
+
+  const handleDeletePayment = (id: string) => {
+    setPayments(payments.filter((payment) => payment.id !== id));
+  };
+
+  // Updates operations
+  const handleAddUpdateLocal = () => {
+    if (newUpdate.title && newUpdate.description) {
+      const update: ProjectUpdate = {
+        id: Date.now().toString(),
+        title: newUpdate.title,
+        description: newUpdate.description,
+        type: (newUpdate.type || "general") as UpdateType,
+        createdAt: new Date(),
+        author: "Admin",
+      };
+      setUpdates([update, ...updates]);
+      setNewUpdate({});
+    }
+  };
+
+  const handleReply = (updateId: string) => {
+    if (replyText.trim()) {
+      const reply: ProjectUpdate = {
+        id: Date.now().toString(),
+        title: "Admin Response",
+        description: replyText,
+        type: "admin_response",
+        createdAt: new Date(),
+        author: "Admin",
+        isAdminResponse: true,
+        parentUpdateId: updateId,
+      };
+      setUpdates([reply, ...updates]);
+      setReplyText("");
+      setReplyingTo(null);
+    }
+  };
+
+  const recentActivity = [
+    ...updates.map((u) => ({ ...u, activityType: "update" })),
+    ...milestones
+      .filter((m) => m.completedAt)
+      .map((m) => ({
+        id: m.id,
+        title: `Milestone: ${m.title}`,
+        description: "Milestone completed",
+        createdAt: m.completedAt!,
+        activityType: "milestone",
+      })),
+  ]
+    .sort(
+      (a, b) =>
+        (typeof b.createdAt === "string"
+          ? new Date(b.createdAt)
+          : b.createdAt
+        ).getTime() -
+        (typeof a.createdAt === "string"
+          ? new Date(a.createdAt)
+          : a.createdAt
+        ).getTime()
+    )
+    .slice(0, 5);
+
   return (
     <div className="bg-black/5 min-h-screen rounded-lg">
       {/* Header Section */}
@@ -266,7 +642,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </span>
               </div>
               <div className="flex items-center space-x-2">
-                {getStatusIcon(selectedProject.status)}
+                {getStatusIconLocal(selectedProject.status)}
                 <span className="text-white font-medium capitalize">
                   {selectedProject.status.replace("_", " ")}
                 </span>
@@ -283,35 +659,40 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="mb-8 mt-4 rounded-lg bg-white/5 border-b border-white/10">
-        <div className="flex space-x-1 p-2">
+      {/* Enhanced Project Tracking Navigation */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 my-8 rounded-2xl p-2 mb-8">
+        <div className="flex items-center space-x-1 overflow-x-auto">
           {[
-            { key: "overview", label: "Overview", icon: FaProjectDiagram },
-            { key: "milestones", label: "Milestones", icon: FaCheckCircle },
-            { key: "updates", label: "Updates", icon: FaComment },
-            { key: "files", label: "Files", icon: FaFileAlt },
-            { key: "payments", label: "Payments", icon: FaCreditCard },
-          ].map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key as typeof activeTab)}
-              className={`cursor-pointer flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
-                activeTab === key
-                  ? "bg-indigo-500 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
-            </button>
-          ))}
+            { id: "overview", label: "Overview", icon: Target },
+            { id: "timeline", label: "Timeline", icon: Calendar },
+            { id: "milestones", label: "Milestones", icon: CheckCircle },
+            { id: "budget", label: "Budget & Payments", icon: DollarSign },
+            { id: "files", label: "Files", icon: FileText },
+            { id: "updates", label: "Updates", icon: MessageSquare },
+            { id: "activity", label: "Activity", icon: Activity },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setTrackingView(tab.id as TrackingView)}
+                className={`flex cursor-pointer items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${
+                  trackingView === tab.id
+                    ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="font-medium">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {activeTab === "overview" && (
+        {trackingView === "overview" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Project Details */}
             <div className="lg:col-span-2 space-y-8">
@@ -491,7 +872,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                           Total Project Budget
                         </p>
                         <p className="text-3xl font-semibold bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent group-hover/budget:from-green-300 group-hover/budget:via-emerald-300 group-hover/budget:to-teal-300 transition-all duration-300">
-                          {formatCurrency(
+                          {formatCurrencyLocal(
                             calculateProjectBudget(selectedProject),
                             selectedProject.pricing.currency
                           )}
@@ -954,7 +1335,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           </div>
         )}
 
-        {activeTab === "milestones" && (
+        {trackingView === "milestones" && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-white">
@@ -962,9 +1343,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </h2>
             </div>
 
-            {projectMilestones && projectMilestones.length > 0 ? (
+            {milestones && milestones.length > 0 ? (
               <div className="space-y-4">
-                {projectMilestones
+                {milestones
                   .sort((a, b) => a.order - b.order)
                   .map((milestone, index) => (
                     <div
@@ -992,7 +1373,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                     : "bg-gray-500/20 text-gray-300"
                                 }`}
                               >
-                                {(milestone.status ?? "pending").replace("_", " ")}
+                                {(milestone.status ?? "pending").replace(
+                                  "_",
+                                  " "
+                                )}
                               </span>
                             </div>
                             <p className="text-gray-300 mb-3">
@@ -1013,7 +1397,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                         </div>
                         <div className="text-right ml-6">
                           <p className="text-green-400 font-semibold text-xl">
-                            {formatCurrency(
+                            {formatCurrencyLocal(
                               parseFloat(milestone.budget),
                               selectedProject.pricing.currency
                             )}
@@ -1095,7 +1479,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           </div>
         )}
 
-        {activeTab === "updates" && (
+        {trackingView === "updates" && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-white">
@@ -1156,7 +1540,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           </div>
         )}
 
-        {activeTab === "files" && (
+        {trackingView === "files" && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-white">
@@ -1232,7 +1616,141 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           </div>
         )}
 
-        {activeTab === "payments" && (
+        {trackingView === "timeline" && (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Project Timeline
+            </h2>
+            <div className="space-y-4">
+              <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
+                <label className="text-sm font-medium text-gray-400 mb-1 block">
+                  Created
+                </label>
+                <p className="text-white font-medium">
+                  {new Date(projectData.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+              </div>
+              {projectData.startDate && (
+                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
+                  <label className="text-sm font-medium text-gray-400 mb-1 block">
+                    Started
+                  </label>
+                  <p className="text-white font-medium">
+                    {(typeof projectData.startDate === "string"
+                      ? new Date(projectData.startDate)
+                      : projectData.startDate
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              )}
+              {projectData.estimatedCompletionDate && (
+                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
+                  <label className="text-sm font-medium text-gray-400 mb-1 block">
+                    {projectData.actualCompletionDate
+                      ? "Estimated Completion"
+                      : "Expected Completion"}
+                  </label>
+                  <p className="text-white font-medium">
+                    {(typeof projectData.estimatedCompletionDate === "string"
+                      ? new Date(projectData.estimatedCompletionDate)
+                      : projectData.estimatedCompletionDate
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              )}
+              {projectData.actualCompletionDate && (
+                <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <label className="text-sm font-medium text-green-400 mb-1 block">
+                    Completed
+                  </label>
+                  <p className="text-white font-medium">
+                    {(typeof projectData.actualCompletionDate === "string"
+                      ? new Date(projectData.actualCompletionDate)
+                      : projectData.actualCompletionDate
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {trackingView === "activity" && (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Recent Activity
+            </h2>
+
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div
+                  key={`${activity.activityType}-${activity.id}`}
+                  className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                >
+                  <div className="flex-shrink-0 mt-1">
+                    {activity.activityType === "milestone" ? (
+                      <div className="p-2 bg-green-500/20 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-green-300" />
+                      </div>
+                    ) : activity.activityType === "update" ? (
+                      <div className="p-2 bg-blue-500/20 rounded-lg">
+                        <MessageSquare className="w-5 h-5 text-blue-300" />
+                      </div>
+                    ) : (
+                      <div className="p-2 bg-purple-500/20 rounded-lg">
+                        <Activity className="w-5 h-5 text-purple-300" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white font-medium mb-1">
+                      {activity.title}
+                    </h3>
+                    <p className="text-gray-300 text-sm mb-2">
+                      {activity.description}
+                    </p>
+                    <span className="text-xs text-gray-400">
+                      {(typeof activity.createdAt === "string"
+                        ? new Date(activity.createdAt)
+                        : activity.createdAt
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {recentActivity.length === 0 && (
+                <div className="text-center py-12">
+                  <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    No Activity Yet
+                  </h3>
+                  <p className="text-gray-400">
+                    Activity will appear here as the project progresses.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {trackingView === "budget" && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-white">
@@ -1251,15 +1769,24 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
                 <ul className="divide-y divide-white/10">
                   {selectedProject.payments.map((payment) => (
-                    <li key={payment.id} className="p-6 flex items-center justify-between hover:bg-white/5 transition-colors">
+                    <li
+                      key={payment.id}
+                      className="p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
+                    >
                       <div>
-                        <p className="text-white font-medium">Payment Received</p>
+                        <p className="text-white font-medium">
+                          Payment Received
+                        </p>
                         <p className="text-gray-400 text-sm">
-                          {new Date(payment.date).toLocaleDateString()} via {payment.method}
+                          {new Date(payment.date).toLocaleDateString()} via{" "}
+                          {payment.method}
                         </p>
                       </div>
                       <span className="text-green-400 font-semibold text-lg">
-                        {formatCurrency(payment.amount, selectedProject.pricing.currency)}
+                        {formatCurrencyLocal(
+                          payment.amount,
+                          selectedProject.pricing.currency
+                        )}
                       </span>
                     </li>
                   ))}
@@ -1283,27 +1810,38 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-800/80 border border-gray-700 rounded-2xl p-8 w-full max-w-lg">
-            <h2 className="text-2xl font-semibold text-white mb-4">Record Payment</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">
+              Record Payment
+            </h2>
             <form onSubmit={handlePaymentSubmit}>
               <div className="space-y-4">
                 <input
                   type="number"
                   placeholder="Amount"
                   value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseFloat(e.target.value) })}
+                  onChange={(e) =>
+                    setPaymentForm({
+                      ...paymentForm,
+                      amount: parseFloat(e.target.value),
+                    })
+                  }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
                 <input
                   type="date"
                   value={paymentForm.date}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, date: e.target.value })}
+                  onChange={(e) =>
+                    setPaymentForm({ ...paymentForm, date: e.target.value })
+                  }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
                 <select
                   value={paymentForm.method}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
+                  onChange={(e) =>
+                    setPaymentForm({ ...paymentForm, method: e.target.value })
+                  }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="card">Card</option>
@@ -1313,8 +1851,19 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </select>
               </div>
               <div className="flex justify-end space-x-4 mt-6">
-                <button type="button" onClick={() => setShowPaymentModal(false)} className="px-4 py-2 text-gray-300 hover:text-white">Cancel</button>
-                <button type="submit" className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg">Record Payment</button>
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="px-4 py-2 text-gray-300 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg"
+                >
+                  Record Payment
+                </button>
               </div>
             </form>
           </div>
@@ -1325,7 +1874,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       {showFileUploadModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-800/80 border border-gray-700 rounded-2xl p-8 w-full max-w-lg">
-            <h2 className="text-2xl font-semibold text-white mb-4">Upload File</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">
+              Upload File
+            </h2>
             <form onSubmit={handleFileUploadSubmit}>
               <div className="space-y-4">
                 <input
@@ -1339,8 +1890,20 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 )}
               </div>
               <div className="flex justify-end space-x-4 mt-6">
-                <button type="button" onClick={() => setShowFileUploadModal(false)} className="px-4 py-2 text-gray-300 hover:text-white">Cancel</button>
-                <button type="submit" className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg" disabled={!selectedFile}>Upload</button>
+                <button
+                  type="button"
+                  onClick={() => setShowFileUploadModal(false)}
+                  className="px-4 py-2 text-gray-300 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg"
+                  disabled={!selectedFile}
+                >
+                  Upload
+                </button>
               </div>
             </form>
           </div>
@@ -1351,39 +1914,63 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       {showUpdateModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-800/80 border border-gray-700 rounded-2xl p-8 w-full max-w-lg">
-            <h2 className="text-2xl font-semibold text-white mb-4">Add Project Update</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">
+              Add Project Update
+            </h2>
             <form onSubmit={handleUpdateSubmit}>
               <div className="space-y-4">
                 <input
                   type="text"
                   placeholder="Update Title"
                   value={updateForm.title}
-                  onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })}
+                  onChange={(e) =>
+                    setUpdateForm({ ...updateForm, title: e.target.value })
+                  }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
                 <textarea
                   placeholder="Update Description"
                   value={updateForm.description}
-                  onChange={(e) => setUpdateForm({ ...updateForm, description: e.target.value })}
+                  onChange={(e) =>
+                    setUpdateForm({
+                      ...updateForm,
+                      description: e.target.value,
+                    })
+                  }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   rows={4}
                   required
                 />
                 <select
                   value={updateForm.type}
-                  onChange={(e) => setUpdateForm({ ...updateForm, type: e.target.value })}
+                  onChange={(e) =>
+                    setUpdateForm({ ...updateForm, type: e.target.value })
+                  }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="general">General</option>
                   <option value="progress">Progress</option>
                   <option value="blocker">Blocker</option>
-                  <option value="milestone_completed">Milestone Completed</option>
+                  <option value="milestone_completed">
+                    Milestone Completed
+                  </option>
                 </select>
               </div>
               <div className="flex justify-end space-x-4 mt-6">
-                <button type="button" onClick={() => setShowUpdateModal(false)} className="px-4 py-2 text-gray-300 hover:text-white">Cancel</button>
-                <button type="submit" className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg">Add</button>
+                <button
+                  type="button"
+                  onClick={() => setShowUpdateModal(false)}
+                  className="px-4 py-2 text-gray-300 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg"
+                >
+                  Add
+                </button>
               </div>
             </form>
           </div>
@@ -1511,7 +2098,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     min="0"
                     max="100"
                     value={progressValue}
-                    onChange={(e) => setProgressValue(parseInt(e.target.value, 10))}
+                    onChange={(e) =>
+                      setProgressValue(parseInt(e.target.value, 10))
+                    }
                     className="w-full h-3 bg-gradient-to-r from-gray-700 to-gray-600 rounded-full appearance-none cursor-pointer relative z-10 slider-enhanced"
                     style={{
                       background: `linear-gradient(to right, #6366f1 0%, #8b5cf6 ${progressValue}%, #374151 ${progressValue}%, #374151 100%)`,

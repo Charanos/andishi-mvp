@@ -27,6 +27,7 @@ interface Notification {
 }
 
 import type { DeveloperProfile } from "../../lib/types";
+import { IoMdArrowBack, IoMdArrowDropleftCircle } from "react-icons/io";
 
 interface Props {
   onCreate: (newProfile: DeveloperProfile) => void;
@@ -79,11 +80,14 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Custom toast notification functions
-  const addNotification = (type: "success" | "error" | "info", message: string) => {
+  const addNotification = (
+    type: "success" | "error" | "info",
+    message: string
+  ) => {
     const id = Date.now().toString();
     const notification: Notification = { id, type, message };
-    setNotifications(prev => [...prev, notification]);
-    
+    setNotifications((prev) => [...prev, notification]);
+
     // Auto remove after 4 seconds
     setTimeout(() => {
       removeNotification(id);
@@ -91,7 +95,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const toast = {
@@ -160,26 +164,26 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
   const validateProfile = (): boolean => {
     const { personalInfo, professionalInfo, technicalSkills } = profile;
-    
+
     // Required fields validation
     if (!personalInfo.firstName.trim()) {
       toast.error("First name is required");
       setActiveTab("personal");
       return false;
     }
-    
+
     if (!personalInfo.lastName.trim()) {
       toast.error("Last name is required");
       setActiveTab("personal");
       return false;
     }
-    
+
     if (!personalInfo.email.trim()) {
       toast.error("Email is required");
       setActiveTab("personal");
       return false;
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(personalInfo.email)) {
@@ -187,25 +191,25 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
       setActiveTab("personal");
       return false;
     }
-    
+
     if (!professionalInfo.title.trim()) {
       toast.error("Professional title is required");
       setActiveTab("professional");
       return false;
     }
-    
+
     if (technicalSkills.primarySkills.length === 0) {
       toast.error("At least one primary skill is required");
       setActiveTab("skills");
       return false;
     }
-    
+
     return true;
   };
 
   const handleCreate = async () => {
     if (!validateProfile()) return;
-    
+
     setCreating(true);
     try {
       console.log("Creating new developer profile...");
@@ -214,15 +218,15 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
-      
+
       if (!res.ok) {
         throw new Error(`Creation failed: ${res.status} ${res.statusText}`);
       }
-      
+
       const newProfile = await res.json();
       console.log("Developer profile created successfully:", newProfile);
       toast.success("Developer profile created successfully!");
-      
+
       onCreate(newProfile as DeveloperProfile);
     } catch (err) {
       console.error("Error creating profile:", err);
@@ -273,13 +277,19 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                   handleChange("personalInfo", key, e.target.value)
                 }
                 placeholder={
-                  key === "firstName" ? "John" :
-                  key === "lastName" ? "Doe" :
-                  key === "email" ? "john.doe@example.com" :
-                  key === "location" ? "New York, NY" :
-                  key === "portfolio" ? "https://johndoe.dev" :
-                  key === "tagline" ? "Full-stack developer with passion for clean code" :
-                  ""
+                  key === "firstName"
+                    ? "John"
+                    : key === "lastName"
+                    ? "Doe"
+                    : key === "email"
+                    ? "john.doe@example.com"
+                    : key === "location"
+                    ? "New York, NY"
+                    : key === "portfolio"
+                    ? "https://johndoe.dev"
+                    : key === "tagline"
+                    ? "Full-stack developer with passion for clean code"
+                    : ""
                 }
                 required={["firstName", "lastName", "email"].includes(key)}
               />
@@ -370,9 +380,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                     onChange={(e) =>
                       handleChange("professionalInfo", key, e.target.value)
                     }
-                    placeholder={
-                      key === "title" ? "Full Stack Developer" : ""
-                    }
+                    placeholder={key === "title" ? "Full Stack Developer" : ""}
                     required={key === "title"}
                   />
                 )}
@@ -537,7 +545,9 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
           <IconComponent className="text-purple-400" />
           {sectionTitle}
           {skillKey === "primarySkills" && (
-            <span className="text-red-400 text-sm ml-2">* At least one required</span>
+            <span className="text-red-400 text-sm ml-2">
+              * At least one required
+            </span>
           )}
         </h4>
         <div className="space-y-3">
@@ -546,7 +556,10 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col">
                   <label className="text-xs text-gray-400 mb-1">
-                    Skill Name {skillKey === "primarySkills" && <span className="text-red-400">*</span>}
+                    Skill Name{" "}
+                    {skillKey === "primarySkills" && (
+                      <span className="text-red-400">*</span>
+                    )}
                   </label>
                   <input
                     className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm focus:border-blue-400 focus:outline-none transition-colors"
@@ -692,7 +705,9 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaStar className="text-yellow-400" />
         Technical Skills
-        <span className="text-red-400 text-sm ml-2">* At least one primary skill required</span>
+        <span className="text-red-400 text-sm ml-2">
+          * At least one primary skill required
+        </span>
       </h3>
       <div className="space-y-8">
         {renderSkillSection("Primary Skills", "primarySkills", FaStar)}
@@ -750,7 +765,9 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-2">Specializations</label>
+            <label className="text-sm text-gray-300 mb-2">
+              Specializations
+            </label>
             <div className="space-y-2">
               {(profile.technicalSkills.specializations || []).map(
                 (spec, index) => (
@@ -816,9 +833,11 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
               type="number"
               min="0"
               max={
-                key === "averageRating" ? 5 : 
-                key === "clientRetention" ? 100 : 
-                undefined
+                key === "averageRating"
+                  ? 5
+                  : key === "clientRetention"
+                  ? 100
+                  : undefined
               }
               step={key === "averageRating" ? "0.1" : "1"}
               className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white focus:border-blue-400 focus:outline-none transition-colors"
@@ -827,16 +846,21 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                 handleChange(
                   "stats",
                   key,
-                  key === "averageRating" 
+                  key === "averageRating"
                     ? parseFloat(e.target.value) || 0
                     : parseInt(e.target.value) || 0
                 )
               }
               placeholder={
-                key === "totalProjects" ? "0" :
-                key === "averageRating" ? "0.0" :
-                key === "totalEarnings" ? "0" :
-                key === "clientRetention" ? "0" : "0"
+                key === "totalProjects"
+                  ? "0"
+                  : key === "averageRating"
+                  ? "0.0"
+                  : key === "totalEarnings"
+                  ? "0"
+                  : key === "clientRetention"
+                  ? "0"
+                  : "0"
               }
             />
           </div>
@@ -861,7 +885,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4">
+    <div className="min-h-screen ">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {notifications.map((notification) => (
@@ -875,9 +899,15 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                 : "bg-blue-900/90 border-blue-400 text-blue-100"
             }`}
           >
-            {notification.type === "success" && <FaCheck className="text-green-400" />}
-            {notification.type === "error" && <FaTimes className="text-red-400" />}
-            {notification.type === "info" && <FaInfoCircle className="text-blue-400" />}
+            {notification.type === "success" && (
+              <FaCheck className="text-green-400" />
+            )}
+            {notification.type === "error" && (
+              <FaTimes className="text-red-400" />
+            )}
+            {notification.type === "info" && (
+              <FaInfoCircle className="text-blue-400" />
+            )}
             <span className="text-sm font-medium">{notification.message}</span>
             <button
               onClick={() => removeNotification(notification.id)}
@@ -896,18 +926,19 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
             {onCancel && (
               <button
                 onClick={onCancel}
-                className="bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 px-4 py-2 rounded flex items-center gap-2 transition-colors"
+                className="bg-gray-500/5  hover:bg-gray-500/40 text-gray-300 px-4 py-2 rounded-full flex items-center gap-2 cursor-pointer transition-colors"
               >
-                <FaArrowLeft /> Back
+                <IoMdArrowBack className="w-6 h-6" />
               </button>
             )}
             <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <FaUserPlus className="text-blue-400" />
               Add New Developer
+              <FaUserPlus className="text-blue-400" />
             </h1>
           </div>
           <p className="text-gray-300">
-            Create a comprehensive profile for a new developer. Fill in all required fields marked with *.
+            Create a comprehensive profile for a new developer. Fill in all
+            required fields marked with *.
           </p>
         </div>
 
@@ -935,9 +966,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         </div>
 
         {/* Tab Content */}
-        <div className="mb-8">
-          {renderTabContent()}
-        </div>
+        <div className="mb-8">{renderTabContent()}</div>
 
         {/* Action Buttons */}
         <div className="bg-white/5 p-6 rounded-lg">
@@ -971,16 +1000,6 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
             </button>
           </div>
         </div>
-
-        {/* Debug Info (development only) */}
-        {process.env.NODE_ENV === "development" && (
-          <div className="mt-8 bg-black/20 p-4 rounded-lg">
-            <h3 className="text-white mb-2">Debug: Current Profile State</h3>
-            <pre className="text-xs text-gray-300 overflow-auto max-h-40">
-              {JSON.stringify(profile, null, 2)}
-            </pre>
-          </div>
-        )}
       </div>
 
       <style jsx>{`

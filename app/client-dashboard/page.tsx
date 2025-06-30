@@ -56,7 +56,8 @@ import {
 } from "react-icons/fa";
 import ClientDashboardStartProject from "./StartNewProject";
 import { useAuth } from "@/hooks/useAuth";
-import { ProjectWithDetails } from "./types";
+import { ProjectWithDetails } from "../../types/index";
+import EnhancedProjectTracking from "./projectDetails";
 
 type ActiveTab = "projects" | "analytics" | "create" | "settings";
 
@@ -72,6 +73,8 @@ interface ProjectStats {
 
 const ClientDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [trackingView, setTrackingView] = useState<TrackingView>("overview");
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("projects");
   const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<
@@ -1507,670 +1510,87 @@ const ClientDashboard: React.FC = () => {
     );
   };
 
-  const renderProjectDetail = (project: ProjectWithDetails): JSX.Element => {
-    // Calculate project statistics
-    const totalMilestones = project.milestones?.length || 0;
-    const completedMilestones =
-      project.milestones?.filter((m) => m.status === "completed").length || 0;
-    const milestoneProgress =
-      totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-
-    const totalBudget = project.pricing?.fixedBudget
-      ? parseFloat(project.pricing.fixedBudget)
-      : project.milestones?.reduce((sum, m) => sum + parseFloat(m.budget), 0) ||
-        0;
-
-    const spentBudget = project.pricing?.totalPaid
-      ? parseFloat(project.pricing.totalPaid)
-      : 0;
-    const budgetProgress =
-      totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
-
-    // Calculate project duration
-    const startDate = project.startDate;
-    const endDate =
-      project.actualCompletionDate || project.estimatedCompletionDate;
-    const daysPassed = startDate
-      ? Math.floor(
-          (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24)
-        )
-      : 0;
-    const totalDays =
-      startDate && endDate
-        ? Math.floor(
-            (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
-          )
-        : 0;
-
-    // Recent activity
-    const recentActivity = [
-      ...(project.updates?.map((u) => ({ ...u, activityType: "update" })) ||
-        []),
-      ...(project.milestones
-        ?.filter((m) => m.completedAt)
-        .map((m) => ({
-          id: m.id,
-          title: `Milestone: ${m.title}`,
-          description: "Milestone completed",
-          createdAt: m.completedAt!,
-          activityType: "milestone",
-        })) || []),
-    ]
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, 5);
-
-    return (
-      <div className="bg-white/5 min-h-screen rounded-lg">
-        {/* Header Section */}
-        <div className="backdrop-blur-xl bg-indigo-900/80 border-b border-white/10 rounded-lg">
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setViewMode("list")}
-                  className="flex cursor-pointer items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 hover:bg-white/5 px-3 py-2 rounded-lg"
-                >
-                  <FaArrowCircleLeft className="w-5 h-5" />
-                  <span>Back to Projects</span>
-                </button>
-                <div className="h-6 w-px bg-white/20"></div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white">
-                    {project.title}
-                  </h1>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {project.category}
-                  </p>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon(project.status || "pending")}
-                  <span className="text-white font-medium capitalize">
-                    {project.status?.replace("_", " ") || "pending"}
-                  </span>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                    project.priority || "low"
-                  )}`}
-                >
-                  {project.priority?.toUpperCase() || "LOW"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-8">
-          {/* Project Overview Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Progress Card */}
-            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-500/20 rounded-xl">
-                  <Target className="w-6 h-6 text-blue-300" />
-                </div>
-                <span className="text-2xl font-bold text-white">
-                  {project.progress}%
-                </span>
-              </div>
-              <h3 className="text-white font-semibold mb-2">
-                Overall Progress
-              </h3>
-              <div className="w-full bg-gray-700/50 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-400 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${project.progress}%` }}
-                ></div>
-              </div>
-              <p className="text-gray-400 text-sm mt-2">
-                {100 - (project.progress ?? 0)}% remaining
-              </p>
-            </div>
-
-            {/* Milestones Card */}
-            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-500/20 rounded-xl">
-                  <CheckCircle className="w-6 h-6 text-purple-300" />
-                </div>
-                <span className="text-2xl font-bold text-white">
-                  {completedMilestones}/{totalMilestones}
-                </span>
-              </div>
-              <h3 className="text-white font-semibold mb-2">Milestones</h3>
-              <div className="w-full bg-gray-700/50 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-purple-500 to-purple-400 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${milestoneProgress}%` }}
-                ></div>
-              </div>
-              <p className="text-gray-400 text-sm mt-2">
-                {Math.round(milestoneProgress)}% completed
-              </p>
-            </div>
-
-            {/* Budget Card */}
-            <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-xl border border-green-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-500/20 rounded-xl">
-                  <DollarSign className="w-6 h-6 text-green-300" />
-                </div>
-                <span className="text-2xl font-bold text-white">
-                  {formatCurrency(
-                    spentBudget.toString(),
-                    project.pricing?.currency || "USD"
-                  )}
-                </span>
-              </div>
-              <h3 className="text-white font-semibold mb-2">Budget Spent</h3>
-              <div className="w-full bg-gray-700/50 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(budgetProgress, 100)}%` }}
-                ></div>
-              </div>
-              <p className="text-gray-400 text-sm mt-2">
-                of{" "}
-                {formatCurrency(
-                  totalBudget.toString(),
-                  project.pricing?.currency || "USD"
-                )}{" "}
-                total
-              </p>
-            </div>
-
-            {/* Timeline Card */}
-            <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 backdrop-blur-xl border border-orange-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-orange-500/20 rounded-xl">
-                  <Calendar className="w-6 h-6 text-orange-300" />
-                </div>
-                <span className="text-2xl font-bold text-white">
-                  {daysPassed}
-                </span>
-              </div>
-              <h3 className="text-white font-semibold mb-2">Days Active</h3>
-              {totalDays > 0 && (
-                <>
-                  <div className="w-full bg-gray-700/50 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-orange-500 to-orange-400 h-2 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.min(
-                          (daysPassed / totalDays) * 100,
-                          100
-                        )}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <p className="text-gray-400 text-sm mt-2">
-                    {Math.max(totalDays - daysPassed, 0)} days remaining
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {/* Left Column - Project Details */}
-            <div className="xl:col-span-2 space-y-8">
-              {/* Project Information */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
-                    <FileText className="w-5 h-5 text-cyan-300" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-white">
-                    Project Information
-                  </h2>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-3">
-                      Description
-                    </h3>
-                    <p className="text-gray-300 leading-relaxed">
-                      {project.description}
-                    </p>
-                  </div>
-
-                  {project.requirements && (
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-3">
-                        Requirements
-                      </h3>
-                      <p className="text-gray-300 leading-relaxed">
-                        {project.requirements}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {project.priority && (
-                      <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                        <label className="text-sm font-medium text-gray-400 mb-2 block">
-                          Priority
-                        </label>
-                        <span className="text-white font-medium capitalize">
-                          {project.priority}
-                        </span>
-                      </div>
-                    )}
-
-                    {project.timeline && (
-                      <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                        <label className="text-sm font-medium text-gray-400 mb-2 block">
-                          Timeline
-                        </label>
-                        <span className="text-white font-medium">
-                          {project.timeline}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Technology Stack */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl">
-                    <Code className="w-5 h-5 text-indigo-300" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-white">
-                    Technology Stack
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {project.techStack?.map((tech: string, index: number) => (
-                    <div
-                      key={index}
-                      className="group relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 hover:scale-105 transition-all duration-200 text-center"
-                    >
-                      <span className="text-gray-200 font-medium text-sm">
-                        {tech}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Milestones Timeline */}
-              {project.milestones && project.milestones.length > 0 && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-xl">
-                      <Target className="w-5 h-5 text-pink-300" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">
-                      Milestones & Timeline
-                    </h2>
-                  </div>
-
-                  <div className="space-y-4">
-                    {project.milestones
-                      .sort((a, b) => a.order - b.order)
-                      .map((milestone, index) => (
-                        <div key={milestone.id} className="relative">
-                          {/* Timeline connector */}
-                          {index < project.milestones!.length - 1 && (
-                            <div className="absolute left-6 top-16 w-0.5 h-16 bg-gradient-to-b from-gray-600 to-gray-700"></div>
-                          )}
-
-                          <div className="flex items-start space-x-4">
-                            {/* Status indicator */}
-                            <div
-                              className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-2 ${
-                                milestone.status === "completed"
-                                  ? "bg-green-500/20 border-green-500 text-green-300"
-                                  : milestone.status === "in_progress"
-                                  ? "bg-blue-500/20 border-blue-500 text-blue-300"
-                                  : "bg-gray-500/20 border-gray-500 text-gray-400"
-                              }`}
-                            >
-                              {milestone.status === "completed" ? (
-                                <CheckCircle className="w-6 h-6" />
-                              ) : milestone.status === "in_progress" ? (
-                                <Clock className="w-6 h-6" />
-                              ) : (
-                                <Circle className="w-6 h-6" />
-                              )}
-                            </div>
-
-                            {/* Milestone content */}
-                            <div className="flex-1 bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                              <div className="flex items-start justify-between mb-3">
-                                <div>
-                                  <h3 className="text-lg font-semibold text-white">
-                                    {milestone.title}
-                                  </h3>
-                                  <p className="text-gray-300 text-sm mt-1">
-                                    {milestone.description}
-                                  </p>
-                                </div>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                                    milestone.status
-                                  )}`}
-                                >
-                                  {milestone.status.replace("_", " ")}
-                                </span>
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">Budget:</span>
-                                  <span className="text-white font-medium">
-                                    {formatCurrency(
-                                      milestone.budget,
-                                      project.pricing?.currency || "USD"
-                                    )}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-400">
-                                    Timeline:
-                                  </span>
-                                  <span className="text-white font-medium">
-                                    {milestone.timeline}
-                                  </span>
-                                </div>
-                                {milestone.dueDate && (
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-400">Due:</span>
-                                    <span className="text-white font-medium">
-                                      {milestone.dueDate.toLocaleDateString(
-                                        "en-US",
-                                        { month: "short", day: "numeric" }
-                                      )}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Column - Sidebar */}
-            <div className="space-y-8">
-              {/* Project Timeline */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-xl">
-                    <Calendar className="w-5 h-5 text-teal-300" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white">Timeline</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                    <label className="text-sm font-medium text-gray-400 mb-1 block">
-                      Created
-                    </label>
-                    <p className="text-white font-medium">
-                      {project.createdAt?.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-
-                  {project.startDate && (
-                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                      <label className="text-sm font-medium text-gray-400 mb-1 block">
-                        Started
-                      </label>
-                      <p className="text-white font-medium">
-                        {project.startDate.toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-                  )}
-
-                  {project.estimatedCompletionDate && (
-                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                      <label className="text-sm font-medium text-gray-400 mb-1 block">
-                        {project.actualCompletionDate
-                          ? "Estimated Completion"
-                          : "Expected Completion"}
-                      </label>
-                      <p className="text-white font-medium">
-                        {project.estimatedCompletionDate.toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  {project.actualCompletionDate && (
-                    <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                      <label className="text-sm font-medium text-green-400 mb-1 block">
-                        Completed
-                      </label>
-                      <p className="text-white font-medium">
-                        {project.actualCompletionDate.toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Pricing Details */}
-              {project.pricing && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl">
-                      <DollarSign className="w-5 h-5 text-emerald-300" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white">
-                      Pricing
-                    </h3>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                      <label className="text-sm font-medium text-gray-400 mb-1 block">
-                        Type
-                      </label>
-                      <p className="text-white font-medium capitalize">
-                        {project.pricing.type} Project
-                      </p>
-                    </div>
-
-                    {project.pricing.fixedBudget && (
-                      <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                        <label className="text-sm font-medium text-gray-400 mb-1 block">
-                          Total Budget
-                        </label>
-                        <p className="text-2xl font-bold text-white">
-                          {formatCurrency(
-                            project.pricing.fixedBudget,
-                            project.pricing.currency
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {project.pricing.hourlyRate && (
-                      <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                        <label className="text-sm font-medium text-gray-400 mb-1 block">
-                          Hourly Rate
-                        </label>
-                        <p className="text-xl font-bold text-white">
-                          {formatCurrency(
-                            project.pricing.hourlyRate,
-                            project.pricing.currency
-                          )}
-                          /hr
-                        </p>
-                        {project.pricing.estimatedHours && (
-                          <p className="text-gray-400 text-sm mt-1">
-                            Est. {project.pricing.estimatedHours} hours
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {project.pricing.totalPaid && (
-                      <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                        <label className="text-sm font-medium text-green-400 mb-1 block">
-                          Total Paid
-                        </label>
-                        <p className="text-xl font-bold text-white">
-                          {formatCurrency(
-                            project.pricing.totalPaid,
-                            project.pricing.currency
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Recent Activity */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl">
-                    <Activity className="w-5 h-5 text-violet-300" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white">
-                    Recent Activity
-                  </h3>
-                </div>
-
-                <div className="space-y-3">
-                  {recentActivity.length > 0 ? (
-                    recentActivity.map((activity) => (
-                      <div
-                        key={activity.id}
-                        className="p-3 bg-white/[0.03] rounded-xl border border-white/5"
-                      >
-                        <div className="flex items-start justify-between mb-1">
-                          <h4 className="text-sm font-medium text-white">
-                            {activity.title}
-                          </h4>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${
-                              activity.activityType === "milestone"
-                                ? "bg-green-500/20 text-green-300"
-                                : "bg-blue-500/20 text-blue-300"
-                            }`}
-                          >
-                            {activity.activityType}
-                          </span>
-                        </div>
-                        <p className="text-gray-400 text-xs mb-2">
-                          {activity.description}
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          {activity.createdAt.toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-400 text-sm">No recent activity</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Project Files */}
-              {project.files && project.files.length > 0 && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl">
-                      <FileText className="w-5 h-5 text-amber-300" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white">
-                      Project Files
-                    </h3>
-                  </div>
-
-                  <div className="space-y-3">
-                    {project.files.map((file) => (
-                      <div
-                        key={file.id}
-                        className="p-3 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.05] transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gray-600/30 rounded-lg">
-                              <FileText className="w-4 h-4 text-gray-300" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium text-white">
-                                {file.fileName}
-                              </h4>
-                              <p className="text-xs text-gray-400">
-                                {file.fileSize
-                                  ? `${(file.fileSize / 1024).toFixed(1)} KB`
-                                  : "Unknown size"}{" "}
-                                •
-                                {file.createdAt.toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                          <a
-                            href={file.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 transition-colors"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  type TrackingView =
+    | "overview"
+    | "timeline"
+    | "milestones"
+    | "budget"
+    | "files"
+    | "activity";
 
   // Add this function before your main return statement
   const renderProjects = () => {
     if (viewMode === "detail" && selectedProject) {
-      return renderProjectDetail(selectedProject);
+      // Map status to allowed ProjectData status values
+      const mapStatus = (
+        status: string
+      ): "pending" | "reviewed" | "approved" | "rejected" => {
+        switch (status) {
+          case "pending":
+            return "pending";
+          case "in_progress":
+          case "on_hold":
+            return "reviewed";
+          case "completed":
+            return "approved";
+          case "cancelled":
+            return "rejected";
+          default:
+            return "pending";
+        }
+      };
+
+      return (
+        selectedProject && (
+          <EnhancedProjectTracking
+            onBack={() => setViewMode("list")}
+            project={{
+              _id: selectedProject.id,
+              projectDetails: {
+                title: selectedProject.title,
+                description: selectedProject.description,
+                category: selectedProject.category,
+                timeline: selectedProject.timeline ?? "",
+                priority: selectedProject.priority,
+                techStack: selectedProject.techStack,
+                requirements: selectedProject.requirements ?? "",
+              },
+              pricing: selectedProject.pricing
+                ? {
+                    ...selectedProject.pricing,
+                    estimatedHours:
+                      selectedProject.pricing.estimatedHours?.toString(),
+                  }
+                : {
+                    type: "fixed" as const,
+                    currency: "USD" as const,
+                  },
+              status: mapStatus(selectedProject.status),
+              priority:
+                selectedProject.priority === "urgent"
+                  ? "critical"
+                  : selectedProject.priority,
+              progress: selectedProject.progress,
+              createdAt: selectedProject.createdAt.toString(),
+              updatedAt: selectedProject.updatedAt.toString(),
+              userInfo: selectedProject.userInfo
+                ? {
+                    firstName: selectedProject.userInfo.firstName,
+                    lastName: selectedProject.userInfo.lastName,
+                    email: selectedProject.userInfo.email,
+                    phone: selectedProject.userInfo.phone ?? "",
+                    company: selectedProject.userInfo.company ?? "",
+                    role: selectedProject.userInfo.role ?? "",
+                  }
+                : undefined,
+              milestones: selectedProject.milestones,
+              updates: selectedProject.updates,
+              files: selectedProject.files,
+              payments: selectedProject.payments,
+            }}
+          />
+        )
+      );
     }
 
     return (
@@ -2482,11 +1902,6 @@ const ClientDashboard: React.FC = () => {
                       <span className="text-white text-xs font-semibold">
                         {notifications.length}
                       </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-sm">A</span>
                     </div>
                   </div>
                 </div>

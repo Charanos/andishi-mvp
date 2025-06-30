@@ -3,6 +3,7 @@ export interface BaseProjectWithDetails {
   id: string;
   title: string;
   description: string;
+  category: string;
   status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
   priority: "low" | "medium" | "high" | "urgent";
   progress: number;
@@ -13,7 +14,6 @@ export interface BaseProjectWithDetails {
 
 // Extend base interface for optional fields
 export interface ProjectWithDetails extends BaseProjectWithDetails {
-  category?: string;
   timeline?: string;
   requirements?: string;
   startDate?: Date;
@@ -38,6 +38,7 @@ export interface ProjectWithDetails extends BaseProjectWithDetails {
     dueDate?: Date;
     completedAt?: Date;
     order: number;
+    deliverables?: string[];
   }>;
   updates?: Array<{
     id: string;
@@ -45,6 +46,9 @@ export interface ProjectWithDetails extends BaseProjectWithDetails {
     description: string;
     type: string;
     createdAt: Date;
+    author?: string;
+    isAdminResponse?: boolean;
+    parentUpdateId?: string;
   }>;
   files?: Array<{
     id: string;
@@ -53,5 +57,26 @@ export interface ProjectWithDetails extends BaseProjectWithDetails {
     fileSize?: number;
     fileType?: string;
     createdAt: Date;
+    uploadedBy?: string;
+    description?: string;
   }>;
-} 
+  payments?: Array<{
+    id: string;
+    amount: number;
+    date: string;
+    method: string;
+    currency?: "USD" | "KES";
+    status?: "pending" | "paid" | "overdue" | "partial";
+    description?: string;
+    notes?: string;
+    invoiceUrl?: string;
+  }>;
+  userInfo?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    role?: string;
+  };
+}

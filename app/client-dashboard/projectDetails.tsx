@@ -10,7 +10,6 @@ import {
   Activity,
   Code,
   Clock,
-  Circle,
   ExternalLink,
   Upload,
   Download,
@@ -47,8 +46,20 @@ type TrackingView =
   | "activity"
   | "updates";
 
-type MilestoneStatus = "pending" | "in_progress" | "completed" | "cancelled";
-type PaymentStatus = "pending" | "paid" | "overdue" | "partial";
+type MilestoneStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+type PaymentStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "paid"
+  | "overdue"
+  | "partial";
 type FileType = "document" | "image" | "video" | "other";
 type UpdateType =
   | "general"
@@ -145,7 +156,10 @@ export default function EnhancedProjectTracking({
         actualCompletionDate: data.actualCompletionDate
           ? new Date(data.actualCompletionDate)
           : undefined,
-        milestones: data.milestones?.map((m) => ({
+        milestones: (data.milestones?.length
+          ? data.milestones
+          : data.pricing?.milestones || []
+        ).map((m) => ({
           ...m,
           dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
           completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
@@ -176,7 +190,9 @@ export default function EnhancedProjectTracking({
 
   // Milestones state
   const [milestones, setMilestones] = useState<Milestone[]>(
-    projectData.milestones || []
+    projectData.milestones?.length
+      ? projectData.milestones
+      : projectData.pricing?.milestones || []
   );
   const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
   const [newMilestone, setNewMilestone] = useState<Partial<Milestone>>({});
@@ -266,10 +282,9 @@ export default function EnhancedProjectTracking({
         ...(newFile.uploadedBy && { uploadedBy: newFile.uploadedBy }),
         ...(newFile.description && { description: newFile.description }),
       };
-      
+
       const result = await createFile(projectData._id, fileData);
       if (result.success) {
-        // Add to local state with temporary ID
         const file: ProjectFile = {
           id: Date.now().toString(),
           createdAt: new Date(),
@@ -282,11 +297,16 @@ export default function EnhancedProjectTracking({
     }
   };
 
-  const handleUpdateFile = async (id: string, updatedFile: Partial<ProjectFile>) => {
+  const handleUpdateFile = async (
+    id: string,
+    updatedFile: Partial<ProjectFile>
+  ) => {
     const result = await updateFile(projectData._id, id, updatedFile);
     if (result.success) {
       setFiles(
-        files.map((file) => (file.id === id ? { ...file, ...updatedFile } : file))
+        files.map((file) =>
+          file.id === id ? { ...file, ...updatedFile } : file
+        )
       );
       setEditingFile(null);
     }
@@ -307,12 +327,13 @@ export default function EnhancedProjectTracking({
         description: newMilestone.description,
         budget: newMilestone.budget || "0",
         timeline: newMilestone.timeline || "",
-        status: (newMilestone.status || "pending") as MilestoneStatus,
+        status: "pending" as MilestoneStatus,
+        submittedBy: "client" as const,
         dueDate: newMilestone.dueDate || new Date(),
         order: milestones.length + 1,
         deliverables: newMilestone.deliverables || [],
       };
-      
+
       const result = await createMilestone(projectData._id, milestoneData);
       if (result.success) {
         const milestone: Milestone = {
@@ -334,7 +355,9 @@ export default function EnhancedProjectTracking({
     if (result.success) {
       setMilestones(
         milestones.map((milestone) =>
-          milestone.id === id ? { ...milestone, ...updatedMilestone } : milestone
+          milestone.id === id
+            ? { ...milestone, ...updatedMilestone }
+            : milestone
         )
       );
       setEditingMilestone(null);
@@ -355,17 +378,16 @@ export default function EnhancedProjectTracking({
         amount: Number(newPayment.amount),
         date: newPayment.date,
         method: newPayment.method || "Unknown",
+        status: "pending" as PaymentStatus,
+        submittedBy: "client" as const,
         ...(newPayment.currency && {
           currency: newPayment.currency as "USD" | "KES",
-        }),
-        ...(newPayment.status && {
-          status: newPayment.status as PaymentStatus,
         }),
         ...(newPayment.description && { description: newPayment.description }),
         ...(newPayment.notes && { notes: newPayment.notes }),
         ...(newPayment.invoiceUrl && { invoiceUrl: newPayment.invoiceUrl }),
       };
-      
+
       const result = await createPayment(projectData._id, paymentData);
       if (result.success) {
         const payment: Payment = {
@@ -410,7 +432,7 @@ export default function EnhancedProjectTracking({
         type: (newUpdate.type || "general") as UpdateType,
         author: "Client",
       };
-      
+
       const result = await createUpdate(projectData._id, updateData);
       if (result.success) {
         const update: ProjectUpdate = {
@@ -991,18 +1013,33 @@ export default function EnhancedProjectTracking({
                         </div>
 
                         <div className="flex items-center space-x-2 ml-4">
-                          <button
-                            onClick={() => setEditingMilestone(milestone.id)}
-                            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMilestone(milestone.id)}
-                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {(!milestone.submittedBy ||
+                            milestone.status === "rejected") && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  setEditingMilestone(milestone.id)
+                                }
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteMilestone(milestone.id)
+                                }
+                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                          {milestone.submittedBy === "client" &&
+                            milestone.status === "pending" && (
+                              <span className="text-xs text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded">
+                                Awaiting Approval
+                              </span>
+                            )}
                         </div>
                       </div>
                     </>
@@ -1187,6 +1224,11 @@ export default function EnhancedProjectTracking({
                           >
                             {payment.status || "pending"}
                           </span>
+                          {payment.submittedBy && (
+                            <span className="text-xs text-gray-400">
+                              by {payment.submittedBy}
+                            </span>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -1217,6 +1259,47 @@ export default function EnhancedProjectTracking({
                               {payment.status || "pending"}
                             </p>
                           </div>
+
+                          {payment.status === "rejected" &&
+                            payment.rejectionReason && (
+                              <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                                <span className="text-red-400 text-sm font-medium">
+                                  Rejection Reason:
+                                </span>
+                                <p className="text-red-300 text-sm mt-1">
+                                  {payment.rejectionReason}
+                                </p>
+                              </div>
+                            )}
+
+                          {payment.status === "approved" &&
+                            payment.approvedBy && (
+                              <div className="mt-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                <span className="text-green-400 text-sm font-medium">
+                                  Approved by:
+                                </span>
+                                <p className="text-green-300 text-sm mt-1">
+                                  {payment.approvedBy} on{" "}
+                                  {payment.approvedAt
+                                    ? new Date(
+                                        payment.approvedAt
+                                      ).toLocaleDateString()
+                                    : ""}
+                                </p>
+                              </div>
+                            )}
+
+                          {payment.status === "pending" &&
+                            payment.submittedBy === "client" && (
+                              <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                                <span className="text-yellow-400 text-sm font-medium">
+                                  Status:
+                                </span>
+                                <p className="text-yellow-300 text-sm mt-1">
+                                  Waiting for admin approval
+                                </p>
+                              </div>
+                            )}
                         </div>
                       </div>
 
@@ -1594,6 +1677,115 @@ export default function EnhancedProjectTracking({
           </div>
         );
 
+      case "milestones":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Milestones</h2>
+            <div className="space-y-4">
+              {(milestones || []).map((milestone) => (
+                <div
+                  key={milestone.id}
+                  className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
+                >
+                  <div>
+                    <h3 className="font-semibold text-white">
+                      {milestone.title}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      {milestone.description}
+                    </p>
+                    <div className="text-xs text-gray-500 mt-2">
+                      Due:{" "}
+                      {milestone.dueDate
+                        ? new Date(milestone.dueDate).toLocaleDateString()
+                        : "N/A"}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+                        milestone.status
+                      )}`}
+                    >
+                      {milestone.status.replace("_", " ")}
+                    </div>
+                    <div className="text-lg font-bold text-white mt-2">
+                      {formatCurrency(
+                        parseFloat(milestone.budget),
+                        projectData.pricing?.currency || "USD"
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(milestones || []).length === 0 && (
+                <div className="text-center py-12">
+                  <Target className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    No Milestones
+                  </h3>
+                  <p className="text-gray-400">
+                    This project does not have any milestones yet.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "budget":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Payments</h2>
+            <div className="space-y-4">
+              {(payments || []).map((payment) => (
+                <div
+                  key={payment.id}
+                  className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
+                >
+                  <div>
+                    <h3 className="font-semibold text-white">
+                      {payment.description || "Payment"}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      Method: {payment.method}
+                    </p>
+                    <div className="text-xs text-gray-500 mt-2">
+                      Date: {new Date(payment.date).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+                        payment.status || "pending"
+                      )}`}
+                    >
+                      {payment.status?.replace("_", " ") || "pending"}
+                    </div>
+                    <div className="text-lg font-bold text-white mt-2">
+                      {formatCurrency(
+                        payment.amount,
+                        payment.currency || "USD"
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(payments || []).length === 0 && (
+                <div className="text-center py-12">
+                  <DollarSign className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    No Payments
+                  </h3>
+                  <p className="text-gray-400">
+                    There are no recorded payments for this project yet.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       case "activity":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
@@ -1621,6 +1813,18 @@ export default function EnhancedProjectTracking({
                         <Activity className="w-5 h-5 text-purple-300" />
                       </div>
                     )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white font-medium">{activity.title}</h3>
+                    <p className="text-gray-400 text-sm">
+                      {activity.description}
+                    </p>
+                    <p className="text-gray-500 text-xs mt-2">
+                      {(typeof activity.createdAt === "string"
+                        ? new Date(activity.createdAt)
+                        : activity.createdAt
+                      ).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
               ))}

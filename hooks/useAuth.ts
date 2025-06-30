@@ -3,8 +3,13 @@
 import { getAbsoluteUrl } from '@/lib/utils';
 import { RBACService } from '@/utils/rbac';
 import { useRouter } from 'next/navigation';
-import { User, AuthContextType, Permission, UserRole } from '@/types/auth';
+import { User, AuthContextType as AuthContextTypeDefinition, Permission, UserRole } from '@/types/auth';
 import React, { createContext, useContext, useState, useEffect } from 'react';
+
+
+export interface AuthContextType extends AuthContextTypeDefinition {
+  token: string | null;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -61,12 +66,14 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     // Check for existing session on mount
+        setToken(typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null);
     checkAuthStatus();
   }, []);
 
@@ -121,10 +128,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (currentUser) {
         ensureCookieToken(storedToken!);
         setUser(currentUser);
+        // Keep localStorage user info in sync
+        localStorage.setItem('userEmail', currentUser.email);
+        localStorage.setItem('userRole', currentUser.role as string);
       } else if (!networkError) {
         // Only clear storage when the server explicitly tells us the token is invalid
-        localStorage.removeItem('auth_token');
+                localStorage.removeItem('auth_token');
         setUser(null);
+        setToken(null);
       }
     } catch (err) {
       console.error('Auth check failed:', err);
@@ -188,8 +199,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Store token
-      localStorage.setItem('auth_token', token);
+            localStorage.setItem('auth_token', token);
+      setToken(token);
       ensureCookieToken(token);
+      // Persist user identifiers for client-side API calls
+      localStorage.setItem('userEmail', userData.email);
+      localStorage.setItem('userRole', userData.role);
 
       // Set user with permissions based on role
       const userWithPermissions = {
@@ -218,8 +233,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_token');
       setUser(null);
+      setToken(null);
       router.push('/login');
       setIsLoading(false);
     }
@@ -240,8 +256,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const contextValue: AuthContextType = {
-    user,
+    const contextValue: AuthContextType = {
+        user,
+    token,
     login,
     logout,
     hasPermission,

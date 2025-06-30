@@ -24,10 +24,17 @@ export interface Milestone {
   budget: string;
   timeline: string;
   deliverables?: string[];
-  status: "pending" | "in_progress" | "completed" | "cancelled";
+  status: "pending" | "approved" | "rejected" | "in_progress" | "completed" | "cancelled";
   dueDate?: Date | string;
   completedAt?: Date | string;
   order: number;
+  // Milestone approval workflow
+  submittedBy?: "client" | "admin";
+  approvedBy?: string;
+  approvedAt?: Date | string;
+  rejectedBy?: string;
+  rejectedAt?: Date | string;
+  rejectionReason?: string;
 }
 
 export interface PricingOption {
@@ -75,9 +82,16 @@ export interface Payment {
   currency?: "USD" | "KES";
   dueDate?: Date | string;
   paidDate?: Date | string;
-  status?: "pending" | "paid" | "overdue" | "partial";
+  status?: "pending" | "approved" | "rejected" | "paid" | "overdue" | "partial";
   description?: string;
   invoiceUrl?: string;
+  // Payment approval workflow
+  submittedBy?: "client" | "admin";
+  approvedBy?: string;
+  approvedAt?: Date | string;
+  rejectedBy?: string;
+  rejectedAt?: Date | string;
+  rejectionReason?: string;
 }
 
 export interface ProjectData {
@@ -135,49 +149,10 @@ export interface ProjectWithDetails extends BaseProjectWithDetails {
     estimatedHours?: number;
     totalPaid?: string;
   };
-  milestones?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    budget: string;
-    timeline: string;
-    status: "pending" | "in_progress" | "completed" | "cancelled";
-    dueDate?: Date;
-    completedAt?: Date;
-    order: number;
-    deliverables?: string[];
-  }>;
-  updates?: Array<{
-    id: string;
-    title: string;
-    description: string;
-    type: string;
-    createdAt: Date;
-    author?: string;
-    isAdminResponse?: boolean;
-    parentUpdateId?: string;
-  }>;
-  files?: Array<{
-    id: string;
-    fileName: string;
-    fileUrl: string;
-    fileSize?: number;
-    fileType?: string;
-    createdAt: Date;
-    uploadedBy?: string;
-    description?: string;
-  }>;
-  payments?: Array<{
-    id: string;
-    amount: number;
-    date: string;
-    method: string;
-    currency?: "USD" | "KES";
-    status?: "pending" | "paid" | "overdue" | "partial";
-    description?: string;
-    notes?: string;
-    invoiceUrl?: string;
-  }>;
+  milestones?: Milestone[];
+  updates?: ProjectUpdate[];
+  files?: ProjectFile[];
+  payments?: Payment[];
   userInfo?: {
     firstName: string;
     lastName: string;

@@ -98,7 +98,7 @@ export default function ClientDashboardStartProject({}) {
     },
   });
 
-  const { user } = useAuth();
+    const { user, token } = useAuth();
 
   // Auto-populate user info when user data is available
   useEffect(() => {
@@ -312,14 +312,15 @@ export default function ClientDashboardStartProject({}) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!token) {
+      toast.error("Authentication error. Please log in again.");
+      setSubmitStatus("error");
+      return;
+    }
+
     setSubmitStatus("loading");
     try {
-      const token = localStorage.getItem("auth_token");
-      const userEmail = localStorage.getItem("user_email");
-      const firstName = localStorage.getItem("user_firstName");
-      const lastName = localStorage.getItem("user_lastName");
-      const company = localStorage.getItem("user_company");
-
       const projectData = {
         title: formData.projectDetails.title,
         description: formData.projectDetails.description,
@@ -336,12 +337,7 @@ export default function ClientDashboardStartProject({}) {
           hourlyRate: formData.pricing.hourlyRate,
           estimatedHours: formData.pricing.estimatedHours,
         },
-        userInfo: {
-          email: userEmail,
-          firstName,
-          lastName,
-          company,
-        },
+        userInfo: formData.userInfo,
       };
 
       const response = await fetch("/api/client-projects", {
@@ -349,7 +345,7 @@ export default function ClientDashboardStartProject({}) {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-          "user-email": userEmail || "",
+          "user-email": user?.email || "",
         },
         body: JSON.stringify(projectData),
       });
@@ -381,10 +377,22 @@ export default function ClientDashboardStartProject({}) {
         return;
       }
 
-      setSubmitStatus("success");
+            setSubmitStatus("success");
       toast.success("Project submitted successfully!");
 
-      // Redirect to thank you page or dashboard
+      // Broadcast the newly created project so open dashboards can update seamlessly
+      try {
+        const createdProject = data.project || data.data || null;
+        if (createdProject) {
+          window.dispatchEvent(
+            new CustomEvent("projectCreated", { detail: createdProject })
+          );
+        }
+      } catch (err) {
+        console.error("Event dispatch error:", err);
+      }
+
+      // Redirect to dashboard
       router.push("/client-dashboard");
     } catch (error) {
       setSubmitStatus("error");

@@ -100,7 +100,7 @@ type TrackingView =
   | "activity"
   | "updates";
 
-type MilestoneStatus = "pending" | "in_progress" | "completed" | "cancelled";
+type MilestoneStatus = "pending" | "approved" | "rejected" | "in_progress" | "completed" | "cancelled";
 type PaymentStatus = "pending" | "paid" | "overdue" | "partial";
 type FileType = "document" | "image" | "video" | "other";
 type UpdateType =
@@ -166,7 +166,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [showAddFile, setShowAddFile] = useState(false);
 
   const [milestones, setMilestones] = useState<Milestone[]>(
-    projectData.milestones || []
+    projectData.milestones?.length
+      ? projectData.milestones
+      : projectData.pricing?.milestones || []
   );
   const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
   const [newMilestone, setNewMilestone] = useState<Partial<Milestone>>({});
@@ -236,7 +238,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           actualCompletionDate: data.actualCompletionDate
             ? new Date(data.actualCompletionDate)
             : undefined,
-          milestones: data.milestones?.map((m) => ({
+          milestones: (data.milestones?.length ? data.milestones : data.pricing?.milestones || []).map((m) => ({
             ...m,
             dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
             completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
@@ -310,6 +312,83 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       : 0;
 
   if (!selectedProject) return null;
+
+  const renderContent = () => {
+    switch (trackingView) {
+      case "overview":
+        return <div>Overview Content</div>;
+      case "milestones":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Milestones</h2>
+            <div className="space-y-4">
+              {(milestones || []).map((milestone) => (
+                <div key={milestone.id} className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold text-white">{milestone.title}</h3>
+                    <p className="text-sm text-gray-400">{milestone.description}</p>
+                    <div className="text-xs text-gray-500 mt-2">
+                      Due: {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(milestone.status)}`}>
+                      {milestone.status.replace("_", " ")}
+                    </div>
+                    <div className="text-lg font-bold text-white mt-2">
+                      {formatCurrency(parseFloat(milestone.budget), projectData.pricing?.currency || "USD")}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(milestones || []).length === 0 && (
+                <div className="text-center py-12">
+                  <Target className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">No Milestones</h3>
+                  <p className="text-gray-400">This project does not have any milestones yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      case "budget":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Payments</h2>
+            <div className="space-y-4">
+              {(payments || []).map((payment) => (
+                <div key={payment.id} className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold text-white">{payment.description || 'Payment'}</h3>
+                    <p className="text-sm text-gray-400">Method: {payment.method}</p>
+                    <div className="text-xs text-gray-500 mt-2">
+                      Date: {new Date(payment.date).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(payment.status || 'pending')}`}>
+                      {payment.status?.replace("_", " ") || 'pending'}
+                    </div>
+                    <div className="text-lg font-bold text-white mt-2">
+                      {formatCurrency(payment.amount, payment.currency || "USD")}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(payments || []).length === 0 && (
+                <div className="text-center py-12">
+                  <DollarSign className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">No Payments</h3>
+                  <p className="text-gray-400">There are no recorded payments for this project yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      default:
+        return <div>Select a view</div>;
+    }
+  };
 
   const getStatusIconLocal = (status: string) => {
     switch (status) {
@@ -417,7 +496,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     setSelectedFile(null);
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+ const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
 
@@ -425,6 +504,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       id: `temp-${Date.now()}`,
       ...paymentForm,
       amount: parseFloat(paymentForm.amount.toString()),
+      status: "pending", // Admin sets payment to pending initially
+      submittedBy: "admin",
     };
 
     onPaymentRecord(selectedProject._id, newPayment);
@@ -542,6 +623,50 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
   const handleDeletePayment = (id: string) => {
     setPayments(payments.filter((payment) => payment.id !== id));
+  };
+
+  // Payment approval functions
+  const approvePayment = async (paymentId: string) => {
+    const updatedStatus = {
+      status: "approved" as const,
+      approvedBy: "adminName", // replace with actual admin identifier
+      approvedAt: new Date().toISOString(),
+    };
+    
+    handleUpdatePayment(paymentId, updatedStatus);
+  };
+
+  const rejectPayment = async (paymentId: string, reason: string) => {
+    const updatedStatus = {
+      status: "rejected" as const,
+      rejectedBy: "adminName", // replace with actual admin identifier
+      rejectedAt: new Date().toISOString(),
+      rejectionReason: reason,
+    };
+    
+    handleUpdatePayment(paymentId, updatedStatus);
+  };
+
+  // Milestone approval functions
+  const approveMilestone = async (milestoneId: string) => {
+    const updatedStatus = {
+      status: "approved" as const,
+      approvedBy: "adminName", // replace with actual admin identifier
+      approvedAt: new Date().toISOString(),
+    };
+    
+    handleUpdateMilestone(milestoneId, updatedStatus);
+  };
+
+  const rejectMilestone = async (milestoneId: string, reason: string) => {
+    const updatedStatus = {
+      status: "rejected" as const,
+      rejectedBy: "adminName", // replace with actual admin identifier
+      rejectedAt: new Date().toISOString(),
+      rejectionReason: reason,
+    };
+    
+    handleUpdateMilestone(milestoneId, updatedStatus);
   };
 
   // Updates operations
@@ -1339,8 +1464,71 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-white">
-                Project Milestones
+                Milestones & Approvals
               </h2>
+            </div>
+
+            {/* Milestone Approval Section */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Pending Milestone Approvals</h3>
+              {milestones.filter(m => m.status === "pending" && m.submittedBy === "client").length > 0 ? (
+                <div className="space-y-4">
+                  {milestones.filter(m => m.status === "pending" && m.submittedBy === "client").map((milestone) => (
+                    <div key={milestone.id} className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-white font-medium">{milestone.title}</span>
+                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs border border-yellow-500/30">
+                              Pending Approval
+                            </span>
+                          </div>
+                          <p className="text-gray-300 mb-3">{milestone.description}</p>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-400">Budget:</span>
+                              <p className="text-white font-medium">${milestone.budget}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Timeline:</span>
+                              <p className="text-white font-medium">{milestone.timeline}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Due Date:</span>
+                              <p className="text-white font-medium">
+                                {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString() : "N/A"}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Submitted By:</span>
+                              <p className="text-white font-medium">Client</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={() => approveMilestone(milestone.id)}
+                            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm transition-colors"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              const reason = prompt("Reason for rejection:");
+                              if (reason) rejectMilestone(milestone.id, reason);
+                            }}
+                            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400">No pending milestone approvals</p>
+              )}
             </div>
 
             {milestones && milestones.length > 0 ? (
@@ -1754,7 +1942,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-white">
-                Payment History
+                Payments & Approvals
               </h2>
               <button
                 onClick={() => setShowPaymentModal(true)}
@@ -1765,43 +1953,147 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </button>
             </div>
 
-            {selectedProject.payments && selectedProject.payments.length > 0 ? (
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl">
-                <ul className="divide-y divide-white/10">
-                  {selectedProject.payments.map((payment) => (
-                    <li
-                      key={payment.id}
-                      className="p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
-                    >
-                      <div>
-                        <p className="text-white font-medium">
-                          Payment Received
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          {new Date(payment.date).toLocaleDateString()} via{" "}
-                          {payment.method}
-                        </p>
+            {/* Payment Approval Section */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Pending Approvals</h3>
+              {payments.filter(p => p.status === "pending" && p.submittedBy === "client").length > 0 ? (
+                <div className="space-y-4">
+                  {payments.filter(p => p.status === "pending" && p.submittedBy === "client").map((payment) => (
+                    <div key={payment.id} className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-white font-medium">{payment.description || "Client Payment"}</span>
+                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs border border-yellow-500/30">
+                              Pending Approval
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-400">Amount:</span>
+                              <p className="text-white font-medium">
+                                {formatCurrencyLocal(payment.amount, payment.currency || "USD")}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Date:</span>
+                              <p className="text-white font-medium">{payment.date}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Method:</span>
+                              <p className="text-white font-medium capitalize">{payment.method}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Submitted By:</span>
+                              <p className="text-white font-medium">Client</p>
+                            </div>
+                          </div>
+                          {payment.notes && (
+                            <div className="mt-2">
+                              <span className="text-gray-400 text-sm">Notes:</span>
+                              <p className="text-gray-300 text-sm">{payment.notes}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={() => approvePayment(payment.id)}
+                            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm transition-colors"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              const reason = prompt("Reason for rejection:");
+                              if (reason) rejectPayment(payment.id, reason);
+                            }}
+                            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </div>
                       </div>
-                      <span className="text-green-400 font-semibold text-lg">
-                        {formatCurrencyLocal(
-                          payment.amount,
-                          selectedProject.pricing.currency
-                        )}
-                      </span>
-                    </li>
+                    </div>
                   ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                </div>
+              ) : (
+                <p className="text-gray-400">No pending payment approvals</p>
+              )}
+            </div>
+
+            {/* Payment History Section */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Payment History</h3>
+              {payments.length > 0 ? (
+                <div className="space-y-4">
+                  {payments.map((payment) => (
+                    <div
+                      key={payment.id}
+                      className={`p-4 rounded-xl border ${
+                        payment.status === "approved" 
+                          ? "bg-green-500/10 border-green-500/30"
+                          : payment.status === "rejected"
+                          ? "bg-red-500/10 border-red-500/30"
+                          : payment.status === "pending"
+                          ? "bg-yellow-500/10 border-yellow-500/30"
+                          : "bg-white/5 border-white/10"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="text-white font-medium">{payment.description || "Payment"}</span>
+                            <span className={`px-2 py-1 rounded text-xs border ${
+                              payment.status === "approved"
+                                ? "bg-green-500/20 text-green-300 border-green-500/30"
+                                : payment.status === "rejected"
+                                ? "bg-red-500/20 text-red-300 border-red-500/30"
+                                : payment.status === "pending"
+                                ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
+                                : "bg-gray-500/20 text-gray-300 border-gray-500/30"
+                            }`}>
+                              {payment.status || "pending"}
+                            </span>
+                            {payment.submittedBy && (
+                              <span className="text-xs text-gray-400">by {payment.submittedBy}</span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-400">Amount:</span>
+                              <p className="text-white font-medium">
+                                {formatCurrencyLocal(payment.amount, payment.currency || "USD")}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Date:</span>
+                              <p className="text-white font-medium">{payment.date}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Method:</span>
+                              <p className="text-white font-medium capitalize">{payment.method}</p>
+                            </div>
+                          </div>
+                          {payment.rejectionReason && (
+                            <div className="mt-2">
+                              <span className="text-red-400 text-sm">Rejection Reason:</span>
+                              <p className="text-red-300 text-sm">{payment.rejectionReason}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                 <div className="text-center py-12">
                   <FaCreditCard className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                   <p className="text-gray-400 text-lg">
                     No payments recorded yet
                   </p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

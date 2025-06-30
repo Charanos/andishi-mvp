@@ -18,19 +18,10 @@ import {
   Play,
   Eye,
   MessageSquare,
-  Target,
-  Code,
-  ExternalLink,
-  FileText,
-  Circle,
-  Activity,
 } from "lucide-react";
 import {
-  FaArrowCircleLeft,
   FaBell,
   FaChartBar,
-  FaChartLine,
-  FaChartPie,
   FaCheck,
   FaCheckCircle,
   FaCircle,
@@ -40,7 +31,6 @@ import {
   FaComment,
   FaDownload,
   FaFile,
-  FaFlag,
   FaInfoCircle,
   FaLightbulb,
   FaPause,
@@ -51,11 +41,9 @@ import {
   FaSortAmountUp,
   FaTag,
   FaTimes,
-  FaUserEdit,
-  FaUsers,
 } from "react-icons/fa";
-import ClientDashboardStartProject from "./StartNewProject";
 import { useAuth } from "@/hooks/useAuth";
+import ClientDashboardStartProject from "./StartNewProject";
 import { ProjectWithDetails } from "../../types/index";
 import EnhancedProjectTracking from "./projectDetails";
 
@@ -72,6 +60,20 @@ interface ProjectStats {
 }
 
 const ClientDashboard: React.FC = () => {
+  const recomputeStats = (projList: ProjectWithDetails[]): ProjectStats => ({
+    total: projList.length,
+    pending: projList.filter((p) => p.status === "pending").length,
+    inProgress: projList.filter((p) => p.status === "in_progress").length,
+    completed: projList.filter((p) => p.status === "completed").length,
+    cancelled: projList.filter((p) => p.status === "cancelled").length,
+    onHold: projList.filter((p) => p.status === "on_hold").length,
+    averageProgress: projList.length
+      ? Math.round(
+          projList.reduce((acc, p) => acc + (p.progress || 0), 0) /
+            projList.length
+        )
+      : 0,
+  });
   const { user } = useAuth();
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
 
@@ -112,6 +114,22 @@ const ClientDashboard: React.FC = () => {
     );
   };
 
+  const getAuthHeaders = () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+    const email =
+      typeof window !== "undefined" ? localStorage.getItem("userEmail") : null;
+    const role =
+      typeof window !== "undefined" ? localStorage.getItem("userRole") : null;
+
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token || ""}`,
+      "user-email": user?.email || email || "",
+      "user-role": (user?.role as string) || role || "client",
+    };
+  };
+
   // Replace the first useEffect with this:
   useEffect(() => {
     const fetchProjects = async () => {
@@ -124,12 +142,7 @@ const ClientDashboard: React.FC = () => {
 
         const response = await fetch("/api/client-projects", {
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            "user-email": user.email,
-            "user-role": "client",
-          },
+          headers: getAuthHeaders(),
         });
 
         if (!response.ok) {
@@ -267,6 +280,22 @@ const ClientDashboard: React.FC = () => {
     };
 
     fetchProjects();
+
+    // Listen for newly created projects to refresh seamlessly
+    const projectCreatedHandler = (e: Event) => {
+      const detail = (e as CustomEvent<any>).detail;
+      if (!detail) return;
+      setProjects((prev) => {
+        const updated = [detail, ...prev];
+        setStats(recomputeStats(updated));
+        return updated;
+      });
+      setFilteredProjects((prev) => [detail, ...prev]);
+    };
+
+    window.addEventListener("projectCreated", projectCreatedHandler);
+    return () =>
+      window.removeEventListener("projectCreated", projectCreatedHandler);
   }, [user]);
 
   // Reset view when changing tabs:
@@ -388,16 +417,9 @@ const ClientDashboard: React.FC = () => {
 
   const createProject = async (projectData: any) => {
     try {
-      const token = localStorage.getItem("token");
-      const userEmail = localStorage.getItem("userEmail");
-
       const response = await fetch("/api/client-projects", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "user-email": userEmail || "",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(projectData),
       });
 
@@ -409,10 +431,7 @@ const ClientDashboard: React.FC = () => {
 
       // Refresh projects
       const updatedResponse = await fetch("/api/client-projects", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "user-email": userEmail || "",
-        },
+        headers: getAuthHeaders(),
       });
       const updatedData = await updatedResponse.json();
 
@@ -443,17 +462,10 @@ const ClientDashboard: React.FC = () => {
 
   const updateProject = async (projectId: string, updates: any) => {
     try {
-      const token = localStorage.getItem("token");
-      const userEmail = localStorage.getItem("userEmail");
-
       const response = await fetch("/api/client-projects", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "user-email": userEmail || "",
-        },
-        body: JSON.stringify({ projectId, updates }),
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ projectId, ...updates }),
       });
 
       const data = await response.json();
@@ -464,10 +476,7 @@ const ClientDashboard: React.FC = () => {
 
       // Refresh projects
       const updatedResponse = await fetch("/api/client-projects", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "user-email": userEmail || "",
-        },
+        headers: getAuthHeaders(),
       });
       const updatedData = await updatedResponse.json();
 
@@ -498,16 +507,9 @@ const ClientDashboard: React.FC = () => {
 
   const deleteProject = async (projectId: string) => {
     try {
-      const token = localStorage.getItem("token");
-      const userEmail = localStorage.getItem("userEmail");
-
       const response = await fetch("/api/client-projects", {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "user-email": userEmail || "",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ projectId }),
       });
 
@@ -519,10 +521,7 @@ const ClientDashboard: React.FC = () => {
 
       // Refresh projects
       const updatedResponse = await fetch("/api/client-projects", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "user-email": userEmail || "",
-        },
+        headers: getAuthHeaders(),
       });
       const updatedData = await updatedResponse.json();
 

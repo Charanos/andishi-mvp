@@ -1,9 +1,8 @@
-import prisma from "@/lib/prisma";
+import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { mockDeveloperProfile } from "@/lib/mockDeveloperProfile";
 
-export const dynamic = 'force-dynamic'
-
+export const dynamic = 'force-dynamic';
 
 // NOTE: Proper authentication / RBAC is not yet wired. For now, we only allow writes
 // if NODE_ENV is not production. Replace this with real admin checks later.
@@ -11,18 +10,17 @@ const isReadOnly = process.env.NODE_ENV === "production";
 
 export async function GET() {
   try {
-    let record = await prisma.developerProfile.findFirst();
+    const client = await clientPromise;
+    const db = client.db();
 
-    // If no profile yet, seed with dummy data so the dashboard has something to show
+    let record = await db.collection('developerprofiles').findOne({});
+
     if (!record) {
-      record = await prisma.developerProfile.create({
-        data: {
-          data: mockDeveloperProfile as unknown as object,
-        },
-      });
+      const insertRes = await db.collection('developerprofiles').insertOne({ data: mockDeveloperProfile });
+      record = await db.collection('developerprofiles').findOne({ _id: insertRes.insertedId });
     }
 
-    return NextResponse.json(record.data, { status: 200 });
+    return NextResponse.json(record?.data, { status: 200 });
   } catch (err) {
     console.error("GET /api/developer-profile error", err);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -37,21 +35,21 @@ export async function PUT(req: NextRequest) {
   try {
     const payload = await req.json();
 
-    const existing = await prisma.developerProfile.findFirst();
+    const client = await clientPromise;
+    const db = client.db();
+
+    const existing = await db.collection('developerprofiles').findOne({});
 
     let record;
     if (existing) {
-      record = await prisma.developerProfile.update({
-        where: { id: existing.id },
-        data: { data: payload },
-      });
+      await db.collection('developerprofiles').updateOne({ _id: existing._id }, { $set: { data: payload } });
+      record = await db.collection('developerprofiles').findOne({ _id: existing._id });
     } else {
-      record = await prisma.developerProfile.create({
-        data: { data: payload },
-      });
+      const insertRes = await db.collection('developerprofiles').insertOne({ data: payload });
+      record = await db.collection('developerprofiles').findOne({ _id: insertRes.insertedId });
     }
 
-    return NextResponse.json(record.data, { status: 200 });
+    return NextResponse.json(record!.data, { status: 200 });
   } catch (err) {
     console.error("PUT /api/developer-profile error", err);
     return new NextResponse("Internal Server Error", { status: 500 });

@@ -25,6 +25,8 @@ model User {
   accountCreated    Boolean          @default(false)
   passwordGenerated Boolean          @default(false)
   projectCount      Int              @default(0)
+  progress          Int              @default(0)
+  status            String           @default("ongoing")
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
   developerProfile  DeveloperProfile? @relation("UserProfile")

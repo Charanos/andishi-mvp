@@ -17,6 +17,10 @@ import {
   FaShieldAlt,
   FaExclamationTriangle,
   FaCodeBranch,
+  FaRocket,
+  FaBuilding,
+  FaGlobe,
+  FaStar,
 } from "react-icons/fa";
 import { SiTypescript, SiDocker, SiKubernetes } from "react-icons/si";
 import { toast, ToastContainer } from "react-toastify";
@@ -66,6 +70,50 @@ export default function LoginPage() {
     password: "",
     remember: false,
   });
+
+  // Client testimonials data
+  const testimonials = [
+    {
+      name: "Aisha Patel",
+      company: "FintechEdge Inc.",
+      role: "Chief Technology Officer",
+      avatar: "AP",
+      rating: 5,
+      text: "Andishi's engineers didn't just build our payments platform—they architected it like fintech veterans. Launched 30% faster than projected, ahead of our biggest competitor.",
+      icon: FaRocket,
+      color: "#10B981",
+    },
+    {
+      name: "James Carter",
+      company: "UrbanRetail Co.",
+      role: "Founder & CEO",
+      avatar: "JC",
+      rating: 5,
+      text: "Burned through agencies before. Andishi assembled a dream team faster than I could blink—now we're shipping features that actually excite our users again.",
+      icon: FaBuilding,
+      color: "#3B82F6",
+    },
+    {
+      name: "Carlos Mendoza",
+      company: "HealthSync Global",
+      role: "Product Manager",
+      avatar: "CM",
+      rating: 5,
+      text: "Patient portal was a digital disaster. Their React Native wizard rebuilt it in 48 hours—turned user exodus into 45% engagement boost. Pure magic. ✨",
+      icon: FaGlobe,
+      color: "#8B5CF6",
+    },
+    {
+      name: "Grace Njeri",
+      company: "Andishi",
+      role: "Lead Software Engineer",
+      avatar: "GN",
+      rating: 5,
+      text: "Building the tools that make remote collaboration feel effortless. Watching clients transform from chaos to choreography never gets old. This is what we live for",
+      icon: FaCode,
+      color: "#F59E0B",
+    },
+  ];
 
   // UI state
   const [showPassword, setShowPassword] = useState(false);
@@ -619,35 +667,72 @@ export default function LoginPage() {
           </div>
 
           {/* Floating text elements */}
-          <div className="absolute top-20 left-20 backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl p-4 max-w-xs">
-            <h3 className="text-white font-bold mb-2 uppercase">
-              🔐 Secure Access
-            </h3>
-            <p className="text-gray-300 text-sm">
-              Role-based authentication ensures you access the right dashboard
-              for your account type.
-            </p>
-          </div>
+          {testimonials.map((testimonial, index) => {
+            const positions = [
+              { top: "2%", left: "8%" }, // Top-left
+              { bottom: "2%", right: "8%" }, // Bottom-right
+              { top: "45%", left: "5%" }, // Middle-left
+              { top: "20%", right: "2%" }, // Top-right
+            ];
 
-          <div className="absolute bottom-20 right-20 backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl p-4 max-w-xs">
-            <h3 className="text-white font-bold mb-2 uppercase">
-              🎯 Personalized Experience
-            </h3>
-            <p className="text-gray-300 text-sm">
-              Different dashboards for developers, clients, and administrators
-              with tailored features.
-            </p>
-          </div>
+            return (
+              <div
+                key={index}
+                className={`absolute backdrop-blur-md bg-white/8 border border-white/20 rounded-xl p-5 max-w-xs transition-all duration-300 hover:scale-105 hover:bg-white/12 hover:border-white/30 hover:shadow-xl hover:shadow-blue-500/20`}
+                style={{
+                  ...positions[index],
+                  animation: `float ${4 + index}s ease-in-out infinite`,
+                  animationDelay: `${index * 0.5}s`,
+                }}
+              >
+                {/* Testimonial Header */}
+                <div className="flex items-center mb-3">
+                  {/* Avatar Placeholder */}
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 shadow-lg"
+                    style={{ backgroundColor: testimonial.color }}
+                  >
+                    {testimonial.avatar}
+                  </div>
 
-          <div className="absolute top-1/2 left-10 backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl p-4 max-w-xs">
-            <h3 className="text-white font-bold mb-2 uppercase">
-              ⚡ Smart Routing
-            </h3>
-            <p className="text-gray-300 text-sm">
-              Automatic redirection to your appropriate workspace based on your
-              role and permissions.
-            </p>
-          </div>
+                  <div className="flex-1">
+                    <h4 className="text-white font-semibold text-sm">
+                      {testimonial.name}
+                    </h4>
+                    <p className="text-gray-300 text-xs">
+                      {testimonial.role} at {testimonial.company}
+                    </p>
+                  </div>
+
+                  {/* Company Icon */}
+                  <testimonial.icon
+                    className="text-lg ml-2"
+                    style={{ color: testimonial.color }}
+                  />
+                </div>
+
+                {/* Star Rating */}
+                <div className="flex mb-3">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <FaStar key={i} className="text-yellow-400 text-sm" />
+                  ))}
+                </div>
+
+                {/* Testimonial Text */}
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  "{testimonial.text}"
+                </p>
+
+                {/* Subtle gradient overlay */}
+                <div
+                  className="absolute inset-0 rounded-xl opacity-10 pointer-events-none"
+                  style={{
+                    background: `linear-gradient(135deg, ${testimonial.color}20, transparent)`,
+                  }}
+                ></div>
+              </div>
+            );
+          })}
 
           <style jsx>{`
             @keyframes orbit {

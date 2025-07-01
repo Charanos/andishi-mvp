@@ -1,7 +1,6 @@
 import { jwtVerify } from 'jose';
 import clientPromise from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,11 +13,6 @@ export async function GET(request: NextRequest) {
       token = request.cookies.get('auth_token')?.value; 
     }
 
-    // If still no token, check server-side cookies
-    if (!token) {
-      const cookieStore = await cookies();
-      token = cookieStore.get('auth_token')?.value;
-    }
 
     if (!token) {
       return NextResponse.json(

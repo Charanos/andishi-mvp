@@ -1,5 +1,5 @@
 import { SignJWT } from 'jose';
-import { User, UserRole } from '@/types/auth';
+import { User } from '@/types/auth';
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
@@ -50,16 +50,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Normalize role to enum casing
-    const roleEnum = (user.role as string).toUpperCase() as UserRole;
-
     // Create JWT token
     const token = await createJWTToken(user);
 
     // Create response
     const response = NextResponse.json({
       user: {
-        id: user.id,
+        id: user._id?.toString() ?? user.id,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -95,7 +92,7 @@ async function createJWTToken(user: User): Promise<string> {
   );
 
   const token = await new SignJWT({
-    userId: user.id,
+    userId: (user as any)._id ? (user as any)._id.toString() : (user as any).id,
     email: user.email,
     role: user.role,
   })

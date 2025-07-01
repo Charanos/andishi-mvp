@@ -123,6 +123,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [accountExists, setAccountExists] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string>("");
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [devProfiles, setDevProfiles] = useState<any[]>([]);
 
   // Form state for create/edit
@@ -477,6 +479,19 @@ const UserManagement: React.FC<UserManagementProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (userToDelete) {
+      deleteUser(userToDelete);
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setUserToDelete(null);
   };
 
   const toggleUserStatus = async (
@@ -1648,7 +1663,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                     <button
                       onClick={sendCredentials}
                       disabled={!generatedPassword && !accountExists}
-                      className="px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
+                      className="px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
                     >
                       <FaPaperPlane className="text-sm" />
                       <span className="text-sm">Send Info</span>
@@ -1674,7 +1689,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         className={`px-4 py-3 bg-gradient-to-r ${
                           getAccountStatusInfo().isActive
                             ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
-                            : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                            : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600"
                         } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
                       >
                         {getAccountStatusInfo().isActive ? (
@@ -2075,7 +2090,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           {user.status === "active" ? <FaLock /> : <FaUnlock />}
                         </button>
                         <button
-                          onClick={() => deleteUser(user._id)}
+                          onClick={() => {
+                            setUserToDelete(user._id);
+                            setDeleteModalOpen(true);
+                          }}
                           className="text-red-400/70 cursor-pointer  hover:text-red-300/80 p-1"
                           title="Delete User"
                           disabled={loading}
@@ -2091,6 +2109,29 @@ const UserManagement: React.FC<UserManagementProps> = ({
           </div>
         )}
       </div>
+
+      {isDeleteModalOpen && (
+        <div className="fixed min-h-screen inset-0 bg-black/5 backdrop-blur-md bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-indigo-900/80 backdrop-blur-md p-6 rounded-lg shadow-xl">
+            <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete this user?</p>
+            <div className="mt-6 flex justify-end gap-4">
+              <button
+                onClick={handleDeleteCancel}
+                className="cursor-pointer px-4 py-2 monty rounded-md bg-transparent border border-white/10 hover:bg-gray-700/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="cursor-pointer px-4 py-2 monty rounded-md bg-red-600 hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* User Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

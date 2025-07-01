@@ -100,7 +100,7 @@ export interface ProjectData {
   clientId?: string;
   projectDetails: ProjectDetails;
   pricing: PricingOption;
-  status: "pending" | "reviewed" | "approved" | "rejected";
+   status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
   priority: "low" | "medium" | "high" | "critical";
   progress: number;
   startDate?: Date | string;

@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import clientPromise from '@/lib/mongodb';
-import { getServerSession } from 'next-auth';
 import { ObjectId } from 'mongodb';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 // Add type definitions
 interface ProjectMilestone {
@@ -403,7 +399,14 @@ export async function PATCH(req: NextRequest) {
     const pushOps: Record<string, any> = {};
 
     if (updates.status !== undefined) setOps.status = updates.status;
-    if (updates.progress !== undefined) setOps.progress = updates.progress;
+    if (updates.progress !== undefined) {
+      setOps.progress = updates.progress;
+      // If progress reaches 100, mark the project as completed
+      if (updates.progress === 100) {
+        setOps.status = 'completed';
+        setOps.actualCompletionDate = new Date();
+      }
+    }
 
     // Push array-like updates
     if (Array.isArray(updates.updates) && updates.updates.length) {

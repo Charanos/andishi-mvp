@@ -21,6 +21,7 @@ import {
   FaCode,
   FaChartLine,
   FaDownload,
+  FaPlus,
   FaCheckCircle,
   FaLightbulb,
   FaPause,
@@ -45,6 +46,10 @@ import {
   FaFlag,
 } from "react-icons/fa";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
+import AdvancedAnalyticsDashboard from "./renderAnalytics";
+import generateAdvancedAnalytics, {
+  EnhancedAnalyticsData,
+} from "@/utils/admin-analytics";
 import {
   listProjects,
   createProject as apiCreateProject,
@@ -54,6 +59,7 @@ import {
 import { UserRole } from "@/types/auth";
 import UserManagement from "./renderUsers";
 import ProjectOverview from "./ProjectOverview";
+import StartProjectForm from "./StartNewProject";
 import { ProjectData, Milestone, ProjectFile } from "~/types";
 
 // Types
@@ -82,18 +88,6 @@ interface SystemUser {
   passwordGenerated: boolean;
 }
 
-interface AnalyticsData {
-  totalUsers: number;
-  totalProjects: number;
-  totalRevenue: number;
-  monthlyGrowth: number;
-  projectsByStatus: { [key: string]: number };
-  usersByRole: { [key: string]: number };
-  revenueByMonth: { month: string; revenue: number }[];
-  topClients: { name: string; projects: number; revenue: number }[];
-  topDevelopers: { name: string; projects: number; rating: number }[];
-}
-
 type ActiveTab =
   | "overview"
   | "projects"
@@ -111,17 +105,28 @@ export default function EnhancedAdminDashboard(): ReactNode {
   >([]);
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [users, setUsers] = useState<SystemUser[]>([]);
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
+  const emptyAnalytics: EnhancedAnalyticsData = {
     totalUsers: 0,
     totalProjects: 0,
     totalRevenue: 0,
     monthlyGrowth: 0,
-    projectsByStatus: {},
-    usersByRole: {},
+    successRate: 0,
+    projectsByStatus: { completed: 0, "in-progress": 0, pending: 0 },
+    usersByRole: { client: 0, developer: 0, admin: 0 },
     revenueByMonth: [],
     topClients: [],
     topDevelopers: [],
-  });
+    skillsInDemand: [],
+    performanceMetrics: [],
+    recentActivities: [],
+    avgProjectValue: 0,
+    clientRetentionRate: 0,
+    avgDeliveryTime: 0,
+    qualityScore: 0,
+  };
+
+  const [analytics, setAnalytics] =
+    useState<EnhancedAnalyticsData>(emptyAnalytics);
   const [loading, setLoading] = useState(false);
   const [fetchLoggedInUser, setFetchLoggedInUser] = useState(false);
 
@@ -187,7 +192,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
         setUsers(usersArray);
 
         // Generate dashboard analytics
-        generateAnalytics(transformedProjects, usersArray);
+        setAnalytics(
+          generateAdvancedAnalytics(transformedProjects, usersArray)
+        );
       } catch (err) {
         console.error("Error loading dashboard data:", err);
         toast.error("Error loading dashboard data");
@@ -197,6 +204,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     };
     loadDashboardData();
   }, []);
+
   const [error, setError] = useState<string | null>(null);
 
   // Load users from API
@@ -244,11 +252,30 @@ export default function EnhancedAdminDashboard(): ReactNode {
     );
   };
 
+  const handleProjectDeleteConfirm = async () => {
+    if (projectToDelete) {
+      await apiDeleteProject(projectToDelete);
+      setProjects((prev) => prev.filter((p) => p._id !== projectToDelete));
+      setProjectDeleteModalOpen(false);
+      setProjectToDelete(null);
+    }
+  };
+
+  const handleProjectDeleteCancel = () => {
+    setProjectDeleteModalOpen(false);
+    setProjectToDelete(null);
+  };
+
   // Project-related states
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(
     null
   );
+  const [isProjectDeleteModalOpen, setProjectDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+
   const [viewMode, setViewMode] = useState<"list" | "detail" | "edit">("list");
+  // Inline create project form
+  const [showCreateProjectForm, setShowCreateProjectForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -336,7 +363,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         : Array.isArray(usersData?.users)
         ? usersData.users
         : [];
-      generateAnalytics(transformedProjects, usersArray);
+      setAnalytics(generateAdvancedAnalytics(transformedProjects, usersArray));
     } catch (err) {
       setError("Failed to fetch data");
       console.error("Error fetching data:", err);
@@ -379,29 +406,46 @@ export default function EnhancedAdminDashboard(): ReactNode {
       };
     });
 
-    // Calculate total revenue and project status counts
+    // Calculate total revenue and project/user status counts
     const totalRevenue = projectStats.reduce(
       (sum, project) => sum + (project.budget || 0),
       0
     );
 
-    const projectsByStatus = projectStats.reduce(
-      (acc: { [key: string]: number }, project) => {
-        const status = project.status || "pending";
+    // Ensure mandatory keys are present before aggregation
+    const initialProjectsByStatus: EnhancedAnalyticsData["projectsByStatus"] = {
+      completed: 0,
+      "in-progress": 0,
+      pending: 0,
+    };
+
+    const projectsByStatus = projectStats.reduce<
+      EnhancedAnalyticsData["projectsByStatus"]
+    >(
+      (acc, project) => {
+        const status = (project.status ||
+          "pending") as keyof EnhancedAnalyticsData["projectsByStatus"];
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       },
-      {}
+      { ...initialProjectsByStatus }
     );
 
-    // Calculate user role distribution
-    const usersByRole = usersData.reduce(
-      (acc: { [key: string]: number }, user) => {
-        const role = user.role || "client";
+    // Calculate user role distribution with mandatory keys
+    const initialUsersByRole: EnhancedAnalyticsData["usersByRole"] = {
+      client: 0,
+      developer: 0,
+      admin: 0,
+    };
+
+    const usersByRole = usersData.reduce<EnhancedAnalyticsData["usersByRole"]>(
+      (acc, user) => {
+        const role = (user.role ||
+          "client") as keyof EnhancedAnalyticsData["usersByRole"];
         acc[role] = (acc[role] || 0) + 1;
         return acc;
       },
-      {}
+      { ...initialUsersByRole }
     );
 
     // Calculate monthly revenue with safe date handling
@@ -479,6 +523,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       : 0;
 
     setAnalytics({
+      ...emptyAnalytics,
       totalUsers: usersData.length,
       totalProjects: projectsData.length,
       totalRevenue,
@@ -491,24 +536,43 @@ export default function EnhancedAdminDashboard(): ReactNode {
     });
   };
 
+  // Exchange rates (could be fetched dynamically, kept static for now)
+  const EXCHANGE_RATES: Record<"USD" | "KES", number> = {
+    USD: 1,
+    KES: 1 / 130, // approximate: 130 KES ≈ 1 USD
+  };
+
+  /**
+   * Converts an amount to USD based on the currency provided.
+   */
+  const toUSD = (amount: number, currency: "USD" | "KES" = "USD") =>
+    amount * (EXCHANGE_RATES[currency] ?? 1);
+
   const calculateProjectBudget = (project: ProjectData): number => {
     if (project.pricing.type === "fixed") {
-      return parseFloat(project.pricing.fixedBudget || "0");
+      return toUSD(
+        parseFloat(project.pricing.fixedBudget || "0"),
+        project.pricing.currency
+      );
     } else if (project.pricing.type === "milestone") {
       const milestonesArr =
         project.milestones && project.milestones.length
           ? project.milestones
           : project.pricing.milestones || [];
       return (
-        milestonesArr.reduce(
-          (sum, m) => sum + parseFloat(m.budget || "0"),
-          0
+        toUSD(
+          milestonesArr.reduce(
+            (sum, m) => sum + parseFloat(m.budget || "0"),
+            0
+          ),
+          project.pricing.currency
         ) || 0
       );
     } else {
-      return (
+      return toUSD(
         parseFloat(project.pricing.hourlyRate || "0") *
-        parseFloat(project.pricing.estimatedHours || "0")
+          parseFloat(project.pricing.estimatedHours || "0"),
+        project.pricing.currency
       );
     }
   };
@@ -519,7 +583,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   const updateProjectStatus = async (
     projectId: string,
-    newStatus: "pending" | "reviewed" | "approved" | "rejected"
+    newStatus: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold"
   ) => {
     const prevProjects = [...projects];
     let updatedProject: ProjectData | undefined;
@@ -539,9 +603,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
         setSelectedProject(updatedProject);
       }
       const statusMessages = {
-        approved: "Project approved successfully! 🎉",
-        reviewed: "Project marked as reviewed 👍",
-        rejected: "Project rejected ❌",
+        in_progress: "Project marked as in progress 👍",
+        completed: "Project marked as completed 👍",
+        cancelled: "Project cancelled ❌",
+        on_hold: "Project on hold ⏳",
         pending: "Project status updated ⏳",
       };
       toast.success(statusMessages[newStatus]);
@@ -549,7 +614,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       setProjects(prevProjects);
       toast.error(error?.message || "Failed to update project status");
     } finally {
-      if (newStatus === "rejected" || newStatus === "approved") {
+      if (newStatus === "cancelled" || newStatus === "on_hold") {
         setViewMode("list");
         setSelectedProject(null);
       }
@@ -1246,6 +1311,20 @@ export default function EnhancedAdminDashboard(): ReactNode {
   );
 
   const renderProjects = (): ReactNode => {
+    if (showCreateProjectForm) {
+      return (
+        <StartProjectForm
+          dashboardMode
+          onSuccess={async () => {
+            await fetchAllData();
+            setShowCreateProjectForm(false);
+            addNotification("success", "Project created successfully");
+          }}
+          onCancel={() => setShowCreateProjectForm(false)}
+        />
+      );
+    }
+
     if (viewMode === "detail" && selectedProject) {
       return (
         <ProjectOverview
@@ -1293,14 +1372,21 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 <p className="text-gray-300 text-lg">
                   Manage and track all client projects with real-time insights
                 </p>
+                {/* Create Project Button */}
+                <button
+                  onClick={() => setShowCreateProjectForm(true)}
+                  className="mt-4 inline-flex items-center gap-2 cursor-pointer monty uppercase px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition"
+                >
+                  <FaPlus /> New Project
+                </button>
               </div>
 
               {/* Quick Stats */}
               <div className="flex gap-4">
                 <div className="flex items-center gap-3  backdrop-blur-sm border border-blue-400/30 rounded-xl p-4 min-w-[120px]">
                   <div className="text-2xl monty font-semibold text-blue-400">
-                    {projects?.filter((p) => p?.status === "approved").length ||
-                      0}
+                    {projects?.filter((p) => p?.status === "in_progress")
+                      .length || 0}
                   </div>
                   <div className="text-xs text-blue-300 monty uppercase">
                     Active
@@ -1308,11 +1394,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 </div>
                 <div className="flex items-center gap-3 backdrop-blur-sm border border-green-400/30 rounded-xl p-4 min-w-[120px]">
                   <div className="text-2xl monty font-semibold text-green-400">
-                    {projects?.filter((p) => p?.status === "reviewed").length ||
-                      0}
+                    {projects?.filter((p) => p?.status === "completed")
+                      .length || 0}
                   </div>
                   <div className="text-xs text-green-300 monty uppercase">
-                    Reviewed
+                    Completed
                   </div>
                 </div>
                 <div className="flex items-center gap-3  backdrop-blur-sm border border-orange-400/30 rounded-xl p-4 min-w-[120px]">
@@ -1439,9 +1525,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <div className="flex flex-col items-end gap-2">
                       <div
                         className={`flex items-center monty uppercase gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                          status === "approved"
+                          status === "in_progress"
                             ? " text-green-400 border border-green-500/30"
-                            : status === "reviewed"
+                            : status === "completed"
                             ? " text-blue-400 border border-blue-500/30"
                             : status === "pending"
                             ? " text-orange-400 border border-orange-500/30"
@@ -1564,7 +1650,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         onClick={(e) => {
                           e.stopPropagation();
                           if (project?._id) {
-                            deleteProject(project._id);
+                            setProjectToDelete(project._id);
+                            setProjectDeleteModalOpen(true);
                           }
                         }}
                         className="cursor-pointer p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200"
@@ -1583,6 +1670,29 @@ export default function EnhancedAdminDashboard(): ReactNode {
           </div>
 
           {/* Empty State */}
+          {isProjectDeleteModalOpen && (
+            <div className="fixed min-h-screen inset-0 bg-black/5 backdrop-blur-md bg-opacity-50 z-50 flex justify-center items-center">
+              <div className="bg-indigo-900/80 backdrop-blur-md p-6 rounded-lg shadow-xl">
+                <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
+                <p>Are you sure you want to delete this project?</p>
+                <div className="mt-6 flex justify-end gap-4">
+                  <button
+                    onClick={handleProjectDeleteCancel}
+                    className="cursor-pointer px-4 py-2 monty rounded-md bg-transparent border border-white/10 hover:bg-gray-700/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleProjectDeleteConfirm}
+                    className="cursor-pointer px-4 py-2 monty rounded-md bg-red-600 hover:bg-red-700 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {(!projects || projects.length === 0) && (
             <div className="text-center py-16">
               <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-12 max-w-md mx-auto">
@@ -2952,7 +3062,9 @@ Generate new credentials to reset password.`;
               setUserStatusFilter={setUserStatusFilter}
             />
           )}
-          {activeTab === "analytics" && renderAnalytics()}
+          {activeTab === "analytics" && (
+            <AdvancedAnalyticsDashboard analytics={analytics} />
+          )}
           {activeTab === "dev profiles" && <DeveloperProfilesOverview />}
           {activeTab === "settings" && renderSettings()}
         </div>

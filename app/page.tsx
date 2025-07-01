@@ -9,7 +9,6 @@ import StatsSection from "./sections/MiniStats";
 import HeroSection from "./sections/HeroSection";
 import ClientReviews from "./sections/ClientReviews";
 import ProjectsShowcase from "./sections/ProjectsShowcase";
-import ClientDashboard from "./client-dashboard/page";
 import ClientDashboardSection from "./sections/ClientDashboardDisplay";
 import DevDashboardSection from "./sections/DevDashboardDisplay";
 import LatestInsights from "./sections/LatestInsights";

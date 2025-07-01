@@ -135,7 +135,7 @@ export default function HeroSection() {
                   </div>
                 ))}
               </div>
-              <span className="text-sm">1000+ developers vetted</span>
+              <span className="text-sm">100+ developers vetted</span>
             </div>
 
             <div className="flex items-center space-x-2 text-gray-400">

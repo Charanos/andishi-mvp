@@ -94,6 +94,25 @@ export default function TechTalentPool() {
       "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15",
   };
 
+  // First, install boring-avatars: npm install boring-avatars
+
+  const generateAvatar = (
+    name: string,
+    style: string = "avataaars"
+  ): string => {
+    const seed = encodeURIComponent(name.toLowerCase().replace(/\s+/g, ""));
+    return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
+  };
+
+  const avatarStyles = [
+    "avataaars",
+    "bottts",
+    "personas",
+    "pixel-art",
+    "shapes",
+    "rings",
+  ];
+
   const developers: Developer[] = [
     {
       id: 1,
@@ -101,7 +120,7 @@ export default function TechTalentPool() {
       role: "Full Stack Developer",
       experience: "5+ years",
       location: "Nairobi, KE",
-      avatar: "/images/dev1.jpg",
+      avatar: generateAvatar("Felix Nthiwa", avatarStyles[4]),
       skills: ["React", "Node.js", "TypeScript", "AWS", "PostgreSQL"],
       specialties: ["E-commerce", "Real-time Systems", "API Design"],
       availability: "Available",
@@ -194,7 +213,7 @@ export default function TechTalentPool() {
       role: "Frontend Developer",
       experience: "4+ years",
       location: "Nakuru, KE",
-      avatar: "/images/dev2.jpg",
+      avatar: generateAvatar("Daniel Kemboi", avatarStyles[4]),
       skills: ["React", "Next.js", "Tailwind CSS", "TypeScript", "Vue.js"],
       specialties: [
         "UI/UX Implementation",
@@ -291,7 +310,7 @@ export default function TechTalentPool() {
       role: "Backend Developer",
       experience: "6+ years",
       location: "New Delhi, IN",
-      avatar: "/images/dev6.jpg",
+      avatar: generateAvatar("Priya Patel", avatarStyles[4]),
       skills: ["Python", "Node.js", "MongoDB", "AWS", "Docker"],
       specialties: ["Microservices", "Database Design", "Cloud Architecture"],
       availability: "Busy until Oct 2025",
@@ -381,7 +400,7 @@ export default function TechTalentPool() {
       role: "Mobile Developer",
       experience: "4+ years",
       location: "Seattle, WA",
-      avatar: "/images/dev3.jpg",
+      avatar: generateAvatar("James Kim", avatarStyles[4]),
       skills: ["React Native", "TypeScript", "Firebase", "Node.js"],
       specialties: [
         "Cross-platform Apps",
@@ -479,7 +498,7 @@ export default function TechTalentPool() {
       role: "DevOps Engineer",
       experience: "3+ years",
       location: "Thika, KE",
-      avatar: "/images/dev5.jpg",
+      avatar: generateAvatar("Elena Njeri", avatarStyles[4]),
       skills: ["AWS", "Docker", "Kubernetes", "Python", "DevOps"],
       specialties: [
         "CI/CD Pipelines",
@@ -574,11 +593,11 @@ export default function TechTalentPool() {
     },
     {
       id: 6,
-      name: "Chinedu Okafor ",
+      name: "Chinedu Okafor",
       role: "Blockchain Developer",
       experience: "3+ years",
       location: "Lagos, Nigeria",
-      avatar: "/images/dev7.jpg",
+      avatar: generateAvatar("Chinedu Okafor", avatarStyles[4]),
       skills: ["Blockchain", "TypeScript", "Next.js", "Node.js"],
       specialties: ["Smart Contracts", "DeFi Protocols", "Web3 Integration"],
       availability: "Available",
@@ -672,7 +691,7 @@ export default function TechTalentPool() {
       role: "AI/ML Engineer",
       experience: "4+ years",
       location: "Nairobi, KE",
-      avatar: "/images/dev4.jpg",
+      avatar: generateAvatar("Mary Wanga", avatarStyles[4]),
       skills: ["Python", "Machine Learning", "React", "AWS"],
       specialties: [
         "Computer Vision",
@@ -771,7 +790,7 @@ export default function TechTalentPool() {
       role: "Mobile Developer",
       experience: "6+ years",
       location: "Vancouver, BC",
-      avatar: "/images/dev8.jpg",
+      avatar: generateAvatar("David Park", avatarStyles[4]),
       skills: ["Flutter", "Dart", "Swift", "Kotlin", "React Native"],
       specialties: [
         "Cross-Platform Development",
@@ -868,7 +887,7 @@ export default function TechTalentPool() {
       role: "Full Stack Developer",
       experience: "5+ years",
       location: "Nairobi, Kenya",
-      avatar: "/images/dev9.jpg",
+      avatar: generateAvatar("Eric Kibuchi", avatarStyles[4]),
       skills: [
         "React",
         "TypeScript",

@@ -50,7 +50,7 @@ type MilestoneStatus =
   | "pending"
   | "approved"
   | "rejected"
-  | "in_progress"
+  | "in-progress"
   | "completed"
   | "cancelled";
 type PaymentStatus =
@@ -79,7 +79,7 @@ const formatCurrency = (amount: number, currency: "USD" | "KES") => {
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    in_progress: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    "in-progress": "bg-blue-500/20 text-blue-300 border-blue-500/30",
     completed: "bg-green-500/20 text-green-300 border-green-500/30",
     overdue: "bg-red-500/20 text-red-300 border-red-500/30",
     paid: "bg-green-500/20 text-green-300 border-green-500/30",
@@ -94,7 +94,7 @@ const getStatusColor = (status: string) => {
 const getStatusIcon = (status: string) => {
   const icons: Record<string, ReactElement> = {
     pending: <Clock className="w-4 h-4 text-yellow-400" />,
-    in_progress: <Activity className="w-4 h-4 text-blue-400" />,
+    "in-progress": <Activity className="w-4 h-4 text-blue-400" />,
     completed: <CheckCircle className="w-4 h-4 text-green-400" />,
     on_hold: <AlertCircle className="w-4 h-4 text-orange-400" />,
     cancelled: <X className="w-4 h-4 text-red-400" />,
@@ -868,7 +868,7 @@ export default function EnhancedProjectTracking({
                     className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
                   >
                     <option value="pending">Pending</option>
-                    <option value="in_progress">In Progress</option>
+                    <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>

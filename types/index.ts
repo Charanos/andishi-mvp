@@ -17,6 +17,16 @@ export interface ProjectDetails {
   requirements: string;
 }
 
+export type ProjectStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "reviewed"
+  | "in-progress"
+  | "completed"
+  | "cancelled"
+  | "on_hold";
+
 export interface Milestone {
   id: string;
   title: string;
@@ -24,7 +34,7 @@ export interface Milestone {
   budget: string;
   timeline: string;
   deliverables?: string[];
-  status: "pending" | "approved" | "rejected" | "in_progress" | "completed" | "cancelled";
+  status: ProjectStatus;
   dueDate?: Date | string;
   completedAt?: Date | string;
   order: number;
@@ -100,7 +110,7 @@ export interface ProjectData {
   clientId?: string;
   projectDetails: ProjectDetails;
   pricing: PricingOption;
-   status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
+   status: ProjectStatus;
   priority: "low" | "medium" | "high" | "critical";
   progress: number;
   startDate?: Date | string;
@@ -125,7 +135,7 @@ export interface BaseProjectWithDetails {
   title: string;
   description: string;
   category: string;
-  status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
+  status: ProjectStatus;
   priority: "low" | "medium" | "high" | "urgent";
   progress: number;
   techStack: string[];

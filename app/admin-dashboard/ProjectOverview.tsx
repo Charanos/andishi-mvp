@@ -16,8 +16,9 @@ import {
   FaComment,
   FaCheckCircle,
   FaClock,
-  FaExclamationTriangle,
   FaPlus,
+  FaTimesCircle,
+  FaPlay,
 } from "react-icons/fa";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
 import {
@@ -93,7 +94,7 @@ type MilestoneStatus =
   | "pending"
   | "approved"
   | "rejected"
-  | "in_progress"
+  | "in-progress"
   | "completed"
   | "cancelled";
 type PaymentStatus = "pending" | "paid" | "overdue" | "partial";
@@ -116,11 +117,12 @@ const formatCurrency = (amount: number, currency: "USD" | "KES") => {
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    in_progress: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    "in-progress": "bg-blue-500/20 text-blue-300 border-blue-500/30",
     completed: "bg-green-500/20 text-green-300 border-green-500/30",
     overdue: "bg-red-500/20 text-red-300 border-red-500/30",
     paid: "bg-green-500/20 text-green-300 border-green-500/30",
     partial: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+    on_hold: "bg-orange-500/20 text-orange-300 border-orange-500/30",
     reviewed: "bg-purple-500/20 text-purple-300 border-purple-500/30",
     approved: "bg-teal-500/20 text-teal-300 border-teal-500/30",
     rejected: "bg-red-500/20 text-red-300 border-red-500/30",
@@ -131,7 +133,7 @@ const getStatusColor = (status: string) => {
 const getStatusIcon = (status: string) => {
   const icons: Record<string, React.ReactElement> = {
     pending: <Clock className="w-4 h-4 text-yellow-400" />,
-    in_progress: <Activity className="w-4 h-4 text-blue-400" />,
+    "in-progress": <Activity className="w-4 h-4 text-blue-400" />,
     completed: <CheckCircle className="w-4 h-4 text-green-400" />,
     on_hold: <AlertCircle className="w-4 h-4 text-orange-400" />,
     cancelled: <X className="w-4 h-4 text-red-400" />,
@@ -263,8 +265,6 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       setUpdates(selectedProject.updates || []);
     }
   }, [selectedProject]);
-
-  
 
   // Calculate project statistics
   const totalMilestones = milestones.length;
@@ -441,7 +441,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         return <X className="text-red-400" />;
       case "completed":
         return <CheckCircle className="text-green-400" />;
-      case "in_progress":
+      case "'in-progress'":
         return <Activity className="text-blue-400" />;
       default:
         return <AlertCircle className="text-gray-400" />;
@@ -1313,7 +1313,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
                     <div
                       className={`px-2 py-1 text-center rounded-xl border backdrop-blur-sm ${
-                        selectedProject.status === "in_progress"
+                        selectedProject.status === "in-progress"
                           ? "bg-white/10 border-green-500/40 text-green-300"
                           : selectedProject.status === "completed"
                           ? "bg-white/10 border-blue-500/40 text-blue-300"
@@ -1337,159 +1337,132 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     </div>
 
                     <div className="space-y-4">
-                      {/* Approve Button */}
-                      <button
-                        onClick={() =>
-                          onStatusUpdate(selectedProject._id, "in_progress")
-                        }
-                        className={`group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4  backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] ${
-                          selectedProject.status === "in_progress"
-                            ? "bg-gradient-to-r from-green-500/30 to-emerald-500/30  text-green-200 cursor-not-allowed opacity-60"
-                            : "bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20  text-white hover:text-green-100 cursor-pointer hover:shadow-green-500/20"
-                        }`}
-                        disabled={selectedProject.status === "in_progress"}
-                      >
-                        <div
-                          className={`w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                            selectedProject.status === "in_progress"
-                              ? "bg-green-500/40"
-                              : "bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover/action:from-green-500/30 group-hover/action:to-emerald-500/30"
-                          }`}
-                        >
-                          <IoIosCheckmarkCircleOutline
-                            className={`text-sm transition-all duration-300 ${
-                              selectedProject.status === "in_progress"
-                                ? "text-green-300"
-                                : "text-green-400 group-hover/action:text-green-300 group-hover/action:scale-110"
-                            }`}
-                          />
-                        </div>
-                        <span className="flex-1 font-medium monty text-base">
-                          {selectedProject.status === "in_progress"
-                            ? "Project Approved"
-                            : "Approve Project"}
-                        </span>
-                        {selectedProject.status === "in_progress" && (
-                          <div className="w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center">
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
+                      {/* Pending/Reviewed State Actions */}
+                      {(selectedProject.status === "pending" ||
+                        selectedProject.status === "reviewed") && (
+                        <>
+                          {/* Approve Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "in-progress")
+                            }
+                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 text-white hover:text-green-100 cursor-pointer hover:shadow-green-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover/action:from-green-500/30 group-hover/action:to-emerald-500/30">
+                              <FaCheckCircle className="text-sm text-green-400 group-hover/action:text-green-300 group-hover/action:scale-110" />
+                            </div>
+                            <span className="flex-1 font-medium monty text-base">
+                              Approve Project
+                            </span>
+                          </button>
+                          {/* Reject Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "rejected")
+                            }
+                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
+                              <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
+                            </div>
+                            <span className="flex-1 font-medium monty text-base">
+                              Reject Project
+                            </span>
+                          </button>
+                        </>
+                      )}
 
-                      {/* mark as complete Button */}
-                      <button
-                        onClick={() => {
-                          setProgressValue(100);
-                          setShowProgressModal(true);
-                        }}
-                        className={`group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 font-semibold text-lg backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] ${
-                          selectedProject.status === "completed"
-                            ? "bg-gradient-to-r from-blue-500/30 to-indigo-500/30  text-blue-200 cursor-not-allowed opacity-60"
-                            : "bg-gradient-to-br from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20  text-white hover:text-blue-100 cursor-pointer hover:shadow-blue-500/20"
-                        }`}
-                        disabled={selectedProject.status === "completed"}
-                      >
-                        <div
-                          className={`w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                            selectedProject.status === "completed"
-                              ? "bg-blue-500/40"
-                              : "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 group-hover/action:from-blue-500/30 group-hover/action:to-indigo-500/30"
-                          }`}
-                        >
-                          <FaEye
-                            className={`text-sm transition-all duration-300 ${
-                              selectedProject.status === "completed"
-                                ? "text-blue-300"
-                                : "text-blue-400 group-hover/action:text-blue-300 group-hover/action:scale-110"
-                            }`}
-                          />
-                        </div>
-                        <span className="flex-1 font-medium monty text-base">
-                          {selectedProject.status === "completed"
-                            ? "Already Completed"
-                            : "Mark as Completed"}
-                        </span>
-                        {selectedProject.status === "completed" && (
-                          <div className="w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center">
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
+                      {/* In Progress State Actions */}
+                      {selectedProject.status === "in-progress" && (
+                        <>
+                          {/* Mark as Complete Button */}
+                          <button
+                            onClick={() => {
+                              setProgressValue(100);
+                              setShowProgressModal(true);
+                            }}
+                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20 text-white hover:text-blue-100 cursor-pointer hover:shadow-blue-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 group-hover/action:from-blue-500/30 group-hover/action:to-indigo-500/30">
+                              <FaCheckCircle className="text-sm text-blue-400 group-hover/action:text-blue-300 group-hover/action:scale-110" />
+                            </div>
+                            <span className="flex-1 font-medium monty text-base">
+                              Mark as Completed
+                            </span>
+                          </button>
+                          {/* On Hold Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "on_hold")
+                            }
+                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-orange-500/10 to-yellow-500/10 hover:from-orange-500/20 hover:to-yellow-500/20 text-white hover:text-orange-100 cursor-pointer hover:shadow-orange-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 group-hover/action:from-orange-500/30 group-hover/action:to-yellow-500/30">
+                              <FaClock className="text-sm text-orange-400 group-hover/action:text-orange-300 group-hover/action:scale-110" />
+                            </div>
+                            <span className="flex-1 font-medium monty text-base">
+                              Put On Hold
+                            </span>
+                          </button>
+                          {/* Cancel Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "cancelled")
+                            }
+                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
+                              <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
+                            </div>
+                            <span className="flex-1 font-medium monty text-base">
+                              Cancel Project
+                            </span>
+                          </button>
+                        </>
+                      )}
 
-                      {/* Reject Button */}
-                      <button
-                        onClick={() =>
-                          onStatusUpdate(selectedProject._id, "cancelled")
-                        }
-                        className={`group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 font-semibold text-lg backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] ${
-                          selectedProject.status === "cancelled"
-                            ? "bg-gradient-to-r from-red-500/30 to-pink-500/30  text-red-200 cursor-not-allowed opacity-60"
-                            : "bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20  text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20"
-                        }`}
-                        disabled={selectedProject.status === "cancelled"}
-                      >
-                        <div
-                          className={`w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                            selectedProject.status === "cancelled"
-                              ? "bg-red-500/40"
-                              : "bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30"
-                          }`}
-                        >
-                          <FaTimes
-                            className={`text-sm transition-all duration-300 ${
-                              selectedProject.status === "cancelled"
-                                ? "text-red-300"
-                                : "text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110"
-                            }`}
-                          />
+                      {/* On Hold State Actions */}
+                      {selectedProject.status === "on_hold" && (
+                        <>
+                          {/* Resume Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "in-progress")
+                            }
+                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 text-white hover:text-green-100 cursor-pointer hover:shadow-green-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover/action:from-green-500/30 group-hover/action:to-emerald-500/30">
+                              <FaPlay className="text-sm text-green-400 group-hover/action:text-green-300 group-hover/action:scale-110" />
+                            </div>
+                            <span className="flex-1 font-medium monty text-base">
+                              Resume Project
+                            </span>
+                          </button>
+                          {/* Cancel Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "cancelled")
+                            }
+                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
+                              <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
+                            </div>
+                            <span className="flex-1 font-medium monty text-base">
+                              Cancel Project
+                            </span>
+                          </button>
+                        </>
+                      )}
+
+                      {/* Completed, Cancelled, Rejected States */}
+                      {(selectedProject.status === "completed" ||
+                        selectedProject.status === "cancelled" ||
+                        selectedProject.status === "rejected") && (
+                        <div className="text-center text-gray-400 p-4 bg-black/20 rounded-2xl border border-white/10">
+                          <p>No further actions available for this project.</p>
                         </div>
-                        <span className="flex-1 font-medium monty text-base">
-                          {selectedProject.status === "cancelled"
-                            ? "Project Cancelled"
-                            : "Cancel Project"}
-                        </span>
-                        {selectedProject.status === "cancelled" && (
-                          <div className="w-6 h-6 bg-red-400 rounded-full flex items-center justify-center">
-                            <svg
-                              className="w-3 h-3 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
+                      )}
                     </div>
                   </div>
 
@@ -1621,7 +1594,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 className={`px-2 py-1 rounded-full text-xs font-medium ${
                                   milestone.status === "completed"
                                     ? "bg-green-500/20 text-green-300"
-                                    : milestone.status === "in_progress"
+                                    : milestone.status === "in-progress"
                                     ? "bg-blue-500/20 text-blue-300"
                                     : milestone.status === "cancelled"
                                     ? "bg-red-500/20 text-red-300"
@@ -1666,11 +1639,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                     milestone.id,
                                     {
                                       status:
-                                        milestone.status === "in_progress"
+                                        milestone.status === "in-progress"
                                           ? "completed"
-                                          : "in_progress",
+                                          : "in-progress",
                                       completedAt:
-                                        milestone.status === "in_progress"
+                                        milestone.status === "in-progress"
                                           ? new Date()
                                           : undefined,
                                     }
@@ -1678,7 +1651,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 }
                                 className="px-3 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded text-xs border border-indigo-500/30 transition-all"
                               >
-                                {milestone.status === "in_progress"
+                                {milestone.status === "in-progress"
                                   ? "Complete"
                                   : "Start"}
                               </button>
@@ -2557,7 +2530,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     setShowProgressModal(false);
 
                     const newStatus =
-                      progressValue === 100 ? "completed" : "in_progress";
+                      progressValue === 100 ? "completed" : "in-progress";
 
                     await onProgressUpdate(selectedProject._id, progressValue);
 

@@ -60,7 +60,14 @@ import { UserRole } from "@/types/auth";
 import UserManagement from "./renderUsers";
 import ProjectOverview from "./ProjectOverview";
 import StartProjectForm from "./StartNewProject";
-import { ProjectData, Milestone, ProjectFile } from "~/types";
+import {
+  ProjectData,
+  Milestone,
+  ProjectUpdate,
+  ProjectFile,
+  Payment,
+  ProjectStatus,
+} from "@/types";
 
 // Types
 interface SystemUser {
@@ -170,6 +177,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
         const transformedProjects = (projectsData || []).map(
           (project: any) => ({
             ...project,
+            status:
+              project.status === "in-progress" ? "in-progress" : project.status,
             priority: project.priority || "low",
           })
         );
@@ -330,6 +339,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
       const projectsArray = await listProjects();
       const transformedProjects = (projectsArray || []).map((project: any) => ({
         ...project,
+        status:
+          project.status === "in-progress" ? "in-progress" : project.status,
         priority: project.priority || "low",
       }));
       setProjects(transformedProjects);
@@ -583,7 +594,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   const updateProjectStatus = async (
     projectId: string,
-    newStatus: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold"
+    newStatus: ProjectStatus
   ) => {
     const prevProjects = [...projects];
     let updatedProject: ProjectData | undefined;
@@ -602,12 +613,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (updatedProject) {
         setSelectedProject(updatedProject);
       }
-      const statusMessages = {
-        in_progress: "Project marked as in progress 👍",
-        completed: "Project marked as completed 👍",
-        cancelled: "Project cancelled ❌",
-        on_hold: "Project on hold ⏳",
-        pending: "Project status updated ⏳",
+      const statusMessages: { [key in ProjectStatus]?: string } = {
+        "in-progress": "Project marked as in progress ",
+        completed: "Project marked as completed ",
+        cancelled: "Project cancelled ",
+        on_hold: "Project on hold ",
+        pending: "Project status updated ",
+        reviewed: "Project marked as reviewed",
+        approved: "Project has been approved",
+        rejected: "Project has been rejected",
       };
       toast.success(statusMessages[newStatus]);
     } catch (error: any) {
@@ -640,7 +654,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (updatedProject) {
         setSelectedProject(updatedProject);
       }
-      toast.success("Project progress updated ✅");
+      toast.success("Project progress updated ");
     } catch (error: any) {
       setProjects(prevProjects);
       toast.error(error?.message || "Failed to update project progress");
@@ -755,7 +769,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (updatedProject) {
         setSelectedProject(updatedProject);
       }
-      toast.success("Update added ✅");
+      toast.success("Update added ");
     } catch (error: any) {
       setProjects(prevProjects);
       toast.error(error?.message || "Failed to add update");
@@ -824,7 +838,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         setSelectedProject(finalUpdatedProject);
       }
 
-      toast.success("File uploaded ✅");
+      toast.success("File uploaded ");
     } catch (error: any) {
       setProjects(prevProjects);
       if (selectedProject?._id === projectId) {
@@ -1385,7 +1399,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
               <div className="flex gap-4">
                 <div className="flex items-center gap-3  backdrop-blur-sm border border-blue-400/30 rounded-xl p-4 min-w-[120px]">
                   <div className="text-2xl monty font-semibold text-blue-400">
-                    {projects?.filter((p) => p?.status === "in_progress")
+                    {projects?.filter((p) => p?.status === "in-progress")
                       .length || 0}
                   </div>
                   <div className="text-xs text-blue-300 monty uppercase">
@@ -1525,7 +1539,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <div className="flex flex-col items-end gap-2">
                       <div
                         className={`flex items-center monty uppercase gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                          status === "in_progress"
+                          status === "in-progress"
                             ? " text-green-400 border border-green-500/30"
                             : status === "completed"
                             ? " text-blue-400 border border-blue-500/30"

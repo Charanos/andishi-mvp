@@ -6,7 +6,7 @@ interface Milestone {
   description: string;
   budget: string;
   timeline: string;
-  status: "pending" | "in_progress" | "completed" | "cancelled";
+  status: "pending" | "in-progress" | "completed" | "cancelled";
   dueDate?: Date;
   completedAt?: Date;
   order: number;
@@ -48,7 +48,7 @@ interface ProjectWithDetails {
   urgency?: string;
   techStack: string[];
   requirements?: string;
-  status: "pending" | "in_progress" | "completed" | "cancelled" | "on_hold";
+  status: "pending" | "in-progress" | "completed" | "cancelled" | "on_hold";
   priority: "low" | "medium" | "high" | "urgent";
   progress: number;
   startDate?: Date;

@@ -63,7 +63,7 @@ const ClientDashboard: React.FC = () => {
   const recomputeStats = (projList: ProjectWithDetails[]): ProjectStats => ({
     total: projList.length,
     pending: projList.filter((p) => p.status === "pending").length,
-    inProgress: projList.filter((p) => p.status === "in_progress").length,
+    inProgress: projList.filter((p) => p.status === "in-progress").length,
     completed: projList.filter((p) => p.status === "completed").length,
     cancelled: projList.filter((p) => p.status === "cancelled").length,
     onHold: projList.filter((p) => p.status === "on_hold").length,
@@ -74,6 +74,23 @@ const ClientDashboard: React.FC = () => {
         )
       : 0,
   });
+  const mapStatus = (
+    status: "pending" | "reviewed" | "approved" | "rejected"
+  ): "pending" | "in-progress" | "completed" | "cancelled" | "on_hold" => {
+    switch (status) {
+      case "pending":
+        return "pending";
+      case "reviewed":
+        return "in-progress";
+      case "approved":
+        return "completed";
+      case "rejected":
+        return "cancelled";
+      default:
+        return "pending";
+    }
+  };
+
   const { user } = useAuth();
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
 
@@ -244,7 +261,7 @@ const ClientDashboard: React.FC = () => {
               (p: any) => p.status === "pending"
             ).length,
             inProgress: transformedProjects.filter(
-              (p: any) => p.status === "in_progress"
+              (p: any) => p.status === "in-progress"
             ).length,
             completed: transformedProjects.filter(
               (p: any) => p.status === "completed"
@@ -340,7 +357,7 @@ const ClientDashboard: React.FC = () => {
     switch (status) {
       case "pending":
         return <Clock className="w-4 h-4 text-yellow-400" />;
-      case "in_progress":
+      case "in-progress":
         return <Play className="w-4 h-4 text-blue-400" />;
       case "completed":
         return <CheckCircle className="w-4 h-4 text-green-400" />;
@@ -357,7 +374,7 @@ const ClientDashboard: React.FC = () => {
     switch (status) {
       case "pending":
         return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
-      case "in_progress":
+      case "in-progress":
         return "bg-blue-500/20 text-blue-300 border-blue-500/30";
       case "completed":
         return "bg-green-500/20 text-green-300 border-green-500/30";
@@ -570,7 +587,7 @@ const ClientDashboard: React.FC = () => {
     (p) => p.status === "completed"
   ).length;
   const inProgressProjects = projects.filter(
-    (p) => p.status === "in_progress"
+    (p) => p.status === "in-progress"
   ).length;
   const averageProgress =
     projects.length > 0
@@ -600,7 +617,7 @@ const ClientDashboard: React.FC = () => {
   const activeProjectsDays = projects
     .filter(
       (p) =>
-        p.startDate && (p.status === "in_progress" || p.status === "completed")
+        p.startDate && (p.status === "in-progress" || p.status === "completed")
     )
     .reduce((sum, p) => {
       const start = new Date(p.startDate!);
@@ -681,7 +698,7 @@ const ClientDashboard: React.FC = () => {
     // Calculate portfolio metrics
     const totalProjects = projects.length;
     const activeProjects = projects.filter(
-      (p) => p.status === "in_progress"
+      (p) => p.status === "in-progress"
     ).length;
     const completedProjects = projects.filter(
       (p) => p.status === "completed"
@@ -1527,7 +1544,7 @@ const ClientDashboard: React.FC = () => {
         switch (status) {
           case "pending":
             return "pending";
-          case "in_progress":
+          case "in-progress":
           case "on_hold":
             return "reviewed";
           case "completed":
@@ -1564,7 +1581,7 @@ const ClientDashboard: React.FC = () => {
                     type: "fixed" as const,
                     currency: "USD" as const,
                   },
-              status: mapStatus(selectedProject.status),
+              status: selectedProject.status,
               priority:
                 selectedProject.priority === "urgent"
                   ? "critical"

@@ -70,7 +70,7 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
       color: "text-yellow-400",
       icon: Clock,
     },
-    { value: "in_progress", label: "In Progress", color: "text-blue-400" },
+    { value: "in-progress", label: "In Progress", color: "text-blue-400" },
     { value: "completed", label: "Completed", color: "text-green-400" },
     { value: "on_hold", label: "On Hold", color: "text-orange-400" },
     { value: "cancelled", label: "Cancelled", color: "text-red-400" },

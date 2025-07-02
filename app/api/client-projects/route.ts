@@ -36,6 +36,32 @@ interface ProjectFile {
   createdAt: Date;
 }
 
+interface ProjectPayment {
+  _id?: ObjectId;
+  id?: string;
+  amount: number;
+  date: Date;
+  method: string;
+  status: string;
+  submittedBy: string;
+  notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface ProjectPayment {
+  _id?: ObjectId;
+  id?: string;
+  amount: number;
+  date: Date;
+  method: string;
+  status: string;
+  submittedBy: string;
+  notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 // Helper to extract auth info if middleware headers are missing
 const authenticateRequest = async (req: NextRequest) => {
   const headerEmail = req.headers.get('user-email');
@@ -516,16 +542,20 @@ export async function PATCH(req: NextRequest) {
             break;
             
           case 'payment_create':
-            const newPayment = {
-              ...data,
+            const newPayment: ProjectPayment = {
               _id: new ObjectId(),
               id: new ObjectId().toString(),
-              date: data.date || new Date().toISOString().split('T')[0],
+              amount: data.amount,
+              date: data.date ? new Date(data.date) : new Date(),
+              method: data.method,
+              status: data.status,
+              submittedBy: data.submittedBy,
+              notes: data.description, // Map description to notes
               createdAt: new Date(),
             };
             operationResult = await db.collection('projects').updateOne(
               { _id: new ObjectId(projectId) },
-              { $push: { payments: newPayment } }
+              { $push: { payments: { $each: [newPayment] } } } as any
             );
             break;
             

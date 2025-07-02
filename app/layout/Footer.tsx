@@ -103,7 +103,7 @@ export default function Footer() {
                 </div>
                 <div className="flex items-center space-x-3 text-gray-200 transition-colors duration-300">
                   <FaPhone className="text-blue-600 flex-shrink-0" />
-                  <span className="text-md">+254 748 825157</span>
+                  <span className="text-md">+254 759 912 373</span>
                 </div>
                 <div className="flex items-center space-x-3 text-gray-200 transition-colors duration-300">
                   <FaEnvelope className="text-blue-600 flex-shrink-0" />
@@ -121,6 +121,7 @@ export default function Footer() {
                       href={social.href}
                       className={`p-3 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-gray-400 ${social.color} transition-all duration-300 hover:scale-110 hover:bg-white/10 hover:border-white/20`}
                       aria-label={social.name}
+                      target="_blank"
                     >
                       <IconComponent className="text-lg" />
                     </a>

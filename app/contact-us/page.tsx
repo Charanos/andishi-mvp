@@ -343,7 +343,24 @@ export default function ContactUsPage() {
                         href="mailto:contact@andishi.com"
                         className="text-gray-400 hover:text-blue-300 transition-colors"
                       >
-                        info@andishi.com
+                        info@andishi.dev
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mt-1">
+                      <FaPhone className="text-blue-400" />
+                    </div>
+                    <div className="ml-4">
+                      <h4 className="uppercase font-medium">
+                        Whatsapp / Phone
+                      </h4>
+                      <a
+                        href="mailto:contact@andishi.com"
+                        className="text-gray-400 hover:text-blue-300 transition-colors"
+                      >
+                        +254 759 912 373
                       </a>
                     </div>
                   </div>
@@ -380,7 +397,7 @@ export default function ContactUsPage() {
                     <FaLinkedin />
                   </a>
                   <a
-                    href="https://github.com/andishi"
+                    href="#"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-gray-500/20 hover:border-gray-400 transition-colors"
@@ -389,7 +406,7 @@ export default function ContactUsPage() {
                     <FaGithub />
                   </a>
                   <a
-                    href="https://twitter.com/andishi"
+                    href="https://x.com/AndishiSoftware"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-400/20 hover:border-blue-300 transition-colors"

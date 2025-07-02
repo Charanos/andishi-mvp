@@ -6,7 +6,10 @@ import { Nunito, Montserrat } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ConditionalLayout from "./components/ConditionalLayout";
 import ClientMotionProvider from "./components/ClientMotionProvider";
+import Script from "next/script";
+import WhatsAppButton from "./components/FloatingWhatsappButton";
 
+//  font configurations
 const nunito = Nunito({
   subsets: ["latin"],
   display: "swap",
@@ -47,6 +50,23 @@ export default function RootLayout({
             <SpeedInsights />
           </ClientMotionProvider>
         </AuthProvider>
+
+        {/* Floating WhatsApp Button */}
+        <WhatsAppButton />
+
+        {/* Google Analytics Scripts */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-8668KBDWFZ"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-8668KBDWFZ');
+          `}
+        </Script>
       </body>
     </html>
   );

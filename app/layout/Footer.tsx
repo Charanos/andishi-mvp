@@ -10,6 +10,7 @@ import {
   FaArrowUp,
   FaLinkedin,
   FaEnvelope,
+  FaFacebook,
   FaMapMarkerAlt,
   FaInstagram,
 } from "react-icons/fa";
@@ -56,6 +57,12 @@ export default function Footer() {
     {
       name: "LinkedIn",
       icon: FaLinkedin,
+      href: "https://www.linkedin.com/company/andishi/",
+      color: "hover:text-blue-500",
+    },
+    {
+      name: "Facebook",
+      icon: FaFacebook,
       href: "https://www.linkedin.com/company/andishi/",
       color: "hover:text-blue-500",
     },

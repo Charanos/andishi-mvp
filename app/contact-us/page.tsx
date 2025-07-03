@@ -18,6 +18,8 @@ import {
   FaTimes,
   FaArrowLeft,
   FaPlus,
+  FaFacebook,
+  FaInstagram,
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -354,7 +356,7 @@ export default function ContactUsPage() {
                     </div>
                     <div className="ml-4">
                       <h4 className="uppercase font-medium">
-                        Whatsapp / Phone
+                        Phone / Whatsapp
                       </h4>
                       <a
                         href="mailto:contact@andishi.com"
@@ -388,6 +390,15 @@ export default function ContactUsPage() {
 
                 <div className="flex space-x-4">
                   <a
+                    href="https://www.linkedin.com/company/andishi/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-500/20 hover:border-blue-400 transition-colors"
+                    aria-label="Facebook"
+                  >
+                    <FaFacebook />
+                  </a>
+                  <a
                     href="https://linkedin.com/company/andishi"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -396,14 +407,15 @@ export default function ContactUsPage() {
                   >
                     <FaLinkedin />
                   </a>
+
                   <a
-                    href="#"
+                    href="https://www.instagram.com/andishi.dev/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-gray-500/20 hover:border-gray-400 transition-colors"
-                    aria-label="GitHub"
+                    aria-label="Instagram"
                   >
-                    <FaGithub />
+                    <FaInstagram />
                   </a>
                   <a
                     href="https://x.com/AndishiSoftware"

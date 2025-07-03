@@ -24,6 +24,7 @@ import {
   FaPhone,
 } from "react-icons/fa";
 import { UserRole } from "@/types/auth";
+import ScrollToTop from "../components/ScrollToTop";
 
 // Type definitions
 interface SystemUser {
@@ -114,6 +115,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [viewMode, setViewMode] = useState<
     "list" | "create" | "edit" | "detail"
   >("list");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  // const [totalPages, setTotalPages] = useState(1);
   const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
   const [editingUser, setEditingUser] =
     useState<EditingUserForm>(defaultEditingForm);
@@ -547,7 +551,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
   };
 
   // Filter users based on search and filters
-  const getFilteredUsers = (): SystemUser[] => {
+  const getFilteredUsers = (
+    page: number = 1,
+    pageSize: number = 10
+  ): { users: SystemUser[]; totalCount: number; totalPages: number } => {
     const mappedUsers = users.map((user) => {
       if (user.role === "developer") {
         const devProfile = devProfiles.find(
@@ -587,9 +594,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       return user;
     });
 
-    console.log("Mapped users with dev profiles:", mappedUsers);
-
-    return mappedUsers.filter((user) => {
+    const filteredUsers = mappedUsers.filter((user) => {
       const searchMatch =
         user.firstName.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
         user.lastName.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
@@ -603,7 +608,26 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
       return searchMatch && roleMatch && statusMatch;
     });
+
+    // Pagination logic
+    const totalCount = filteredUsers.length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+    return {
+      users: paginatedUsers,
+      totalCount,
+      totalPages,
+    };
   };
+
+  const {
+    users: paginatedUsers,
+    totalCount,
+    totalPages,
+  } = getFilteredUsers(currentPage, 10);
 
   // Utility functions
   const formatDate = (dateString: string): string => {
@@ -1961,7 +1985,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
       {/* Users Table */}
       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-        {getFilteredUsers().length === 0 ? (
+        {paginatedUsers.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-400 monty uppercase">No users found</p>
           </div>
@@ -1991,7 +2015,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {getFilteredUsers().map((user) => (
+                {paginatedUsers.map((user) => (
                   <tr
                     key={user._id}
                     className="hover:bg-white/5 transition-colors"
@@ -2094,7 +2118,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             setUserToDelete(user._id);
                             setDeleteModalOpen(true);
                           }}
-                          className="text-red-400/70 cursor-pointer  hover:text-red-300/80 p-1"
+                          className="text-red-400/70 cursor-pointer hover:text-red-300/80 p-1"
                           title="Delete User"
                           disabled={loading}
                         >
@@ -2109,6 +2133,44 @@ const UserManagement: React.FC<UserManagementProps> = ({
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-y border-white/10 px-6 py-4 my-16">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
+                currentPage === 1
+                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
+                  : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+              }`}
+            >
+              Previous
+            </button>
+            <span className="text-gray-400 text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
+                currentPage === totalPages
+                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
+                  : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+          <div className="text-gray-400 text-sm">
+            Showing {(currentPage - 1) * 10 + 1} to{" "}
+            {Math.min(currentPage * 10, totalCount)} of {totalCount} users
+          </div>
+        </div>
+      )}
 
       {isDeleteModalOpen && (
         <div className="fixed min-h-screen inset-0 bg-black/5 backdrop-blur-md bg-opacity-50 z-50 flex justify-center items-center">

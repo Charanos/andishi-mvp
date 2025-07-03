@@ -658,7 +658,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               <Award className="h-5 w-5 text-yellow-400" />
             </div>
             <div className="space-y-4">
-              {safeAnalytics.topClients.map((client, index) => (
+              {safeAnalytics.topClients.slice(0, 5).map((client, index) => (
                 <div
                   key={client.name}
                   className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
@@ -703,47 +703,51 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               <Zap className="h-5 w-5 text-purple-400" />
             </div>
             <div className="space-y-4">
-              {safeAnalytics.topDevelopers.map((dev, index) => (
-                <div
-                  key={dev.name}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center font-semibold text-white">
-                        {index + 1}
-                      </div>
-                      {index === 0 && (
-                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                          <Star className="h-3 w-3 text-yellow-900" />
+              {safeAnalytics.topDevelopers
+                .slice(0, 5)
+                .map((developer, index) => (
+                  <div
+                    key={developer.name}
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center font-semibold text-white">
+                          {index + 1}
                         </div>
-                      )}
+                        {index === 0 && (
+                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                            <Star className="h-3 w-3 text-yellow-900" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-white font-semibold">
+                          {developer.name}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {developer.projects} projects completed
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-white font-semibold">{dev.name}</p>
-                      <p className="text-gray-400 text-sm">
-                        {dev.projects} projects completed
-                      </p>
+                    <div className="text-right">
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-white font-semibold">
+                          {developer.rating}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-1 mt-1">
+                        <AnimatedProgressRing
+                          percentage={developer.rating * 20}
+                          size={40}
+                          strokeWidth={4}
+                          color="#FBBF24"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-white font-semibold">
-                        {dev.rating}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1 mt-1">
-                      <AnimatedProgressRing
-                        percentage={dev.rating * 20}
-                        size={40}
-                        strokeWidth={4}
-                        color="#FBBF24"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>

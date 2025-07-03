@@ -1262,7 +1262,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Top Clients</h3>
           <div className="space-y-3">
-            {analytics.topClients.map((client, index) => (
+            {analytics.topClients.slice(0, 5).map((client, index) => (
               <div
                 key={client.name}
                 className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
@@ -1294,7 +1294,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             Top Developers
           </h3>
           <div className="space-y-3">
-            {analytics.topDevelopers.map((dev, index) => (
+            {analytics.topDevelopers.slice(0, 5).map((dev, index) => (
               <div
                 key={dev.name}
                 className="flex items-center justify-between p-3 bg-white/5 rounded-lg"

@@ -23,6 +23,12 @@ import {
   FaUser,
   FaChartLine,
   FaArrowCircleLeft,
+  FaUserPlus,
+  FaPhone,
+  FaEnvelope,
+  FaGlobe,
+  FaCalendarAlt,
+  FaProjectDiagram,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import AddNewDeveloper from "./AddNewDeveloper";
@@ -34,19 +40,27 @@ interface Props {
 }
 
 type ViewMode = "list" | "detail" | "edit" | "create";
-type SortOption = "name" | "rating" | "projects" | "earnings" | "rate";
+type SortOption = "name" | "rating" | "projects" | "earnings";
 type ExperienceLevel = "all" | "junior" | "mid" | "senior" | "lead";
 type AvailabilityStatus = "all" | "available" | "busy" | "unavailable";
 
 const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
   const [profiles, setProfiles] = useState<DeveloperProfile[]>([]);
-  const [filteredProfiles, setFilteredProfiles] = useState<DeveloperProfile[]>([]);
+  const [filteredProfiles, setFilteredProfiles] = useState<DeveloperProfile[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedProfile, setSelectedProfile] = useState<DeveloperProfile | null>(null);
-  const [selectedExperience, setSelectedExperience] = useState<ExperienceLevel>("all");
-  const [selectedAvailability, setSelectedAvailability] = useState<AvailabilityStatus>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedProfile, setSelectedProfile] =
+    useState<DeveloperProfile | null>(null);
+  const [selectedExperience, setSelectedExperience] =
+    useState<ExperienceLevel>("all");
+  const [selectedAvailability, setSelectedAvailability] =
+    useState<AvailabilityStatus>("all");
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
@@ -115,15 +129,29 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
           return b.stats.totalProjects - a.stats.totalProjects;
         case "earnings":
           return b.stats.totalEarnings - a.stats.totalEarnings;
-        case "rate":
-          return b.professionalInfo.hourlyRate - a.professionalInfo.hourlyRate;
         default:
           return 0;
       }
     });
 
-    setFilteredProfiles(filtered);
-  }, [profiles, searchTerm, selectedExperience, selectedAvailability, sortBy]);
+    // Calculate total pages
+    const total = filtered.length;
+    setTotalPages(Math.ceil(total / itemsPerPage));
+
+    // Get current page's profiles
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentProfiles = filtered.slice(startIndex, endIndex);
+
+    setFilteredProfiles(currentProfiles);
+  }, [
+    profiles,
+    searchTerm,
+    selectedExperience,
+    selectedAvailability,
+    sortBy,
+    currentPage,
+  ]);
 
   const handleEdit = (profileId: string): void => {
     const profile = profiles.find((p) => p.id === profileId);
@@ -209,11 +237,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
   };
 
   const getActiveProjects = (profile: DeveloperProfile): number => {
-    return profile.projects?.filter((p) => p.status === "in-progress").length ?? 0;
+    return (
+      profile.projects?.filter((p) => p.status === "in-progress").length ?? 0
+    );
   };
 
   const getLastActivity = (profile: DeveloperProfile): string => {
-    if (!profile.recentActivity || profile.recentActivity.length === 0) return "No recent activity";
+    if (!profile.recentActivity || profile.recentActivity.length === 0)
+      return "No recent activity";
     const lastActivity = profile.recentActivity[0];
     const date = new Date(lastActivity.timestamp);
     return date.toLocaleDateString();
@@ -226,49 +257,103 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
       .map((skill) => skill.name);
   };
 
+  const getAvailabilityColor = (availability: string): string => {
+    switch (availability) {
+      case "available":
+        return "text-green-400";
+      case "busy":
+        return "text-yellow-400";
+      case "unavailable":
+        return "text-red-400";
+      default:
+        return "text-gray-400";
+    }
+  };
+
+  const getExperienceColor = (level: string): string => {
+    switch (level) {
+      case "junior":
+        return "text-blue-400";
+      case "mid":
+        return "text-purple-400";
+      case "senior":
+        return "text-orange-400";
+      case "lead":
+        return "text-pink-400";
+      default:
+        return "text-gray-400";
+    }
+  };
+
   // Render detailed profile view
+  // const getExperienceColor = (level: string): string => {
+  //   switch (level.toLowerCase()) {
+  //     case 'junior':
+  //       return 'text-green-400';
+  //     case 'mid':
+  //     case 'intermediate':
+  //       return 'text-yellow-400';
+  //     case 'senior':
+  //       return 'text-orange-400';
+  //     case 'expert':
+  //       return 'text-red-400';
+  //     default:
+  //       return 'text-gray-400';
+  //   }
+  // };
+
+  // const getAvailabilityColor = (availability: string): string => {
+  //   switch (availability.toLowerCase()) {
+  //     case 'available':
+  //       return 'text-green-400';
+  //     case 'busy':
+  //       return 'text-yellow-400';
+  //     case 'unavailable':
+  //       return 'text-red-400';
+  //     default:
+  //       return 'text-gray-400';
+  //   }
+  // };
+
   const renderProfileDetail = (): JSX.Element | null => {
     if (!selectedProfile) return null;
 
     return (
-      <div className=" min-h-screen rounded-lg">
-        {/* Header Section */}
-        <div className="bg-indigo-400/10 backdrop-blur-md rounded-2xl">
+      <div className="min-h-screen">
+        {/* Header */}
+        <div className="bg-white/5 rounded-xl mb-8">
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={handleBackToList}
-                  className="flex cursor-pointer items-center space-x-2 text-slate-300 hover:text-white transition-all duration-200 hover:bg-white/5 px-3 py-2 rounded-lg"
+                  className="cursor-pointer flex items-center space-x-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
                 >
-                  <FaArrowCircleLeft className="w-5 h-5" />
+                  <FaArrowCircleLeft className="w-4 h-4" />
                   <span>Back to Profiles</span>
                 </button>
-                <div className="h-6 w-px bg-white/20"></div>
+                <div className="w-px h-6 bg-gray-600"></div>
                 <div>
                   <h1 className="text-2xl font-semibold text-white">
                     {selectedProfile.personalInfo.firstName}{" "}
                     {selectedProfile.personalInfo.lastName}
                   </h1>
-                  <p className="text-slate-400 text-sm mt-1">
+                  <p className="text-gray-400 mt-1">
                     {selectedProfile.professionalInfo.title}
                   </p>
+                  {selectedProfile.personalInfo.tagline && (
+                    <p className="text-gray-300 text-sm mt-2 max-w-md">
+                      {selectedProfile.personalInfo.tagline}
+                    </p>
+                  )}
                 </div>
               </div>
-
-              {/* Quick Stats */}
               <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-2">
-                  <FaStar className="text-amber-400" />
-                  <span className="text-white font-medium text-lg">
+                  <FaStar className="text-yellow-400" />
+                  <span className="text-white font-medium">
                     {selectedProfile.stats.averageRating.toFixed(1)}
                   </span>
-                </div>
-                <div className="text-right">
-                  <p className="text-slate-400 text-sm">Hourly Rate</p>
-                  <p className="text-2xl font-semibold text-emerald-400">
-                    ${selectedProfile.professionalInfo.hourlyRate}/hr
-                  </p>
                 </div>
               </div>
             </div>
@@ -276,351 +361,447 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Main Details */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Profile Overview Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/8 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-                    <FaUser className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-200">
-                    Profile Overview
-                  </h3>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-base font-semibold text-slate-300 mb-3">
-                      Professional Summary
-                    </h4>
-                    <p className="text-slate-400 leading-relaxed text-md">
-                      {selectedProfile.personalInfo.tagline}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-slate-400 text-sm uppercase font-medium mb-2">
-                        Experience Level
-                      </p>
-                      <p className="text-white font-semibold text-md">
-                        {selectedProfile.professionalInfo.experienceLevel}
-                      </p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-slate-400 text-sm uppercase font-medium mb-2">
-                        Availability
-                      </p>
-                      <p className="text-white font-semibold text-md">
-                        {selectedProfile.professionalInfo.availability}
-                      </p>
-                    </div>
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <p className="text-slate-400 text-sm uppercase font-medium mb-2">
-                        Location
-                      </p>
-                      <p className="text-white font-semibold text-md">
-                        {selectedProfile.personalInfo.location}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Profile Overview */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <FaUser className="text-gray-400" />
+                <h3 className="text-lg font-semibold text-white">
+                  Profile Overview
+                </h3>
               </div>
-
-              {/* Technical Skills Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/8 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-sky-600 to-sky-700 rounded-lg flex items-center justify-center">
-                    <FaCode className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-200">
-                    Technical Skills
-                  </h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-white font-medium mb-2">
+                    Professional Summary
+                  </h4>
+                  <p className="text-gray-300 leading-relaxed">
+                    {selectedProfile.personalInfo.tagline}
+                  </p>
                 </div>
-
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {selectedProfile.technicalSkills.primarySkills.map(
-                      (skill) => (
-                        <div
-                          key={skill.name}
-                          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/8 transition-all text-center"
-                        >
-                          {/* Circular Progress */}
-                          <div className="relative w-20 h-20 mx-auto mb-4">
-                            <svg
-                              className="w-20 h-20 transform -rotate-90"
-                              viewBox="0 0 100 100"
-                            >
-                              <circle
-                                cx="50"
-                                cy="50"
-                                r="40"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                fill="none"
-                                className="text-slate-700"
-                              />
-                              <circle
-                                cx="50"
-                                cy="50"
-                                r="40"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                fill="none"
-                                strokeDasharray={`${skill.level * 25.12} 251.2`}
-                                className="text-sky-500 transition-all duration-1000"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-white font-semibold text-lg">
-                                {skill.level}
-                              </span>
-                            </div>
-                          </div>
-
-                          <h5 className="text-white font-semibold text-base mb-2">
-                            {skill.name}
-                          </h5>
-                          <p className="text-slate-400 text-sm">
-                            {skill.level}/10 Proficiency
-                          </p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Performance Stats Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/8 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-lg flex items-center justify-center">
-                    <FaChartLine className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-200">
-                    Performance Statistics
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/8 transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-slate-400 text-sm font-medium mb-1">
-                          Total Projects
-                        </p>
-                        <p className="text-3xl font-semibold text-white">
-                          {selectedProfile.stats.totalProjects}
-                        </p>
-                      </div>
-                      <div className="w-12 h-12 bg-gradient-to-r from-sky-600 to-sky-700 rounded-full flex items-center justify-center">
-                        <FaCode className="text-white text-xl" />
-                      </div>
-                    </div>
-                    <p className="text-slate-500 text-sm">
-                      {getActiveProjects(selectedProfile)} currently active
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-white/10 rounded-lg p-4">
+                    <p className="text-gray-400 text-sm mb-1">
+                      Experience Level
+                    </p>
+                    <p
+                      className={`font-medium capitalize ${getExperienceColor(
+                        selectedProfile.professionalInfo.experienceLevel
+                      )}`}
+                    >
+                      {selectedProfile.professionalInfo.experienceLevel}
                     </p>
                   </div>
-
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/8 transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-slate-400 text-sm font-medium mb-1">
-                          Total Earnings
-                        </p>
-                        <p className="text-3xl font-semibold text-emerald-400">
-                          $
-                          {selectedProfile.stats.totalEarnings.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="w-12 h-12 bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-full flex items-center justify-center">
-                        <FaDollarSign className="text-white text-xl" />
-                      </div>
-                    </div>
-                    <p className="text-slate-500 text-sm">Lifetime earnings</p>
-                  </div>
-
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/8 transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-slate-400 text-sm font-medium mb-1">
-                          Average Rating
-                        </p>
-                        <p className="text-3xl font-semibold text-amber-400">
-                          {selectedProfile.stats.averageRating.toFixed(1)}
-                        </p>
-                      </div>
-                      <div className="w-12 h-12 bg-gradient-to-r from-amber-600 to-amber-700 rounded-full flex items-center justify-center">
-                        <FaStar className="text-white text-xl" />
-                      </div>
-                    </div>
-                    <p className="text-slate-500 text-sm">
-                      Based on client feedback
+                  <div className="bg-white/10 rounded-lg p-4">
+                    <p className="text-gray-400 text-sm mb-1">Availability</p>
+                    <p
+                      className={`font-medium capitalize ${getAvailabilityColor(
+                        selectedProfile.professionalInfo.availability
+                      )}`}
+                    >
+                      {selectedProfile.professionalInfo.availability}
                     </p>
                   </div>
-
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/8 transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-slate-400 text-sm font-medium mb-1">
-                          Client Retention
-                        </p>
-                        <p className="text-3xl font-semibold text-violet-400">
-                          {selectedProfile.stats.clientRetention}%
-                        </p>
-                      </div>
-                      <div className="w-12 h-12 bg-gradient-to-r from-violet-600 to-violet-700 rounded-full flex items-center justify-center">
-                        <FaUsers className="text-white text-xl" />
-                      </div>
-                    </div>
-                    <p className="text-slate-500 text-sm">Return client rate</p>
+                  <div className="bg-white/10 rounded-lg p-4">
+                    <p className="text-gray-400 text-sm mb-1">Location</p>
+                    <p className="text-white font-medium">
+                      {selectedProfile.personalInfo.location}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column - Personal Info & Actions */}
-            <div className="space-y-8">
-              {/* Personal Information Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/8 transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-violet-700 rounded-lg flex items-center justify-center">
-                    <FaUser className="text-white text-sm" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-200">
-                    Personal Details
-                  </h3>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="text-center pb-6 border-b border-white/10">
-                    <div className="w-16 h-16 bg-gradient-to-r from-slate-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-white font-semibold text-xl">
-                        {selectedProfile.personalInfo.firstName[0]}
-                        {selectedProfile.personalInfo.lastName[0]}
-                      </span>
-                    </div>
-                    <h4 className="text-lg mb-2 font-semibold text-white">
-                      {selectedProfile.personalInfo.firstName}{" "}
-                      {selectedProfile.personalInfo.lastName}
-                    </h4>
-                    <p className="text-slate-400 text-sm uppercase">
-                      {selectedProfile.professionalInfo.title}
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                      <FaMapMarkerAlt className="text-slate-400" />
-                      <div>
-                        <p className="text-slate-400 text-sm uppercase">
-                          Location
-                        </p>
-                        <p className="text-white font-medium">
-                          {selectedProfile.personalInfo.location}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                      <FaUsers className="text-slate-400" />
-                      <div>
-                        <p className="text-slate-400 text-sm uppercase">
-                          Experience
-                        </p>
-                        <p className="text-white font-medium">
-                          {selectedProfile.professionalInfo.experienceLevel}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                      <FaClock className="text-slate-400" />
-                      <div>
-                        <p className="text-slate-400 text-sm uppercase">
-                          Availability
-                        </p>
-                        <p className="text-white font-medium">
-                          {selectedProfile.professionalInfo.availability}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            {/* Technical Skills */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <FaCode className="text-gray-400" />
+                <h3 className="text-lg font-semibold text-white">
+                  Technical Skills
+                </h3>
               </div>
 
-              {/* Action Buttons Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-                <h3 className="text-xl font-semibold text-slate-200 mb-6">
-                  Profile Actions
-                </h3>
-
-                <div className="space-y-4">
-                  <button
-                    onClick={() => handleEdit(selectedProfile.id)}
-                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-emerald-500/20 hover:border-emerald-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-emerald-500/10 group"
-                  >
-                    <FaEdit className="text-lg text-emerald-400 group-hover:text-emerald-300 transition-colors" />
-                    <span>Edit Profile</span>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      handleDelete(
-                        selectedProfile.id,
-                        `${selectedProfile.personalInfo.firstName} ${selectedProfile.personalInfo.lastName}`
-                      )
-                    }
-                    className="cursor-pointer w-full px-6 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-rose-500/20 hover:border-rose-400/40 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 font-medium hover:shadow-lg hover:shadow-rose-500/10 group"
-                  >
-                    <FaTrash className="text-lg text-rose-400 group-hover:text-rose-300 transition-colors" />
-                    <span>Delete Profile</span>
-                  </button>
+              {/* Primary Skills */}
+              <div className="mb-6">
+                <h4 className="text-white font-medium mb-3">Primary Skills</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {selectedProfile.technicalSkills.primarySkills.map(
+                    (skill) => (
+                      <div
+                        key={skill.name}
+                        className="bg-white/10 rounded-lg p-4 text-center"
+                      >
+                        <div className="relative w-16 h-16 mx-auto mb-3">
+                          <svg
+                            className="w-16 h-16 transform -rotate-90"
+                            viewBox="0 0 100 100"
+                          >
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="35"
+                              stroke="currentColor"
+                              strokeWidth="6"
+                              fill="none"
+                              className="text-gray-700"
+                            />
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="35"
+                              stroke="currentColor"
+                              strokeWidth="6"
+                              fill="none"
+                              strokeDasharray={`${skill.level * 21.98} 219.8`}
+                              className="text-blue-400"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-white font-medium text-sm">
+                              {skill.level}
+                            </span>
+                          </div>
+                        </div>
+                        <h5 className="text-white font-medium mb-1">
+                          {skill.name}
+                        </h5>
+                        <p className="text-gray-400 text-xs">
+                          {skill.level}/10
+                        </p>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
+            </div>
 
-              {/* Quick Stats Summary Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  Quick Summary
+            {/* Performance Stats */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <FaChartLine className="text-gray-400" />
+                <h3 className="text-lg font-semibold text-white">
+                  Performance Statistics
                 </h3>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-slate-300">Hourly Rate</span>
-                    <span className="text-emerald-400 font-semibold">
-                      ${selectedProfile.professionalInfo.hourlyRate}/hr
-                    </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-gray-400 text-sm">Total Projects</p>
+                      <p className="text-2xl font-semibold text-white">
+                        {selectedProfile.stats.totalProjects}
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 bg-blue-400/20 rounded-full flex items-center justify-center">
+                      <FaCode className="text-blue-400" />
+                    </div>
                   </div>
+                  <p className="text-gray-500 text-sm">
+                    Completed successfully
+                  </p>
+                </div>
 
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-slate-300">Total Projects</span>
-                    <span className="text-sky-400 font-semibold">
-                      {selectedProfile.stats.totalProjects}
-                    </span>
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-gray-400 text-sm">Total Earnings</p>
+                      <p className="text-2xl font-semibold text-green-400">
+                        ${selectedProfile.stats.totalEarnings.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 bg-green-400/20 rounded-full flex items-center justify-center">
+                      <FaDollarSign className="text-green-400" />
+                    </div>
                   </div>
+                  <p className="text-gray-500 text-sm">Lifetime earnings</p>
+                </div>
 
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-slate-300">Success Rate</span>
-                    <span className="text-violet-400 font-semibold">
-                      {selectedProfile.stats.clientRetention}%
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-slate-300">Rating</span>
-                    <div className="flex items-center space-x-1">
-                      <FaStar className="text-amber-400" />
-                      <span className="text-amber-400 font-semibold">
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-gray-400 text-sm">Average Rating</p>
+                      <p className="text-2xl font-semibold text-yellow-400">
                         {selectedProfile.stats.averageRating.toFixed(1)}
-                      </span>
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 bg-yellow-400/20 rounded-full flex items-center justify-center">
+                      <FaStar className="text-yellow-400" />
                     </div>
                   </div>
+                  <p className="text-gray-500 text-sm">Client feedback</p>
+                </div>
+
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-gray-400 text-sm">Client Retention</p>
+                      <p className="text-2xl font-semibold text-purple-400">
+                        {selectedProfile.stats.clientRetention}%
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 bg-purple-400/20 rounded-full flex items-center justify-center">
+                      <FaUsers className="text-purple-400" />
+                    </div>
+                  </div>
+                  <p className="text-gray-500 text-sm">Return rate</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Projects */}
+            {selectedProfile.projects &&
+              selectedProfile.projects.length > 0 && (
+                <div className="bg-white/5 rounded-xl p-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <FaProjectDiagram className="text-gray-400" />
+                    <h3 className="text-lg font-semibold text-white">
+                      Recent Projects
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    {selectedProfile.projects
+                      .slice(0, 3)
+                      .map((project, index) => (
+                        <div key={index} className="bg-white/10 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-white font-medium">
+                              {project.title || `Project ${index + 1}`}
+                            </h4>
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                              Completed
+                            </span>
+                          </div>
+                          <p className="text-gray-300 text-sm mb-3">
+                            {project.description ||
+                              "Project description not available"}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-1">
+                                <FaDollarSign className="text-green-400 text-xs" />
+                                <span className="text-green-400 text-sm font-medium">
+                                  ${project.budget?.toLocaleString() || "5,000"}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <FaCalendarAlt className="text-gray-400 text-xs" />
+                                <span className="text-gray-400 text-sm">
+                                  {project.deadline
+                                    ? new Date(
+                                        project.deadline
+                                      ).toLocaleDateString()
+                                    : "Dec 2024"}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-20 bg-gray-700 rounded-full h-2">
+                                <div
+                                  className="bg-blue-400 h-2 rounded-full transition-all duration-300"
+                                  style={{
+                                    width: `${project.progress || 100}%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-white text-sm font-medium">
+                                {project.progress || 100}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Recent Activity */}
+            {selectedProfile.recentActivity &&
+              selectedProfile.recentActivity.length > 0 && (
+                <div className="bg-white/5 rounded-xl p-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <FaClock className="text-gray-400" />
+                    <h3 className="text-lg font-semibold text-white">
+                      Recent Activity
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    {selectedProfile.recentActivity
+                      .slice(0, 5)
+                      .map((activity, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start space-x-3 p-3 bg-white/10 rounded-lg"
+                        >
+                          <div className="w-8 h-8 bg-blue-400/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <FaCode className="text-blue-400 text-sm" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white font-medium text-sm">
+                              {activity.action || `Activity ${index + 1}`}
+                            </p>
+                            <p className="text-gray-400 text-xs mt-1">
+                              {activity.timestamp
+                                ? new Date(
+                                    activity.timestamp
+                                  ).toLocaleDateString()
+                                : "2 hours ago"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Personal Information */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <FaUser className="text-gray-400" />
+                <h3 className="text-lg font-semibold text-white">
+                  Personal Details
+                </h3>
+              </div>
+              <div className="space-y-4">
+                <div className="text-center pb-4 border-b border-gray-700">
+                  <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-white font-semibold text-lg">
+                      {selectedProfile.personalInfo.firstName[0]}
+                      {selectedProfile.personalInfo.lastName[0]}
+                    </span>
+                  </div>
+                  <h4 className="text-white font-semibold mb-1">
+                    {selectedProfile.personalInfo.firstName}{" "}
+                    {selectedProfile.personalInfo.lastName}
+                  </h4>
+                  <p className="text-gray-400 text-sm">
+                    {selectedProfile.professionalInfo.title}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
+                    <FaEnvelope className="text-gray-400" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Email</p>
+                      <p className="text-white font-medium">
+                        {selectedProfile.personalInfo.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
+                    <FaMapMarkerAlt className="text-gray-400" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Location</p>
+                      <p className="text-white font-medium">
+                        {selectedProfile.personalInfo.location}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
+                    <FaUsers className="text-gray-400" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Experience</p>
+                      <p
+                        className={`font-medium capitalize ${getExperienceColor(
+                          selectedProfile.professionalInfo.experienceLevel
+                        )}`}
+                      >
+                        {selectedProfile.professionalInfo.experienceLevel}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
+                    <FaClock className="text-gray-400" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Availability</p>
+                      <p
+                        className={`font-medium capitalize ${getAvailabilityColor(
+                          selectedProfile.professionalInfo.availability
+                        )}`}
+                      >
+                        {selectedProfile.professionalInfo.availability}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Portfolio Link */}
+                {selectedProfile.personalInfo.portfolio && (
+                  <div className="pt-4 border-t border-gray-700">
+                    <h4 className="text-white font-medium mb-3">Portfolio</h4>
+                    <a
+                      href={selectedProfile.personalInfo.portfolio}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <FaGlobe className="w-4 h-4" />
+                      <span className="text-sm">View Portfolio</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Contact Actions */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <FaEnvelope className="text-gray-400" />
+                <h3 className="text-lg font-semibold text-white">Contact</h3>
+              </div>
+              <div className="space-y-3">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                  <FaEnvelope className="w-4 h-4" />
+                  <span>Send Message</span>
+                </button>
+                <button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                  <FaPhone className="w-4 h-4" />
+                  <span>Schedule Call</span>
+                </button>
+                <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                  <FaUserPlus className="w-4 h-4" />
+                  <span>Assign Project</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="bg-white/5 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <FaChartLine className="text-gray-400" />
+                <h3 className="text-lg font-semibold text-white">
+                  Quick Stats
+                </h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-sm">Success Rate</span>
+                  <span className="text-green-400 font-medium">98%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-sm">
+                    On-Time Delivery
+                  </span>
+                  <span className="text-blue-400 font-medium">95%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-sm">Response Time</span>
+                  <span className="text-yellow-400 font-medium"> 2 hours</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-sm">Repeat Clients</span>
+                  <span className="text-purple-400 font-medium">
+                    {selectedProfile.stats.clientRetention}%
+                  </span>
                 </div>
               </div>
             </div>
@@ -634,77 +815,77 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
     if (loading) {
       return (
         <div className="flex items-center justify-center min-h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500"></div>
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen rounded-lg">
-        <div className="mb-12 flex items-center justify-between">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-semibold text-white mb-2">
-                Developer Profiles
-              </h1>
-              <p className="text-slate-400">
-                Manage and overview all developers in our talent pool.
-              </p>
-            </div>
+      <div className="min-h-screen">
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-white mb-2">
+              Developer Profiles
+            </h1>
+            <p className="text-gray-400">
+              Manage and overview all developers in the talent pool.
+            </p>
           </div>
-
-          {/* Add New Developer Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={handleAddNewDeveloper}
-              className="cursor-pointer flex items-center space-x-3 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl"
-            >
-              <FaPlus />
-              <span>Add New Developer</span>
-            </button>
-          </div>
+          <button
+            onClick={handleAddNewDeveloper}
+            className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+          >
+            <FaPlus />
+            <span>Add New Developer</span>
+          </button>
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
+        <div className="bg-white/5 rounded-xl p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex-1 max-w-lg">
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search developers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
 
             <div className="flex flex-wrap gap-3 items-center">
-              {/* Sort Dropdown */}
               <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="appearance-none bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                  className="cursor-pointer appearance-none bg-white/10 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                 >
-                  <option value="name" className="bg-slate-800">Name</option>
-                  <option value="rating" className="bg-slate-800">Rating</option>
-                  <option value="projects" className="bg-slate-800">Projects</option>
-                  <option value="earnings" className="bg-slate-800">Earnings</option>
-                  <option value="rate" className="bg-slate-800">Hourly Rate</option>
+                  <option value="name" className="bg-gray-800">
+                    Name
+                  </option>
+                  <option value="rating" className="bg-gray-800">
+                    Rating
+                  </option>
+                  <option value="projects" className="bg-gray-800">
+                    Projects
+                  </option>
+                  <option value="earnings" className="bg-gray-800">
+                    Earnings
+                  </option>
                 </select>
-                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
 
-              {/* Filter Toggle */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`cursor-pointer flex items-center space-x-2 px-4 py-3 rounded-lg transition-all duration-300 ${
+                className={`cursor-pointer flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors ${
                   showFilters
                     ? "bg-blue-600 text-white"
-                    : "bg-white/10 text-slate-300 hover:bg-white/20"
+                    : "bg-white/10 text-gray-300 hover:bg-black/20"
                 }`}
               >
                 <FaFilter />
@@ -713,40 +894,62 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
             </div>
           </div>
 
-          {/* Expanded Filters */}
           {showFilters && (
-            <div className="mt-6 pt-6 border-t border-white/10">
+            <div className="mt-6 pt-6 border-t border-gray-700">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Experience Level
                   </label>
                   <select
                     value={selectedExperience}
-                    onChange={(e) => setSelectedExperience(e.target.value as ExperienceLevel)}
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) =>
+                      setSelectedExperience(e.target.value as ExperienceLevel)
+                    }
+                    className="cursor-pointer w-full bg-white/10 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all" className="bg-slate-800">All Levels</option>
-                    <option value="junior" className="bg-slate-800">Junior</option>
-                    <option value="mid" className="bg-slate-800">Mid-Level</option>
-                    <option value="senior" className="bg-slate-800">Senior</option>
-                    <option value="lead" className="bg-slate-800">Lead</option>
+                    <option value="all" className="bg-gray-800">
+                      All Levels
+                    </option>
+                    <option value="junior" className="bg-gray-800">
+                      Junior
+                    </option>
+                    <option value="mid" className="bg-gray-800">
+                      Mid-Level
+                    </option>
+                    <option value="senior" className="bg-gray-800">
+                      Senior
+                    </option>
+                    <option value="lead" className="bg-gray-800">
+                      Lead
+                    </option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Availability Status
                   </label>
                   <select
                     value={selectedAvailability}
-                    onChange={(e) => setSelectedAvailability(e.target.value as AvailabilityStatus)}
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) =>
+                      setSelectedAvailability(
+                        e.target.value as AvailabilityStatus
+                      )
+                    }
+                    className="cursor-pointer w-full bg-white/10 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all" className="bg-slate-800">All Status</option>
-                    <option value="available" className="bg-slate-800">Available</option>
-                    <option value="busy" className="bg-slate-800">Busy</option>
-                    <option value="unavailable" className="bg-slate-800">Unavailable</option>
+                    <option value="all" className="bg-gray-800">
+                      All Status
+                    </option>
+                    <option value="available" className="bg-gray-800">
+                      Available
+                    </option>
+                    <option value="busy" className="bg-gray-800">
+                      Busy
+                    </option>
+                    <option value="unavailable" className="bg-gray-800">
+                      Unavailable
+                    </option>
                   </select>
                 </div>
               </div>
@@ -754,90 +957,70 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
           )}
         </div>
 
-        {/* Results Summary */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <p className="text-slate-400">
-              Showing {filteredProfiles.length} of {profiles.length} developers
-            </p>
-            {filteredProfiles.length === 0 && profiles.length > 0 && (
-              <div className="flex items-center space-x-2 text-amber-400">
-                <FaExclamationTriangle />
-                <span>No developers match your current filters</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Developer Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredProfiles.map((profile) => (
+        {/* Profiles Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          {filteredProfiles.slice(0, 6).map((profile) => (
             <div
               key={profile.id}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/8 hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-black/10"
+              className="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-300 border border-gray-700/50 hover:border-gray-600"
             >
               {/* Profile Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-slate-600 to-slate-700 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
                     <span className="text-white font-semibold">
                       {profile.personalInfo.firstName[0]}
                       {profile.personalInfo.lastName[0]}
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      {profile.personalInfo.firstName} {profile.personalInfo.lastName}
+                    <h3 className="text-white font-semibold text-lg">
+                      {profile.personalInfo.firstName}{" "}
+                      {profile.personalInfo.lastName}
                     </h3>
-                    <p className="text-slate-400 text-sm">
+                    <p className="text-gray-400 text-sm">
                       {profile.professionalInfo.title}
                     </p>
                   </div>
                 </div>
-
-                {/* Rating Badge */}
-                <div className="flex items-center space-x-1 bg-amber-500/20 px-3 py-1 rounded-full">
-                  <FaStar className="text-amber-400 text-sm" />
-                  <span className="text-amber-400 font-medium text-sm">
+                <div className="flex items-center space-x-1">
+                  <FaStar className="text-yellow-400 text-sm" />
+                  <span className="text-white font-medium text-sm">
                     {profile.stats.averageRating.toFixed(1)}
                   </span>
                 </div>
               </div>
 
-              {/* Quick Info */}
+              {/* Profile Stats */}
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="flex items-center space-x-2">
-                  <FaMapMarkerAlt className="text-slate-400 text-sm" />
-                  <span className="text-slate-300 text-sm">
-                    {profile.personalInfo.location}
-                  </span>
+                <div className="bg-white/10 rounded-lg p-3">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <FaCode className="text-blue-400 text-sm" />
+                    <span className="text-gray-400 text-xs">Projects</span>
+                  </div>
+                  <p className="text-white font-semibold">
+                    {profile.stats.totalProjects}
+                  </p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <FaClock className="text-slate-400 text-sm" />
-                  <span className="text-slate-300 text-sm">
-                    {profile.professionalInfo.availability}
-                  </span>
-                </div>
-              </div>
-
-              {/* Hourly Rate */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                  <span className="text-slate-400 text-sm">Hourly Rate</span>
-                  <span className="text-emerald-400 font-semibold text-lg">
+                {/* <div className="bg-white/10 rounded-lg p-3">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <FaDollarSign className="text-green-400 text-sm" />
+                    <span className="text-gray-400 text-xs">Rate</span>
+                  </div>
+                  <p className="text-white font-semibold">
                     ${profile.professionalInfo.hourlyRate}/hr
-                  </span>
-                </div>
+                  </p>
+                </div> */}
               </div>
 
-              {/* Top Skills */}
+              {/* Skills */}
               <div className="mb-4">
-                <p className="text-slate-400 text-sm mb-2">Top Skills</p>
+                <p className="text-gray-400 text-xs mb-2">Top Skills</p>
                 <div className="flex flex-wrap gap-2">
-                  {getTopSkills(profile).map((skill) => (
+                  {getTopSkills(profile).map((skill, index) => (
                     <span
-                      key={skill}
-                      className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium"
+                      key={index}
+                      className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs"
                     >
                       {skill}
                     </span>
@@ -845,40 +1028,39 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                 </div>
               </div>
 
-              {/* Stats Row */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center">
-                  <p className="text-white font-semibold text-lg">
-                    {profile.stats.totalProjects}
-                  </p>
-                  <p className="text-slate-400 text-xs">Projects</p>
+              {/* Status Indicators */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
+                    <FaMapMarkerAlt className="text-gray-400 text-xs" />
+                    <span className="text-gray-400 text-xs">
+                      {profile.personalInfo.location}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-emerald-400 font-semibold text-lg">
-                    ${Math.round(profile.stats.totalEarnings / 1000)}k
-                  </p>
-                  <p className="text-slate-400 text-xs">Earned</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-violet-400 font-semibold text-lg">
-                    {profile.stats.clientRetention}%
-                  </p>
-                  <p className="text-slate-400 text-xs">Retention</p>
+                <div className="flex items-center space-x-2">
+                  <span
+                    className={`text-xs font-medium capitalize ${getAvailabilityColor(
+                      profile.professionalInfo.availability
+                    )}`}
+                  >
+                    {profile.professionalInfo.availability}
+                  </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handleView(profile.id)}
-                  className="cursor-pointer flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 font-medium"
+                  className="cursor-pointer flex-1 px-3 py-2 bg-indigo-500/20 border border-indigo-400/50 text-gray-300 hover:bg-blue-500/30 hover:text-white rounded-lg transition-all duration-300 text-sm font-medium"
                 >
-                  <FaEye />
-                  <span>View</span>
+                  <FaEye className="inline mr-2" />
+                  View
                 </button>
                 <button
                   onClick={() => handleEdit(profile.id)}
-                  className="cursor-pointer px-4 py-2 bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white rounded-lg transition-all duration-300 flex items-center justify-center"
+                  className="cursor-pointer px-3 py-2 bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300 rounded-lg transition-all duration-300 text-sm"
                 >
                   <FaEdit />
                 </button>
@@ -889,7 +1071,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                       `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`
                     )
                   }
-                  className="cursor-pointer px-4 py-2 bg-white/10 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 rounded-lg transition-all duration-300 flex items-center justify-center"
+                  className="cursor-pointer px-3 py-2 bg-red-500/20 border border-red-400/50 text-red-300 hover:bg-red-500/30 hover:text-red-200 rounded-lg transition-all duration-300 text-sm"
                 >
                   <FaTrash />
                 </button>
@@ -899,26 +1081,142 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
         </div>
 
         {/* Empty State */}
-        {filteredProfiles.length === 0 && profiles.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FaUsers className="text-slate-400 text-3xl" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
+        {filteredProfiles.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <FaExclamationTriangle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">
               No developers found
             </h3>
-            <p className="text-slate-400 mb-6">
-              Get started by adding your first developer profile.
+            <p className="text-gray-400 mb-4">
+              Try adjusting your search or filter criteria.
             </p>
             <button
-              onClick={handleAddNewDeveloper}
-              className="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all duration-300 flex items-center space-x-2 mx-auto font-medium"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedExperience("all");
+                setSelectedAvailability("all");
+                setShowFilters(false);
+              }}
+              className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
             >
-              <FaPlus />
-              <span>Add First Developer</span>
+              Clear Filters
             </button>
           </div>
         )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-y border-white/10 px-6 py-4 my-16">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg bg-white/5 cursor-pointer border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              aria-label="Previous page"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+
+            <div className="flex items-center space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer
+            ${
+              currentPage === page
+                ? "bg-blue-500/20 border border-blue-400/50 text-gray-300"
+                : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+            }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+            </div>
+
+            <button
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              aria-label="Next page"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Stats Summary */}
+        <div className="mt-8 bg-white/5 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Summary Statistics
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white/10 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-blue-400 mb-1">
+                {profiles.length}
+              </div>
+              <div className="text-gray-400 text-sm">Total Developers</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-400 mb-1">
+                {
+                  profiles.filter(
+                    (p) => p.professionalInfo.availability === "available"
+                  ).length
+                }
+              </div>
+              <div className="text-gray-400 text-sm">Available</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-yellow-400 mb-1">
+                {profiles.length > 0
+                  ? (
+                      profiles.reduce(
+                        (sum, p) => sum + p.stats.averageRating,
+                        0
+                      ) / profiles.length
+                    ).toFixed(1)
+                  : "0.0"}
+              </div>
+              <div className="text-gray-400 text-sm">Avg Rating</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-purple-400 mb-1">
+                {profiles.length > 0
+                  ? profiles.reduce((sum, p) => sum + p.stats.totalProjects, 0)
+                  : 0}
+              </div>
+              <div className="text-gray-400 text-sm">Total Projects</div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -931,7 +1229,6 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
   if (viewMode === "edit" && selectedProfile) {
     return (
       <DeveloperProfileEditor
-        initialProfile={selectedProfile}
         profileId={selectedProfile.id}
         onSaveSuccess={handleUpdateSuccess}
         onCancel={handleBackFromEditor}
@@ -942,7 +1239,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
   if (viewMode === "create") {
     return (
       <AddNewDeveloper
-        onCancel={() => setViewMode("list")}
+        onCancel={handleBackToList}
         onCreate={handleCreateSuccess}
       />
     );

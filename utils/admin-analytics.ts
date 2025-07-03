@@ -61,7 +61,7 @@ export interface RevenueData {
     // Status distributions
     projectsByStatus: {
       completed: number;
-      'in-progress': number;
+      // 'in-progress': number;
       pending: number;
       [key: string]: number;
     };

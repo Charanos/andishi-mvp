@@ -27,19 +27,29 @@ interface Props {
   onCancel?: () => void;
 }
 
-const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, onSaveSuccess, onCancel }) => {
-  const [profile, setProfile] = useState<DeveloperProfile | null>(initialProfile ?? null);
+const DeveloperProfileEditor: React.FC<Props> = ({
+  profileId,
+  initialProfile,
+  onSaveSuccess,
+  onCancel,
+}) => {
+  const [profile, setProfile] = useState<DeveloperProfile | null>(
+    initialProfile ?? null
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
   // Custom toast notification functions
-  const addNotification = (type: "success" | "error" | "info", message: string) => {
+  const addNotification = (
+    type: "success" | "error" | "info",
+    message: string
+  ) => {
     const id = Date.now().toString();
     const notification: ToastNotification = { id, type, message };
-    setNotifications(prev => [...prev, notification]);
-    
+    setNotifications((prev) => [...prev, notification]);
+
     // Auto remove after 4 seconds
     setTimeout(() => {
       removeNotification(id);
@@ -47,7 +57,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const toast = {
@@ -418,7 +428,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                     <option value="Freelance">Freelance</option>
                     <option value="Not available">Not available</option>
                   </select>
-                ) : key === "hourlyRate" ? (
+                ) : key === "professionalInfo" ? (
                   <input
                     type="number"
                     className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white"
@@ -810,7 +820,9 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
           </div>
 
           <div className="flex flex-col">
-            <label className="text-sm text-gray-300 mb-2">Specializations</label>
+            <label className="text-sm text-gray-300 mb-2">
+              Specializations
+            </label>
             <div className="space-y-2">
               {(profile.technicalSkills.specializations || []).map(
                 (spec, index) => (
@@ -959,11 +971,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                   disabled={saving}
                   className="bg-blue-600 cursor-pointer hover:bg-blue-700 disabled:bg-blue-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
                 >
-                  {saving ? (
-                    <FaSyncAlt className="animate-spin" />
-                  ) : (
-                    <FaSave />
-                  )}
+                  {saving ? <FaSyncAlt className="animate-spin" /> : <FaSave />}
                   {saving ? "Saving..." : "Save Profile"}
                 </button>
               </div>
@@ -1008,7 +1016,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({ profileId, initialProfile, on
                 Last updated: {new Date().toLocaleDateString()}
               </p>
               <p className="text-gray-500 text-xs mt-2">
-                Your profile information is securely stored and can be updated at any time.
+                Your profile information is securely stored and can be updated
+                at any time.
               </p>
             </div>
           </div>

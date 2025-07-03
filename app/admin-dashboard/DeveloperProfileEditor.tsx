@@ -218,11 +218,11 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   };
 
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile || !profileId) return;
     setSaving(true);
     try {
-      console.log("Saving profile to /api/developer-profiles...");
-      const res = await fetch("/api/developer-profiles", {
+      console.log(`Saving profile to /api/developer-profiles/${profileId}...`);
+      const res = await fetch(`/api/developer-profiles/${profileId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),

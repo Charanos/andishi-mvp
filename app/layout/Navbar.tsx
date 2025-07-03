@@ -312,7 +312,7 @@ export default function Navbar() {
                     className="border-b border-white/20 pb-2"
                   >
                     <div className="text-xs opacity-80 mb-2 text-indigo-200">
-                      Welcome, {user.name || user.email?.split("@")[0]}
+                      Welcome, {user.firstName}
                     </div>
                     <Link
                       href={getDashboardRoute()}

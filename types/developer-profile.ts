@@ -1,6 +1,8 @@
 export interface Skill {
   name: string;
   level: number;
+  endorsements?: number;
+  lastUsed?: string;
 }
 
 export interface PersonalInfo {
@@ -9,7 +11,7 @@ export interface PersonalInfo {
   email: string;
   location: string;
   portfolio?: string;
-  tagline: string;
+  bio: string;
 }
 
 export interface ProfessionalInfo {
@@ -32,10 +34,14 @@ export interface Stats {
 
 export interface DeveloperProfile {
   id: string;
+  user: any;
   personalInfo: PersonalInfo;
   professionalInfo: ProfessionalInfo;
   technicalSkills: TechnicalSkills;
   stats: Stats;
-  projects: any[]; // You might want to type this more specifically
-  recentActivity: any[]; // You might want to type this more specifically
+  projects: any[];
+  recentActivity: any[];
+  achievements: any[];
+  notifications: any[];
+  timeEntries: any[];
 }

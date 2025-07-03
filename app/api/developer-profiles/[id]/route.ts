@@ -21,6 +21,16 @@ export async function PUT(req: NextRequest, context: { params: any }) {
   try {
     const params = await context.params;
     const payload = await req.json();
+    
+    // First check if the profile exists
+    const existingProfile = await prisma.developerProfile.findUnique({
+      where: { id: params.id }
+    });
+    
+    if (!existingProfile) {
+      return new NextResponse("Profile not found", { status: 404 });
+    }
+
     const rec = await prisma.developerProfile.update({
       where: { id: params.id },
       data: { data: payload },
@@ -28,6 +38,9 @@ export async function PUT(req: NextRequest, context: { params: any }) {
     return NextResponse.json({ id: rec.id, ...(rec.data as any) }, { status: 200 });
   } catch (err) {
     console.error("PUT /api/developer-profiles/[id]", err);
+    if (err instanceof Error && 'code' in err && err.code === 'P2025') {
+      return new NextResponse("Profile not found", { status: 404 });
+    }
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

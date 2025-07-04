@@ -111,6 +111,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
     (typeof DeveloperProfilesOverview)[]
   >([]);
   const [projects, setProjects] = useState<ProjectData[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [projectsPerPage] = useState(10);
   const [users, setUsers] = useState<SystemUser[]>([]);
   const emptyAnalytics: EnhancedAnalyticsData = {
     totalUsers: 0,
@@ -1494,7 +1496,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
           {/* Enhanced Projects Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {(projects ?? []).map((project) => {
+            {projects
+              .slice(
+                (currentPage - 1) * projectsPerPage,
+                currentPage * projectsPerPage
+              )
+              .map((project) => {
               const progress = project?.progress || 0;
               const status = project?.status || "pending";
               const priority = project?.priority || "low";

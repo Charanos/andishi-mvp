@@ -1,23 +1,51 @@
 import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { mockDeveloperProfile } from "@/lib/mockDeveloperProfile";
 
+// Read-only mode configuration
 export const dynamic = 'force-dynamic';
+const isReadOnly = process.env.READ_ONLY_MODE === 'true' || false;
 
-// NOTE: Proper authentication / RBAC is not yet wired. For now, we only allow writes
-// if NODE_ENV is not production. Replace this with real admin checks later.
-const isReadOnly = process.env.NODE_ENV === "production";
+// Helper function to validate the JWT token and extract user email
+async function getAuthenticatedUserEmail(authHeader: string | null): Promise<string> {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Missing or invalid authorization header');
+  }
 
-export async function GET() {
+  const token = authHeader.split(' ')[1];
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    if (!payload.email) {
+      throw new Error('Invalid token: missing email');
+    }
+    return payload.email;
+  } catch (error) {
+    console.error('Error parsing JWT:', error);
+    throw new Error('Invalid token format');
+  }
+}
+
+export async function GET(req: NextRequest) {
   try {
     const client = await clientPromise;
     const db = client.db();
-
-    let record = await db.collection('developerprofiles').findOne({});
+    
+    // Get the user's email from the auth token
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const userEmail = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).email;
+    
+    // Find the profile for the authenticated user
+    const record = await db.collection('developerProfiles').findOne({ 'data.personalInfo.email': userEmail });
 
     if (!record) {
-      const insertRes = await db.collection('developerprofiles').insertOne({ data: mockDeveloperProfile });
-      record = await db.collection('developerprofiles').findOne({ _id: insertRes.insertedId });
+      return new NextResponse(
+        JSON.stringify({ error: 'Profile not found' }), 
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     return NextResponse.json(record?.data, { status: 200 });
@@ -34,20 +62,42 @@ export async function PUT(req: NextRequest) {
 
   try {
     const payload = await req.json();
+    
+    // Get the user's email from the auth token
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const userEmail = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).email;
+    
+    // Ensure the email in the payload matches the authenticated user
+    if (payload.personalInfo.email !== userEmail) {
+      return new NextResponse('Forbidden: Cannot update another user\'s profile', { status: 403 });
+    }
 
     const client = await clientPromise;
     const db = client.db();
 
-    const existing = await db.collection('developerprofiles').findOne({});
+    // Check if profile exists for this user
+    const existing = await db.collection('developerProfiles').findOne({ 'data.personalInfo.email': userEmail });
 
-    let record;
-    if (existing) {
-      await db.collection('developerprofiles').updateOne({ _id: existing._id }, { $set: { data: payload } });
-      record = await db.collection('developerprofiles').findOne({ _id: existing._id });
-    } else {
-      const insertRes = await db.collection('developerprofiles').insertOne({ data: payload });
-      record = await db.collection('developerprofiles').findOne({ _id: insertRes.insertedId });
+    if (!existing) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Profile not found' }), 
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
     }
+
+    // Update the existing profile
+    await db.collection('developerProfiles').updateOne(
+      { 'data.personalInfo.email': userEmail },
+      { $set: { data: payload } }
+    );
+    
+    // Return the updated profile
+    const record = await db.collection('developerProfiles').findOne({ 'data.personalInfo.email': userEmail });
 
     return NextResponse.json(record!.data, { status: 200 });
   } catch (err) {

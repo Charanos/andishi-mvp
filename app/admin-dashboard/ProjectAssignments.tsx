@@ -24,6 +24,7 @@ import {
   FaExclamationCircle,
   FaSpinner,
 } from "react-icons/fa";
+import { useAvailableDevelopers, useProjectAssignments } from "@/hooks/useProjectAssignments";
 
 interface Developer {
   id: string;
@@ -82,8 +83,17 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   projectTechStack = [],
   projectExperienceLevel = "Mid-level",
 }) => {
+  const { developers: initialDevelopers, loading: loadingDevs } = useAvailableDevelopers();
+  const { assignments, loading: loadingAssignments, refetch } = useProjectAssignments(projectId);
+
   const [developers, setDevelopers] = useState<Developer[]>([]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+
+  useEffect(() => {
+    if (!loadingDevs && initialDevelopers) {
+      setDevelopers(initialDevelopers);
+    }
+  }, [initialDevelopers, loadingDevs]);
+
   const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
@@ -94,121 +104,6 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   >("compatibility");
   const [showFilters, setShowFilters] = useState(false);
   const [assigning, setAssigning] = useState(false);
-
-  // Generate mock developers for demo
-  const generateMockDevelopers = (): Developer[] => {
-    const mockDevelopers: Developer[] = [
-      {
-        id: "1",
-        personalInfo: {
-          firstName: "Sarah",
-          lastName: "Johnson",
-          email: "sarah.j@email.com",
-          location: "San Francisco, CA",
-        },
-        professionalInfo: {
-          title: "Full Stack Developer",
-          experienceLevel: "Senior",
-          availability: "Available",
-          hourlyRate: 85,
-        },
-        technicalSkills: {
-          primarySkills: ["React", "Node.js", "TypeScript", "Python"],
-          frameworks: ["Next.js", "Express", "Django"],
-          specializations: ["API Development", "Database Design"],
-        },
-        stats: {
-          totalProjects: 34,
-          averageRating: 4.9,
-          clientRetention: 95,
-        },
-        currentProjects: 1,
-        isAvailable: true,
-      },
-      {
-        id: "2",
-        personalInfo: {
-          firstName: "Marcus",
-          lastName: "Chen",
-          email: "marcus.chen@email.com",
-          location: "New York, NY",
-        },
-        professionalInfo: {
-          title: "Frontend Specialist",
-          experienceLevel: "Mid-level",
-          availability: "Available",
-          hourlyRate: 70,
-        },
-        technicalSkills: {
-          primarySkills: ["React", "Vue.js", "JavaScript", "CSS"],
-          frameworks: ["Nuxt.js", "Tailwind CSS", "Material-UI"],
-          specializations: ["UI/UX Implementation", "Mobile Responsive"],
-        },
-        stats: {
-          totalProjects: 22,
-          averageRating: 4.7,
-          clientRetention: 88,
-        },
-        currentProjects: 0,
-        isAvailable: true,
-      },
-      {
-        id: "3",
-        personalInfo: {
-          firstName: "Emily",
-          lastName: "Rodriguez",
-          email: "emily.r@email.com",
-          location: "Austin, TX",
-        },
-        professionalInfo: {
-          title: "DevOps Engineer",
-          experienceLevel: "Senior",
-          availability: "Busy",
-          hourlyRate: 95,
-        },
-        technicalSkills: {
-          primarySkills: ["Docker", "Kubernetes", "AWS", "Python"],
-          frameworks: ["Terraform", "Jenkins", "Ansible"],
-          specializations: ["Cloud Architecture", "CI/CD"],
-        },
-        stats: {
-          totalProjects: 41,
-          averageRating: 4.8,
-          clientRetention: 92,
-        },
-        currentProjects: 3,
-        isAvailable: false,
-      },
-      {
-        id: "4",
-        personalInfo: {
-          firstName: "David",
-          lastName: "Kim",
-          email: "david.kim@email.com",
-          location: "Seattle, WA",
-        },
-        professionalInfo: {
-          title: "Backend Developer",
-          experienceLevel: "Junior",
-          availability: "Available",
-          hourlyRate: 45,
-        },
-        technicalSkills: {
-          primarySkills: ["Node.js", "Java", "MongoDB", "SQL"],
-          frameworks: ["Spring Boot", "Express", "Mongoose"],
-          specializations: ["API Development", "Database Optimization"],
-        },
-        stats: {
-          totalProjects: 8,
-          averageRating: 4.5,
-          clientRetention: 85,
-        },
-        currentProjects: 1,
-        isAvailable: true,
-      },
-    ];
-    return mockDevelopers;
-  };
 
   // Custom toast notification functions
   const addNotification = (
@@ -225,7 +120,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  // Initialize with mock data
+  // Initialize data
   useEffect(() => {
     const initializeData = async () => {
       setLoading(true);
@@ -233,23 +128,6 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const mockDevelopers = generateMockDevelopers();
-      setDevelopers(mockDevelopers);
-
-      // Mock some assignments
-      const mockAssignments: Assignment[] = [
-        {
-          id: "1",
-          projectId: projectId,
-          developerId: "1",
-          role: "Lead Developer",
-          status: "accepted",
-          assignedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
-
-      setAssignments(mockAssignments);
       setLoading(false);
     };
 
@@ -303,12 +181,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   };
 
   // Filter and sort developers
-  const getFilteredDevelopers = () => {
-    let filtered = developers;
+  const getFilteredDevelopers = (): Developer[] => {
+    let filtered: Developer[] = developers;
 
     if (searchTerm) {
       filtered = filtered.filter(
-        (dev) =>
+        (dev: Developer) =>
           `${dev.personalInfo.firstName} ${dev.personalInfo.lastName}`
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
@@ -322,11 +200,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     }
 
     if (filterAvailable) {
-      filtered = filtered.filter((dev) => dev.isAvailable);
+      filtered = filtered.filter((dev: Developer) => dev.isAvailable);
     }
 
     // Sort by selected criteria
-    filtered.sort((a, b) => {
+    filtered.sort((a: Developer, b: Developer) => {
       switch (sortBy) {
         case "compatibility":
           return (
@@ -378,7 +256,8 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
         updatedAt: new Date().toISOString(),
       }));
 
-      setAssignments((prev) => [...prev, ...newAssignments]);
+      // Update assignments state
+      refetch();
 
       // Update developer availability
       setDevelopers((prev) =>
@@ -407,14 +286,14 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   };
 
   // Get assigned developers for this project
-  const getAssignedDevelopers = () => {
+  const getAssignedDevelopers = (): Developer[] => {
     return assignments
-      .filter((a) => a.projectId === projectId)
-      .map((a) => developers.find((d) => d.id === a.developerId))
+      .filter((a: Assignment) => a.projectId === projectId)
+      .map((a: Assignment) => developers.find((d: Developer) => d.id === a.developerId)!)
       .filter(Boolean);
   };
 
-  if (loading) {
+  if (loading || loadingDevs || loadingAssignments) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
@@ -668,10 +547,10 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {getFilteredDevelopers().map((developer) => {
               const compatibilityScore = calculateCompatibilityScore(developer);
-              const isAssigned = assignments.some(
-                (a) =>
+                const isAssigned: boolean = assignments.some(
+                (a: Assignment) =>
                   a.projectId === projectId && a.developerId === developer.id
-              );
+                );
               const isSelected = selectedDevelopers.includes(developer.id);
 
               return (

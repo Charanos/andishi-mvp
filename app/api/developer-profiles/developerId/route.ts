@@ -1,43 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-
-// GET /api/developer-profiles/[id] – return single profile
+// GET /api/developer-profiles/[developerId] – return single profile
 export async function GET(_req: NextRequest, context: { params: any }) {
   try {
     const params = await context.params;
-    const rec = await prisma.developerProfile.findUnique({ where: { id: params.id } });
+    const rec = await prisma.developerProfile.findUnique({ where: { id: params.developerId } });
     if (!rec) return new NextResponse("Not Found", { status: 404 });
     return NextResponse.json({ id: rec.id, ...(rec.data as any) }, { status: 200 });
   } catch (err) {
-    console.error("GET /api/developer-profiles/[id]", err);
+    console.error("GET /api/developer-profiles/[developerId]", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
-
-// PUT /api/developer-profiles/[id] – update profile
+// PUT /api/developer-profiles/[developerId] – update profile
 export async function PUT(req: NextRequest, context: { params: any }) {
   try {
     const params = await context.params;
     const payload = await req.json();
-    
     // First check if the profile exists
     const existingProfile = await prisma.developerProfile.findUnique({
-      where: { id: params.id }
+      where: { id: params.developerId }
     });
-    
     if (!existingProfile) {
       return new NextResponse("Profile not found", { status: 404 });
     }
-
     const rec = await prisma.developerProfile.update({
-      where: { id: params.id },
+      where: { id: params.developerId },
       data: { data: payload },
     });
     return NextResponse.json({ id: rec.id, ...(rec.data as any) }, { status: 200 });
   } catch (err) {
-    console.error("PUT /api/developer-profiles/[id]", err);
+    console.error("PUT /api/developer-profiles/[developerId]", err);
     if (err instanceof Error && 'code' in err && err.code === 'P2025') {
       return new NextResponse("Profile not found", { status: 404 });
     }
@@ -45,14 +40,14 @@ export async function PUT(req: NextRequest, context: { params: any }) {
   }
 }
 
-// DELETE /api/developer-profiles/[id] – remove profile
+// DELETE /api/developer-profiles/[developerId] – remove profile
 export async function DELETE(_req: NextRequest, context: { params: any }) {
   try {
     const params = await context.params;
-    await prisma.developerProfile.delete({ where: { id: params.id } });
+    await prisma.developerProfile.delete({ where: { id: params.developerId } });
     return new NextResponse(null, { status: 204 });
   } catch (err) {
-    console.error("DELETE /api/developer-profiles/[id]", err);
+    console.error("DELETE /api/developer-profiles/[developerId]", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

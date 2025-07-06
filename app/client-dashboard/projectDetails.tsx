@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { FaArrowCircleLeft } from "react-icons/fa";
 import { useProjectCRUD } from "@/hooks/useProjectCRUD";
+import ProjectChatComponent from "../admin-dashboard/ProjectChat";
 
 import {
   ProjectData,
@@ -44,6 +45,7 @@ type TrackingView =
   | "budget"
   | "files"
   | "activity"
+  | "chat"
   | "updates";
 
 type MilestoneStatus =
@@ -1841,6 +1843,19 @@ export default function EnhancedProjectTracking({
                 </div>
               )}
             </div>
+          </div>
+        );
+
+      case "chat":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <ProjectChatComponent
+              projectId={projectData._id}
+              projectTitle={projectData.projectDetails.title}
+              currentUserId="client-1"
+              currentUserRole="client"
+              currentUserName="Client User"
+            />
           </div>
         );
 

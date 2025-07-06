@@ -66,7 +66,13 @@ const DevAchievements: React.FC<DevAchievementsProps> = ({ achievements }) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedRarity, setSelectedRarity] = useState("all");
 
-  const displayAchievements = achievements;
+  // Remove duplicate achievements based on ID
+  const displayAchievements = useMemo(() => {
+    const uniqueAchievements = achievements.filter((achievement, index, self) => 
+      index === self.findIndex(a => a.id === achievement.id)
+    );
+    return uniqueAchievements;
+  }, [achievements]);
 
   // Calculate stats from achievements
   const stats = useMemo(() => {

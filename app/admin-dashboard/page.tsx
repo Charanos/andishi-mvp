@@ -46,6 +46,7 @@ import {
   FaFlag,
 } from "react-icons/fa";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
+import ProjectAssignmentManager from "./ProjectAssignmentManager";
 import AdvancedAnalyticsDashboard from "./renderAnalytics";
 import generateAdvancedAnalytics, {
   EnhancedAnalyticsData,
@@ -3007,6 +3008,7 @@ Generate new credentials to reset password.`;
                       label: "Dev Profiles",
                       icon: FaUserEdit,
                     },
+
                     { id: "settings", label: "Settings", icon: FaCog },
                   ].map((tab) => (
                     <button
@@ -3048,6 +3050,7 @@ Generate new credentials to reset password.`;
               { id: "users", label: "Users", icon: FaUsers },
               { id: "analytics", label: "Analytics", icon: FaChartBar },
               { id: "devProfiles", label: "Dev Profiles", icon: FaUserEdit },
+
               { id: "settings", label: "Settings", icon: FaCog },
             ].map((tab) => (
               <button
@@ -3087,6 +3090,7 @@ Generate new credentials to reset password.`;
             <AdvancedAnalyticsDashboard analytics={analytics} />
           )}
           {activeTab === "dev profiles" && <DeveloperProfilesOverview />}
+
           {activeTab === "settings" && renderSettings()}
         </div>
       </div>

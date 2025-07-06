@@ -34,6 +34,7 @@ import {
   FaLightbulb,
 } from "react-icons/fa";
 import { IoIosGrid, IoIosList } from "react-icons/io";
+import ProjectDetail from "./ProjectDetail";
 
 interface DevProjectsProps {
   projects: ProjectAssignment[];
@@ -47,7 +48,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
   const [sortBy, setSortBy] = useState<string>("lastUpdated");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ProjectAssignment | null>(null);
 
   // Helper functions
   const getStatusColor = (status: string) => {
@@ -157,6 +158,16 @@ export default function DevProjects({ projects }: DevProjectsProps) {
   }, [projects]);
 
   const categories = [...new Set(projects.map((p) => p.category))];
+
+  // Show project detail if a project is selected
+  if (selectedProject) {
+    return (
+      <ProjectDetail
+        project={selectedProject}
+        onBack={() => setSelectedProject(null)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6 my-18">
@@ -657,7 +668,10 @@ export default function DevProjects({ projects }: DevProjectsProps) {
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="flex items-center space-x-2">
-                <button className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-sm">
+                <button 
+                  onClick={() => setSelectedProject(project)}
+                  className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
+                >
                   <FaRocket className="text-xs" />
                   <span>View Details</span>
                 </button>

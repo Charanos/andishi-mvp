@@ -80,15 +80,21 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
       try {
         const res = await fetch("/api/developer-profiles");
         if (!res.ok) throw new Error("Failed to fetch profiles");
-        const data = await res.json();
+        const data: DeveloperProfile[] | { profiles: DeveloperProfile[] } | any = await res.json();
 
-        const profilesArray = Array.isArray(data)
+        const profilesArray: DeveloperProfile[] = Array.isArray(data)
           ? data
           : Array.isArray(data?.profiles)
           ? data.profiles
-          : [data];
-        setProfiles(profilesArray);
-        setFilteredProfiles(profilesArray);
+          : [];
+        
+        // Remove duplicate profiles based on email address
+        const uniqueProfiles: DeveloperProfile[] = profilesArray.filter((profile: DeveloperProfile, index: number, self: DeveloperProfile[]) => 
+          index === self.findIndex((p: DeveloperProfile) => p.personalInfo.email === profile.personalInfo.email)
+        );
+        
+        setProfiles(uniqueProfiles);
+        setFilteredProfiles(uniqueProfiles);
       } catch (err) {
         console.error(err);
         toast.error("Error loading developer profiles");

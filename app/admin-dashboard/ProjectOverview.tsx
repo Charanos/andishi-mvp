@@ -19,7 +19,13 @@ import {
   FaPlus,
   FaTimesCircle,
   FaPlay,
+  FaUsers,
+  FaSearch,
+  FaStar,
+  FaCode,
 } from "react-icons/fa";
+import ProjectAssignments from "./ProjectAssignments";
+import ProjectChatComponent from "./ProjectChat";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
 import {
   Target,
@@ -56,6 +62,7 @@ import {
   Payment,
   ProjectUpdate,
 } from "~/types";
+import ProjectChat from "./ProjectChat";
 
 interface ProjectOverviewProps {
   selectedProject: ProjectData | null;
@@ -88,6 +95,8 @@ type TrackingView =
   | "budget"
   | "files"
   | "activity"
+  | "assignments"
+  | "chat"
   | "updates";
 
 type MilestoneStatus =
@@ -177,6 +186,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [editingPayment, setEditingPayment] = useState<string | null>(null);
   const [newPayment, setNewPayment] = useState<Partial<Payment>>({});
   const [showAddPayment, setShowAddPayment] = useState(false);
+
+  // Assignment state management
+  const [developers, setDevelopers] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterAvailable, setFilterAvailable] = useState(true);
+  const [assignmentLoading, setAssignmentLoading] = useState(false);
 
   const [updates, setUpdates] = useState<ProjectUpdate[]>(
     projectData.updates || []
@@ -422,6 +439,29 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </div>
               )}
             </div>
+          </div>
+        );
+      case "assignments":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <ProjectAssignments
+              projectId={selectedProject._id}
+              projectTitle={selectedProject.projectDetails.title}
+              projectTechStack={selectedProject.projectDetails.techStack || []}
+              projectExperienceLevel={"Mid-level"}
+            />
+          </div>
+        );
+      case "chat":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <ProjectChatComponent
+              projectId={selectedProject._id}
+              projectTitle={selectedProject.projectDetails.title}
+              currentUserId="admin-1"
+              currentUserRole="admin"
+              currentUserName="Admin User"
+            />
           </div>
         );
       default:
@@ -838,6 +878,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             { id: "files", label: "Files", icon: FileText },
             { id: "updates", label: "Updates", icon: MessageSquare },
             { id: "activity", label: "Activity", icon: Activity },
+            { id: "assignments", label: "Assignments", icon: FaUsers },
+            { id: "chat", label: "Chat", icon: FaComment },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -2181,6 +2223,27 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               )}
             </div>
           </div>
+        )}
+
+        {trackingView === "assignments" && (
+          <ProjectAssignments
+            projectId={selectedProject._id}
+            projectTitle={selectedProject.projectDetails.title}
+            projectTechStack={selectedProject.projectDetails.techStack || []}
+            projectExperienceLevel={
+              selectedProject.projectDetails.experienceLevel || "Mid-level"
+            }
+          />
+        )}
+
+        {trackingView === "chat" && (
+          <ProjectChat
+            projectId={selectedProject._id}
+            projectTitle={selectedProject.projectDetails.title}
+            currentUserId="admin-1"
+            currentUserRole="admin"
+            currentUserName="Admin User"
+          />
         )}
       </div>
 

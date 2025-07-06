@@ -143,7 +143,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         setProfile(initializedProfile);
       } catch (err) {
         console.error("Error fetching profile:", err);
-        toast.error("Error loading developer profile");
+        addNotification("error", "Error loading developer profile");
       } finally {
         setLoading(false);
       }
@@ -232,13 +232,13 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       }
       const data = await res.json();
       console.log("Profile saved successfully:", data);
-      toast.success("Profile updated successfully");
+      addNotification("success", "Profile updated successfully");
       if (onSaveSuccess) {
         onSaveSuccess(data as DeveloperProfile);
       }
     } catch (err) {
       console.error("Error saving profile:", err);
-      toast.error("Error saving profile");
+      addNotification("error", "Error saving profile");
     } finally {
       setSaving(false);
     }

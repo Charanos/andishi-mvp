@@ -15,6 +15,7 @@ export interface ProjectDetails {
   priority: "low" | "medium" | "high" | "urgent";
   techStack: string[];
   requirements: string;
+  experienceLevel?: "Entry-level" | "Mid-level" | "Senior" | "Lead" | "Expert";
 }
 
 export type ProjectStatus =

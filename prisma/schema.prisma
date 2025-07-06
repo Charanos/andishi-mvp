@@ -38,4 +38,38 @@ model DeveloperProfile {
   user            User?    @relation("UserProfile", fields: [userId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  assignments     ProjectAssignment[]
+}
+
+model Project {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String?
+  status          String   @default("pending")
+  priority        String   @default("medium")
+  budget          Float    @default(0)
+  timeline        String?
+  techStack       String[]
+  requiredSkills  String[]
+  experienceLevel String   @default("Mid-level")
+  maxTeamSize     Int      @default(1)
+  clientId        String?  @db.ObjectId
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  assignments     ProjectAssignment[]
+}
+
+model ProjectAssignment {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  projectId   String   @db.ObjectId
+  developerId String   @db.ObjectId
+  role        String   @default("Developer")
+  status      String   @default("pending") // pending, accepted, rejected, completed
+  assignedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  developer   DeveloperProfile @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, developerId])
 }

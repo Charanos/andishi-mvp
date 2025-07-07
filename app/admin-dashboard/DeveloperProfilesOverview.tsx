@@ -1821,5 +1821,5 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
   return renderListView();
 };
 
-export default DeveloperProfilesOverview;
- 
+export default DeveloperProfilesOverview; 
+  

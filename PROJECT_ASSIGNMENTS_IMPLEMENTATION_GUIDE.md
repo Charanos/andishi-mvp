@@ -22,7 +22,7 @@ This document provides a comprehensive guide for implementing the Project Assign
   - All assignment CRUD operations currently interact with this in-memory store.
   - Plan: Transition to persistent storage (MongoDB/Prisma) by swapping out the mock layer.
 - **Hooks:**
-  - Custom React hooks (e.g., `useProjectAssignments`, `useProjectChat`) encapsulate API calls and state management for UI components.
+  - Custom React hooks (e.g., `useProjectAssignments`, `useAvailableDevelopers`) encapsulate API calls and state management for UI components.
   - Promotes code reuse and separation of concerns.
 - **Chat Integration:**
   - Chat functionality is modular (`useProjectChat`, `ProjectChat.tsx`) and can be linked to assignments for project-based communication.
@@ -51,7 +51,7 @@ This document provides a comprehensive guide for implementing the Project Assign
 
 ## 4. Data Model
 - See `@/lib/mockData.ts` for mock structure. Plan for migration to Prisma schema in `prisma/schema.prisma`.
-- Assignment model includes: `id`, `projectId`, `developerId`, `role`, `status`, `createdAt`, `updatedAt`.
+- Assignment model includes: `id`, `projectId`, `developerId`, `role`, `status`, `assignedAt`, `updatedAt`.
 - Project and Developer models are similarly structured for easy integration.
 
 ---
@@ -69,6 +69,9 @@ This document provides a comprehensive guide for implementing the Project Assign
   - Table/list of client projects and assignments (`ProjectAssignments.tsx`).
   - Modal/form for assigning developers (`AddNewDeveloper.tsx`).
   - Status indicators (color-coded, e.g., pending, active, completed).
+  - Compatibility scoring for developer-project fit.
+  - Enhanced search, filter, and sort for developer selection.
+  - Toast notifications for assignment actions.
 - **Client Dashboard:**
   - Read-only view of assigned developers per project.
 - **Developer Dashboard:**
@@ -83,6 +86,7 @@ This document provides a comprehensive guide for implementing the Project Assign
 - Update developer availability when assigned (currently logged, to be implemented in DB layer).
 - Only admins can create/edit/delete assignments (enforced via UI and future API auth middleware).
 - Assignment status transitions: pending → active → completed/cancelled.
+- Compatibility score calculated based on skills, experience, availability, and rating.
 
 ---
 
@@ -107,6 +111,7 @@ This document provides a comprehensive guide for implementing the Project Assign
 - Bulk assignment actions.
 - Analytics on assignments and developer utilization.
 - Real-time updates (WebSockets or polling).
+- More granular assignment roles and permissions.
 
 ---
 
@@ -117,7 +122,7 @@ This document provides a comprehensive guide for implementing the Project Assign
   - `app/api/project-assignments/route.ts`
   - `app/api/project-assignments/[projectId]/route.ts`
   - `lib/mockData.ts`
-  - `hooks/useProjectAssignments.ts`, `hooks/useProjectChat.ts`
+  - `hooks/useProjectAssignments.ts`, `hooks/useAvailableDevelopers.ts`, `hooks/useProjectChat.ts`
   - `components/ProjectAssignments.tsx`, `components/ProjectChat.tsx`
 
 ---

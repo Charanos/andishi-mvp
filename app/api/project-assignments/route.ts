@@ -1,49 +1,95 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mockAssignments } from "@/lib/mockData";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/project-assignments - Get all project assignments
 export async function GET() {
   try {
-    // For now, return mock assignments
-    // In production, this would query the database
-    return NextResponse.json(mockAssignments.getAll(), { status: 200 });
+    const assignments = await prisma.projectAssignment.findMany({
+      include: {
+        project: true,
+        developer: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+    return NextResponse.json(assignments, { status: 200 });
   } catch (error) {
     console.error("GET /api/project-assignments", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
-// POST /api/project-assignments - Create new project assignments
+// POST /api/project-assignments - Create new project assignments for multiple developers
 export async function POST(req: NextRequest) {
   try {
-    const { projectId, developerIds, role = "Developer" } = await req.json();
-    
-    if (!projectId || !developerIds || !Array.isArray(developerIds)) {
-      return new NextResponse("Missing required fields", { status: 400 });
+    const body = await req.json();
+    const { projectId, developerIds, role = "Developer" } = body;
+
+    if (!projectId || !developerIds || !Array.isArray(developerIds) || developerIds.length === 0) {
+      return new NextResponse("Project ID and a non-empty array of developer IDs are required", { status: 400 });
     }
 
-    // Create mock assignments for now
-    const newAssignments = developerIds.map((developerId: string) => {
-      // Check if assignment already exists
-      if (mockAssignments.exists(projectId, developerId)) {
-        return mockAssignments.findByProject(projectId).find(a => a.developerId === developerId);
+    const assignmentsToCreate = developerIds.map((developerId: string) => ({
+      projectId,
+      developerId,
+      role,
+      status: "pending",
+    }));
+
+    // Use a transaction to ensure all or nothing is created
+    const createdAssignments = await prisma.$transaction(async (tx) => {
+      // Find existing assignments to prevent duplicates
+      const existingAssignments = await tx.projectAssignment.findMany({
+        where: {
+          projectId,
+          developerId: { in: developerIds },
+        },
+        select: {
+          developerId: true,
+        },
+      });
+
+      const existingDeveloperIds = new Set(existingAssignments.map(a => a.developerId));
+
+      const assignmentsToActuallyCreate = assignmentsToCreate.filter(
+        (assignment) => !existingDeveloperIds.has(assignment.developerId)
+      );
+
+      if (assignmentsToActuallyCreate.length > 0) {
+        await tx.projectAssignment.createMany({
+          data: assignmentsToActuallyCreate,
+        });
+
+        await tx.developerProfile.updateMany({
+          where: {
+            id: { in: assignmentsToActuallyCreate.map(a => a.developerId) },
+          },
+          data: {
+            isAvailable: false,
+          },
+        });
       }
-      
-      return mockAssignments.create({
-        projectId,
-        developerId,
-        role,
-        status: "pending",
+
+      // Fetch the created assignments to return them (including any that already existed but were not re-created)
+      return tx.projectAssignment.findMany({
+        where: {
+          projectId,
+          developerId: { in: developerIds },
+        },
       });
     });
 
-    // Update developer availability status
-    // Note: In a real implementation, this would update the developer's availability in the database
-    // For now, we'll just log the update since we're using mock data
-    console.log(`Updated availability for developers: ${developerIds.join(", ")} - marked as unavailable`);
+    return NextResponse.json(createdAssignments, { status: 201 });
 
-    return NextResponse.json(newAssignments, { status: 201 });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2003') {
+            return NextResponse.json({ error: 'One or more projectId or developerId is invalid' }, { status: 404 });
+        }
+    }
     console.error("POST /api/project-assignments", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }

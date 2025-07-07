@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 // POST handler to add a developer to the talent pool
-export async function POST (req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     data.createdAt = new Date();
@@ -60,6 +60,8 @@ export async function POST (req: NextRequest) {
     try {
       await profilesCol.insertOne({
         userId: result.insertedId,
+        status: "pending", // always set pending on submission
+        isAvailable: false, // always set unavailable on submission
         data: {
           personalInfo: data.personalInfo || {},
           professionalInfo: data.professionalInfo || {},

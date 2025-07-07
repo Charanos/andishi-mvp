@@ -44,3 +44,50 @@ export interface ProjectAssignment {
   actualHours: number;
   efficiency: number;
 }
+
+export interface Assignment {
+  id: string;
+  projectId: string;
+  developerId: string;
+  role: string;
+  status: "pending" | "accepted" | "rejected" | "completed";
+  assignedAt: string;
+  updatedAt: string;
+}
+
+export interface Developer {
+  id: string;
+  personalInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    location: string;
+  };
+  professionalInfo: {
+    title: string;
+    experienceLevel: string;
+    availability: string;
+    hourlyRate: number;
+  };
+  technicalSkills: {
+    primarySkills: string[];
+    frameworks: string[];
+    specializations: string[];
+  };
+  stats: {
+    totalProjects: number;
+    averageRating: number;
+    clientRetention: number;
+  };
+  currentProjects?: number;
+  isAvailable?: boolean;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  clientId: string;
+  techStack: string[];
+  experienceLevel: string;
+  // ...other fields
+}

@@ -127,20 +127,20 @@ export interface RecentActivity {
 }
 
 export interface Notification {
-    id: string;
-    type: "deadline" | "project" | "achievement";
-    title: string;
-    message: string;
-    timestamp: string;
-    read: boolean;
-    priority: "high" | "medium" | "low";
+  id: string;
+  type: "deadline" | "project" | "achievement";
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  priority: "high" | "medium" | "low";
 }
 
 export interface TimeEntry {
-    date: string;
-    hours: number;
-    project: string;
-    description: string;
+  date: string;
+  hours: number;
+  project: string;
+  description: string;
 }
 
 export interface DeveloperProfile {
@@ -154,4 +154,6 @@ export interface DeveloperProfile {
   recentActivity?: RecentActivity[];
   notifications?: Notification[];
   timeEntries?: TimeEntry[];
+  status: "pending" | "approved" | "rejected";
+  isAvailable: boolean;
 }

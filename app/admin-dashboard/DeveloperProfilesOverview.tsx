@@ -88,10 +88,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
           ? data.profiles
           : [];
         
-        // Remove duplicate profiles based on email address
-        const uniqueProfiles: DeveloperProfile[] = profilesArray.filter((profile: DeveloperProfile, index: number, self: DeveloperProfile[]) => 
-          index === self.findIndex((p: DeveloperProfile) => p.personalInfo.email === profile.personalInfo.email)
-        );
+        // Remove duplicate profiles based on normalized email address
+        const uniqueProfiles: DeveloperProfile[] = profilesArray.filter((profile: DeveloperProfile, index: number, self: DeveloperProfile[]) => {
+          const email = profile.personalInfo.email?.trim().toLowerCase();
+          return (
+            email &&
+            index === self.findIndex((p: DeveloperProfile) => p.personalInfo.email?.trim().toLowerCase() === email)
+          );
+        });
         
         setProfiles(uniqueProfiles);
         setFilteredProfiles(uniqueProfiles);
@@ -249,6 +253,26 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
     } catch (err) {
       console.error(err);
       toast.error("Error deleting profile");
+    }
+  };
+
+  const handleToggleApproval = async (profileId: string, actionStatus: "approved" | "rejected") => {
+    const isAvailable = actionStatus === "approved";
+
+    try {
+      // Optimistically update UI
+      setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
+      setFilteredProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
+      // Send PATCH/PUT to backend
+      await fetch(`/api/developer-profiles/approve`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profileId, action: actionStatus === 'approved' ? 'approve' : 'reject' })
+        });
+      toast.success(`Developer ${actionStatus} successfully`);
+    } catch (err) {
+      toast.error('Failed to update approval status');
     }
   };
 
@@ -998,11 +1022,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                     <FaUsers className="text-gray-400" />
                     <div>
                       <p className="text-gray-400 text-sm">Experience</p>
-                      <p
-                        className={`font-medium capitalize ${getExperienceColor(
-                          selectedProfile.professionalInfo.experienceLevel
-                        )}`}
-                      >
+                      <p className={`font-medium capitalize ${getExperienceColor(
+                        selectedProfile.professionalInfo.experienceLevel
+                      )}`}>
                         {selectedProfile.professionalInfo.experienceLevel}
                       </p>
                       {selectedProfile.professionalInfo.yearsOfExperience && (
@@ -1017,11 +1039,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                     <FaClock className="text-gray-400" />
                     <div>
                       <p className="text-gray-400 text-sm">Availability</p>
-                      <p
-                        className={`font-medium capitalize ${getAvailabilityColor(
-                          selectedProfile.professionalInfo.availability
-                        )}`}
-                      >
+                      <p className={`font-medium capitalize ${getAvailabilityColor(
+                        selectedProfile.professionalInfo.availability
+                      )}`}>
                         {selectedProfile.professionalInfo.availability}
                       </p>
                       {selectedProfile.professionalInfo.workingHours && (
@@ -1348,6 +1368,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
     }
 
     return (
+      <>
       <div className="min-h-screen">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
@@ -1416,7 +1437,6 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                 }`}
               >
                 <FaFilter />
-                <span>Filters</span>
               </button>
             </div>
           </div>
@@ -1576,8 +1596,15 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                 </div>
               </div>
 
+              {/* Approval Status */}
+              <div className="flex items-center mb-2">
+                <span className={`text-xs monty uppercase font-semibold flex items-center ${profile.status === 'approved' ? 'text-green-400' : profile.status === 'rejected' ? 'text-red-400' : 'text-yellow-400'}`}>
+                  <FaExclamationTriangle className="mr-1" /> {profile.status}
+                </span>
+              </div>
+
               {/* Action Buttons */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 mt-2">
                 <button
                   onClick={() => handleView(profile.id)}
                   className="cursor-pointer flex-1 px-3 py-2 bg-indigo-500/20 border border-indigo-400/50 text-gray-300 hover:bg-blue-500/30 hover:text-white rounded-lg transition-all duration-300 text-sm font-medium"
@@ -1585,12 +1612,30 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
                   <FaEye className="inline mr-2" />
                   View
                 </button>
+               
                 <button
+                  onClick={() => handleToggleApproval(profile.id, "approved")}
+                  disabled={profile.status === 'approved'}
+                  className={`cursor-pointer px-3 py-2 ${profile.status === 'approved' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'} border border-white/10 rounded-lg transition-all duration-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  Approve
+                </button>
+
+                <button
+                  onClick={() => handleToggleApproval(profile.id, "rejected")}
+                  disabled={profile.status === 'rejected'}
+                  className={`cursor-pointer px-3 py-2 ${profile.status === 'rejected' ? 'bg-red-500/20 text-red-300' : 'bg-gray-500/20 text-gray-300 hover:bg-gray-500/30'} border border-white/10 rounded-lg transition-all duration-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  Reject
+                </button>
+
+                 <button
                   onClick={() => handleEdit(profile.id)}
                   className="cursor-pointer px-3 py-2 bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300 rounded-lg transition-all duration-300 text-sm"
                 >
                   <FaEdit />
                 </button>
+
                 <button
                   onClick={() =>
                     handleDelete(
@@ -1745,6 +1790,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
           </div>
         </div>
       </div>
+      </>
     );
   };
 

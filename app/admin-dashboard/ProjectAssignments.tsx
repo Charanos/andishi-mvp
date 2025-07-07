@@ -25,44 +25,8 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { useAvailableDevelopers, useProjectAssignments } from "@/hooks/useProjectAssignments";
-
-interface Developer {
-  id: string;
-  personalInfo: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    location: string;
-  };
-  professionalInfo: {
-    title: string;
-    experienceLevel: string;
-    availability: string;
-    hourlyRate: number;
-  };
-  technicalSkills: {
-    primarySkills: string[];
-    frameworks: string[];
-    specializations: string[];
-  };
-  stats: {
-    totalProjects: number;
-    averageRating: number;
-    clientRetention: number;
-  };
-  currentProjects?: number;
-  isAvailable?: boolean;
-}
-
-interface Assignment {
-  id: string;
-  projectId: string;
-  developerId: string;
-  role: string;
-  status: "pending" | "accepted" | "rejected" | "completed";
-  assignedAt: string;
-  updatedAt: string;
-}
+import type { DeveloperProfile as Developer } from "@/lib/types";
+import type { Assignment } from "@/types/project";
 
 interface ToastNotification {
   id: string;
@@ -83,19 +47,10 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   projectTechStack = [],
   projectExperienceLevel = "Mid-level",
 }) => {
-  const { developers: initialDevelopers, loading: loadingDevs } = useAvailableDevelopers();
-  const { assignments, loading: loadingAssignments, refetch } = useProjectAssignments(projectId);
-
-  const [developers, setDevelopers] = useState<Developer[]>([]);
-
-  useEffect(() => {
-    if (!loadingDevs && initialDevelopers) {
-      setDevelopers(initialDevelopers);
-    }
-  }, [initialDevelopers, loadingDevs]);
+  const { developers: availableDevelopers, loading: loadingDevs } = useAvailableDevelopers();
+  const { assignments, loading: loadingAssignments, refetch, assignDevelopers, updateAssignment, removeAssignment } = useProjectAssignments(projectId);
 
   const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAvailable, setFilterAvailable] = useState(true);
@@ -120,29 +75,17 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  // Initialize data
-  useEffect(() => {
-    const initializeData = async () => {
-      setLoading(true);
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setLoading(false);
-    };
-
-    initializeData();
-  }, [projectId]);
-
   // Calculate compatibility score between developer and project
   const calculateCompatibilityScore = (developer: Developer): number => {
     let score = 0;
 
+    if (!developer || !developer.technicalSkills) return 0;
+
     // Skill matching (40% weight)
     const devSkills = [
-      ...developer.technicalSkills.primarySkills,
-      ...developer.technicalSkills.frameworks,
-      ...developer.technicalSkills.specializations,
+      ...(developer.technicalSkills.primarySkills?.map(s => s.name) || []),
+      ...(developer.technicalSkills.frameworks?.map(s => s.name) || []),
+      ...(developer.technicalSkills.specializations || []),
     ].map((skill) => skill.toLowerCase());
 
     const projectSkills = projectTechStack.map((skill) => skill.toLowerCase());
@@ -168,10 +111,8 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     }
 
     // Availability (20% weight)
-    if (developer.isAvailable && (developer.currentProjects || 0) < 2) {
+    if (developer.isAvailable) {
       score += 20;
-    } else if (developer.isAvailable) {
-      score += 10;
     }
 
     // Rating (15% weight)
@@ -182,7 +123,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
   // Filter and sort developers
   const getFilteredDevelopers = (): Developer[] => {
-    let filtered: Developer[] = developers;
+    let filtered: Developer[] = availableDevelopers;
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -239,44 +180,15 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       addNotification("error", "Please select at least one developer");
       return;
     }
-
     setAssigning(true);
-
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const newAssignments = selectedDevelopers.map((devId) => ({
-        id: Date.now().toString() + devId,
-        projectId,
-        developerId: devId,
-        role: "Developer",
-        status: "pending" as const,
-        assignedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }));
-
-      // Update assignments state
-      refetch();
-
-      // Update developer availability
-      setDevelopers((prev) =>
-        prev.map((dev) =>
-          selectedDevelopers.includes(dev.id)
-            ? {
-                ...dev,
-                isAvailable: false,
-                currentProjects: (dev.currentProjects || 0) + 1,
-              }
-            : dev
-        )
-      );
-
+      await assignDevelopers(selectedDevelopers);
       addNotification(
         "success",
         `Successfully assigned ${selectedDevelopers.length} developer(s) to ${projectTitle}`
       );
       setSelectedDevelopers([]);
+      refetch();
     } catch (error) {
       console.error("Error assigning developers:", error);
       addNotification("error", "Failed to assign developers");
@@ -287,18 +199,16 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
   // Get assigned developers for this project
   const getAssignedDevelopers = (): Developer[] => {
-    return assignments
-      .filter((a: Assignment) => a.projectId === projectId)
-      .map((a: Assignment) => developers.find((d: Developer) => d.id === a.developerId)!)
-      .filter(Boolean);
+    const assignedDeveloperIds = assignments.map(a => a.developerId);
+    return availableDevelopers.filter(dev => assignedDeveloperIds.includes(dev.id));
   };
 
-  if (loading || loadingDevs || loadingAssignments) {
+  if (loadingDevs || loadingAssignments) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-          <span className="text-white font-medium">Processing...</span>
+          <span className="text-white font-medium">Loading Project Assignments...</span>
         </div>
       </div>
     );
@@ -455,7 +365,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
       {/* Enhanced Search and Filters */}
       <div className="bg-gray-800/30 rounded-2xl p-6 border border-gray-700/50">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        <div className="flex gap-3 flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div className="flex-1 relative">
             <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -473,7 +383,6 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
               className="flex items-center space-x-2 px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl hover:bg-gray-600/50 transition-colors text-white"
             >
               <FaFilter />
-              <span>Filters</span>
               <FaChevronDown
                 className={`transform transition-transform ${
                   showFilters ? "rotate-180" : ""
@@ -527,7 +436,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           </h4>
           <div className="text-sm text-gray-400">
             Showing {getFilteredDevelopers().length} of{" "}
-            {developers.filter((d) => d.isAvailable).length} available
+            {availableDevelopers.filter((d) => d.isAvailable).length} available
           </div>
         </div>
 
@@ -643,7 +552,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {developer.technicalSkills.primarySkills
-                            .slice(0, 4)
+                            .slice(0, 4).map(s => s.name)
                             .map((skill, index) => (
                               <span
                                 key={index}
@@ -714,10 +623,6 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                             <FaGlobe className="mr-2" />
                             {developer.personalInfo.location}
                           </div>
-                          <div className="flex items-center text-gray-400">
-                            <FaBolt className="mr-1" />
-                            {developer.currentProjects || 0} active projects
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -728,60 +633,6 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                 </div>
               );
             })}
-          </div>
-        )}
-      </div>
-
-      {/* Enhanced Project Stats */}
-      <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50">
-        <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
-          <FaAward className="mr-2 text-yellow-400" />
-          Project Overview
-        </h4>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-700/30 rounded-xl">
-            <div className="text-2xl font-semibold text-blue-400">
-              {getAssignedDevelopers().length}
-            </div>
-            <p className="text-sm text-gray-400">Assigned</p>
-          </div>
-
-          <div className="text-center p-4 bg-gray-700/30 rounded-xl">
-            <div className="text-2xl font-semibold text-green-400">
-              {developers.filter((d) => d.isAvailable).length}
-            </div>
-            <p className="text-sm text-gray-400">Available</p>
-          </div>
-
-          <div className="text-center p-4 bg-gray-700/30 rounded-xl">
-            <div className="text-2xl font-semibold text-yellow-400">
-              {selectedDevelopers.length}
-            </div>
-            <p className="text-sm text-gray-400">Selected</p>
-          </div>
-
-          <div className="text-center p-4 bg-gray-700/30 rounded-xl">
-            <div className="text-2xl font-semibold text-purple-400">
-              {projectTechStack.length}
-            </div>
-            <p className="text-sm text-gray-400">Tech Stack</p>
-          </div>
-        </div>
-
-        {projectTechStack.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-700/50">
-            <p className="text-sm text-gray-400 mb-2">Required Technologies</p>
-            <div className="flex flex-wrap gap-2">
-              {projectTechStack.map((tech, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm border border-blue-500/30"
-                >
-                  {tech}
-                </span>
-              ))}
-            </div>
           </div>
         )}
       </div>

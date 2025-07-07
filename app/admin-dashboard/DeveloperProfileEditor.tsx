@@ -41,6 +41,10 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState("personal");
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
+  // --- Admin Approval Actions ---
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+
   // Custom toast notification functions
   const addNotification = (
     type: "success" | "error" | "info",
@@ -241,6 +245,36 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       addNotification("error", "Error saving profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // --- Admin Approval Actions ---
+  const handleAdminAction = async (action: "approve" | "reject") => {
+    if (!profileId) return;
+    if (action === "approve") setApproving(true);
+    if (action === "reject") setRejecting(true);
+    try {
+      const res = await fetch("/api/developer-profiles/approve", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId, action }),
+      });
+      if (!res.ok) throw new Error("Failed to update developer status");
+      addNotification(
+        "success",
+        action === "approve"
+          ? "Developer approved and now available for assignment."
+          : "Developer rejected."
+      );
+      // Optionally refetch profile or update UI
+      setProfile((prev) =>
+        prev ? { ...prev, status: action === "approve" ? "approved" : "rejected", isAvailable: action === "approve" } : prev
+      );
+    } catch (err) {
+      addNotification("error", "Failed to update developer status");
+    } finally {
+      setApproving(false);
+      setRejecting(false);
     }
   };
 
@@ -1008,6 +1042,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({
             {activeTab === "skills" && renderTechnicalSkills()}
             {activeTab === "stats" && renderStats()}
           </div>
+
+          
 
           {/* Footer */}
           <div className="mt-12 text-center">

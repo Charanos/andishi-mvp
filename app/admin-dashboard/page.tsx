@@ -46,7 +46,7 @@ import {
   FaFlag,
 } from "react-icons/fa";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
-import ProjectAssignmentManager from "./ProjectAssignmentManager";
+import ProjectAssignments from "./ProjectAssignments";
 import AdvancedAnalyticsDashboard from "./renderAnalytics";
 import generateAdvancedAnalytics, {
   EnhancedAnalyticsData,

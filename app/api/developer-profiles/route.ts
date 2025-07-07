@@ -1,11 +1,11 @@
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { 
-  DeveloperProfile, 
-  PersonalInfo, 
-  ProfessionalInfo, 
-  TechnicalSkills, 
+import {
+  DeveloperProfile,
+  PersonalInfo,
+  ProfessionalInfo,
+  TechnicalSkills,
   Stats,
   Skill,
   Project,
@@ -32,7 +32,7 @@ type DeveloperProfileData = {
  */
 function ensureSkillArray(skills: any): Skill[] {
   if (!Array.isArray(skills)) return [];
-  
+
   return skills.map(skill => {
     if (typeof skill === 'string') {
       return { name: skill, level: 0 };
@@ -144,6 +144,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         achievements: Array.isArray(data.achievements) ? data.achievements : [],
         notifications: Array.isArray(data.notifications) ? data.notifications : [],
         timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
+        status: data.status || "pending",
+        isAvailable: data.isAvailable || false,
       };
 
       return NextResponse.json(responseData);
@@ -203,9 +205,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         achievements: Array.isArray(data.achievements) ? data.achievements : [],
         notifications: Array.isArray(data.notifications) ? data.notifications : [],
         timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
+        status: profile.status || "pending",
+        isAvailable: profile.isAvailable || false,
       };
     });
-    
+
     return NextResponse.json(profiles, { status: 200 });
   } catch (err) {
     console.error("GET /api/developer-profiles error", err);
@@ -245,7 +249,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Validate that primarySkills contain proper Skill objects
-    const invalidSkills = profileData.technicalSkills.primarySkills.filter(skill => 
+    const invalidSkills = profileData.technicalSkills.primarySkills.filter(skill =>
       !skill.name || typeof skill.level !== 'number'
     );
     if (invalidSkills.length > 0) {
@@ -254,8 +258,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Validate Stats
     const { totalProjects, averageRating, totalEarnings, clientRetention } = profileData.stats;
-    if (typeof totalProjects !== 'number' || typeof averageRating !== 'number' || 
-        typeof totalEarnings !== 'number' || typeof clientRetention !== 'number') {
+    if (typeof totalProjects !== 'number' || typeof averageRating !== 'number' ||
+      typeof totalEarnings !== 'number' || typeof clientRetention !== 'number') {
       return new NextResponse("Core stats must be numbers (totalProjects, averageRating, totalEarnings, clientRetention)", { status: 400 });
     }
 
@@ -302,6 +306,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       achievements: profileData.achievements || [],
       notifications: profileData.notifications || [],
       timeEntries: profileData.timeEntries || [],
+      status: profileData.status || "pending",
+      isAvailable: profileData.isAvailable || false,
     };
 
     return NextResponse.json(createdProfile, { status: 201 });
@@ -363,9 +369,9 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       if (!Array.isArray(dataToSave.technicalSkills.primarySkills)) {
         return new NextResponse("Primary skills must be an array", { status: 400 });
       }
-      
+
       // Validate that primarySkills contain proper Skill objects
-      const invalidSkills = dataToSave.technicalSkills.primarySkills.filter((skill: any) => 
+      const invalidSkills = dataToSave.technicalSkills.primarySkills.filter((skill: any) =>
         !skill.name || typeof skill.level !== 'number'
       );
       if (invalidSkills.length > 0) {
@@ -385,8 +391,8 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
 
     if (dataToSave.stats) {
       const { totalProjects, averageRating, totalEarnings, clientRetention } = dataToSave.stats;
-      if (typeof totalProjects !== 'number' || typeof averageRating !== 'number' || 
-          typeof totalEarnings !== 'number' || typeof clientRetention !== 'number') {
+      if (typeof totalProjects !== 'number' || typeof averageRating !== 'number' ||
+        typeof totalEarnings !== 'number' || typeof clientRetention !== 'number') {
         return new NextResponse("Core stats must be numbers", { status: 400 });
       }
     }
@@ -425,6 +431,8 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       achievements: updatedProfile.data.achievements || [],
       notifications: updatedProfile.data.notifications || [],
       timeEntries: updatedProfile.data.timeEntries || [],
+      status: updatedProfile.status || "pending",
+      isAvailable: updatedProfile.isAvailable || false,
     };
 
     return NextResponse.json(responseData);
@@ -449,7 +457,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
   try {
     const client = await clientPromise;
     const db = client.db();
-    
+
     let objectId: ObjectId;
     try {
       objectId = new ObjectId(id);
@@ -501,19 +509,19 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 
     // Build update object for nested fields
     const updateData: any = {};
-    
+
     if (updates.personalInfo) {
       Object.keys(updates.personalInfo).forEach(key => {
         updateData[`data.personalInfo.${key}`] = updates.personalInfo[key];
       });
     }
-    
+
     if (updates.professionalInfo) {
       Object.keys(updates.professionalInfo).forEach(key => {
         updateData[`data.professionalInfo.${key}`] = updates.professionalInfo[key];
       });
     }
-    
+
     if (updates.technicalSkills) {
       // Process technical skills to ensure proper format
       const processedSkills = {
@@ -531,7 +539,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
         }
       });
     }
-    
+
     if (updates.stats) {
       Object.keys(updates.stats).forEach(key => {
         updateData[`data.stats.${key}`] = updates.stats[key];
@@ -570,6 +578,8 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       achievements: updatedProfile.data.achievements || [],
       notifications: updatedProfile.data.notifications || [],
       timeEntries: updatedProfile.data.timeEntries || [],
+      status: updatedProfile.status || "pending",
+      isAvailable: updatedProfile.isAvailable || false,
     };
 
     return NextResponse.json(responseData);
@@ -581,7 +591,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 
 // Fallback for unsupported methods
 export function OPTIONS(): NextResponse {
-  return new NextResponse(null, { 
+  return new NextResponse(null, {
     status: 200,
     headers: {
       'Allow': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',

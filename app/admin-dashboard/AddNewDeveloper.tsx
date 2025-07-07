@@ -73,6 +73,8 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
     },
     projects: [],
     recentActivity: [],
+    status: "pending", // New field: default to pending
+    isAvailable: false, // New field: default to false
   });
 
   const [creating, setCreating] = useState(false);

@@ -44,4 +44,6 @@ export interface DeveloperProfile {
   achievements: any[];
   notifications: any[];
   timeEntries: any[];
+  status: "pending" | "approved" | "rejected";
+  isAvailable: boolean;
 }

@@ -433,5 +433,7 @@ export const mockDeveloperProfile: Omit<DeveloperProfile, 'id'> = {
       project: "AI-E-commerce",
       description: "API development and testing"
     }
-  ]
+  ],
+  status: "approved",
+  isAvailable: true,
 };

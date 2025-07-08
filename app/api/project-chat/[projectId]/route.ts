@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/getSession";
+import { NextRequest, NextResponse } from "next/server";
 
 // Helper: Check if user is a chat participant
 async function isParticipant(chatId: string, userId: string) {
@@ -104,14 +104,59 @@ export async function GET(
       return new NextResponse("Project ID and user ID required", { status: 400 });
     }
     const userId = session.user.id;
-    const chat = await prisma.projectChat.findFirst({
+    let chat = await prisma.projectChat.findFirst({
       where: { projectId },
       include: {
         participants: true,
         messages: { orderBy: { timestamp: "asc" } },
       },
     });
-    if (!chat) return new NextResponse("Chat not found", { status: 404 });
+
+    if (!chat) {
+      // If chat doesn't exist, create it
+      const newChat = await prisma.projectChat.create({
+        data: {
+          projectId,
+          lastActivity: new Date(),
+        },
+      });
+
+      // Re-fetch the newly created chat with participants and messages
+      chat = await prisma.projectChat.findFirst({
+        where: { id: newChat.id },
+        include: {
+          participants: true,
+          messages: { orderBy: { timestamp: "asc" } },
+        },
+      });
+
+      if (!chat) {
+        return new NextResponse("Chat not found after creation", { status: 404 });
+      }
+
+      // Ensure core participants and add a system message for the new chat
+      const defaultSender = { id: "system", name: "System", role: "system" };
+      await ensureCoreParticipants(chat.id, projectId, defaultSender);
+      await createSystemMessage(chat.id, `Project chat started for project ${projectId}.`);
+    }
+
+    // Ensure the current user is a participant in the chat
+    // This is crucial for both new and existing chats to prevent 403 errors
+    let currentUserParticipant = await prisma.chatParticipant.findFirst({
+      where: { chatId: chat.id, userId: userId },
+    });
+
+    if (!currentUserParticipant) {
+      await prisma.chatParticipant.create({
+        data: {
+          chatId: chat.id,
+          userId: userId,
+          name: session.user.email || "User", // Use user's name or email
+          role: session.user.role,
+          isOnline: true,
+        },
+      });
+    }
     if (!(await isParticipant(chat.id, userId))) {
       return new NextResponse("Forbidden", { status: 403 });
     }
@@ -223,4 +268,3 @@ export async function PUT(
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
-

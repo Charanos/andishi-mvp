@@ -31,7 +31,7 @@ export async function getSession(request: NextRequest): Promise<Session | null> 
         const { payload } = await jwtVerify(token, secret);
         return {
             user: {
-                id: payload.id as string,
+                id: payload.userId as string,
                 email: payload.email as string,
                 role: payload.role as string,
                 status: payload.status as string | undefined,

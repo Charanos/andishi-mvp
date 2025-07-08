@@ -77,18 +77,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     }
   };
 
-  const formatTime = (timestamp: string) => {
+  const formatTime = (timestamp: Date) => {
     const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 3600);
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } else {
-      return date.toLocaleDateString([], { month: "short", day: "numeric" });
-    }
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const getRoleBadge = (role: string) => {

@@ -6,6 +6,7 @@ export interface SessionUser {
     email: string;
     role: string;
     status?: string;
+    name?: string; // Add name to SessionUser interface
 }
 
 export interface Session {
@@ -35,6 +36,7 @@ export async function getSession(request: NextRequest): Promise<Session | null> 
                 email: payload.email as string,
                 role: payload.role as string,
                 status: payload.status as string | undefined,
+                name: payload.name as string | undefined, // Include name from payload
             },
         };
     } catch {

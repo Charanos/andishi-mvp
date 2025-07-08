@@ -84,6 +84,9 @@ export function useProjectChat(projectId: string) {
                     ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
+                    senderId: user.id,
+                    senderName: user.name || user.email, // Use user's name or email
+                    senderRole: user.role,
                     content: content.trim()
                 }),
                 credentials: 'include',

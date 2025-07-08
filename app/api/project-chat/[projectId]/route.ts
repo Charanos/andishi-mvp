@@ -19,6 +19,9 @@ async function ensureCoreParticipants(chatId: string, projectId: string, sender:
   if (!project) return;
   // Add client
   if (project.clientId) {
+    const clientUser = await prisma.user.findUnique({ where: { id: project.clientId } });
+    if (!clientUser) return; // If client user not found, cannot add them to chat
+
     const clientParticipant = await prisma.chatParticipant.findFirst({
       where: { chatId, userId: project.clientId },
     });
@@ -27,7 +30,7 @@ async function ensureCoreParticipants(chatId: string, projectId: string, sender:
         data: {
           chatId,
           userId: project.clientId,
-          name: "Client", // Optionally fetch real name
+          name: clientUser.firstName || clientUser.email || "Client", // Fetch client's actual name
           role: "client",
           isOnline: false,
         },
@@ -210,6 +213,7 @@ export async function POST(
     await ensureCoreParticipants(chat.id, projectId, { id: senderId, name: senderName, role: senderRole });
     // If chat was just created, add a system message
     if (isNewChat) {
+      await ensureCoreParticipants(chat.id, projectId, { id: senderId, name: senderName, role: senderRole });
       await createSystemMessage(chat.id, `Project chat started. Participants: ${senderName} (${senderRole})${projectId ? ", client, admin" : ""}`);
     }
     // Create message

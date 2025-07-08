@@ -225,7 +225,7 @@ const EnhancedDeveloperOverview = ({
   const displayedSkills = showAllSkills ? allSkills : allSkills.slice(0, 6);
   const displayedAchievements = showAllAchievements
     ? profile.achievements
-    : profile.achievements.slice(0, 3);
+    : profile.achievements?.slice(0, 3);
 
   return (
     <div className="min-h-screen my-18">
@@ -318,7 +318,7 @@ const EnhancedDeveloperOverview = ({
             },
             {
               label: "Lines of Code",
-              value: profile.stats.totalCodeLines.toLocaleString(),
+              value: profile?.stats.totalCodeLines.toLocaleString(),
               icon: FaCode,
               color: "green",
             },

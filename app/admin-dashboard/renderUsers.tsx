@@ -49,6 +49,8 @@ interface SystemUser {
   completedProjects?: number;
   activeProjects?: number;
   totalEarnings?: number;
+  developerProfileStatus?: "pending" | "approved" | "rejected"; // Status from joined developer profile
+  developerProfileId?: string; // ID of the joined developer profile
 }
 
 interface CreateUserData {
@@ -129,7 +131,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
-  const [devProfiles, setDevProfiles] = useState<any[]>([]);
+
 
   // Form state for create/edit
   const [formData, setFormData] = useState<CreateUserData>({
@@ -557,39 +559,19 @@ const UserManagement: React.FC<UserManagementProps> = ({
   ): { users: SystemUser[]; totalCount: number; totalPages: number } => {
     const mappedUsers = users.map((user) => {
       if (user.role === "developer") {
-        const devProfile = devProfiles.find(
-          (profile) => profile.email === user.email.toLowerCase()
-        );
-
-        if (devProfile) {
-          console.log("Found matching dev profile for user:", user.email);
-          return {
-            ...user,
-            skills:
-              devProfile.technicalSkills?.primarySkills?.map(
-                (skill: any) => skill.name
-              ) || user.skills,
-            hourlyRate:
-              devProfile.professionalInfo?.hourlyRate || user.hourlyRate,
-            completedProjects:
-              devProfile.projects?.filter((p: any) => p.status === "completed")
-                ?.length || user.completedProjects,
-            activeProjects:
-              devProfile.projects?.filter(
-                (p: any) => p.status === "in-progress"
-              )?.length || user.activeProjects,
-            totalEarnings:
-              devProfile.projects?.reduce(
-                (sum: number, p: any) => sum + (p.budget || 0),
-                0
-              ) || user.totalEarnings,
-          };
-        } else {
-          console.log(
-            "No matching dev profile found for developer:",
-            user.email
-          );
-        }
+        return {
+          ...user,
+          // Assuming these fields are now directly available on the user object if they are a developer
+          // and the API has joined the developer profile data.
+          // You might need to adjust these based on the actual structure returned by your API.
+          // For now, we'll assume the API returns these if a dev profile exists.
+          skills: user.skills || [], // Assuming skills are directly on user or joined
+          hourlyRate: user.hourlyRate || 0, // Assuming hourlyRate is directly on user or joined
+          completedProjects: user.completedProjects || 0, // Assuming completedProjects is directly on user or joined
+          activeProjects: user.activeProjects || 0, // Assuming activeProjects is directly on user or joined
+          totalEarnings: user.totalEarnings || 0, // Assuming totalEarnings is directly on user or joined
+          developerProfileStatus: user.developerProfileStatus, // Use the joined status
+        };
       }
       return user;
     });
@@ -1416,18 +1398,16 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         </h4>
                         <div className="flex items-center space-x-2">
                           <div
-                            className={`w-2 h-2 rounded-full ${
-                              getAccountStatusInfo().isActive
+                            className={`w-2 h-2 rounded-full ${getAccountStatusInfo().isActive
                                 ? "bg-green-400"
                                 : "bg-red-400"
-                            }`}
+                              }`}
                           ></div>
                           <span
-                            className={`text-xs  monty uppercase ${
-                              getAccountStatusInfo().isActive
+                            className={`text-xs  monty uppercase ${getAccountStatusInfo().isActive
                                 ? "text-green-400"
                                 : "text-red-400"
-                            }`}
+                              }`}
                           >
                             {getAccountStatusInfo().isActive
                               ? "Active"
@@ -1449,12 +1429,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           {generatedPassword
                             ? "Just Generated"
                             : getAccountStatusInfo().lastPasswordChange
-                            ? `Changed ${formatDate(
+                              ? `Changed ${formatDate(
                                 getAccountStatusInfo().lastPasswordChange || ""
                               )}`
-                            : accountExists
-                            ? "Existing Password"
-                            : "Not Generated"}
+                              : accountExists
+                                ? "Existing Password"
+                                : "Not Generated"}
                         </span>
                       </div>
                       <div className="flex items-center space-x-3">
@@ -1520,15 +1500,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
                   {/* Enhanced Account Status Alert */}
                   <div
-                    className={`${
-                      generatedPassword
+                    className={`${generatedPassword
                         ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
                         : accountExists
-                        ? getAccountStatusInfo().isActive
-                          ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20"
-                          : "bg-gradient-to-r from-red-500/10 to-rose-500/10 border-red-500/20"
-                        : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
-                    } border rounded-xl p-6`}
+                          ? getAccountStatusInfo().isActive
+                            ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20"
+                            : "bg-gradient-to-r from-red-500/10 to-rose-500/10 border-red-500/20"
+                          : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
+                      } border rounded-xl p-6`}
                   >
                     <div className="flex items-start space-x-3">
                       {generatedPassword ? (
@@ -1544,36 +1523,34 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       )}
                       <div>
                         <h4
-                          className={`${
-                            generatedPassword
+                          className={`${generatedPassword
                               ? "text-green-300"
                               : accountExists
-                              ? getAccountStatusInfo().isActive
-                                ? "text-blue-300"
-                                : "text-red-300"
-                              : "text-amber-300"
-                          } font-semibold mb-2`}
+                                ? getAccountStatusInfo().isActive
+                                  ? "text-blue-300"
+                                  : "text-red-300"
+                                : "text-amber-300"
+                            } font-semibold mb-2`}
                         >
                           {generatedPassword
                             ? accountExists
                               ? "Account Updated"
                               : "Account Created"
                             : accountExists
-                            ? getAccountStatusInfo().isActive
-                              ? "Existing Account"
-                              : "Account Disabled"
-                            : "No Account"}
+                              ? getAccountStatusInfo().isActive
+                                ? "Existing Account"
+                                : "Account Disabled"
+                              : "No Account"}
                         </h4>
                         <div
-                          className={`space-y-2 text-sm ${
-                            generatedPassword
+                          className={`space-y-2 text-sm ${generatedPassword
                               ? "text-green-200"
                               : accountExists
-                              ? getAccountStatusInfo().isActive
-                                ? "text-blue-200"
-                                : "text-red-200"
-                              : "text-amber-200"
-                          }`}
+                                ? getAccountStatusInfo().isActive
+                                  ? "text-blue-200"
+                                  : "text-red-200"
+                                : "text-amber-200"
+                            }`}
                         >
                           {generatedPassword ? (
                             <>
@@ -1608,8 +1585,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                   • Last login:{" "}
                                   {getAccountStatusInfo().lastLogin
                                     ? formatDate(
-                                        getAccountStatusInfo().lastLogin || ""
-                                      )
+                                      getAccountStatusInfo().lastLogin || ""
+                                    )
                                     : "Never logged in"}
                                 </p>
                                 <p>
@@ -1636,8 +1613,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                   • Last login:{" "}
                                   {getAccountStatusInfo().lastLogin
                                     ? formatDate(
-                                        getAccountStatusInfo().lastLogin || ""
-                                      )
+                                      getAccountStatusInfo().lastLogin || ""
+                                    )
                                     : "Never logged in"}
                                 </p>
                                 <p className="text-red-300">
@@ -1710,11 +1687,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             ? revokeAccess
                             : restoreAccess
                         }
-                        className={`px-4 py-3 bg-gradient-to-r ${
-                          getAccountStatusInfo().isActive
+                        className={`px-4 py-3 bg-gradient-to-r ${getAccountStatusInfo().isActive
                             ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
                             : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600"
-                        } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
+                          } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
                       >
                         {getAccountStatusInfo().isActive ? (
                           <FaBan className="text-sm" />
@@ -1825,40 +1801,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
     );
   };
 
-  // Add this after other useEffects
-  useEffect(() => {
-    const fetchDevProfiles = async () => {
-      try {
-        const response = await fetch("/api/developer-profile");
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Raw dev profile data:", data);
 
-          // If data is an object, wrap it in an array
-          const profiles = Array.isArray(data) ? data : [data];
-
-          // Filter out any invalid profiles and transform them
-          const validProfiles = profiles
-            .filter(
-              (profile) =>
-                profile && profile.personalInfo && profile.personalInfo.email
-            )
-            .map((profile) => ({
-              ...profile,
-              email: profile.personalInfo.email.toLowerCase(),
-            }));
-
-          console.log("Processed dev profiles:", validProfiles);
-          console.log("Current users:", users);
-
-          setDevProfiles(validProfiles);
-        }
-      } catch (err) {
-        console.error("Failed to fetch developer profiles:", err);
-      }
-    };
-    fetchDevProfiles();
-  }, [users]);
 
   useEffect(() => {
     if (selectedUser && viewMode === "edit") {
@@ -1898,15 +1841,15 @@ const UserManagement: React.FC<UserManagementProps> = ({
             {activeTab === "clients"
               ? "Client Management"
               : activeTab === "dev profiles"
-              ? "Developer Management"
-              : "User Management"}
+                ? "Developer Management"
+                : "User Management"}
           </h2>
           <p className="text-gray-400 mt-1">
             {activeTab === "clients"
               ? "Manage client accounts and information"
               : activeTab === "dev profiles"
-              ? "Manage developer accounts and profiles"
-              : "Manage all user accounts and permissions"}
+                ? "Manage developer accounts and profiles"
+                : "Manage all user accounts and permissions"}
           </p>
         </div>
         <button
@@ -1990,89 +1933,36 @@ const UserManagement: React.FC<UserManagementProps> = ({
             <p className="text-gray-400 monty uppercase">No users found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/5">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
-                    Company
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
+          <>
+            {/* Mobile Card View */}
+            <div className="block lg:hidden">
+              <div className="divide-y divide-white/10">
                 {paginatedUsers.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-white/5 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
+                  <div key={user._id} className="p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
                         <div className="text-sm monty font-medium text-white">
                           {user.firstName} {user.lastName}
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-400 truncate">
                           {user.email}
                         </div>
                         {user.phone && (
-                          <div className="text-xs monty text-gray-500">
+                          <div className="text-xs monty text-gray-500 mt-1">
                             {user.phone}
                           </div>
                         )}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(
-                          user.role
-                        )}`}
-                      >
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(user.status)}
-                        <span
-                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(
-                            user.status
-                          )}`}
-                        >
-                          {user.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {user.company || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {formatDate(user.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1 ml-2">
                         <button
                           onClick={() => {
                             setSelectedUser(user);
                             setViewMode("detail");
                           }}
-                          className="text-blue-400/70 hover:text-blue-300/70 cursor-pointer p-1"
+                          className="text-blue-400/70 hover:text-blue-300/70 cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
                           title="View Details"
                         >
-                          <FaEye />
+                          <FaEye className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => {
@@ -2090,20 +1980,17 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             });
                             setViewMode("edit");
                           }}
-                          className="text-green-400/70 hover:text-green-300/80 cursor-pointer p-1"
+                          className="text-green-400/70 hover:text-green-300/80 cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
                           title="Edit User"
                         >
-                          <FaEdit />
+                          <FaEdit className="w-3 h-3" />
                         </button>
                         <button
-                          onClick={() =>
-                            toggleUserStatus(user._id, user.status)
-                          }
-                          className={`p-1 ${
-                            user.status === "active"
-                              ? "text-yellow-400/70 cursor-pointer hover:text-yellow-300870"
-                              : "text-lime-400/70 cursor-pointer hover:text-lime-300/80"
-                          }`}
+                          onClick={() => toggleUserStatus(user._id, user.status)}
+                          className={`cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors ${user.status === "active"
+                              ? "text-yellow-400/70 hover:text-yellow-300/70"
+                              : "text-lime-400/70 hover:text-lime-300/80"
+                            }`}
                           title={
                             user.status === "active"
                               ? "Deactivate User"
@@ -2111,26 +1998,228 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           }
                           disabled={loading}
                         >
-                          {user.status === "active" ? <FaLock /> : <FaUnlock />}
+                          {user.status === "active" ? <FaLock className="w-3 h-3" /> : <FaUnlock className="w-3 h-3" />}
                         </button>
                         <button
                           onClick={() => {
                             setUserToDelete(user._id);
                             setDeleteModalOpen(true);
                           }}
-                          className="text-red-400/70 cursor-pointer hover:text-red-300/80 p-1"
+                          className="text-red-400/70 hover:text-red-300/80 cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
                           title="Delete User"
                           disabled={loading}
                         >
-                          <FaTrash />
+                          <FaTrash className="w-3 h-3" />
                         </button>
                       </div>
-                    </td>
-                  </tr>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-gray-500 block mb-1">Role</span>
+                        <span
+                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(user.role)}`}
+                        >
+                          {user.role}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block mb-1">Status</span>
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(user.status)}
+                          <span
+                            className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(user.status)}`}
+                          >
+                            {user.status}
+                          </span>
+                        </div>
+                      </div>
+                      {user.role === "developer" && (
+                        <div>
+                          <span className="text-gray-500 block mb-1">Approved</span>
+                          {user.developerProfileStatus === "approved" ? (
+                            <div className="flex items-center space-x-1">
+                              <FaCheckCircle className="text-green-500 w-3 h-3" />
+                              <span className="text-xs text-green-400">Yes</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-1">
+                              <FaUserTimes className="text-yellow-500 w-3 h-3" />
+                              <span className="text-xs text-yellow-400">Pending</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-gray-500 block mb-1">Company</span>
+                        <span className="text-gray-300">{user.company || "-"}</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-gray-500 block mb-1">Joined</span>
+                        <span className="text-gray-300">{formatDate(user.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-white/5">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                      Approved
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                      Company
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                      Joined
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {paginatedUsers.map((user) => (
+                    <tr
+                      key={user._id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm monty font-medium text-white">
+                            {user.firstName} {user.lastName}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            {user.email}
+                          </div>
+                          {user.phone && (
+                            <div className="text-xs monty text-gray-500">
+                              {user.phone}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(user.role)}`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(user.status)}
+                          <span
+                            className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(user.status)}`}
+                          >
+                            {user.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {user.role === "developer" ? (
+                          user.developerProfileStatus === "approved" ? (
+                            <div className="flex items-center space-x-2">
+                              <FaCheckCircle className="text-green-500" />
+                              <span className="text-xs text-green-400 monty uppercase">Yes</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <FaUserTimes className="text-yellow-500" />
+                              <span className="text-xs text-yellow-400 monty uppercase">Pending</span>
+                            </div>
+                          )
+                        ) : (
+                          <span className="text-gray-500">N/A</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {user.company || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {formatDate(user.createdAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setViewMode("detail");
+                            }}
+                            className="cursor-pointer text-blue-400/70 hover:text-blue-300/70 p-1 rounded hover:bg-white/10 transition-colors"
+                            title="View Details"
+                          >
+                            <FaEye />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditingUser({
+                                firstName: user.firstName,
+                                lastName: user.lastName,
+                                email: user.email,
+                                role: user.role,
+                                company: user.company || "",
+                                phone: user.phone || "",
+                                status: user.status,
+                                skills: (user.skills || []).join(", "),
+                                hourlyRate: user.hourlyRate?.toString() || "",
+                              });
+                              setViewMode("edit");
+                            }}
+                            className="cursor-pointer text-green-400/70 hover:text-green-300/80 p-1 rounded hover:bg-white/10 transition-colors"
+                            title="Edit User"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            onClick={() => toggleUserStatus(user._id, user.status)}
+                            className={`cursor-pointer p-1 rounded hover:bg-white/10 transition-colors ${user.status === "active"
+                                ? "text-yellow-400/70 hover:text-yellow-300/70"
+                                : "text-lime-400/70 hover:text-lime-300/80"
+                              }`}
+                            title={
+                              user.status === "active"
+                                ? "Deactivate User"
+                                : "Activate User"
+                            }
+                            disabled={loading}
+                          >
+                            {user.status === "active" ? <FaLock /> : <FaUnlock />}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setUserToDelete(user._id);
+                              setDeleteModalOpen(true);
+                            }}
+                            className="cursor-pointer text-red-400/70 hover:text-red-300/80 p-1 rounded hover:bg-white/10 transition-colors"
+                            title="Delete User"
+                            disabled={loading}
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -2140,11 +2229,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
-                currentPage === 1
+              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${currentPage === 1
                   ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
                   : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
-              }`}
+                }`}
             >
               Previous
             </button>
@@ -2156,11 +2244,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 setCurrentPage((prev) => Math.min(totalPages, prev + 1))
               }
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
-                currentPage === totalPages
+              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${currentPage === totalPages
                   ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
                   : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
-              }`}
+                }`}
             >
               Next
             </button>

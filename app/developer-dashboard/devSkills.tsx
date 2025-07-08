@@ -106,6 +106,10 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
   ];
 
   const filteredSkills = allSkills.filter((skill) => {
+    // Ensure skill.name and skill.category are not undefined before calling toLowerCase
+    if (!skill.name || !skill.category) {
+      return false;
+    }
     const matchesSearch =
       skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       skill.category.toLowerCase().includes(searchTerm.toLowerCase());

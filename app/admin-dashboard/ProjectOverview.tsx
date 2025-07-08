@@ -63,6 +63,35 @@ import {
   ProjectUpdate,
 } from "~/types";
 import ProjectChat from "./ProjectChat";
+import { useAuth } from "@/hooks/useAuth";
+
+export interface SystemUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  role: "client" | "developer" | "admin";
+  status: "active" | "inactive" | "suspended";
+  createdAt: string;
+  lastLogin?: string;
+  projectsCount?: number;
+  skills?: string[];
+  hourlyRate?: number;
+  passwordLastChanged?: string;
+  loginAttempts?: number;
+  accountLocked?: boolean;
+  completedProjects?: number;
+  activeProjects?: number;
+  totalEarnings?: number;
+  isActive: boolean;
+  accountCreated: boolean;
+  passwordGenerated: boolean;
+  developerProfileStatus?: "pending" | "approved" | "rejected";
+  developerProfileId?: string;
+}
+
 
 interface ProjectOverviewProps {
   selectedProject: ProjectData | null;
@@ -86,6 +115,7 @@ interface ProjectOverviewProps {
     projectId: string,
     payment: { amount: number; method: string; notes?: string }
   ) => Promise<void>;
+  developers: SystemUser[];
 }
 
 type TrackingView =
@@ -162,6 +192,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   onAddUpdate,
   onFileUpload,
   onPaymentRecord,
+  developers,
 }) => {
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
   const [projectData, setProjectData] = useState<ProjectData>(selectedProject!);
@@ -188,7 +219,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [showAddPayment, setShowAddPayment] = useState(false);
 
   // Assignment state management
-  const [developers, setDevelopers] = useState<any[]>([]);
+  const [localDevelopers, setLocalDevelopers] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -211,6 +242,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [progressValue, setProgressValue] = useState(
     selectedProject?.progress || 0
   );
+
+  const { user: currentUser } = useAuth();
 
   const [updateForm, setUpdateForm] = useState({
     title: "",
@@ -306,26 +339,26 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     projectData.actualCompletionDate || projectData.estimatedCompletionDate;
   const daysPassed = startDate
     ? Math.floor(
-        (Date.now() -
-          (typeof startDate === "string"
-            ? new Date(startDate).getTime()
-            : startDate.getTime())) /
-          (1000 * 3600 * 24)
-      )
+      (Date.now() -
+        (typeof startDate === "string"
+          ? new Date(startDate).getTime()
+          : startDate.getTime())) /
+      (1000 * 3600 * 24)
+    )
     : 0;
   const totalDays =
     startDate && endDate
       ? Math.floor(
-          ((typeof endDate === "string"
-            ? new Date(endDate)
-            : endDate
-          ).getTime() -
-            (typeof startDate === "string"
-              ? new Date(startDate)
-              : startDate
-            ).getTime()) /
-            (1000 * 3600 * 24)
-        )
+        ((typeof endDate === "string"
+          ? new Date(endDate)
+          : endDate
+        ).getTime() -
+          (typeof startDate === "string"
+            ? new Date(startDate)
+            : startDate
+          ).getTime()) /
+        (1000 * 3600 * 24)
+      )
       : 0;
 
   if (!selectedProject) return null;
@@ -449,18 +482,22 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               projectTitle={selectedProject.projectDetails.title}
               projectTechStack={selectedProject.projectDetails.techStack || []}
               projectExperienceLevel={"Mid-level"}
+              developers={developers}
             />
           </div>
         );
       case "chat":
+        if (!currentUser) {
+          return <div>Loading...</div>; // Or some other placeholder
+        }
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <ProjectChatComponent
               projectId={selectedProject._id}
               projectTitle={selectedProject.projectDetails.title}
-              currentUserId="admin-1"
-              currentUserRole="admin"
-              currentUserName="Admin User"
+              currentUserId={currentUser.id}
+              currentUserRole={currentUser.role as "admin" | "client" | "developer"}
+              currentUserName={currentUser.name || currentUser.email}
             />
           </div>
         );
@@ -886,11 +923,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setTrackingView(tab.id as TrackingView)}
-                className={`flex cursor-pointer items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${
-                  trackingView === tab.id
-                    ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                }`}
+                className={`flex cursor-pointer items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${trackingView === tab.id
+                  ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
               >
                 <Icon className="w-4 h-4" />
                 <span className="font-medium">{tab.label}</span>
@@ -1354,15 +1390,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     </div>
 
                     <div
-                      className={`px-2 py-1 text-center rounded-xl border backdrop-blur-sm ${
-                        selectedProject.status === "in-progress"
-                          ? "bg-white/10 border-green-500/40 text-green-300"
-                          : selectedProject.status === "completed"
+                      className={`px-2 py-1 text-center rounded-xl border backdrop-blur-sm ${selectedProject.status === "in-progress"
+                        ? "bg-white/10 border-green-500/40 text-green-300"
+                        : selectedProject.status === "completed"
                           ? "bg-white/10 border-blue-500/40 text-blue-300"
                           : selectedProject.status === "pending"
-                          ? "bg-white/10 border-orange-500/40 text-orange-300"
-                          : "bg-white/10 border-yellow-500/40 text-yellow-300"
-                      }`}
+                            ? "bg-white/10 border-orange-500/40 text-orange-300"
+                            : "bg-white/10 border-yellow-500/40 text-yellow-300"
+                        }`}
                     >
                       <span className="font-medium monty text-sm uppercase">
                         {selectedProject.status}
@@ -1382,37 +1417,37 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {/* Pending/Reviewed State Actions */}
                       {(selectedProject.status === "pending" ||
                         selectedProject.status === "reviewed") && (
-                        <>
-                          {/* Approve Button */}
-                          <button
-                            onClick={() =>
-                              onStatusUpdate(selectedProject._id, "in-progress")
-                            }
-                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 text-white hover:text-green-100 cursor-pointer hover:shadow-green-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
-                          >
-                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover/action:from-green-500/30 group-hover/action:to-emerald-500/30">
-                              <FaCheckCircle className="text-sm text-green-400 group-hover/action:text-green-300 group-hover/action:scale-110" />
-                            </div>
-                            <span className="flex-1 font-medium monty text-base">
-                              Approve Project
-                            </span>
-                          </button>
-                          {/* Reject Button */}
-                          <button
-                            onClick={() =>
-                              onStatusUpdate(selectedProject._id, "rejected")
-                            }
-                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
-                          >
-                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
-                              <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
-                            </div>
-                            <span className="flex-1 font-medium monty text-base">
-                              Reject Project
-                            </span>
-                          </button>
-                        </>
-                      )}
+                          <>
+                            {/* Approve Button */}
+                            <button
+                              onClick={() =>
+                                onStatusUpdate(selectedProject._id, "in-progress")
+                              }
+                              className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 text-white hover:text-green-100 cursor-pointer hover:shadow-green-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                              <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover/action:from-green-500/30 group-hover/action:to-emerald-500/30">
+                                <FaCheckCircle className="text-sm text-green-400 group-hover/action:text-green-300 group-hover/action:scale-110" />
+                              </div>
+                              <span className="flex-1 font-medium monty text-base">
+                                Approve Project
+                              </span>
+                            </button>
+                            {/* Reject Button */}
+                            <button
+                              onClick={() =>
+                                onStatusUpdate(selectedProject._id, "rejected")
+                              }
+                              className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                              <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
+                                <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
+                              </div>
+                              <span className="flex-1 font-medium monty text-base">
+                                Reject Project
+                              </span>
+                            </button>
+                          </>
+                        )}
 
                       {/* In Progress State Actions */}
                       {selectedProject.status === "in-progress" && (
@@ -1501,10 +1536,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {(selectedProject.status === "completed" ||
                         selectedProject.status === "cancelled" ||
                         selectedProject.status === "rejected") && (
-                        <div className="text-center text-gray-400 p-4 bg-black/20 rounded-2xl border border-white/10">
-                          <p>No further actions available for this project.</p>
-                        </div>
-                      )}
+                          <div className="text-center text-gray-400 p-4 bg-black/20 rounded-2xl border border-white/10">
+                            <p>No further actions available for this project.</p>
+                          </div>
+                        )}
                     </div>
                   </div>
 
@@ -1573,8 +1608,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 <p className="text-white font-medium">
                                   {milestone.dueDate
                                     ? new Date(
-                                        milestone.dueDate
-                                      ).toLocaleDateString()
+                                      milestone.dueDate
+                                    ).toLocaleDateString()
                                     : "N/A"}
                                 </p>
                               </div>
@@ -1633,15 +1668,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 {milestone.title}
                               </h3>
                               <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  milestone.status === "completed"
-                                    ? "bg-green-500/20 text-green-300"
-                                    : milestone.status === "in-progress"
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${milestone.status === "completed"
+                                  ? "bg-green-500/20 text-green-300"
+                                  : milestone.status === "in-progress"
                                     ? "bg-blue-500/20 text-blue-300"
                                     : milestone.status === "cancelled"
-                                    ? "bg-red-500/20 text-red-300"
-                                    : "bg-gray-500/20 text-gray-300"
-                                }`}
+                                      ? "bg-red-500/20 text-red-300"
+                                      : "bg-gray-500/20 text-gray-300"
+                                  }`}
                               >
                                 {(milestone.status ?? "pending").replace(
                                   "_",
@@ -2140,15 +2174,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   {payments.map((payment) => (
                     <div
                       key={payment.id}
-                      className={`p-4 rounded-xl border ${
-                        payment.status === "approved"
-                          ? "bg-green-500/10 border-green-500/30"
-                          : payment.status === "rejected"
+                      className={`p-4 rounded-xl border ${payment.status === "approved"
+                        ? "bg-green-500/10 border-green-500/30"
+                        : payment.status === "rejected"
                           ? "bg-red-500/10 border-red-500/30"
                           : payment.status === "pending"
-                          ? "bg-yellow-500/10 border-yellow-500/30"
-                          : "bg-white/5 border-white/10"
-                      }`}
+                            ? "bg-yellow-500/10 border-yellow-500/30"
+                            : "bg-white/5 border-white/10"
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -2157,15 +2190,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               {payment.description || "Payment"}
                             </span>
                             <span
-                              className={`px-2 py-1 rounded text-xs border ${
-                                payment.status === "approved"
-                                  ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                  : payment.status === "rejected"
+                              className={`px-2 py-1 rounded text-xs border ${payment.status === "approved"
+                                ? "bg-green-500/20 text-green-300 border-green-500/30"
+                                : payment.status === "rejected"
                                   ? "bg-red-500/20 text-red-300 border-red-500/30"
                                   : payment.status === "pending"
-                                  ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-                                  : "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                              }`}
+                                    ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
+                                    : "bg-gray-500/20 text-gray-300 border-gray-500/30"
+                                }`}
                             >
                               {payment.status || "pending"}
                             </span>
@@ -2233,6 +2265,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             projectExperienceLevel={
               selectedProject.projectDetails.experienceLevel || "Mid-level"
             }
+            developers={developers}
           />
         )}
 
@@ -2667,11 +2700,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   />
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <div
-                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                        updateForm.title
-                          ? "bg-blue-400 animate-pulse"
-                          : "bg-gray-500"
-                      }`}
+                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${updateForm.title
+                        ? "bg-blue-400 animate-pulse"
+                        : "bg-gray-500"
+                        }`}
                     ></div>
                   </div>
                 </div>
@@ -2726,28 +2758,27 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 {/* Type indicator */}
                 <div className="mt-2 flex items-center space-x-2">
                   <div
-                    className={`w-3 h-3 rounded-full ${
-                      updateForm.type === "general"
-                        ? "bg-gray-400"
-                        : updateForm.type === "progress"
+                    className={`w-3 h-3 rounded-full ${updateForm.type === "general"
+                      ? "bg-gray-400"
+                      : updateForm.type === "progress"
                         ? "bg-blue-400"
                         : updateForm.type === "milestone"
-                        ? "bg-purple-400"
-                        : updateForm.type === "issue"
-                        ? "bg-orange-400"
-                        : "bg-green-400"
-                    }`}
+                          ? "bg-purple-400"
+                          : updateForm.type === "issue"
+                            ? "bg-orange-400"
+                            : "bg-green-400"
+                      }`}
                   ></div>
                   <span className="text-gray-400 text-xs font-medium">
                     {updateForm.type === "general"
                       ? "Standard project update"
                       : updateForm.type === "progress"
-                      ? "Progress tracking update"
-                      : updateForm.type === "milestone"
-                      ? "Important milestone achievement"
-                      : updateForm.type === "issue"
-                      ? "Issue or challenge notification"
-                      : "Task completion notification"}
+                        ? "Progress tracking update"
+                        : updateForm.type === "milestone"
+                          ? "Important milestone achievement"
+                          : updateForm.type === "issue"
+                            ? "Issue or challenge notification"
+                            : "Task completion notification"}
                   </span>
                 </div>
               </div>
@@ -2796,27 +2827,26 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-xl p-4">
                   <div className="flex items-start space-x-3">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm ${
-                        updateForm.type === "general"
-                          ? "bg-gray-500"
-                          : updateForm.type === "progress"
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm ${updateForm.type === "general"
+                        ? "bg-gray-500"
+                        : updateForm.type === "progress"
                           ? "bg-blue-500"
                           : updateForm.type === "milestone"
-                          ? "bg-purple-500"
-                          : updateForm.type === "issue"
-                          ? "bg-orange-500"
-                          : "bg-green-500"
-                      }`}
+                            ? "bg-purple-500"
+                            : updateForm.type === "issue"
+                              ? "bg-orange-500"
+                              : "bg-green-500"
+                        }`}
                     >
                       {updateForm.type === "general"
                         ? "📝"
                         : updateForm.type === "progress"
-                        ? "📈"
-                        : updateForm.type === "milestone"
-                        ? "🎯"
-                        : updateForm.type === "issue"
-                        ? "⚠️"
-                        : "✅"}
+                          ? "📈"
+                          : updateForm.type === "milestone"
+                            ? "🎯"
+                            : updateForm.type === "issue"
+                              ? "⚠️"
+                              : "✅"}
                     </div>
                     <div className="flex-1">
                       <h4 className="text-white font-medium text-sm">
@@ -2840,11 +2870,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </button>
                 <button
                   onClick={handleAddUpdate}
-                  className={`flex-1 px-6 py-3 rounded-xl transition-all duration-200 font-semibold shadow-lg transform ${
-                    !updateForm.title || !updateForm.description
-                      ? "bg-gray-600/50 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                  }`}
+                  className={`flex-1 px-6 py-3 rounded-xl transition-all duration-200 font-semibold shadow-lg transform ${!updateForm.title || !updateForm.description
+                    ? "bg-gray-600/50 text-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                    }`}
                   disabled={!updateForm.title || !updateForm.description}
                 >
                   <div className="flex items-center justify-center space-x-2">
@@ -2897,8 +2926,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     {selectedProject.pricing.currency === "USD"
                       ? "$"
                       : selectedProject.pricing.currency === "KES"
-                      ? "KES"
-                      : selectedProject.pricing.currency}
+                        ? "KES"
+                        : selectedProject.pricing.currency}
                   </div>
                   <input
                     type="number"
@@ -3015,8 +3044,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {selectedProject.pricing.currency === "USD"
                         ? "$"
                         : selectedProject.pricing.currency === "KES"
-                        ? "KES"
-                        : selectedProject.pricing.currency}
+                          ? "KES"
+                          : selectedProject.pricing.currency}
                       {paymentForm.amount.toFixed(2)}
                     </span>
                   </div>

@@ -93,23 +93,54 @@ export async function GET() {
     // Exclude sensitive fields like password
     let users = await db
       .collection('users')
-      .find({}, { 
-        projection: { 
-          password: 0,
-          // You might want to exclude other sensitive fields
-          // resetToken: 0,
-        } 
-      })
-      .sort({ createdAt: -1 }) // Sort by newest first
+      .aggregate([
+        {
+          $lookup: {
+            from: 'developerprofiles',
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'developerProfile'
+          }
+        },
+        {
+          $unwind: {
+            path: '$developerProfile',
+            preserveNullAndEmptyArrays: true // Keep users even if they don't have a dev profile
+          }
+        },
+        {
+          $project: {
+            email: 1,
+            firstName: 1,
+            lastName: 1,
+            role: 1,
+            status: 1,
+            isActive: 1,
+            accountCreated: 1,
+            passwordGenerated: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            lastLogin: 1,
+            developerProfileStatus: '$developerProfile.status',
+            developerProfileId: '$developerProfile._id'
+          }
+        },
+        {
+          $sort: { createdAt: -1 } // Sort by newest first
+        }
+      ])
       .toArray();
 
-    // Get project counts for each user
+    // Get project counts for each user (still needed for clients)
     const projectCounts = await Promise.all(
       users.map(async (user) => {
-        const count = await db.collection('projects').countDocuments({
-          clientId: user._id
-        });
-        return { userId: user._id, count };
+        if (user.role === 'client') {
+          const count = await db.collection('projects').countDocuments({
+            clientId: user._id
+          });
+          return { userId: user._id, count };
+        }
+        return { userId: user._id, count: 0 }; // Developers don't have client projects
       })
     );
 

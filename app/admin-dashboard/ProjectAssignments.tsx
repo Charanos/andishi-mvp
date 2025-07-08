@@ -24,9 +24,10 @@ import {
   FaExclamationCircle,
   FaSpinner,
 } from "react-icons/fa";
-import { useAvailableDevelopers, useProjectAssignments } from "@/hooks/useProjectAssignments";
-import type { DeveloperProfile as Developer } from "@/lib/types";
+import { useProjectAssignments } from "@/hooks/useProjectAssignments";
+
 import type { Assignment } from "@/types/project";
+import { SystemUser } from "./ProjectOverview";
 
 interface ToastNotification {
   id: string;
@@ -39,6 +40,7 @@ interface ProjectAssignmentsProps {
   projectTitle: string;
   projectTechStack?: string[];
   projectExperienceLevel?: string;
+  developers: SystemUser[];
 }
 
 const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
@@ -46,8 +48,8 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   projectTitle,
   projectTechStack = [],
   projectExperienceLevel = "Mid-level",
+  developers,
 }) => {
-  const { developers: availableDevelopers, loading: loadingDevs } = useAvailableDevelopers();
   const { assignments, loading: loadingAssignments, refetch, assignDevelopers, updateAssignment, removeAssignment } = useProjectAssignments(projectId);
 
   const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
@@ -76,87 +78,73 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   };
 
   // Calculate compatibility score between developer and project
-  const calculateCompatibilityScore = (developer: Developer): number => {
+  /*
+  const calculateCompatibilityScore = (developer: SystemUser): number => {
+    if (!developer?.skills || !Array.isArray(developer.skills)) return 0;
+    if (!projectTechStack || projectTechStack.length === 0) return 0;
+
     let score = 0;
 
-    if (!developer || !developer.technicalSkills) return 0;
-
-    // Skill matching (40% weight)
-    const devSkills = [
-      ...(developer.technicalSkills.primarySkills?.map(s => s.name) || []),
-      ...(developer.technicalSkills.frameworks?.map(s => s.name) || []),
-      ...(developer.technicalSkills.specializations || []),
-    ].map((skill) => skill.toLowerCase());
-
+    // Skill matching
+    const devSkills = developer.skills.map((skill) => skill.toLowerCase());
     const projectSkills = projectTechStack.map((skill) => skill.toLowerCase());
+
     const matchingSkills = projectSkills.filter((skill) =>
       devSkills.some(
         (devSkill) => devSkill.includes(skill) || skill.includes(devSkill)
       )
     );
 
-    score += (matchingSkills.length / Math.max(projectSkills.length, 1)) * 40;
-
-    // Experience level matching (25% weight)
-    const experienceLevels = ["Junior", "Mid-level", "Senior", "Lead"];
-    const devLevel = experienceLevels.indexOf(
-      developer.professionalInfo.experienceLevel
-    );
-    const projectLevel = experienceLevels.indexOf(projectExperienceLevel);
-
-    if (devLevel >= projectLevel) {
-      score += 25;
-    } else {
-      score += Math.max(0, 25 - (projectLevel - devLevel) * 8);
-    }
-
-    // Availability (20% weight)
-    if (developer.isAvailable) {
-      score += 20;
-    }
-
-    // Rating (15% weight)
-    score += (developer.stats.averageRating / 5) * 15;
+    score = (matchingSkills.length / Math.max(projectSkills.length, 1)) * 100;
 
     return Math.round(score);
   };
+  */
 
   // Filter and sort developers
-  const getFilteredDevelopers = (): Developer[] => {
-    let filtered: Developer[] = availableDevelopers;
+  const getFilteredDevelopers = (): SystemUser[] => {
+    if (!Array.isArray(developers)) return [];
+
+    let filtered: SystemUser[] = developers.filter(
+      dev => dev.role === "developer" && dev.developerProfileStatus === "approved"
+    );
 
     if (searchTerm) {
       filtered = filtered.filter(
-        (dev: Developer) =>
-          `${dev.personalInfo.firstName} ${dev.personalInfo.lastName}`
+        (dev: SystemUser) =>
+          `${dev.firstName} ${dev.lastName}`
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          dev.personalInfo.email
+          dev.email
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          dev.professionalInfo.title
+          (dev.company && dev.company
             .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+            .includes(searchTerm.toLowerCase()))
       );
     }
 
     if (filterAvailable) {
-      filtered = filtered.filter((dev: Developer) => dev.isAvailable);
+      filtered = filtered.filter((dev: SystemUser) => dev.status === "active");
     }
 
     // Sort by selected criteria
-    filtered.sort((a: Developer, b: Developer) => {
+    filtered.sort((a: SystemUser, b: SystemUser) => {
       switch (sortBy) {
         case "compatibility":
-          return (
-            calculateCompatibilityScore(b) - calculateCompatibilityScore(a)
-          );
+          return 0;
         case "rating":
-          return b.stats.averageRating - a.stats.averageRating;
+          const aRating = a.completedProjects && a.completedProjects > 0 && a.totalEarnings
+            ? a.totalEarnings / a.completedProjects
+            : 0;
+          const bRating = b.completedProjects && b.completedProjects > 0 && b.totalEarnings
+            ? b.totalEarnings / b.completedProjects
+            : 0;
+          return bRating - aRating;
         case "projects":
-          return b.stats.totalProjects - a.stats.totalProjects;
+          return (b.completedProjects || 0) - (a.completedProjects || 0);
         case "rate":
-          return a.professionalInfo.hourlyRate - b.professionalInfo.hourlyRate;
+          return (a.hourlyRate || 0) - (b.hourlyRate || 0);
         default:
           return 0;
       }
@@ -198,12 +186,23 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   };
 
   // Get assigned developers for this project
-  const getAssignedDevelopers = (): Developer[] => {
+  const getAssignedDevelopers = (): SystemUser[] => {
+    if (!Array.isArray(assignments) || !Array.isArray(developers)) return [];
+
     const assignedDeveloperIds = assignments.map(a => a.developerId);
-    return availableDevelopers.filter(dev => assignedDeveloperIds.includes(dev.id));
+    return developers.filter(dev => assignedDeveloperIds.includes(dev._id));
   };
 
-  if (loadingDevs || loadingAssignments) {
+  // Safe rating calculation
+  const calculateAverageRating = (developer: SystemUser): string => {
+    if (!developer.completedProjects || developer.completedProjects === 0) return 'N/A';
+    if (!developer.totalEarnings) return 'N/A';
+
+    const rating = developer.totalEarnings / developer.completedProjects;
+    return rating.toFixed(1);
+  };
+
+  if (loadingAssignments) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
@@ -221,24 +220,22 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
         {notifications.map((notification) => (
           <div
             key={notification.id}
-            className={`transform transition-all duration-300 ease-in-out p-4 rounded-xl border backdrop-blur-md shadow-2xl ${
-              notification.type === "success"
+            className={`transform transition-all duration-300 ease-in-out p-4 rounded-xl border backdrop-blur-md shadow-2xl ${notification.type === "success"
                 ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30"
                 : notification.type === "error"
-                ? "bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/30"
-                : "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/30"
-            } hover:scale-105`}
+                  ? "bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/30"
+                  : "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/30"
+              } hover:scale-105`}
           >
             <div className="flex items-center justify-between space-x-4">
               <div className="flex items-center space-x-3">
                 <div
-                  className={`p-1 rounded-full ${
-                    notification.type === "success"
+                  className={`p-1 rounded-full ${notification.type === "success"
                       ? "bg-green-500"
                       : notification.type === "error"
-                      ? "bg-red-500"
-                      : "bg-blue-500"
-                  }`}
+                        ? "bg-red-500"
+                        : "bg-blue-500"
+                    }`}
                 >
                   {notification.type === "success" && (
                     <FaCheckCircle className="w-4 h-4 text-white" />
@@ -321,7 +318,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {getAssignedDevelopers().map((developer) => (
               <div
-                key={developer?.id}
+                key={developer._id}
                 className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 hover:border-green-500/30 transition-all duration-200"
               >
                 <div className="flex items-start justify-between mb-3">
@@ -331,18 +328,17 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     </div>
                     <div>
                       <h5 className="font-semibold text-white">
-                        {developer?.personalInfo.firstName}{" "}
-                        {developer?.personalInfo.lastName}
+                        {developer.firstName} {developer.lastName}
                       </h5>
                       <p className="text-sm text-gray-400">
-                        {developer?.professionalInfo.title}
+                        {developer.role}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
                     <FaStar className="text-yellow-400 w-4 h-4" />
                     <span className="text-sm text-gray-300 font-medium">
-                      {developer?.stats.averageRating.toFixed(1)}
+                      {calculateAverageRating(developer)}
                     </span>
                   </div>
                 </div>
@@ -350,11 +346,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                 <div className="flex items-center justify-between text-xs text-gray-400">
                   <span className="flex items-center">
                     <FaGlobe className="mr-1" />
-                    {developer?.personalInfo.location}
+                    {developer.email}
                   </span>
                   <span className="flex items-center">
-                    <FaClock className="mr-1" />$
-                    {developer?.professionalInfo.hourlyRate}/hr
+                    <FaClock className="mr-1" />
+                    ${developer.hourlyRate || 'N/A'}/hr
                   </span>
                 </div>
               </div>
@@ -370,7 +366,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
             <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search developers by name, email, or title..."
+              placeholder="Search developers by name, email, or company..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 transition-all duration-200"
@@ -384,9 +380,8 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
             >
               <FaFilter />
               <FaChevronDown
-                className={`transform transition-transform ${
-                  showFilters ? "rotate-180" : ""
-                }`}
+                className={`transform transition-transform ${showFilters ? "rotate-180" : ""
+                  }`}
               />
             </button>
           </div>
@@ -436,7 +431,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           </h4>
           <div className="text-sm text-gray-400">
             Showing {getFilteredDevelopers().length} of{" "}
-            {availableDevelopers.filter((d) => d.isAvailable).length} available
+            {developers.filter((d) => d.role === "developer" && d.developerProfileStatus === "approved").length} available
           </div>
         </div>
 
@@ -455,34 +450,32 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {getFilteredDevelopers().map((developer) => {
-              const compatibilityScore = calculateCompatibilityScore(developer);
-                const isAssigned: boolean = assignments.some(
+              const compatibilityScore = 0; // calculateCompatibilityScore(developer);
+              const isAssigned: boolean = assignments.some(
                 (a: Assignment) =>
-                  a.projectId === projectId && a.developerId === developer.id
-                );
-              const isSelected = selectedDevelopers.includes(developer.id);
+                  a.projectId === projectId && a.developerId === developer._id
+              );
+              const isSelected = selectedDevelopers.includes(developer._id);
 
               return (
                 <div
-                  key={developer.id}
-                  className={`group relative p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${
-                    isSelected
+                  key={developer._id}
+                  className={`group relative p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${isSelected
                       ? "border-blue-500 bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-lg"
                       : isAssigned
-                      ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
-                      : "border-gray-700 hover:border-gray-600 bg-gradient-to-br from-gray-800/50 to-gray-900/50"
-                  }`}
+                        ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
+                        : "border-gray-700 hover:border-gray-600 bg-gradient-to-br from-gray-800/50 to-gray-900/50"
+                    }`}
                 >
                   {/* Compatibility Score Badge */}
                   <div className="absolute top-4 right-4">
                     <div
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        compatibilityScore >= 70
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${compatibilityScore >= 70
                           ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : compatibilityScore >= 50
-                          ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}
+                            ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                            : "bg-red-500/20 text-red-400 border border-red-500/30"
+                        }`}
                     >
                       {compatibilityScore}% match
                     </div>
@@ -495,7 +488,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() =>
-                            toggleDeveloperSelection(developer.id)
+                            toggleDeveloperSelection(developer._id)
                           }
                           className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-2"
                         />
@@ -511,11 +504,10 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           </div>
                           <div>
                             <h5 className="font-semibold text-white text-lg">
-                              {developer.personalInfo.firstName}{" "}
-                              {developer.personalInfo.lastName}
+                              {developer.firstName} {developer.lastName}
                             </h5>
                             <p className="text-gray-400">
-                              {developer.professionalInfo.title}
+                              {developer.role}
                             </p>
                           </div>
                         </div>
@@ -524,17 +516,16 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                       {/* Status Badges */}
                       <div className="flex items-center space-x-2 mb-4">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            developer.isAvailable
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${developer.status === "active"
                               ? "bg-green-500/20 text-green-400 border border-green-500/30"
                               : "bg-red-500/20 text-red-400 border border-red-500/30"
-                          }`}
+                            }`}
                         >
-                          {developer.isAvailable ? "Available" : "Busy"}
+                          {developer.status === "active" ? "Available" : "Busy"}
                         </span>
 
                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-600/30 text-gray-300 border border-gray-600/30">
-                          {developer.professionalInfo.experienceLevel}
+                          {developer.role}
                         </span>
 
                         {isAssigned && (
@@ -551,8 +542,8 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           Primary Skills
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {developer.technicalSkills.primarySkills
-                            .slice(0, 4).map(s => s.name)
+                          {(developer.skills || [])
+                            .slice(0, 4)
                             .map((skill, index) => (
                               <span
                                 key={index}
@@ -561,13 +552,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                 {skill}
                               </span>
                             ))}
-                          {developer.technicalSkills.primarySkills.length >
-                            4 && (
+                          {(developer.skills?.length || 0) > 4 && (
                             <span className="px-2 py-1 bg-gray-600/30 rounded-lg text-xs text-gray-400 border border-gray-600/30">
-                              +
-                              {developer.technicalSkills.primarySkills.length -
-                                4}{" "}
-                              more
+                              +{(developer.skills?.length || 0) - 4} more
                             </span>
                           )}
                         </div>
@@ -579,17 +566,17 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           <div className="flex items-center justify-center space-x-1 mb-1">
                             <FaStar className="text-yellow-400 w-4 h-4" />
                             <span className="text-white font-semibold">
-                              {developer.stats.averageRating.toFixed(1)}
+                              {calculateAverageRating(developer)}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-400">Rating</p>
+                          <p className="text-xs text-gray-400">Avg. Rating</p>
                         </div>
 
                         <div className="text-center">
                           <div className="flex items-center justify-center space-x-1 mb-1">
                             <FaCode className="text-blue-400 w-4 h-4" />
                             <span className="text-white font-semibold">
-                              {developer.stats.totalProjects}
+                              {developer.completedProjects || 0}
                             </span>
                           </div>
                           <p className="text-xs text-gray-400">Projects</p>
@@ -599,7 +586,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           <div className="flex items-center justify-center space-x-1 mb-1">
                             <FaHeart className="text-red-400 w-4 h-4" />
                             <span className="text-white font-semibold">
-                              {developer.stats.clientRetention}%
+                              N/A
                             </span>
                           </div>
                           <p className="text-xs text-gray-400">Retention</p>
@@ -609,7 +596,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           <div className="flex items-center justify-center space-x-1 mb-1">
                             <FaClock className="text-green-400 w-4 h-4" />
                             <span className="text-white font-semibold">
-                              ${developer.professionalInfo.hourlyRate}
+                              ${developer.hourlyRate || 'N/A'}
                             </span>
                           </div>
                           <p className="text-xs text-gray-400">Per Hour</p>
@@ -621,7 +608,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center text-gray-400">
                             <FaGlobe className="mr-2" />
-                            {developer.personalInfo.location}
+                            {developer.email}
                           </div>
                         </div>
                       </div>

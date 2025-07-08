@@ -47,6 +47,7 @@ import type { DeveloperProfile } from "../../lib/types";
 
 interface Props {
   onViewProfile?: (profileId: string) => void;
+  refreshUsers: () => void; // Add this line
 }
 
 type ViewMode = "list" | "detail" | "edit" | "create";
@@ -54,7 +55,7 @@ type SortOption = "name" | "rating" | "projects" | "earnings";
 type ExperienceLevel = "all" | "junior" | "mid" | "senior" | "lead";
 type AvailabilityStatus = "all" | "available" | "busy" | "unavailable";
 
-const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
+const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUsers }) => {
   const [profiles, setProfiles] = useState<DeveloperProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<DeveloperProfile[]>(
     []
@@ -271,6 +272,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
           body: JSON.stringify({ profileId, action: actionStatus === 'approved' ? 'approve' : 'reject' })
         });
       toast.success(`Developer ${actionStatus} successfully`);
+      refreshUsers(); // Call refreshUsers after successful update
     } catch (err) {
       toast.error('Failed to update approval status');
     }
@@ -1599,7 +1601,19 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile }) => {
               {/* Approval Status */}
               <div className="flex items-center mb-2">
                 <span className={`text-xs monty uppercase font-semibold flex items-center ${profile.status === 'approved' ? 'text-green-400' : profile.status === 'rejected' ? 'text-red-400' : 'text-yellow-400'}`}>
-                  <FaExclamationTriangle className="mr-1" /> {profile.status}
+                  Approval Status: {profile.status !== 'approved' && <FaExclamationTriangle className="ml-1 mr-1" />} {profile.status}
+                </span>
+              </div>
+
+              {/* Available for Projects */}
+              <div className="flex items-center mb-4">
+                <span className="text-xs font-semibold flex items-center">
+                  Available for Projects:{" "}
+                  {profile.isAvailable ? (
+                    <FaCheckCircle className="text-green-500 ml-1" />
+                  ) : (
+                    <FaExclamationTriangle className="text-red-500 ml-1" />
+                  )}
                 </span>
               </div>
 

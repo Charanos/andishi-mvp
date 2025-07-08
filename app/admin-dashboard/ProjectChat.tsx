@@ -130,11 +130,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
       <div className="flex items-center justify-center py-12">
         <div className="flex flex-col items-center space-y-4">
           <div className="relative">
-            <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-            <div
-              className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"
-              style={{ animationDelay: "0.15s" }}
-            ></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
           </div>
           <span className="text-gray-400 font-medium">Loading chat...</span>
         </div>
@@ -241,8 +237,8 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
               const showTimestamp =
                 index === 0 ||
                 new Date(message.timestamp).getTime() -
-                  new Date(messages[index - 1].timestamp).getTime() >
-                  300000;
+                new Date(messages[index - 1].timestamp).getTime() >
+                300000;
               return (
                 <div key={message.id} className="space-y-2">
                   {showTimestamp && (
@@ -253,27 +249,24 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                     </div>
                   )}
                   <div
-                    className={`flex items-end space-x-3 ${
-                      isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
-                    }`}
+                    className={`flex items-end space-x-3 ${isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
+                      }`}
                   >
                     {/* Avatar */}
                     {!isOwnMessage && (
                       <div
                         className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(
                           message.senderRole
-                        )} flex items-center justify-center text-white text-xs font-medium shadow-lg ${
-                          showAvatar ? "opacity-100" : "opacity-0"
-                        }`}
+                        )} flex items-center justify-center text-white text-xs font-medium shadow-lg ${showAvatar ? "opacity-100" : "opacity-0"
+                          }`}
                       >
                         {getInitials(message.senderName)}
                       </div>
                     )}
                     {/* Message Content */}
                     <div
-                      className={`max-w-xs lg:max-w-md xl:max-w-lg ${
-                        isOwnMessage ? "ml-auto" : ""
-                      }`}
+                      className={`max-w-xs lg:max-w-md xl:max-w-lg ${isOwnMessage ? "ml-auto" : ""
+                        }`}
                     >
                       {/* Sender Info */}
                       {!isOwnMessage && showAvatar && (
@@ -292,11 +285,10 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                       )}
                       {/* Message Bubble */}
                       <div
-                        className={`relative px-4 py-3 rounded-2xl shadow-lg ${
-                          isOwnMessage
+                        className={`relative px-4 py-3 rounded-2xl shadow-lg ${isOwnMessage
                             ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto"
                             : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
-                        } ${showAvatar ? "rounded-tl-md" : ""}`}
+                          } ${showAvatar ? "rounded-tl-md" : ""}`}
                       >
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">
                           {message.content}

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { startProjectFormSchema, authenticatedStartProjectFormSchema } from '@/lib/formSchema';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
+import prisma from '@/lib/prisma';
 
 // Type for the parsed data from the form schemas
 type ParsedData = z.infer<typeof startProjectFormSchema> | z.infer<typeof authenticatedStartProjectFormSchema>;
@@ -239,6 +240,48 @@ export async function POST(req: NextRequest) {
 
     // Save the project
     const result = await db.collection('projects').insertOne(projectToSave);
+
+    // If project created, create a chat and add participants
+    if (result.insertedId) {
+      try {
+        const admin = await prisma.user.findFirst({ where: { role: "admin" } });
+
+        if (admin) {
+          const projectChat = await prisma.projectChat.create({
+            data: {
+              projectId: result.insertedId.toString(),
+              lastActivity: new Date(),
+            },
+          });
+
+          // Add client as participant
+          await prisma.chatParticipant.create({
+            data: {
+              chatId: projectChat.id,
+              userId: existingUser._id.toString(),
+              name: `${existingUser.firstName} ${existingUser.lastName}`,
+              role: 'client',
+              isOnline: false,
+            },
+          });
+
+          // Add admin as participant
+          await prisma.chatParticipant.create({
+            data: {
+              chatId: projectChat.id,
+              userId: admin.id,
+              name: admin.firstName || 'Admin',
+              role: 'admin',
+              isOnline: false,
+            },
+          });
+        }
+      } catch (chatError) {
+        console.error('Failed to create project chat:', chatError);
+        // Note: The project was created, but chat setup failed.
+        // This could be handled with a background job or manual intervention.
+      }
+    }
 
     return NextResponse.json({
       success: true,

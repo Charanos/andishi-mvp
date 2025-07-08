@@ -94,6 +94,8 @@ interface SystemUser {
   isActive: boolean;
   accountCreated: boolean;
   passwordGenerated: boolean;
+  developerProfileStatus?: "pending" | "approved" | "rejected"; // Added
+  developerProfileId?: string; // Added
 }
 
 type ActiveTab =
@@ -108,9 +110,7 @@ type ActiveTab =
 export default function EnhancedAdminDashboard(): ReactNode {
   // State Management
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
-  const [devProfiles, setDevProfiles] = useState<
-    (typeof DeveloperProfilesOverview)[]
-  >([]);
+  const [devProfiles, setDevProfiles] = useState<any[]>([]);
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [projectsPerPage] = useState(10);
@@ -219,26 +219,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   const [error, setError] = useState<string | null>(null);
 
-  // Load users from API
-  useEffect(() => {
-    const loadUsers = async () => {
-      setLoading(true);
-      try {
-        const resp = await fetch("/api/users", { credentials: "include" });
-        if (!resp.ok) {
-          throw new Error("Failed to fetch users");
-        }
-        const data: SystemUser[] = await resp.json();
-        setUsers(data);
-      } catch (err) {
-        console.error(err);
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadUsers();
-  }, []);
+  
 
   const [notifications, setNotifications] = useState<
     Array<{
@@ -348,13 +329,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
       }));
       setProjects(transformedProjects);
 
-      // Fetch users
-      const usersRes = await fetch("/api/users");
-      const usersData = await usersRes.json();
-      if (usersData.success) {
-        setUsers(usersData.users ? usersData.users : usersData);
-      }
-
       // Fetch developer profiles
       const devProfilesRes = await fetch("/api/developer-profiles");
       const devProfilesData = await devProfilesRes.json();
@@ -369,14 +343,37 @@ export default function EnhancedAdminDashboard(): ReactNode {
       ) {
         profiles = devProfilesData.profiles;
       }
-      setDevProfiles(profiles);
+      setDevProfiles(profiles); // Set devProfiles state here
+
+      // Fetch users
+      const usersRes = await fetch("/api/users");
+      const usersData = await usersRes.json();
+      let usersArray: SystemUser[] = [];
+      if (usersData.success && Array.isArray(usersData.users)) {
+        usersArray = usersData.users;
+      } else if (Array.isArray(usersData)) {
+        // Fallback if usersData itself is the array (e.g., from a different API response structure)
+        usersArray = usersData;
+      }
+
+      const mergedUsers = usersArray.map((user: SystemUser) => {
+        if (user.role === "developer") {
+          const devProfile = profiles.find(
+            (profile) => profile.personalInfo.email === user.email
+          );
+          if (devProfile) {
+            return {
+              ...user,
+              developerProfileStatus: devProfile.status,
+              developerProfileId: devProfile.id,
+            };
+          }
+        }
+        return user;
+      });
+      setUsers(mergedUsers);
 
       // Generate analytics with transformed data
-      const usersArray = Array.isArray(usersData)
-        ? usersData
-        : Array.isArray(usersData?.users)
-        ? usersData.users
-        : [];
       setAnalytics(generateAdvancedAnalytics(transformedProjects, usersArray));
     } catch (err) {
       setError("Failed to fetch data");
@@ -1372,6 +1369,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             /* kept original stub structure */
             await recordProjectPayment(projectId, payment);
           }}
+          developers={users.filter(user => user.role === "developer" && user.developerProfileStatus === "approved")}
         />
       );
     }
@@ -3089,7 +3087,9 @@ Generate new credentials to reset password.`;
           {activeTab === "analytics" && (
             <AdvancedAnalyticsDashboard analytics={analytics} />
           )}
-          {activeTab === "dev profiles" && <DeveloperProfilesOverview />}
+          {activeTab === "dev profiles" && (
+            <DeveloperProfilesOverview refreshUsers={fetchAllData} />
+          )}
 
           {activeTab === "settings" && renderSettings()}
         </div>

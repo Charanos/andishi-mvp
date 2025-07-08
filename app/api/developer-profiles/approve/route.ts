@@ -20,7 +20,18 @@ export async function PATCH(req: NextRequest) {
             { _id: new ObjectId(profileId) },
             { $set: update }
         );
+
         if (result.matchedCount === 1) {
+            // After updating developer profile, find the associated user and update their status
+            const updatedProfile = await profilesCol.findOne({ _id: new ObjectId(profileId) });
+            if (updatedProfile && updatedProfile.userId) {
+                const usersCol = db.collection("users");
+                const userUpdate = action === "approve" ? { status: "active" } : { status: "inactive" };
+                await usersCol.updateOne(
+                    { _id: new ObjectId(updatedProfile.userId) },
+                    { $set: userUpdate }
+                );
+            }
             return NextResponse.json({ success: true });
         } else {
             return NextResponse.json({ success: false, message: "Profile not found" }, { status: 404 });

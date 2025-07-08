@@ -96,7 +96,7 @@ export interface DeveloperProfile {
     avatar?: string;
     tagline: string;
   };
-  professionalInfo: {
+    professionalInfo: {
     title: string;
     experienceLevel: string;
     yearsOfExperience: string;
@@ -158,7 +158,47 @@ export default function EnhancedDeveloperDashboard() {
           throw new Error(`Failed to load profile: ${error}`);
         }
         const profileData = await res.json();
-        setProfile(profileData);
+        setProfile({
+          ...profileData,
+          stats: {
+            totalProjects: 0,
+            completedProjects: 0,
+            totalEarnings: 0,
+            averageRating: 0,
+            totalCodeLines: 0,
+            activeDays: 0,
+            clientRetention: 0,
+            responseTime: "N/A",
+            totalCommits: 0,
+            bugsFixed: 0,
+            codeReviewsGiven: 0,
+            mentoringSessions: 0,
+            ...(profileData.stats || {}),
+          },
+          achievements: profileData.achievements || [],
+          recentActivity: profileData.recentActivity || [],
+          timeEntries: profileData.timeEntries || [],
+          notifications: profileData.notifications || [],
+          technicalSkills: {
+            primarySkills: (profileData.technicalSkills?.primarySkills || []).filter((s: Skill) => s.name && s.category),
+            frameworks: (profileData.technicalSkills?.frameworks || []).filter((s: Skill) => s.name && s.category),
+            databases: (profileData.technicalSkills?.databases || []).filter((s: Skill) => s.name && s.category),
+            tools: (profileData.technicalSkills?.tools || []).filter((s: Skill) => s.name && s.category),
+            cloudPlatforms: profileData.technicalSkills?.cloudPlatforms || [],
+            specializations: profileData.technicalSkills?.specializations || [],
+          },
+          professionalInfo: {
+            title: profileData.professionalInfo?.title || "",
+            experienceLevel: profileData.professionalInfo?.experienceLevel || "",
+            yearsOfExperience: profileData.professionalInfo?.yearsOfExperience || "",
+            availability: profileData.professionalInfo?.availability || "",
+            languages: profileData.professionalInfo?.languages || [],
+            bio: profileData.professionalInfo?.bio || "",
+            preferredWorkType: profileData.professionalInfo?.preferredWorkType || [],
+            workingHours: profileData.professionalInfo?.workingHours || "",
+    certifications: profileData.professionalInfo?.certifications || [],
+          },
+        });
       } catch (err) {
         console.error("Error fetching profile:", err);
         // You might want to show an error message to the user here
@@ -452,3 +492,4 @@ export default function EnhancedDeveloperDashboard() {
     </div>
   );
 }
+ 

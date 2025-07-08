@@ -221,20 +221,20 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           <div
             key={notification.id}
             className={`transform transition-all duration-300 ease-in-out p-4 rounded-xl border backdrop-blur-md shadow-2xl ${notification.type === "success"
-                ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30"
-                : notification.type === "error"
-                  ? "bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/30"
-                  : "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/30"
+              ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30"
+              : notification.type === "error"
+                ? "bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/30"
+                : "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/30"
               } hover:scale-105`}
           >
             <div className="flex items-center justify-between space-x-4">
               <div className="flex items-center space-x-3">
                 <div
                   className={`p-1 rounded-full ${notification.type === "success"
-                      ? "bg-green-500"
-                      : notification.type === "error"
-                        ? "bg-red-500"
-                        : "bg-blue-500"
+                    ? "bg-green-500"
+                    : notification.type === "error"
+                      ? "bg-red-500"
+                      : "bg-blue-500"
                     }`}
                 >
                   {notification.type === "success" && (
@@ -461,20 +461,20 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                 <div
                   key={developer._id}
                   className={`group relative p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${isSelected
-                      ? "border-blue-500 bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-lg"
-                      : isAssigned
-                        ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
-                        : "border-gray-700 hover:border-gray-600 bg-gradient-to-br from-gray-800/50 to-gray-900/50"
+                    ? "border-blue-500 bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-lg"
+                    : isAssigned
+                      ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
+                      : "border-gray-700 hover:border-gray-600 bg-gradient-to-br from-gray-800/50 to-gray-900/50"
                     }`}
                 >
                   {/* Compatibility Score Badge */}
                   <div className="absolute top-4 right-4">
                     <div
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${compatibilityScore >= 70
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                          : compatibilityScore >= 50
-                            ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                            : "bg-red-500/20 text-red-400 border border-red-500/30"
+                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                        : compatibilityScore >= 50
+                          ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                          : "bg-red-500/20 text-red-400 border border-red-500/30"
                         }`}
                     >
                       {compatibilityScore}% match
@@ -517,8 +517,8 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                       <div className="flex items-center space-x-2 mb-4">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${developer.status === "active"
-                              ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                              : "bg-red-500/20 text-red-400 border border-red-500/30"
+                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                            : "bg-red-500/20 text-red-400 border border-red-500/30"
                             }`}
                         >
                           {developer.status === "active" ? "Available" : "Busy"}

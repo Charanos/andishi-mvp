@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 // GET /api/developer-profiles/[developerId] – return single profile
-export async function GET(_req: NextRequest, context: { params: { developerId: string } }) {
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ developerId: string }> }
+) {
   try {
-    const { developerId } = context.params;
+    const { developerId } = await params;
 
     if (!developerId) {
       return new NextResponse("Developer ID is required", { status: 400 });
@@ -23,16 +26,18 @@ export async function GET(_req: NextRequest, context: { params: { developerId: s
 }
 
 // PUT /api/developer-profiles/[developerId] – update profile
-export async function PUT(req: NextRequest, context: { params: { developerId: string } }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ developerId: string }> }
+) {
   try {
-    const { developerId } = context.params;
+    const { developerId } = await params;
     const payload = await req.json();
 
     if (!developerId) {
       return new NextResponse("Developer ID is required", { status: 400 });
     }
 
-    // First check if the profile exists
     const existingProfile = await prisma.developerProfile.findUnique({
       where: { id: developerId }
     });
@@ -57,9 +62,12 @@ export async function PUT(req: NextRequest, context: { params: { developerId: st
 }
 
 // DELETE /api/developer-profiles/[developerId] – remove profile
-export async function DELETE(_req: NextRequest, context: { params: { developerId: string } }) {
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ developerId: string }> }
+) {
   try {
-    const { developerId } = context.params;
+    const { developerId } = await params;
 
     if (!developerId) {
       return new NextResponse("Developer ID is required", { status: 400 });

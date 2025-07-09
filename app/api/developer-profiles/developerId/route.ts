@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 // GET /api/developer-profiles/[developerId] – return single profile
-export async function GET(_req: NextRequest, context: { params: Promise<any> }) {
+export async function GET(_req: NextRequest, context: { params: { developerId: string } }) {
   try {
-    const params = await context.params;
-    const developerId = params.developerId;
+    const { developerId } = context.params;
 
     if (!developerId) {
       return new NextResponse("Developer ID is required", { status: 400 });
@@ -24,10 +23,9 @@ export async function GET(_req: NextRequest, context: { params: Promise<any> }) 
 }
 
 // PUT /api/developer-profiles/[developerId] – update profile
-export async function PUT(req: NextRequest, context: { params: Promise<any> }) {
+export async function PUT(req: NextRequest, context: { params: { developerId: string } }) {
   try {
-    const params = await context.params;
-    const developerId = params.developerId;
+    const { developerId } = context.params;
     const payload = await req.json();
 
     if (!developerId) {
@@ -59,10 +57,9 @@ export async function PUT(req: NextRequest, context: { params: Promise<any> }) {
 }
 
 // DELETE /api/developer-profiles/[developerId] – remove profile
-export async function DELETE(_req: NextRequest, context: { params: Promise<any> }) {
+export async function DELETE(_req: NextRequest, context: { params: { developerId: string } }) {
   try {
-    const params = await context.params;
-    const developerId = params.developerId;
+    const { developerId } = context.params;
 
     if (!developerId) {
       return new NextResponse("Developer ID is required", { status: 400 });

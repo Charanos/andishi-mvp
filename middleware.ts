@@ -142,5 +142,6 @@ export const config = {
     '/admin-dashboard/:path*',
     '/client-dashboard/:path*',
     '/developer-dashboard/:path*',
+    '/api/:path*',
   ],
 };

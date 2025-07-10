@@ -1,8 +1,26 @@
+
 import { SignJWT } from 'jose';
 import { User } from '@/types/auth';
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
+
+const allowedOrigins = [
+  'https://andishi-mvp.vercel.app',
+  'https://andishi.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': allowedOrigins.join(','),
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, { headers: corsHeaders });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,9 +28,9 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
+      return new NextResponse(
+        JSON.stringify({ error: 'Email and password are required' }),
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -22,9 +40,9 @@ export async function POST(request: NextRequest) {
     let user: any = await db.collection('users').findOne({ email: email.toLowerCase() });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -36,17 +54,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (!passwordValid) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: corsHeaders }
       );
     }
 
     // Check if user is active
     if (!user.isActive) {
-      return NextResponse.json(
-        { error: 'Account is deactivated' },
-        { status: 403 }
+      return new NextResponse(
+        JSON.stringify({ error: 'Account is deactivated' }),
+        { status: 403, headers: corsHeaders }
       );
     }
 
@@ -54,7 +72,7 @@ export async function POST(request: NextRequest) {
     const token = await createJWTToken(user);
 
     // Create response
-    const response = NextResponse.json({
+    const response = new NextResponse(JSON.stringify({
       user: {
         id: user._id?.toString() ?? user.id,
         email: user.email,
@@ -63,7 +81,7 @@ export async function POST(request: NextRequest) {
         isActive: user.isActive
       },
       token
-    });
+    }), { status: 200, headers: corsHeaders });
 
     // Set cookie (optional - for middleware)
     // Store the token in an httpOnly cookie that is valid for the entire site
@@ -79,9 +97,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json(
-      { error: 'Login failed' },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ error: 'Login failed' }),
+      { status: 500, headers: corsHeaders }
     );
   }
 }

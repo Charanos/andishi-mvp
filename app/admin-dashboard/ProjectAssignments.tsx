@@ -41,6 +41,7 @@ interface ProjectAssignmentsProps {
   projectTechStack?: string[];
   projectExperienceLevel?: string;
   developers: SystemUser[];
+  readOnly?: boolean;
 }
 
 const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
@@ -49,6 +50,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   projectTechStack = [],
   projectExperienceLevel = "Mid-level",
   developers,
+  readOnly = false,
 }) => {
   const { assignments, loading: loadingAssignments, refetch, assignDevelopers, updateAssignment, removeAssignment } = useProjectAssignments(projectId);
 
@@ -276,7 +278,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
             </p>
           </div>
 
-          {selectedDevelopers.length > 0 && (
+          {selectedDevelopers.length > 0 && !readOnly && (
             <div className="flex items-center space-x-3">
               <div className="px-3 py-1 bg-blue-500/20 rounded-full text-blue-400 text-sm font-medium">
                 {selectedDevelopers.length} selected
@@ -298,6 +300,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                   </>
                 )}
               </button>
+            </div>
+          )}
+          {readOnly && (
+            <div className="px-3 py-1 bg-gray-500/20 rounded-full text-gray-400 text-sm font-medium">
+              View Only
             </div>
           )}
         </div>

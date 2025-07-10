@@ -1,6 +1,19 @@
 import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
+const allowedOrigins = [
+  'https://andishi-mvp.vercel.app',
+  'https://andishi.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': allowedOrigins.join(','),
+  'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
 // Read-only mode configuration
 export const dynamic = 'force-dynamic';
 const isReadOnly = process.env.READ_ONLY_MODE === 'true' || false;
@@ -32,7 +45,7 @@ export async function GET(req: NextRequest) {
     // Get the user's email from the auth token
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401, headers: corsHeaders });
     }
     
     const token = authHeader.split(' ')[1];
@@ -44,20 +57,20 @@ export async function GET(req: NextRequest) {
     if (!record) {
       return new NextResponse(
         JSON.stringify({ error: 'Profile not found' }), 
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
+        { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 
-    return NextResponse.json(record?.data, { status: 200 });
+    return new NextResponse(JSON.stringify(record?.data), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
   } catch (err) {
     console.error("GET /api/developer-profile error", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
 
 export async function PUT(req: NextRequest) {
   if (isReadOnly) {
-    return new NextResponse("Forbidden", { status: 403 });
+    return new NextResponse("Forbidden", { status: 403, headers: corsHeaders });
   }
 
   try {
@@ -66,7 +79,7 @@ export async function PUT(req: NextRequest) {
     // Get the user's email from the auth token
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401, headers: corsHeaders });
     }
     
     const token = authHeader.split(' ')[1];
@@ -74,7 +87,7 @@ export async function PUT(req: NextRequest) {
     
     // Ensure the email in the payload matches the authenticated user
     if (payload.personalInfo.email !== userEmail) {
-      return new NextResponse('Forbidden: Cannot update another user\'s profile', { status: 403 });
+      return new NextResponse('Forbidden: Cannot update another user\'s profile', { status: 403, headers: corsHeaders });
     }
 
     const client = await clientPromise;
@@ -86,7 +99,7 @@ export async function PUT(req: NextRequest) {
     if (!existing) {
       return new NextResponse(
         JSON.stringify({ error: 'Profile not found' }), 
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
+        { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 
@@ -99,14 +112,14 @@ export async function PUT(req: NextRequest) {
     // Return the updated profile
     const record = await db.collection('developerProfiles').findOne({ 'data.personalInfo.email': userEmail });
 
-    return NextResponse.json(record!.data, { status: 200 });
+    return new NextResponse(JSON.stringify(record!.data), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
   } catch (err) {
     console.error("PUT /api/developer-profile error", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
 
 // Fallback for unsupported methods
 export function OPTIONS() {
-  return new NextResponse(null, { status: 204 });
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
 }

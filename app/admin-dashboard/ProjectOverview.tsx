@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import useSWR from "swr";
 import {
   FaArrowCircleLeft,
   FaProjectDiagram,
@@ -64,6 +65,47 @@ import {
 } from "~/types";
 import ProjectChat from "./ProjectChat";
 import { useAuth } from "@/hooks/useAuth";
+
+interface FetcherError extends Error {
+  info?: any;
+  status?: number;
+}
+
+export interface ActivityItem {
+  id: string;
+  type: 'chat' | 'assignment' | 'milestone' | 'payment' | 'update' | 'system';
+  title: string;
+  description: string;
+  createdAt: Date | string;
+  actor?: {
+    id: string;
+    name: string;
+    role: string;
+  };
+  metadata?: any;
+  activityType?: string;
+}
+
+// Fetcher function for SWR
+const fetcher = async (url: string) => {
+  const token = localStorage.getItem("auth_token");
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error: FetcherError = new Error("An error occurred while fetching the data.");
+    // Attach extra info to the error object.
+    error.info = await res.json();
+    error.status = res.status;
+    throw error;
+  }
+
+  return res.json();
+};
+
 
 export interface SystemUser {
   _id: string;
@@ -195,9 +237,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   developers,
 }) => {
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
-  const [projectData, setProjectData] = useState<ProjectData>(selectedProject!);
+  const [projectData, setProjectData] = useState<ProjectData>(selectedProject || {} as ProjectData);
 
-  const [files, setFiles] = useState<ProjectFile[]>(projectData.files || []);
+  const [files, setFiles] = useState<ProjectFile[]>(projectData?.files || []);
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [newFile, setNewFile] = useState<Partial<ProjectFile>>({});
   const [showAddFile, setShowAddFile] = useState(false);
@@ -823,7 +865,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     }
   };
 
-  const recentActivity = [
+  // Fetch activity data using SWR
+  const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
+    selectedProject ? `/api/project-activity/${selectedProject._id}` : null,
+    fetcher
+  );
+
+  // Fallback to static data if API fails
+  const recentActivity = activityData?.activities || [
     ...updates.map((u) => ({ ...u, activityType: "update" })),
     ...milestones
       .filter((m) => m.completedAt)
@@ -2001,56 +2050,96 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               Recent Activity
             </h2>
 
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div
-                  key={`${activity.activityType}-${activity.id}`}
-                  className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
-                >
-                  <div className="flex-shrink-0 mt-1">
-                    {activity.activityType === "milestone" ? (
-                      <div className="p-2 bg-green-500/20 rounded-lg">
-                        <CheckCircle className="w-5 h-5 text-green-300" />
-                      </div>
-                    ) : activity.activityType === "update" ? (
-                      <div className="p-2 bg-blue-500/20 rounded-lg">
-                        <MessageSquare className="w-5 h-5 text-blue-300" />
-                      </div>
-                    ) : (
-                      <div className="p-2 bg-purple-500/20 rounded-lg">
-                        <Activity className="w-5 h-5 text-purple-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-medium mb-1">
-                      {activity.title}
-                    </h3>
-                    <p className="text-gray-300 text-sm mb-2">
-                      {activity.description}
-                    </p>
-                    <span className="text-xs text-gray-400">
-                      {(typeof activity.createdAt === "string"
-                        ? new Date(activity.createdAt)
-                        : activity.createdAt
-                      ).toLocaleDateString()}
-                    </span>
-                  </div>
+            {/* Loading State */}
+            {activityLoading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-gray-400">Loading activity...</span>
                 </div>
-              ))}
+              </div>
+            )}
 
-              {recentActivity.length === 0 && (
-                <div className="text-center py-12">
-                  <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    No Activity Yet
-                  </h3>
-                  <p className="text-gray-400">
-                    Activity will appear here as the project progresses.
-                  </p>
+            {/* Error State */}
+            {activityError && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-500/20 rounded-lg">
+                    <AlertCircle className="w-5 h-5 text-red-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-red-300 font-medium mb-1">
+                      Failed to load activity
+                    </h3>
+                    <p className="text-red-400 text-sm">
+                      Showing fallback data. Please refresh to try again.
+                    </p>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Activity Content */}
+            {!activityLoading && (
+              <div className="space-y-4">
+                {recentActivity.map((activity: ActivityItem) => (
+                  <div
+                    key={`${activity.type}-${activity.id}`}
+                    className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                  >
+                    <div className="flex-shrink-0 mt-1">
+                      {activity.type === "milestone" ? (
+                        <div className="p-2 bg-green-500/20 rounded-lg">
+                          <CheckCircle className="w-5 h-5 text-green-300" />
+                        </div>
+                      ) : activity.type === "update" ? (
+                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                          <MessageSquare className="w-5 h-5 text-blue-300" />
+                        </div>
+                      ) : activity.type === "payment" ? (
+                        <div className="p-2 bg-green-500/20 rounded-lg">
+                          <DollarSign className="w-5 h-5 text-green-300" />
+                        </div>
+                      ) : activity.type === "system" ? (
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <Activity className="w-5 h-5 text-purple-300" />
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-gray-500/20 rounded-lg">
+                          <Activity className="w-5 h-5 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium mb-1">
+                        {activity.title}
+                      </h3>
+                      <p className="text-gray-300 text-sm mb-2">
+                        {activity.description}
+                      </p>
+                      <span className="text-xs text-gray-400">
+                        {(typeof activity.createdAt === "string"
+                          ? new Date(activity.createdAt)
+                          : activity.createdAt
+                        ).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                {recentActivity.length === 0 && (
+                  <div className="text-center py-12">
+                    <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">
+                      No Activity Yet
+                    </h3>
+                    <p className="text-gray-400">
+                      Activity will appear here as the project progresses.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

@@ -2,12 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
+const allowedOrigins = [
+  'https://andishi-mvp.vercel.app',
+  'https://andishi.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': allowedOrigins.join(','),
+  'Access-Control-Allow-Methods': 'PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, { headers: corsHeaders });
+}
+
 // PATCH /api/developer-profiles/approve - Approve or reject a developer profile
 export async function PATCH(req: NextRequest) {
     try {
         const { profileId, action } = await req.json();
         if (!profileId || !["approve", "reject"].includes(action)) {
-            return NextResponse.json({ success: false, message: "Missing or invalid parameters" }, { status: 400 });
+            return new NextResponse(JSON.stringify({ success: false, message: "Missing or invalid parameters" }), { status: 400, headers: corsHeaders });
         }
         const client = await clientPromise;
         const db = client.db();
@@ -32,12 +49,12 @@ export async function PATCH(req: NextRequest) {
                     { $set: userUpdate }
                 );
             }
-            return NextResponse.json({ success: true });
+            return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
         } else {
-            return NextResponse.json({ success: false, message: "Profile not found" }, { status: 404 });
+            return new NextResponse(JSON.stringify({ success: false, message: "Profile not found" }), { status: 404, headers: corsHeaders });
         }
     } catch (error) {
         console.error("Error updating developer profile status:", error);
-        return NextResponse.json({ success: false, message: "Failed to update profile", error: error instanceof Error ? error.message : error });
+        return new NextResponse(JSON.stringify({ success: false, message: "Failed to update profile", error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
     }
 }

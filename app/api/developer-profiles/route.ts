@@ -15,6 +15,19 @@ import {
   TimeEntry
 } from "@/lib/types";
 
+const allowedOrigins = [
+  'https://andishi-mvp.vercel.app',
+  'https://andishi.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': allowedOrigins.join(','),
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
 type DeveloperProfileData = {
   personalInfo: PersonalInfo;
   professionalInfo: ProfessionalInfo;
@@ -84,7 +97,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       try {
         objectId = new ObjectId(id);
       } catch (error) {
-        return new NextResponse("Invalid profile ID format", { status: 400 });
+        return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
       }
 
       const profile = await db
@@ -92,7 +105,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         .findOne({ _id: objectId });
 
       if (!profile) {
-        return new NextResponse("Profile not found", { status: 404 });
+        return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
       }
 
       // Reconstruct the profile to match the DeveloperProfile interface
@@ -148,7 +161,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         isAvailable: data.isAvailable || false,
       };
 
-      return NextResponse.json(responseData);
+      return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
     }
 
     // Fetch all profiles
@@ -210,10 +223,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       };
     });
 
-    return NextResponse.json(profiles, { status: 200 });
+    return NextResponse.json(profiles, { status: 200, headers: corsHeaders });
   } catch (err) {
     console.error("GET /api/developer-profiles error", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
 
@@ -228,24 +241,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Validate required fields
     if (!profileData.personalInfo || !profileData.professionalInfo || !profileData.technicalSkills || !profileData.stats) {
-      return new NextResponse("Complete profile data is required (personalInfo, professionalInfo, technicalSkills, stats)", { status: 400 });
+      return new NextResponse("Complete profile data is required (personalInfo, professionalInfo, technicalSkills, stats)", { status: 400, headers: corsHeaders });
     }
 
     // Validate PersonalInfo
     const { firstName, lastName, email, location, tagline } = profileData.personalInfo;
     if (!firstName || !lastName || !email || !location || !tagline) {
-      return new NextResponse("Complete personal information is required (firstName, lastName, email, location, tagline)", { status: 400 });
+      return new NextResponse("Complete personal information is required (firstName, lastName, email, location, tagline)", { status: 400, headers: corsHeaders });
     }
 
     // Validate ProfessionalInfo
     const { title, experienceLevel, availability, hourlyRate } = profileData.professionalInfo;
     if (!title || !experienceLevel || !availability || typeof hourlyRate !== 'number') {
-      return new NextResponse("Complete professional information is required (title, experienceLevel, availability, hourlyRate)", { status: 400 });
+      return new NextResponse("Complete professional information is required (title, experienceLevel, availability, hourlyRate)", { status: 400, headers: corsHeaders });
     }
 
     // Validate TechnicalSkills - ensure primarySkills is an array of Skill objects
     if (!Array.isArray(profileData.technicalSkills.primarySkills)) {
-      return new NextResponse("Primary skills must be an array", { status: 400 });
+      return new NextResponse("Primary skills must be an array", { status: 400, headers: corsHeaders });
     }
 
     // Validate that primarySkills contain proper Skill objects
@@ -253,14 +266,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       !skill.name || typeof skill.level !== 'number'
     );
     if (invalidSkills.length > 0) {
-      return new NextResponse("Primary skills must be valid Skill objects with name and level properties", { status: 400 });
+      return new NextResponse("Primary skills must be valid Skill objects with name and level properties", { status: 400, headers: corsHeaders });
     }
 
     // Validate Stats
     const { totalProjects, averageRating, totalEarnings, clientRetention } = profileData.stats;
     if (typeof totalProjects !== 'number' || typeof averageRating !== 'number' ||
       typeof totalEarnings !== 'number' || typeof clientRetention !== 'number') {
-      return new NextResponse("Core stats must be numbers (totalProjects, averageRating, totalEarnings, clientRetention)", { status: 400 });
+      return new NextResponse("Core stats must be numbers (totalProjects, averageRating, totalEarnings, clientRetention)", { status: 400, headers: corsHeaders });
     }
 
     const client = await clientPromise;
@@ -310,10 +323,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       isAvailable: profileData.isAvailable || false,
     };
 
-    return NextResponse.json(createdProfile, { status: 201 });
+    return NextResponse.json(createdProfile, { status: 201, headers: corsHeaders });
   } catch (err) {
     console.error("POST /api/developer-profiles error", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
 
@@ -327,7 +340,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     const profileId = profileData?.id;
 
     if (!profileId) {
-      return new NextResponse("Profile ID is required", { status: 400 });
+      return new NextResponse("Profile ID is required", { status: 400, headers: corsHeaders });
     }
 
     let profileObjectId: ObjectId;
@@ -335,7 +348,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       profileObjectId = new ObjectId(profileId);
     } catch (error) {
       console.error("Invalid profileId for ObjectId:", profileId, error);
-      return new NextResponse("Invalid profile ID format", { status: 400 });
+      return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
     }
 
     const client = await clientPromise;
@@ -344,7 +357,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     // Check if profile exists
     const existingProfile = await db.collection("developerProfiles").findOne({ _id: profileObjectId });
     if (!existingProfile) {
-      return new NextResponse("Profile not found", { status: 404 });
+      return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
     }
 
     // Exclude id field from the data to be saved
@@ -354,20 +367,20 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     if (dataToSave.personalInfo) {
       const { firstName, lastName, email, location, tagline } = dataToSave.personalInfo;
       if (!firstName || !lastName || !email || !location || !tagline) {
-        return new NextResponse("Complete personal information is required", { status: 400 });
+        return new NextResponse("Complete personal information is required", { status: 400, headers: corsHeaders });
       }
     }
 
     if (dataToSave.professionalInfo) {
       const { title, experienceLevel, availability, hourlyRate } = dataToSave.professionalInfo;
       if (!title || !experienceLevel || !availability || typeof hourlyRate !== 'number') {
-        return new NextResponse("Complete professional information is required", { status: 400 });
+        return new NextResponse("Complete professional information is required", { status: 400, headers: corsHeaders });
       }
     }
 
     if (dataToSave.technicalSkills) {
       if (!Array.isArray(dataToSave.technicalSkills.primarySkills)) {
-        return new NextResponse("Primary skills must be an array", { status: 400 });
+        return new NextResponse("Primary skills must be an array", { status: 400, headers: corsHeaders });
       }
 
       // Validate that primarySkills contain proper Skill objects
@@ -375,7 +388,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
         !skill.name || typeof skill.level !== 'number'
       );
       if (invalidSkills.length > 0) {
-        return new NextResponse("Primary skills must be valid Skill objects with name and level properties", { status: 400 });
+        return new NextResponse("Primary skills must be valid Skill objects with name and level properties", { status: 400, headers: corsHeaders });
       }
 
       // Process technical skills to ensure proper format
@@ -393,7 +406,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       const { totalProjects, averageRating, totalEarnings, clientRetention } = dataToSave.stats;
       if (typeof totalProjects !== 'number' || typeof averageRating !== 'number' ||
         typeof totalEarnings !== 'number' || typeof clientRetention !== 'number') {
-        return new NextResponse("Core stats must be numbers", { status: 400 });
+        return new NextResponse("Core stats must be numbers", { status: 400, headers: corsHeaders });
       }
     }
 
@@ -416,7 +429,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
 
     if (!updatedProfile) {
       console.log(`Profile with _id: ${profileObjectId} not found after update.`);
-      return new NextResponse("Profile not found", { status: 404 });
+      return new NextResponse("Failed to update profile", { status: 500, headers: corsHeaders });
     }
 
     // Return properly formatted response
@@ -435,10 +448,10 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       isAvailable: updatedProfile.isAvailable || false,
     };
 
-    return NextResponse.json(responseData);
+    return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
   } catch (err) {
     console.error("PUT /api/developer-profiles error", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
 
@@ -451,7 +464,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
   const id = searchParams.get("id");
 
   if (!id) {
-    return new NextResponse("Profile ID is required", { status: 400 });
+    return new NextResponse("Profile ID is required", { status: 400, headers: corsHeaders });
   }
 
   try {
@@ -462,19 +475,19 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     try {
       objectId = new ObjectId(id);
     } catch (error) {
-      return new NextResponse("Invalid profile ID format", { status: 400 });
+      return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
     }
 
     const deleteResult = await db.collection("developerProfiles").deleteOne({ _id: objectId });
 
     if (deleteResult.deletedCount === 0) {
-      return new NextResponse("Profile not found", { status: 404 });
+      return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
     }
 
-    return new NextResponse(null, { status: 204 }); // Success - No Content
+    return new NextResponse(null, { status: 204, headers: corsHeaders }); // Success - No Content
   } catch (err) {
     console.error(`DELETE /api/developer-profiles?id=${id} error`, err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
 
@@ -488,14 +501,14 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     const { id, ...updates } = body;
 
     if (!id) {
-      return new NextResponse("Profile ID is required", { status: 400 });
+      return new NextResponse("Profile ID is required", { status: 400, headers: corsHeaders });
     }
 
     let profileObjectId: ObjectId;
     try {
       profileObjectId = new ObjectId(id);
     } catch (error) {
-      return new NextResponse("Invalid profile ID format", { status: 400 });
+      return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
     }
 
     const client = await clientPromise;
@@ -504,7 +517,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     // Check if profile exists
     const existingProfile = await db.collection("developerProfiles").findOne({ _id: profileObjectId });
     if (!existingProfile) {
-      return new NextResponse("Profile not found", { status: 404 });
+      return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
     }
 
     // Build update object for nested fields
@@ -563,7 +576,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 
     const updatedProfile = result?.value;
     if (!updatedProfile) {
-      return new NextResponse("Failed to update profile", { status: 500 });
+      return new NextResponse("Failed to update profile", { status: 500, headers: corsHeaders });
     }
 
     // Return properly formatted response
@@ -582,10 +595,10 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       isAvailable: updatedProfile.isAvailable || false,
     };
 
-    return NextResponse.json(responseData);
+    return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
   } catch (err) {
     console.error("PATCH /api/developer-profiles error", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
 
@@ -593,10 +606,6 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 export function OPTIONS(): NextResponse {
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Allow': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    }
+    headers: corsHeaders
   });
 }

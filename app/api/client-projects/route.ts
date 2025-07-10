@@ -3,6 +3,23 @@ import { jwtVerify } from 'jose';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+const allowedOrigins = [
+  'https://andishi-mvp.vercel.app',
+  'https://andishi.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': allowedOrigins.join(','),
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, { headers: corsHeaders });
+}
+
 // Add type definitions
 interface ProjectMilestone {
   _id?: ObjectId;
@@ -125,9 +142,9 @@ export async function GET(req: NextRequest) {
     const { userEmail, userRole } = await authenticateRequest(req);
 
     if (!userEmail || !userRole) {
-      return NextResponse.json(
-        { success: false, message: 'Authentication required' },
-        { status: 401 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Authentication required' }),
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -154,9 +171,9 @@ export async function GET(req: NextRequest) {
       });
 
       if (!user) {
-        return NextResponse.json(
-          { success: false, message: 'User not found or not authorized' },
-          { status: 404 }
+        return new NextResponse(
+          JSON.stringify({ success: false, message: 'User not found or not authorized' }),
+          { status: 404, headers: corsHeaders }
         );
       }
 
@@ -255,16 +272,16 @@ export async function GET(req: NextRequest) {
       }
     }));
 
-    return NextResponse.json({
+    return new NextResponse(JSON.stringify({
       success: true,
       data: transformedProjects
-    });
+    }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
     console.error('Error fetching client projects:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch projects', error: error instanceof Error ? error.message : error },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ success: false, message: 'Failed to fetch projects', error: error instanceof Error ? error.message : error }),
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -275,9 +292,9 @@ export async function POST(req: NextRequest) {
     const userEmail = req.headers.get('user-email');
 
     if (!userEmail) {
-      return NextResponse.json(
-        { success: false, message: 'Authentication required' },
-        { status: 401 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Authentication required' }),
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -292,9 +309,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized access' },
-        { status: 403 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Unauthorized access' }),
+        { status: 403, headers: corsHeaders }
       );
     }
 
@@ -336,21 +353,21 @@ export async function POST(req: NextRequest) {
       { $inc: { projectCount: 1 } }
     );
 
-    return NextResponse.json({
+    return new NextResponse(JSON.stringify({
       success: true,
       message: 'Project created successfully',
       projectId: result.insertedId
-    });
+    }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
     console.error('Error creating project:', error);
-    return NextResponse.json(
-      { 
+    return new NextResponse(
+      JSON.stringify({ 
         success: false, 
         message: 'Failed to create project',
         error: error instanceof Error ? error.message : error 
-      },
-      { status: 500 }
+      }),
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -361,9 +378,9 @@ export async function PATCH(req: NextRequest) {
     const { userEmail, userRole } = await authenticateRequest(req);
 
     if (!userEmail || !userRole) {
-      return NextResponse.json(
-        { success: false, message: 'Authentication required' },
-        { status: 401 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Authentication required' }),
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -379,9 +396,9 @@ export async function PATCH(req: NextRequest) {
         isActive: true
       });
       if (!clientUser) {
-        return NextResponse.json(
-          { success: false, message: 'Unauthorized access' },
-          { status: 403 }
+        return new NextResponse(
+          JSON.stringify({ success: false, message: 'Unauthorized access' }),
+          { status: 403, headers: corsHeaders }
         );
       }
     }
@@ -391,12 +408,12 @@ export async function PATCH(req: NextRequest) {
     const { projectId, ...updates } = body;
 
     if (!projectId || Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        {
+      return new NextResponse(
+        JSON.stringify({
           success: false,
           message: 'Project ID and at least one update field are required',
-        },
-        { status: 400 }
+        }),
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -414,9 +431,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (!project) {
-      return NextResponse.json(
-        { success: false, message: 'Project not found' },
-        { status: 404 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Project not found' }),
+        { status: 404, headers: corsHeaders }
       );
     }
 
@@ -604,21 +621,21 @@ export async function PATCH(req: NextRequest) {
         }
         
         // For CRUD operations, return immediately
-        return NextResponse.json({
+        return new NextResponse(JSON.stringify({
           success: true,
           message: `${operation} completed successfully`,
           modifiedCount: operationResult.modifiedCount
-        });
+        }), { status: 200, headers: corsHeaders });
         
       } catch (operationError) {
         console.error(`Error in ${operation}:`, operationError);
-        return NextResponse.json(
-          { 
+        return new NextResponse(
+          JSON.stringify({ 
             success: false, 
             message: `Failed to ${operation}`,
             error: operationError instanceof Error ? operationError.message : operationError 
-          },
-          { status: 500 }
+          }),
+          { status: 500, headers: corsHeaders }
         );
       }
     }
@@ -676,21 +693,21 @@ export async function PATCH(req: NextRequest) {
 
     const modifiedCount = (result?.modifiedCount || 0) + (milestoneResult?.modifiedCount || 0);
 
-    return NextResponse.json({
+    return new NextResponse(JSON.stringify({
       success: true,
       message: 'Project updated successfully',
       modifiedCount: modifiedCount
-    });
+    }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
     console.error('Error updating project:', error);
-    return NextResponse.json(
-      { 
+    return new NextResponse(
+      JSON.stringify({ 
         success: false, 
         message: 'Failed to update project',
         error: error instanceof Error ? error.message : error 
-      },
-      { status: 500 }
+      }),
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -701,9 +718,9 @@ export async function DELETE(req: NextRequest) {
     const { userEmail, userRole } = await authenticateRequest(req);
 
     if (!userEmail || !userRole) {
-      return NextResponse.json(
-        { success: false, message: 'Authentication required' },
-        { status: 401 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Authentication required' }),
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -718,9 +735,9 @@ export async function DELETE(req: NextRequest) {
         isActive: true
       });
       if (!clientUser) {
-        return NextResponse.json(
-          { success: false, message: 'Unauthorized access' },
-          { status: 403 }
+        return new NextResponse(
+          JSON.stringify({ success: false, message: 'Unauthorized access' }),
+          { status: 403, headers: corsHeaders }
         );
       }
     }
@@ -728,9 +745,9 @@ export async function DELETE(req: NextRequest) {
     const { projectId } = await req.json();
 
     if (!projectId) {
-      return NextResponse.json(
-        { success: false, message: 'Project ID is required' },
-        { status: 400 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Project ID is required' }),
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -747,9 +764,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     if (!project) {
-      return NextResponse.json(
-        { success: false, message: 'Project not found' },
-        { status: 404 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Project not found' }),
+        { status: 404, headers: corsHeaders }
       );
     }
 
@@ -766,21 +783,21 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    return new NextResponse(JSON.stringify({
       success: true,
       message: 'Project deleted successfully',
       deletedCount: result.deletedCount
-    });
+    }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
     console.error('Error deleting project:', error);
-    return NextResponse.json(
-      { 
+    return new NextResponse(
+      JSON.stringify({ 
         success: false, 
         message: 'Failed to delete project',
         error: error instanceof Error ? error.message : error 
-      },
-      { status: 500 }
+      }),
+      { status: 500, headers: corsHeaders }
     );
   }
 }

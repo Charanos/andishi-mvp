@@ -1,19 +1,85 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ProjectAssignment } from "@/types/project";
-import { FaArrowLeft, FaComments, FaCode, FaCalendarAlt, FaDollarSign } from "react-icons/fa";
+import { FaArrowLeft, FaComments, FaCode, FaCalendarAlt, FaDollarSign, FaUsers, FaChartLine } from "react-icons/fa";
 import ProjectChatComponent from "../admin-dashboard/ProjectChat";
+import ProjectAssignmentsComponent from "../admin-dashboard/ProjectAssignments";
+import { useAuth } from "@/hooks/useAuth";
+import { SystemUser } from "../admin-dashboard/ProjectOverview";
+import useSWR from "swr";
+import {
+  Activity,
+  CheckCircle,
+  MessageSquare,
+} from "lucide-react";
 
 interface ProjectDetailProps {
   project: ProjectAssignment;
   onBack: () => void;
 }
 
-type DetailView = "overview" | "chat";
+type DetailView = "overview" | "chat" | "assignments" | "activity";
+
+interface FetcherError extends Error {
+  info?: any;
+  status?: number;
+}
+
+const fetcher = async (url: string) => {
+  const token = localStorage.getItem("auth_token");
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error: FetcherError = new Error("An error occurred while fetching the data.");
+    // Attach extra info to the error object.
+    error.info = await res.json();
+    error.status = res.status;
+    throw error;
+  }
+
+  return res.json();
+};
+
 
 const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
   const [activeView, setActiveView] = useState<DetailView>("overview");
+  const [developers, setDevelopers] = useState<SystemUser[]>([]);
+  const [loadingDevelopers, setLoadingDevelopers] = useState(false);
+  const { user } = useAuth();
+
+  const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
+    project ? `/api/project-activity/${project.id}` : null,
+    fetcher
+  );
+
+  // Fetch developers for assignments
+  useEffect(() => {
+    const fetchDevelopers = async () => {
+      setLoadingDevelopers(true);
+      try {
+        const response = await fetch('/api/users', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDevelopers(data.filter((user: any) => user.role === 'developer'));
+        }
+      } catch (error) {
+        console.error('Error fetching developers:', error);
+      } finally {
+        setLoadingDevelopers(false);
+      }
+    };
+    fetchDevelopers();
+  }, []);
 
   const renderContent = () => {
     switch (activeView) {
@@ -64,13 +130,107 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
       case "chat":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-            <ProjectChatComponent
-              projectId={project.id}
-              projectTitle={project.title}
-              currentUserId="dev-1"
-              currentUserRole="developer"
-              currentUserName="Developer User"
-            />
+            {user && (
+              <ProjectChatComponent
+                projectId={project.id}
+                projectTitle={project.title}
+                currentUserId={user.id}
+                currentUserRole={user.role as "admin" | "client" | "developer"}
+                currentUserName={user.name || user.email}
+              />
+            )}
+          </div>
+        );
+
+      case "assignments":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+            {loadingDevelopers ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                <span className="ml-3 text-gray-400">Loading developers...</span>
+              </div>
+            ) : (
+              <ProjectAssignmentsComponent
+                projectId={project.id}
+                projectTitle={project.title}
+                developers={developers}
+                readOnly={true}
+              />
+            )}
+          </div>
+        );
+
+      case "activity":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Recent Activity
+            </h2>
+            <div className="space-y-4">
+              {activityLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+                  <h3 className="text-lg font-medium text-white mt-4">
+                    Loading activity...
+                  </h3>
+                </div>
+              ) : activityError ? (
+                <div className="text-center py-12">
+                  <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Could not load activity
+                  </h3>
+                  <p className="text-gray-400">
+                    There was an error fetching the project activity.
+                  </p>
+                </div>
+              ) : (
+                activityData?.data.map((activity: any) => (
+                  <div
+                    key={`${activity.activityType}-${activity.id}`}
+                    className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                  >
+                    <div className="flex-shrink-0 mt-1">
+                      {activity.activityType === "milestone" ? (
+                        <div className="p-2 bg-green-500/20 rounded-lg">
+                          <CheckCircle className="w-5 h-5 text-green-300" />
+                        </div>
+                      ) : activity.activityType === "update" ? (
+                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                          <MessageSquare className="w-5 h-5 text-blue-300" />
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <Activity className="w-5 h-5 text-purple-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium">{activity.title}</h3>
+                      <p className="text-gray-400 text-sm">
+                        {activity.description}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-2">
+                        {new Date(activity.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {(activityData?.data.length === 0) && (
+                <div className="text-center py-12">
+                  <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    No Activity Yet
+                  </h3>
+                  <p className="text-gray-400">
+                    Activity will appear here as the project progresses.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         );
 
@@ -118,25 +278,43 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
         <div className="flex space-x-1 mb-8">
           <button
             onClick={() => setActiveView("overview")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-              activeView === "overview"
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "overview"
                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
-            }`}
+              }`}
           >
             <FaCode className="inline mr-2" />
             Overview
           </button>
           <button
             onClick={() => setActiveView("chat")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-              activeView === "chat"
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "chat"
                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
-            }`}
+              }`}
           >
             <FaComments className="inline mr-2" />
             Chat
+          </button>
+          <button
+            onClick={() => setActiveView("assignments")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "assignments"
+                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+          >
+            <FaUsers className="inline mr-2" />
+            Team Assignments
+          </button>
+          <button
+            onClick={() => setActiveView("activity")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "activity"
+                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+          >
+            <FaChartLine className="inline mr-2" />
+            Activity
           </button>
         </div>
 

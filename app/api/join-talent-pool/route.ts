@@ -2,6 +2,23 @@ import { ObjectId } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 
+const allowedOrigins = [
+  'https://andishi-mvp.vercel.app',
+  'https://andishi.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': allowedOrigins.join(','),
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { headers: corsHeaders });
+}
+
 // GET handler to fetch all developer submissions
 export async function GET() {
   try {
@@ -9,10 +26,10 @@ export async function GET() {
     const db = client.db();
     const collection = db.collection('developers');
     const developers = await collection.find({}).sort({ createdAt: -1 }).toArray();
-    return NextResponse.json({ success: true, developers });
+    return new NextResponse(JSON.stringify({ success: true, developers }), { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error('Error fetching developers:', error);
-    return NextResponse.json({ success: false, message: 'Failed to fetch developers', error: error instanceof Error ? error.message : error });
+    return new NextResponse(JSON.stringify({ success: false, message: 'Failed to fetch developers', error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
   }
 }
 
@@ -85,10 +102,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, insertedId: result.insertedId.toString() });
+    return new NextResponse(JSON.stringify({ success: true, insertedId: result.insertedId.toString() }), { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error('Error adding developer:', error);
-    return NextResponse.json({ success: false, message: 'Failed to add developer', error: error instanceof Error ? error.message : error });
+    return new NextResponse(JSON.stringify({ success: false, message: 'Failed to add developer', error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
   }
 }
 
@@ -97,26 +114,26 @@ export async function DELETE(req: NextRequest) {
   try {
     const { _id } = await req.json();
     if (!(_id && typeof _id === 'string')) {
-      return NextResponse.json({ success: false, message: 'Missing or invalid _id' }, { status: 400 });
+      return new NextResponse(JSON.stringify({ success: false, message: 'Missing or invalid _id' }), { status: 400, headers: corsHeaders });
     }
     let objectId;
     try {
       objectId = new ObjectId(_id);
     } catch {
-      return NextResponse.json({ success: false, message: 'Invalid _id format' }, { status: 400 });
+      return new NextResponse(JSON.stringify({ success: false, message: 'Invalid _id format' }), { status: 400, headers: corsHeaders });
     }
     const client = await clientPromise;
     const db = client.db();
     const collection = db.collection('developers');
     const result = await collection.deleteOne({ _id: objectId });
     if (result.deletedCount === 1) {
-      return NextResponse.json({ success: true });
+      return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } else {
-      return NextResponse.json({ success: false, message: 'Developer not found' }, { status: 404 });
+      return new NextResponse(JSON.stringify({ success: false, message: 'Developer not found' }), { status: 404, headers: corsHeaders });
     }
   } catch (error) {
     console.error('Error deleting developer:', error);
-    return NextResponse.json({ success: false, message: 'Failed to delete developer', error: error instanceof Error ? error.message : error });
+    return new NextResponse(JSON.stringify({ success: false, message: 'Failed to delete developer', error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
   }
 }
 
@@ -125,25 +142,25 @@ export async function PUT(req: NextRequest) {
   try {
     const { _id, ...updateData } = await req.json();
     if (!(_id && typeof _id === 'string')) {
-      return NextResponse.json({ success: false, message: 'Missing or invalid _id' }, { status: 400 });
+      return new NextResponse(JSON.stringify({ success: false, message: 'Missing or invalid _id' }), { status: 400, headers: corsHeaders });
     }
     let objectId;
     try {
       objectId = new ObjectId(_id);
     } catch {
-      return NextResponse.json({ success: false, message: 'Invalid _id format' }, { status: 400 });
+      return new NextResponse(JSON.stringify({ success: false, message: 'Invalid _id format' }), { status: 400, headers: corsHeaders });
     }
     const client = await clientPromise;
     const db = client.db();
     const collection = db.collection('developers');
     const result = await collection.updateOne({ _id: objectId }, { $set: updateData });
     if (result.matchedCount === 1) {
-      return NextResponse.json({ success: true });
+      return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     } else {
-      return NextResponse.json({ success: false, message: 'Developer not found' }, { status: 404 });
+      return new NextResponse(JSON.stringify({ success: false, message: 'Developer not found' }), { status: 404, headers: corsHeaders });
     }
   } catch (error) {
     console.error('Error updating developer:', error);
-    return NextResponse.json({ success: false, message: 'Failed to update developer', error: error instanceof Error ? error.message : error });
+    return new NextResponse(JSON.stringify({ success: false, message: 'Failed to update developer', error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, ReactElement } from "react";
+import useSWR from "swr";
 import {
   Target,
   Calendar,
@@ -29,6 +30,50 @@ import {
 import { FaArrowCircleLeft } from "react-icons/fa";
 import { useProjectCRUD } from "@/hooks/useProjectCRUD";
 import ProjectChatComponent from "../admin-dashboard/ProjectChat";
+import ProjectAssignmentsComponent from "../admin-dashboard/ProjectAssignments";
+import { useAuth } from "@/hooks/useAuth";
+import { useProjectAssignments } from "@/hooks/useProjectAssignments";
+import { SystemUser } from "../admin-dashboard/ProjectOverview";
+
+export interface ActivityItem {
+  id: string;
+  type: 'chat' | 'assignment' | 'milestone' | 'payment' | 'update' | 'system';
+  title: string;
+  description: string;
+  createdAt: Date | string;
+  actor?: {
+    id: string;
+    name: string;
+    role: string;
+  };
+  metadata?: any;
+  activityType?: string;
+}
+
+interface FetcherError extends Error {
+  info?: any;
+  status?: number;
+}
+
+// Fetcher function for SWR
+const fetcher = async (url: string) => {
+  const token = localStorage.getItem("auth_token");
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error: FetcherError = new Error("An error occurred while fetching the data.");
+    // Attach extra info to the error object.
+    error.info = await res.json();
+    error.status = res.status;
+    throw error;
+  }
+
+  return res.json();
+};
 
 import {
   ProjectData,
@@ -46,7 +91,8 @@ type TrackingView =
   | "files"
   | "activity"
   | "chat"
-  | "updates";
+  | "updates"
+  | "assignments";
 
 type MilestoneStatus =
   | "pending"
@@ -129,6 +175,16 @@ export default function EnhancedProjectTracking({
 }: EnhancedProjectTrackingProps) {
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
   const [projectData, setProjectData] = useState<ProjectData>(project);
+  const { user } = useAuth();
+  const {
+    data: activityData,
+    isLoading: loadingActivity,
+    error: activityError,
+  } = useSWR(
+    projectData ? `/api/project-activity/${projectData._id}` : null,
+    fetcher
+  );
+
   const {
     loading: crudLoading,
     error: crudError,
@@ -144,6 +200,34 @@ export default function EnhancedProjectTracking({
     createUpdate,
     deleteUpdate,
   } = useProjectCRUD();
+
+  // Fetch all developers for assignments component
+  const [developers, setDevelopers] = useState<SystemUser[]>([]);
+  const [loadingDevelopers, setLoadingDevelopers] = useState(false);
+
+  // Fetch developers for assignments
+  useEffect(() => {
+    const fetchDevelopers = async () => {
+      setLoadingDevelopers(true);
+      try {
+        const response = await fetch('/api/users', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDevelopers(data.filter((user: any) => user.role === 'developer'));
+        }
+      } catch (error) {
+        console.error('Error fetching developers:', error);
+      } finally {
+        setLoadingDevelopers(false);
+      }
+    };
+    fetchDevelopers();
+  }, []);
 
   // Convert date strings to Date objects
   useEffect(() => {
@@ -251,26 +335,26 @@ export default function EnhancedProjectTracking({
     projectData.actualCompletionDate || projectData.estimatedCompletionDate;
   const daysPassed = startDate
     ? Math.floor(
-        (Date.now() -
-          (typeof startDate === "string"
-            ? new Date(startDate).getTime()
-            : startDate.getTime())) /
-          (1000 * 3600 * 24)
-      )
+      (Date.now() -
+        (typeof startDate === "string"
+          ? new Date(startDate).getTime()
+          : startDate.getTime())) /
+      (1000 * 3600 * 24)
+    )
     : 0;
   const totalDays =
     startDate && endDate
       ? Math.floor(
-          ((typeof endDate === "string"
-            ? new Date(endDate)
-            : endDate
-          ).getTime() -
-            (typeof startDate === "string"
-              ? new Date(startDate)
-              : startDate
-            ).getTime()) /
-            (1000 * 3600 * 24)
-        )
+        ((typeof endDate === "string"
+          ? new Date(endDate)
+          : endDate
+        ).getTime() -
+          (typeof startDate === "string"
+            ? new Date(startDate)
+            : startDate
+          ).getTime()) /
+        (1000 * 3600 * 24)
+      )
       : 0;
 
   // File CRUD operations
@@ -499,6 +583,8 @@ export default function EnhancedProjectTracking({
     { id: "files", label: "Files", icon: FileText },
     { id: "updates", label: "Updates", icon: MessageSquare },
     { id: "activity", label: "Activity", icon: Activity },
+    { id: "assignments", label: "Team Assignments", icon: CheckCircle },
+    { id: "chat", label: "Project Chat", icon: MessageSquare },
   ] as const;
 
   const renderTrackingContent = () => {
@@ -978,9 +1064,9 @@ export default function EnhancedProjectTracking({
                               <p className="text-white font-medium">
                                 {milestone.dueDate
                                   ? (milestone.dueDate instanceof Date
-                                      ? milestone.dueDate
-                                      : new Date(milestone.dueDate)
-                                    ).toLocaleDateString()
+                                    ? milestone.dueDate
+                                    : new Date(milestone.dueDate)
+                                  ).toLocaleDateString()
                                   : "N/A"}
                               </p>
                             </div>
@@ -1017,25 +1103,25 @@ export default function EnhancedProjectTracking({
                         <div className="flex items-center space-x-2 ml-4">
                           {(!milestone.submittedBy ||
                             milestone.status === "rejected") && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  setEditingMilestone(milestone.id)
-                                }
-                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteMilestone(milestone.id)
-                                }
-                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
+                              <>
+                                <button
+                                  onClick={() =>
+                                    setEditingMilestone(milestone.id)
+                                  }
+                                  className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeleteMilestone(milestone.id)
+                                  }
+                                  className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
                           {milestone.submittedBy === "client" &&
                             milestone.status === "pending" && (
                               <span className="text-xs text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded">
@@ -1284,8 +1370,8 @@ export default function EnhancedProjectTracking({
                                   {payment.approvedBy} on{" "}
                                   {payment.approvedAt
                                     ? new Date(
-                                        payment.approvedAt
-                                      ).toLocaleDateString()
+                                      payment.approvedAt
+                                    ).toLocaleDateString()
                                     : ""}
                                 </p>
                               </div>
@@ -1573,11 +1659,10 @@ export default function EnhancedProjectTracking({
               {updates.map((update) => (
                 <div
                   key={update.id}
-                  className={`p-6 rounded-xl border transition-all duration-200 ${
-                    update.isAdminResponse
-                      ? "bg-blue-500/5 border-blue-500/20 ml-8"
-                      : "bg-white/[0.03] border-white/10 hover:bg-white/[0.05]"
-                  }`}
+                  className={`p-6 rounded-xl border transition-all duration-200 ${update.isAdminResponse
+                    ? "bg-blue-500/5 border-blue-500/20 ml-8"
+                    : "bg-white/[0.03] border-white/10 hover:bg-white/[0.05]"
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -1586,11 +1671,10 @@ export default function EnhancedProjectTracking({
                           {update.title}
                         </h3>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            update.type === "admin_response"
-                              ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                              : "bg-gray-500/20 text-gray-300 border border-gray-500/30"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${update.type === "admin_response"
+                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                            : "bg-gray-500/20 text-gray-300 border border-gray-500/30"
+                            }`}
                         >
                           {update.type.replace("_", " ")}
                         </span>
@@ -1796,42 +1880,60 @@ export default function EnhancedProjectTracking({
             </h2>
 
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div
-                  key={`${activity.activityType}-${activity.id}`}
-                  className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
-                >
-                  <div className="flex-shrink-0 mt-1">
-                    {activity.activityType === "milestone" ? (
-                      <div className="p-2 bg-green-500/20 rounded-lg">
-                        <CheckCircle className="w-5 h-5 text-green-300" />
-                      </div>
-                    ) : activity.activityType === "update" ? (
-                      <div className="p-2 bg-blue-500/20 rounded-lg">
-                        <MessageSquare className="w-5 h-5 text-blue-300" />
-                      </div>
-                    ) : (
-                      <div className="p-2 bg-purple-500/20 rounded-lg">
-                        <Activity className="w-5 h-5 text-purple-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-medium">{activity.title}</h3>
-                    <p className="text-gray-400 text-sm">
-                      {activity.description}
-                    </p>
-                    <p className="text-gray-500 text-xs mt-2">
-                      {(typeof activity.createdAt === "string"
-                        ? new Date(activity.createdAt)
-                        : activity.createdAt
-                      ).toLocaleDateString()}
-                    </p>
+              {loadingActivity ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-gray-400">Loading activity...</span>
                   </div>
                 </div>
-              ))}
-
-              {recentActivity.length === 0 && (
+              ) : activityError ? (
+                <div className="text-center py-12">
+                  <Activity className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Error Loading Activity
+                  </h3>
+                  <p className="text-gray-400">
+                    There was an error loading the activity. Please try again
+                    later.
+                  </p>
+                </div>
+              ) : (
+                activityData?.data.map((activity: ActivityItem) => (
+                  <div
+                    key={`${activity.type}-${activity.id}`}
+                    className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                  >
+                    <div className="flex-shrink-0 mt-1">
+                      {activity.type === "milestone" ? (
+                        <div className="p-2 bg-green-500/20 rounded-lg">
+                          <CheckCircle className="w-5 h-5 text-green-300" />
+                        </div>
+                      ) : activity.type === "update" ? (
+                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                          <MessageSquare className="w-5 h-5 text-blue-300" />
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <Activity className="w-5 h-5 text-purple-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium">{activity.title}</h3>
+                      <p className="text-gray-400 text-sm">
+                        {activity.description}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-2">
+                        {(typeof activity.createdAt === "string"
+                          ? new Date(activity.createdAt)
+                          : activity.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                )))}
+              {(activityData?.data.length === 0 || activityError) && (
                 <div className="text-center py-12">
                   <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -1849,13 +1951,36 @@ export default function EnhancedProjectTracking({
       case "chat":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <ProjectChatComponent
-              projectId={projectData._id}
-              projectTitle={projectData.projectDetails.title}
-              currentUserId="client-1"
-              currentUserRole="client"
-              currentUserName="Client User"
-            />
+            {user && (
+              <ProjectChatComponent
+                projectId={projectData._id}
+                projectTitle={projectData.projectDetails.title}
+                currentUserId={user.id}
+                currentUserRole={user.role as "admin" | "client" | "developer"}
+                currentUserName={user.name || user.email}
+              />
+            )}
+          </div>
+        );
+
+      case "assignments":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            {loadingDevelopers ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                <span className="ml-3 text-gray-400">Loading developers...</span>
+              </div>
+            ) : (
+              <ProjectAssignmentsComponent
+                projectId={projectData._id}
+                projectTitle={projectData.projectDetails.title}
+                projectTechStack={projectData.projectDetails.techStack}
+                projectExperienceLevel={projectData.projectDetails.experienceLevel}
+                developers={developers}
+                readOnly={true}
+              />
+            )}
           </div>
         );
 
@@ -1969,11 +2094,10 @@ export default function EnhancedProjectTracking({
                 <button
                   key={tab.id}
                   onClick={() => setTrackingView(tab.id)}
-                  className={`flex cursor-pointer items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${
-                    trackingView === tab.id
-                      ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
-                  }`}
+                  className={`flex cursor-pointer items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${trackingView === tab.id
+                    ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="font-medium">{tab.label}</span>

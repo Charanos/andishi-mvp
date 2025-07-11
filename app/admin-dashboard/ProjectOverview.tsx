@@ -255,7 +255,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     console.log('Admin Dashboard - Pricing:', projectData.pricing);
     console.log('Admin Dashboard - Activity Data:', activityData);
     console.log('Admin Dashboard - Activity Error:', activityError);
-  }, [projectData, activityData, activityError]);
+    console.log('Admin Dashboard - Activity Loading:', activityLoading);
+    
+    if (activityData) {
+      console.log('Admin Dashboard - Activity Data Success:', activityData.success);
+      console.log('Admin Dashboard - Activity Data Count:', activityData.count);
+      console.log('Admin Dashboard - Activity Data Items:', activityData.data);
+    }
+  }, [projectData, activityData, activityError, activityLoading]);
 
   const [updateForm, setUpdateForm] = useState({
     title: "",
@@ -332,27 +339,33 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   title: 'Project Planning & Setup',
                   description: 'Initial project setup, requirements gathering, and planning phase',
                   budget: '0',
+                  timeline: '1 week',
                   status: 'pending' as const,
                   dueDate: undefined,
-                  completedAt: undefined
+                  completedAt: undefined,
+                  order: 1
                 },
                 {
                   id: 'default-milestone-2',
                   title: 'Development Phase',
                   description: 'Core development work and feature implementation',
                   budget: '0',
+                  timeline: '2-3 weeks',
                   status: 'pending' as const,
                   dueDate: undefined,
-                  completedAt: undefined
+                  completedAt: undefined,
+                  order: 2
                 },
                 {
                   id: 'default-milestone-3',
                   title: 'Testing & Deployment',
                   description: 'Quality assurance, testing, and final deployment',
                   budget: '0',
+                  timeline: '1 week',
                   status: 'pending' as const,
                   dueDate: undefined,
-                  completedAt: undefined
+                  completedAt: undefined,
+                  order: 3
                 }
               ];
             }
@@ -597,7 +610,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </p>
                 </div>
               ) : activityData && activityData.data ? (
-                activityData.data.map((activity: ActivityItem) => (
+                (console.log('Rendering activities:', activityData.data.length), activityData.data.map((activity: ActivityItem) => (
                   <div
                     key={`${activity.type}-${activity.id}`}
                     className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
@@ -648,7 +661,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       </div>
                     </div>
                   </div>
-                ))
+                )))
               ) : (
                 <div className="text-center py-12">
                   <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />

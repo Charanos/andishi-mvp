@@ -300,27 +300,33 @@ export default function EnhancedProjectTracking({
                 title: 'Project Planning & Setup',
                 description: 'Initial project setup, requirements gathering, and planning phase',
                 budget: '0',
+                timeline: '1 week',
                 status: 'pending' as const,
                 dueDate: undefined,
-                completedAt: undefined
+                completedAt: undefined,
+                order: 1
               },
               {
                 id: 'default-milestone-2',
                 title: 'Development Phase',
                 description: 'Core development work and feature implementation',
                 budget: '0',
+                timeline: '2-3 weeks',
                 status: 'pending' as const,
                 dueDate: undefined,
-                completedAt: undefined
+                completedAt: undefined,
+                order: 2
               },
               {
                 id: 'default-milestone-3',
                 title: 'Testing & Deployment',
                 description: 'Quality assurance, testing, and final deployment',
                 budget: '0',
+                timeline: '1 week',
                 status: 'pending' as const,
                 dueDate: undefined,
-                completedAt: undefined
+                completedAt: undefined,
+                order: 3
               }
             ];
           }

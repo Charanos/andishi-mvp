@@ -79,16 +79,17 @@ export async function GET(
     }
 
     let project;
+    let db;
     try {
       const client = await clientPromise;
-      const db = client.db('andishi-mvp');
+      db = client.db('test');
       const projectsCollection = db.collection('projects');
-      
+
       // Try to find project by _id (MongoDB ObjectId)
       project = await projectsCollection.findOne({
         _id: new ObjectId(projectId)
       });
-      
+
       console.log('[API] Project found:', project ? 'Yes' : 'No');
     } catch (dbError) {
       console.error('[API] Database error while fetching project:', dbError);
@@ -113,7 +114,7 @@ export async function GET(
       userRole === 'admin' ||
       project.clientId?.toString() === userId ||
       project.createdBy?.toString() === userId;
-    
+
     console.log('[API] Access check:', { userRole, userId, clientId: project.clientId?.toString(), createdBy: project.createdBy?.toString(), hasAccess });
 
     if (!hasAccess) {
@@ -125,7 +126,7 @@ export async function GET(
     }
 
     const activities: ActivityItem[] = [];
-    
+
     console.log('[API] Generating activities for project:', project.title);
 
     // 1. Add project creation activity
@@ -141,7 +142,7 @@ export async function GET(
         role: 'system'
       }
     });
-    
+
     // 2. Add project completion activity if completed
     if (project.actualCompletionDate) {
       activities.push({
@@ -157,24 +158,24 @@ export async function GET(
         }
       });
     }
-    
+
     // 3. Try to fetch chat messages from MongoDB
     try {
       const chatsCollection = db.collection('chats');
       const chatMessagesCollection = db.collection('chatMessages');
-      
+
       // Find chat for this project
       const projectChat = await chatsCollection.findOne({
         projectId: new ObjectId(projectId)
       });
-      
+
       if (projectChat) {
         // Find recent messages
         const recentMessages = await chatMessagesCollection.find({
           chatId: projectChat._id
         }).sort({ timestamp: -1 }).limit(10).toArray();
-        
-        recentMessages.forEach(message => {
+
+        recentMessages.forEach((message: any) => {
           activities.push({
             id: `chat-${message._id}`,
             type: 'chat',
@@ -194,15 +195,15 @@ export async function GET(
     } catch (chatError) {
       console.error('[API] Error fetching chat messages:', chatError);
     }
-    
+
     // 4. Try to fetch project assignments
     try {
       const assignmentsCollection = db.collection('projectAssignments');
       const assignments = await assignmentsCollection.find({
         projectId: new ObjectId(projectId)
       }).sort({ assignedAt: -1 }).toArray();
-      
-      assignments.forEach(assignment => {
+
+      assignments.forEach((assignment: any) => {
         activities.push({
           id: `assignment-${assignment._id}`,
           type: 'assignment',
@@ -227,6 +228,7 @@ export async function GET(
     const recentActivities = activities.slice(0, 20);
 
     console.log(`[API] Returning ${recentActivities.length} activities for project ${projectId}`);
+    console.log('[API] Activities data:', JSON.stringify(recentActivities, null, 2));
 
     return NextResponse.json({
       success: true,

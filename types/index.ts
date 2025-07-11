@@ -28,6 +28,8 @@ export type ProjectStatus =
   | "cancelled"
   | "on_hold";
 
+export type TrackingView = "overview" | "milestones" | "files" | "payments" | "updates" | "settings";
+
 export interface Milestone {
   id: string;
   title: string;
@@ -87,7 +89,7 @@ export interface ProjectFile {
 export interface Payment {
   id: string;
   amount: number;
-  date: string;
+  date?: string;
   method: string;
   notes?: string;
   // Added based on usage
@@ -104,6 +106,9 @@ export interface Payment {
   rejectedBy?: string;
   rejectedAt?: Date | string;
   rejectionReason?: string;
+  // Timestamps
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export interface ProjectData {
@@ -185,7 +190,7 @@ export interface ProjectWithDetails extends BaseProjectWithDetails {
     currency: "USD" | "KES";
     fixedBudget?: string;
     hourlyRate?: string;
-    estimatedHours?: number;
+    estimatedHours?: string;
     totalPaid?: string;
     milestones?: Milestone[];
   };

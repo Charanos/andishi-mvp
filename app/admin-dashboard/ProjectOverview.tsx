@@ -235,6 +235,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [activePaymentTab, setActivePaymentTab] = useState<'pending' | 'history'>('pending');
 
   const [progressValue, setProgressValue] = useState(
     selectedProject?.progress || 0
@@ -448,7 +449,43 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const renderContent = () => {
     switch (trackingView) {
       case "overview":
-        return <div>Overview Content</div>;
+return (
+          <div className="bg-gray-900 p-4 rounded-lg shadow-md">
+            <div className="bg-blue-800 text-white p-4 rounded-t-lg">
+              <h2 className="text-3xl font-semibold">Project Overview</h2>
+            </div>
+            <div className="bg-white p-4 rounded-b-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border p-4 rounded-lg shadow-sm">
+                  <h3 className="text-lg font-medium text-gray-800">Timeline</h3>
+                  <p>Start Date: {projectData.startDate ? new Date(projectData.startDate).toLocaleDateString() : 'N/A'}</p>
+                  <p>Estimated Completion: {projectData.estimatedCompletionDate ? new Date(projectData.estimatedCompletionDate).toLocaleDateString() : 'N/A'}</p>
+                  <p>Days Active: {daysPassed}</p>
+                </div>
+                <div className="border p-4 rounded-lg shadow-sm">
+                  <h3 className="text-lg font-medium text-gray-800">Budget Utilization</h3>
+                  <p>Total Budget: {formatCurrency(totalBudget, projectData.pricing?.currency || "USD")}</p>
+                  <p>Spent: {formatCurrency(spentBudget, projectData.pricing?.currency || "USD")}</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                    <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${budgetProgress}%` }}></div>
+                  </div>
+                </div>
+                <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
+                  <h3 className="text-lg font-medium text-gray-800">Technology Stack</h3>
+                  <p>{projectData.projectDetails.techStack.join(', ')}</p>
+                </div>
+                <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
+                  <h3 className="text-lg font-medium text-gray-800">Client Information</h3>
+                  <p>Client ID: {projectData.clientId}</p>
+                  <p>Status: {projectData.status}</p>
+                </div>
+              </div>
+              <div className="flex justify-end mt-4">
+                <button className="bg-blue-600 text-white px-3 py-2 rounded-lg shadow-md focus:outline-none">Manage Project</button>
+              </div>
+            </div>
+          </div>
+        );
       case "milestones":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
@@ -522,7 +559,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       Method: {payment.method}
                     </p>
                     <div className="text-xs text-gray-500 mt-2">
-                      Date: {new Date(payment.date).toLocaleDateString()}
+                      Date: {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
                     </div>
                   </div>
                   <div className="text-right">
@@ -716,10 +753,35 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   };
 
   const formatCurrencyLocal = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
       currency: currency,
     }).format(amount);
+  };
+
+  // Budget calculation functions
+  const getTotalBudget = () => {
+    if (selectedProject.pricing?.type === 'fixed') {
+      return parseFloat(selectedProject.pricing.fixedBudget || '0');
+    } else if (selectedProject.pricing?.type === 'hourly') {
+      const hourlyRate = parseFloat(selectedProject.pricing.hourlyRate || '0');
+      const estimatedHours = parseFloat(selectedProject.pricing.estimatedHours || '0');
+      return hourlyRate * estimatedHours;
+    } else if (selectedProject.pricing?.type === 'milestone') {
+      return (selectedProject.milestones || []).reduce((total, milestone) => {
+        return total + parseFloat(milestone.budget || '0');
+      }, 0);
+    }
+    return 0;
+  };
+
+  const getTotalPaid = () => {
+    return (projectData.payments || []).reduce((total, payment) => {
+      if (payment.status === 'approved' || payment.status === 'paid') {
+        return total + payment.amount;
+      }
+      return total;
+    }, 0);
   };
 
   const calculateProjectBudget = (project: ProjectData): number => {
@@ -739,7 +801,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     ) {
       return (
         parseFloat(project.pricing.hourlyRate) *
-        parseFloat(project.pricing.estimatedHours)
+        (project.pricing.estimatedHours ? parseFloat(project.pricing.estimatedHours) : 0)
       );
     }
     return 0;
@@ -815,41 +877,102 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   };
 
   // File CRUD operations
-  const handleAddFile = () => {
+  const handleAddFile = async () => {
     if (newFile.fileName && newFile.fileUrl) {
-      const file: ProjectFile = {
-        id: Date.now().toString(),
-        fileName: newFile.fileName,
-        fileUrl: newFile.fileUrl,
-        createdAt: new Date(),
-        ...(newFile.fileSize && { fileSize: newFile.fileSize }),
-        ...(newFile.fileType && { fileType: newFile.fileType as FileType }),
-        ...(newFile.uploadedBy && { uploadedBy: newFile.uploadedBy }),
-        ...(newFile.description && { description: newFile.description }),
-      };
-      setProjectData((prevData) => ({
-        ...prevData,
-        files: [...(prevData.files || []), file],
-      }));
-      setNewFile({});
-      setShowAddFile(false);
+      try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`/api/projects/${selectedProject._id}/files`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            fileName: newFile.fileName,
+            fileUrl: newFile.fileUrl,
+            fileType: newFile.fileType || 'document',
+            uploadedBy: 'admin',
+            ...(newFile.fileSize && { fileSize: newFile.fileSize }),
+            ...(newFile.description && { description: newFile.description }),
+          }),
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          const file: ProjectFile = {
+            id: result.file.id || Date.now().toString(),
+            fileName: newFile.fileName,
+            fileUrl: newFile.fileUrl,
+            createdAt: new Date(),
+            fileType: (newFile.fileType || 'document') as FileType,
+            uploadedBy: 'admin',
+            ...(newFile.fileSize && { fileSize: newFile.fileSize }),
+            ...(newFile.description && { description: newFile.description }),
+          };
+          setProjectData((prevData) => ({
+            ...prevData,
+            files: [...(prevData.files || []), file],
+          }));
+          setNewFile({});
+          setShowAddFile(false);
+        } else {
+          console.error('Failed to add file:', result.error);
+        }
+      } catch (error) {
+        console.error('Error adding file:', error);
+      }
     }
   };
 
-  const handleUpdateFile = (id: string, updatedFile: Partial<ProjectFile>) => {
-    setProjectData((prevData) => ({
-      ...prevData,
-      files: prevData.files?.map((file) =>
-        file.id === id ? { ...file, ...updatedFile } : file
-      ) || [],
-    }));
+  const handleUpdateFile = async (id: string, updatedFile: Partial<ProjectFile>) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/projects/${selectedProject._id}/files/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedFile),
+      });
+      
+      if (response.ok) {
+        setProjectData((prevData) => ({
+          ...prevData,
+          files: prevData.files?.map((file) =>
+            file.id === id ? { ...file, ...updatedFile } : file
+          ) || [],
+        }));
+      } else {
+        console.error('Failed to update file');
+      }
+    } catch (error) {
+      console.error('Error updating file:', error);
+    }
   };
 
-  const handleDeleteFile = (id: string) => {
-    setProjectData((prevData) => ({
-      ...prevData,
-      files: prevData.files?.filter((file) => file.id !== id) || [],
-    }));
+  const handleDeleteFile = async (id: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/projects/${selectedProject._id}/files/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        setProjectData((prevData) => ({
+          ...prevData,
+          files: prevData.files?.filter((file) => file.id !== id) || [],
+        }));
+      } else {
+        console.error('Failed to delete file');
+      }
+    } catch (error) {
+      console.error('Error deleting file:', error);
+    }
   };
 
   // Milestone CRUD operations
@@ -944,24 +1067,77 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
   // Payment approval functions
   const approvePayment = async (paymentId: string) => {
-    const updatedStatus = {
-      status: "approved" as const,
-      approvedBy: "adminName", // replace with actual admin identifier
-      approvedAt: new Date().toISOString(),
-    };
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/payment-actions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'approve',
+          projectId: selectedProject._id,
+          paymentId: paymentId,
+        }),
+      });
 
-    handleUpdatePayment(paymentId, updatedStatus);
+      const result = await response.json();
+      if (result.success) {
+        // Update local state
+        const updatedStatus = {
+          status: "approved" as const,
+          approvedBy: currentUser?.id || "admin",
+          approvedAt: new Date().toISOString(),
+        };
+        handleUpdatePayment(paymentId, updatedStatus);
+        
+        // Show success message
+        console.log('Payment approved successfully');
+      } else {
+        console.error('Failed to approve payment:', result.error);
+      }
+    } catch (error) {
+      console.error('Error approving payment:', error);
+    }
   };
 
   const rejectPayment = async (paymentId: string, reason: string) => {
-    const updatedStatus = {
-      status: "rejected" as const,
-      rejectedBy: "adminName", // replace with actual admin identifier
-      rejectedAt: new Date().toISOString(),
-      rejectionReason: reason,
-    };
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/payment-actions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'reject',
+          projectId: selectedProject._id,
+          paymentId: paymentId,
+          rejectionReason: reason,
+        }),
+      });
 
-    handleUpdatePayment(paymentId, updatedStatus);
+      const result = await response.json();
+      if (result.success) {
+        // Update local state
+        const updatedStatus = {
+          status: "rejected" as const,
+          rejectedBy: currentUser?.id || "admin",
+          rejectedAt: new Date().toISOString(),
+          rejectionReason: reason,
+        };
+        handleUpdatePayment(paymentId, updatedStatus);
+        
+        // Show success message
+        console.log('Payment rejected successfully');
+      } else {
+        console.error('Failed to reject payment:', result.error);
+      }
+    } catch (error) {
+      console.error('Error rejecting payment:', error);
+    }
   };
 
   // Milestone approval functions
@@ -2298,50 +2474,267 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         )}
 
         {trackingView === "budget" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-white">
-                Payments & Approvals
+          <div className="space-y-8">
+            {/* Budget Overview */}
+            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Budget Overview
               </h2>
-              <button
-                onClick={() => setShowPaymentModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-300"
-              >
-                <FaPlus />
-                <span>Record Payment</span>
-              </button>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 p-6 rounded-xl border border-green-500/20">
+                  <h3 className="text-green-300 font-semibold mb-2">
+                    Total Budget
+                  </h3>
+                  <p className="text-2xl font-semibold text-white">
+                    {formatCurrencyLocal(
+                      getTotalBudget(),
+                      selectedProject.pricing?.currency || "USD"
+                    )}
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 p-6 rounded-xl border border-blue-500/20">
+                  <h3 className="text-blue-300 font-semibold mb-2">
+                    Amount Paid
+                  </h3>
+                  <p className="text-2xl font-semibold text-white">
+                    {formatCurrencyLocal(
+                      getTotalPaid(),
+                      selectedProject.pricing?.currency || "USD"
+                    )}
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 p-6 rounded-xl border border-purple-500/20">
+                  <h3 className="text-purple-300 font-semibold mb-2">
+                    Remaining
+                  </h3>
+                  <p className="text-2xl font-semibold text-white">
+                    {formatCurrencyLocal(
+                      getTotalBudget() - getTotalPaid(),
+                      selectedProject.pricing?.currency || "USD"
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white font-medium">
+                    Budget Progress
+                  </span>
+                  <span className="text-white font-medium">
+                    {Math.round((getTotalPaid() / getTotalBudget()) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700/50 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-green-500 to-green-400 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((getTotalPaid() / getTotalBudget()) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
             </div>
 
-            {/* Payment Approval Section */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Pending Approvals
-              </h3>
-              {(projectData.payments || []).filter(
-                (p: Payment) => p.status === "pending" && p.submittedBy === "client"
-              ).length > 0 ? (
-                <div className="space-y-4">
-                  {(projectData.payments || [])
-                    .filter(
-                      (p: Payment) =>
-                        p.status === "pending" && p.submittedBy === "client"
-                    )
-                    .map((payment: Payment) => (
+            {/* Payments Section */}
+            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-white">Payments & Approvals</h2>
+                <button
+                  onClick={() => setShowPaymentModal(true)}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-xl transition-all duration-200"
+                >
+                  <FaPlus className="w-4 h-4" />
+                  <span>Record Payment</span>
+                </button>
+              </div>
+
+              {/* Payment Tabs */}
+              <div className="mb-6">
+                <div className="flex space-x-1 bg-white/5 p-1 rounded-xl">
+                  <button
+                    onClick={() => setActivePaymentTab('pending')}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      activePaymentTab === 'pending'
+                        ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Pending Approvals
+                    {(projectData.payments || []).filter(
+                      (p: Payment) => p.status === "pending" && p.submittedBy === "client"
+                    ).length > 0 && (
+                      <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-yellow-500 text-black rounded-full">
+                        {(projectData.payments || []).filter(
+                          (p: Payment) => p.status === "pending" && p.submittedBy === "client"
+                        ).length}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setActivePaymentTab('history')}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      activePaymentTab === 'history'
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Payment History
+                    {(projectData.payments || []).length > 0 && (
+                      <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-blue-500 text-white rounded-full">
+                        {(projectData.payments || []).length}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Tab Content */}
+              <div className="min-h-[400px]">
+                {activePaymentTab === 'pending' && (
+                  <div>
+                {(projectData.payments || []).filter(
+                  (p: Payment) => p.status === "pending" && p.submittedBy === "client"
+                ).length > 0 ? (
+                  <div className="space-y-4">
+                    {(projectData.payments || [])
+                      .filter(
+                        (p: Payment) =>
+                          p.status === "pending" && p.submittedBy === "client"
+                      )
+                      .map((payment: Payment) => (
+                        <div
+                          key={payment.id}
+                          className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h3 className="text-lg font-semibold text-white">
+                                  {payment.description || "Client Payment"}
+                                </h3>
+                                <span className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+                                  Pending Approval
+                                </span>
+                                <span className="text-xs text-gray-400">
+                                  by {payment.submittedBy}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                                <div>
+                                  <span className="text-gray-400">Amount:</span>
+                                  <p className="text-white font-medium">
+                                    {formatCurrencyLocal(
+                                      payment.amount,
+                                      payment.currency || "USD"
+                                    )}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Date:</span>
+                                  <p className="text-white font-medium">
+                                    {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Method:</span>
+                                  <p className="text-white font-medium capitalize">
+                                    {payment.method}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Submitted:</span>
+                                  <p className="text-white font-medium">
+                                    {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                              {payment.notes && (
+                                <div className="mt-2">
+                                  <span className="text-gray-400 text-sm">
+                                    Notes:
+                                  </span>
+                                  <p className="text-gray-300 text-sm">
+                                    {payment.notes}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <button
+                                onClick={() => approvePayment(payment.id)}
+                                className="flex items-center space-x-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm transition-colors"
+                              >
+                                <span>✓</span>
+                                <span>Approve</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const reason = prompt("Reason for rejection:");
+                                  if (reason) rejectPayment(payment.id, reason);
+                                }}
+                                className="flex items-center space-x-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm transition-colors"
+                              >
+                                <span>✗</span>
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaCreditCard className="w-8 h-8 text-gray-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      No Pending Approvals
+                    </h3>
+                    <p className="text-gray-400">
+                      All payments have been reviewed
+                    </p>
+                  </div>
+                )}
+                  </div>
+                )}
+
+                {activePaymentTab === 'history' && (
+                  <div>
+                {(projectData.payments || []).length > 0 ? (
+                  <div className="space-y-4">
+                    {(projectData.payments || []).map((payment: Payment) => (
                       <div
                         key={payment.id}
-                        className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4"
+                        className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <span className="text-white font-medium">
-                                {payment.description || "Client Payment"}
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="text-lg font-semibold text-white">
+                                {payment.description || "Payment"}
+                              </h3>
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                                  payment.status === "approved"
+                                    ? "bg-green-500/20 text-green-300 border-green-500/30"
+                                    : payment.status === "rejected"
+                                      ? "bg-red-500/20 text-red-300 border-red-500/30"
+                                      : payment.status === "pending"
+                                        ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
+                                        : "bg-gray-500/20 text-gray-300 border-gray-500/30"
+                                }`}
+                              >
+                                {payment.status || "pending"}
                               </span>
-                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs border border-yellow-500/30">
-                                Pending Approval
-                              </span>
+                              {payment.submittedBy && (
+                                <span className="text-xs text-gray-400">
+                                  by {payment.submittedBy}
+                                </span>
+                              )}
                             </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
                               <div>
                                 <span className="text-gray-400">Amount:</span>
                                 <p className="text-white font-medium">
@@ -2354,7 +2747,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               <div>
                                 <span className="text-gray-400">Date:</span>
                                 <p className="text-white font-medium">
-                                  {payment.date}
+                                  {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
                                 </p>
                               </div>
                               <div>
@@ -2364,138 +2757,53 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 </p>
                               </div>
                               <div>
-                                <span className="text-gray-400">
-                                  Submitted By:
-                                </span>
-                                <p className="text-white font-medium">Client</p>
+                                <span className="text-gray-400">Created:</span>
+                                <p className="text-white font-medium">
+                                  {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
+                                </p>
                               </div>
                             </div>
+                            {payment.rejectionReason && (
+                              <div className="mt-2 p-3 bg-red-500/10 rounded-lg border border-red-500/30">
+                                <span className="text-red-400 text-sm font-medium">
+                                  Rejection Reason:
+                                </span>
+                                <p className="text-red-300 text-sm mt-1">
+                                  {payment.rejectionReason}
+                                </p>
+                              </div>
+                            )}
                             {payment.notes && (
-                              <div className="mt-2">
-                                <span className="text-gray-400 text-sm">
+                              <div className="mt-2 p-3 bg-gray-500/10 rounded-lg border border-gray-500/30">
+                                <span className="text-gray-400 text-sm font-medium">
                                   Notes:
                                 </span>
-                                <p className="text-gray-300 text-sm">
+                                <p className="text-gray-300 text-sm mt-1">
                                   {payment.notes}
                                 </p>
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center space-x-2 ml-4">
-                            <button
-                              onClick={() => approvePayment(payment.id)}
-                              className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm transition-colors"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => {
-                                const reason = prompt("Reason for rejection:");
-                                if (reason) rejectPayment(payment.id, reason);
-                              }}
-                              className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition-colors"
-                            >
-                              Reject
-                            </button>
-                          </div>
                         </div>
                       </div>
                     ))}
-                </div>
-              ) : (
-                <p className="text-gray-400">No pending payment approvals</p>
-              )}
-            </div>
-
-            {/* Payment History Section */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Payment History
-              </h3>
-              {(projectData.payments || []).length > 0 ? (
-                <div className="space-y-4">
-                  {(projectData.payments || []).map((payment: Payment) => (
-                    <div
-                      key={payment.id}
-                      className={`p-4 rounded-xl border ${payment.status === "approved"
-                        ? "bg-green-500/10 border-green-500/30"
-                        : payment.status === "rejected"
-                          ? "bg-red-500/10 border-red-500/30"
-                          : payment.status === "pending"
-                            ? "bg-yellow-500/10 border-yellow-500/30"
-                            : "bg-white/5 border-white/10"
-                        }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <span className="text-white font-medium">
-                              {payment.description || "Payment"}
-                            </span>
-                            <span
-                              className={`px-2 py-1 rounded text-xs border ${payment.status === "approved"
-                                ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                : payment.status === "rejected"
-                                  ? "bg-red-500/20 text-red-300 border-red-500/30"
-                                  : payment.status === "pending"
-                                    ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-                                    : "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                                }`}
-                            >
-                              {payment.status || "pending"}
-                            </span>
-                            {payment.submittedBy && (
-                              <span className="text-xs text-gray-400">
-                                by {payment.submittedBy}
-                              </span>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-400">Amount:</span>
-                              <p className="text-white font-medium">
-                                {formatCurrencyLocal(
-                                  payment.amount,
-                                  payment.currency || "USD"
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Date:</span>
-                              <p className="text-white font-medium">
-                                {payment.date}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Method:</span>
-                              <p className="text-white font-medium capitalize">
-                                {payment.method}
-                              </p>
-                            </div>
-                          </div>
-                          {payment.rejectionReason && (
-                            <div className="mt-2">
-                              <span className="text-red-400 text-sm">
-                                Rejection Reason:
-                              </span>
-                              <p className="text-red-300 text-sm">
-                                {payment.rejectionReason}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaCreditCard className="w-8 h-8 text-gray-500" />
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <FaCreditCard className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg">
-                    No payments recorded yet
-                  </p>
-                </div>
-              )}
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      No Payments Yet
+                    </h3>
+                    <p className="text-gray-400">
+                      Payment history will appear here once recorded
+                    </p>
+                  </div>
+                )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -3142,178 +3450,6 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         </div>
       )}
 
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover border border-white/20 rounded-3xl p-8 w-full max-w-lg shadow-2xl backdrop-blur-xl transform animate-in slide-in-from-bottom-4 duration-300">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <FaCreditCard className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
-                Record Payment
-              </h3>
-              <p className="text-gray-400 text-sm">
-                Add a new payment to your project
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              {/* Payment Amount */}
-              <div className="relative">
-                <label className="block text-gray-300 text-sm font-semibold mb-3">
-                  Payment Amount ({selectedProject.pricing.currency})
-                </label>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium">
-                    {selectedProject.pricing.currency === "USD"
-                      ? "$"
-                      : selectedProject.pricing.currency === "KES"
-                        ? "KES"
-                        : selectedProject.pricing.currency}
-                  </div>
-                  <input
-                    type="number"
-                    value={paymentForm.amount}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        amount: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full pl-8 pr-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200 backdrop-blur-sm text-lg font-medium"
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                  />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Method */}
-              <div className="relative">
-                <label className="block text-gray-300 text-sm font-semibold mb-3">
-                  Payment Method
-                </label>
-                <div className="relative">
-                  <select
-                    value={paymentForm.method}
-                    onChange={(e) =>
-                      setPaymentForm({ ...paymentForm, method: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200 backdrop-blur-sm appearance-none cursor-pointer"
-                  >
-                    <option className="bg-black/70" value="bank_transfer">
-                      Bank Transfer
-                    </option>
-                    <option className="bg-black/70" value="paypal">
-                      PayPal
-                    </option>
-                    <option className="bg-black/70" value="stripe">
-                      Stripe
-                    </option>
-                    <option className="bg-black/70" value="mpesa">
-                      M-Pesa
-                    </option>
-                    <option className="bg-black/70" value="cash">
-                      Cash
-                    </option>
-                    <option className="bg-black/70" value="check">
-                      Check
-                    </option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div className="relative">
-                <label className="block text-gray-300 text-sm font-semibold mb-3">
-                  Notes{" "}
-                  <span className="text-gray-500 font-normal">(Optional)</span>
-                </label>
-                <div className="relative">
-                  <textarea
-                    value={paymentForm.notes}
-                    onChange={(e) =>
-                      setPaymentForm({ ...paymentForm, notes: e.target.value })
-                    }
-                    rows={3}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 resize-none transition-all duration-200 backdrop-blur-sm"
-                    placeholder="Additional payment notes, reference numbers, or comments..."
-                  />
-                  <div className="absolute bottom-3 right-3">
-                    <svg
-                      className="w-4 h-4 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Summary */}
-              {paymentForm.amount > 0 && (
-                <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-300 text-sm">
-                      Payment Amount:
-                    </span>
-                    <span className="text-emerald-400 font-semibold text-lg">
-                      {selectedProject.pricing.currency === "USD"
-                        ? "$"
-                        : selectedProject.pricing.currency === "KES"
-                          ? "KES"
-                          : selectedProject.pricing.currency}
-                      {paymentForm.amount.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex space-x-3 mt-4">
-                <button
-                  onClick={() => setShowPaymentModal(false)}
-                  className="cursor-pointer monty flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-lg border border-white/10 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handlePaymentSubmit}
-                  className="cursor-pointer monty flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all"
-                  disabled={paymentForm.amount <= 0}
-                >
-                  Record Payment
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <style jsx>{`
         .slider::-webkit-slider-thumb {

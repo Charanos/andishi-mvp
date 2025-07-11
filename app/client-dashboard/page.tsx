@@ -18,6 +18,8 @@ import {
   Play,
   Eye,
   MessageSquare,
+  Trash2,
+  MoreHorizontal,
 } from "lucide-react";
 import {
   FaBell,
@@ -44,7 +46,10 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
 import ClientDashboardStartProject from "./StartNewProject";
-import { ProjectWithDetails, ProjectData } from "../../types/index";
+import { ProjectWithDetails, ProjectData, TrackingView } from "../../types/index";
+import ConfirmationModal from "../components/ConfirmationModal";
+import ToastContainer from "../components/ToastContainer";
+import useToast from "../../hooks/useToast";
 
 // Function to transform ProjectWithDetails to ProjectData
 const transformProjectToData = (
@@ -66,7 +71,7 @@ const transformProjectToData = (
       currency: project.pricing?.currency || "USD",
       fixedBudget: project.pricing?.fixedBudget,
       hourlyRate: project.pricing?.hourlyRate,
-      estimatedHours: project.pricing?.estimatedHours?.toString(),
+      estimatedHours: project.pricing?.estimatedHours || "0",
     },
     status: project.status,
     priority: project.priority === "urgent" ? "critical" : project.priority,
@@ -74,7 +79,32 @@ const transformProjectToData = (
     createdAt: project.createdAt.toString(),
     updatedAt: project.updatedAt.toString(),
     userInfo: project.userInfo,
-    milestones: project.milestones || (project.pricing ? project.pricing.milestones : undefined),
+    milestones: (() => {
+      console.log('\n=== FRONTEND MILESTONE TRANSFORMATION ===');
+      console.log('Project milestones:', project.milestones);
+      console.log('Project pricing milestones:', project.pricing?.milestones);
+      
+      const sourceMilestones = (project.milestones && project.milestones.length > 0)
+        ? project.milestones
+        : (project.pricing?.milestones || []); // Fallback to pricing milestones if project.milestones is empty
+      
+      console.log('Source milestones selected:', sourceMilestones);
+      
+      const transformedMilestones = sourceMilestones.map((m: any) => ({
+        id: m.id || m._id?.toString(),
+        title: m.title || "",
+        description: m.description || "",
+        budget: typeof m.budget === 'number' ? String(m.budget) : (m.budget || "0"), // Ensure budget is string
+        timeline: m.timeline || "",
+        status: m.status || "pending",
+        dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+        completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+        order: m.order || 0,
+      }));
+      
+      console.log('Transformed milestones:', transformedMilestones);
+      return transformedMilestones;
+    })(),
     updates: project.updates,
     files: project.files,
     payments: project.payments,
@@ -152,19 +182,27 @@ const ClientDashboard: React.FC = () => {
     useState<ProjectWithDetails | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState<
-    Array<{
-      id: string;
-      type: "success" | "error" | "info";
-      message: string;
-    }>
-  >([]);
+  // Toast notifications
+  const { notifications: toastNotifications, removeNotification: removeToastNotification, toast } = useToast();
 
-  const removeNotification = (id: string) => {
-    setNotifications((prev) =>
-      prev.filter((notification) => notification.id !== id)
-    );
-  };
+  // CRUD Modal states
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant: "danger" | "warning" | "info";
+    loading: boolean;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+    variant: "info",
+    loading: false,
+  });
+
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   const getAuthHeaders = () => {
     const token =
@@ -248,21 +286,26 @@ const ClientDashboard: React.FC = () => {
                   currency: project.pricing.currency || "USD",
                   fixedBudget: project.pricing.fixedBudget,
                   hourlyRate: project.pricing.hourlyRate,
-                  estimatedHours: project.pricing.estimatedHours,
+                  estimatedHours: project.pricing.estimatedHours ? Number(project.pricing.estimatedHours) : undefined,
                   totalPaid: project.pricing.totalPaid,
                 }
               : undefined,
-            milestones: (project.milestones || []).map((m: any) => ({
-              id: m.id || m._id?.toString(),
-              title: m.title || "",
-              description: m.description || "",
-              budget: m.budget || "0",
-              timeline: m.timeline || "",
-              status: m.status || "pending",
-              dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-              completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-              order: m.order || 0,
-            })),
+            milestones: (() => {
+              const sourceMilestones = (project.milestones && project.milestones.length > 0)
+                ? project.milestones
+                : (project.pricing?.milestones || []);
+              return sourceMilestones.map((m: any) => ({
+                id: m.id || m._id?.toString(),
+                title: m.title || "",
+                description: m.description || "",
+                budget: typeof m.budget === 'number' ? String(m.budget) : (m.budget || "0"),
+                timeline: m.timeline || "",
+                status: m.status || "pending",
+                dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+                completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+                order: m.order || 0,
+              }));
+            })(),
             updates: (project.updates || []).map((u: any) => ({
               id: u.id || u._id?.toString(),
               title: u.title || "",
@@ -277,6 +320,23 @@ const ClientDashboard: React.FC = () => {
               fileSize: f.fileSize,
               fileType: f.fileType,
               createdAt: f.createdAt ? new Date(f.createdAt) : new Date(),
+            })),
+            payments: (project.payments || []).map((p: any) => ({
+              id: p.id || p._id?.toString(),
+              amount: p.amount || 0,
+              date: p.date || new Date().toISOString().split('T')[0],
+              method: p.method || "Unknown",
+              status: p.status || "pending",
+              currency: p.currency || "USD",
+              description: p.description || "",
+              submittedBy: p.submittedBy || "client",
+              createdAt: p.createdAt || new Date().toISOString(),
+              updatedAt: p.updatedAt,
+              invoiceUrl: p.invoiceUrl,
+              notes: p.notes,
+              rejectionReason: p.rejectionReason,
+              approvedBy: p.approvedBy,
+              approvedAt: p.approvedAt,
             })),
             userInfo: project.userInfo || {
               email: user.email,
@@ -318,14 +378,7 @@ const ClientDashboard: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching projects:", error);
-        setNotifications((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            type: "error",
-            message: "Failed to fetch projects. Please try again later.",
-          },
-        ]);
+        toast.error("Failed to fetch projects", "Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -454,6 +507,131 @@ const ClientDashboard: React.FC = () => {
     });
   };
 
+  // Calculate total project budget based on pricing type
+  const calculateProjectBudget = (project: any): number => {
+    if (!project.pricing) return 0;
+    
+    if (project.pricing.type === "fixed" && project.pricing.fixedBudget) {
+      return parseFloat(project.pricing.fixedBudget);
+    }
+    if (project.pricing.type === "milestone" && project.milestones) {
+      return project.milestones.reduce(
+        (total: number, milestone: any) => total + parseFloat(milestone.budget || "0"),
+        0
+      );
+    }
+    if (
+      project.pricing.type === "hourly" &&
+      project.pricing.hourlyRate &&
+      project.pricing.estimatedHours
+    ) {
+      return (
+        parseFloat(project.pricing.hourlyRate) *
+        (project.pricing.estimatedHours ? parseFloat(project.pricing.estimatedHours) : 0)
+      );
+    }
+    return 0;
+  };
+
+  // Calculate project completion percentage
+  const calculateCompletionPercentage = (project: any): number => {
+    // If project is completed and no manual progress is set, return 100%
+    if (project.status === "completed" && (!project.progress || project.progress === 0)) {
+      return 100;
+    }
+    
+    // If manual progress is set, always use it (from admin dashboard updates)
+    if (project.progress && project.progress > 0) {
+      return project.progress;
+    }
+    
+    // For milestone-based projects, calculate based on milestone completion
+    if (project.pricing?.type === "milestone" && project.milestones && project.milestones.length > 0) {
+      const completedMilestones = project.milestones.filter(
+        (milestone: any) => milestone.status === "completed"
+      ).length;
+      return Math.round((completedMilestones / project.milestones.length) * 100);
+    }
+    
+    // Default to 0 if nothing else applies
+    return 0;
+  };
+
+  // Get comprehensive project status info for display
+  const getProjectStatusInfo = (project: any) => {
+    const totalBudget = calculateProjectBudget(project);
+    // Calculate total paid from payments array instead of pricing.totalPaid
+    const totalPaid = (project.payments || []).reduce((sum: number, payment: any) => {
+      if (payment.status === 'approved' || payment.status === 'paid') {
+        return sum + (payment.amount || 0);
+      }
+      return sum;
+    }, 0);
+    const completion = calculateCompletionPercentage(project);
+    
+    return {
+      totalBudget,
+      totalPaid,
+      completion,
+      remaining: totalBudget - totalPaid,
+      budgetDisplay: formatCurrency(totalBudget.toString(), project.pricing?.currency || "USD"),
+      paidDisplay: formatCurrency(totalPaid.toString(), project.pricing?.currency || "USD"),
+      remainingDisplay: formatCurrency((totalBudget - totalPaid).toString(), project.pricing?.currency || "USD")
+    };
+  };
+
+  // CRUD Functions
+  const handleDeleteProject = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete Project",
+      message: `Are you sure you want to delete "${project.title}"? This action cannot be undone and will permanently remove all project data, including milestones, updates, and files.`,
+      onConfirm: () => confirmDeleteProject(projectId),
+      variant: "danger",
+      loading: false,
+    });
+  };
+
+  const confirmDeleteProject = async (projectId: string) => {
+    setConfirmationModal(prev => ({ ...prev, loading: true }));
+    
+    try {
+      const response = await fetch(`/api/client-projects/${projectId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete project");
+      }
+
+      // Remove from local state
+      const updatedProjects = projects.filter(p => p.id !== projectId);
+      setProjects(updatedProjects);
+      setFilteredProjects(updatedProjects);
+      setStats(recomputeStats(updatedProjects));
+      
+      // Close modal and show success toast
+      setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+      toast.success("Project deleted", "The project has been successfully deleted.");
+      
+    } catch (error: any) {
+      console.error("Error deleting project:", error);
+      setConfirmationModal(prev => ({ ...prev, loading: false }));
+      toast.error("Failed to delete project", error.message || "Please try again.");
+    }
+  };
+
+
+  const handleCloseConfirmationModal = () => {
+    setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -490,25 +668,12 @@ const ClientDashboard: React.FC = () => {
       if (updatedData.success) {
         setProjects(updatedData.projects);
         setFilteredProjects(updatedData.projects);
-        setNotifications((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            type: "success",
-            message: "Project created successfully!",
-          },
-        ]);
+        setStats(recomputeStats(updatedData.projects));
+        toast.success("Project created", "Your project has been successfully created!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating project:", error);
-      setNotifications((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          type: "error",
-          message: "Failed to create project. Please try again.",
-        },
-      ]);
+      toast.error("Failed to create project", error.message || "Please try again.");
     }
   };
 
@@ -535,25 +700,12 @@ const ClientDashboard: React.FC = () => {
       if (updatedData.success) {
         setProjects(updatedData.projects);
         setFilteredProjects(updatedData.projects);
-        setNotifications((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            type: "success",
-            message: "Project updated successfully!",
-          },
-        ]);
+        setStats(recomputeStats(updatedData.projects));
+        toast.success("Project updated", "Your project has been successfully updated!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating project:", error);
-      setNotifications((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          type: "error",
-          message: "Failed to update project. Please try again.",
-        },
-      ]);
+      toast.error("Failed to update project", error.message || "Please try again.");
     }
   };
 
@@ -580,25 +732,12 @@ const ClientDashboard: React.FC = () => {
       if (updatedData.success) {
         setProjects(updatedData.projects);
         setFilteredProjects(updatedData.projects);
-        setNotifications((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            type: "success",
-            message: "Project deleted successfully!",
-          },
-        ]);
+        setStats(recomputeStats(updatedData.projects));
+        toast.success("Project deleted", "Your project has been successfully deleted!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting project:", error);
-      setNotifications((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          type: "error",
-          message: "Failed to delete project. Please try again.",
-        },
-      ]);
+      toast.error("Failed to delete project", error.message || "Please try again.");
     }
   };
 
@@ -1676,22 +1815,23 @@ const ClientDashboard: React.FC = () => {
           }
         >
           {filteredProjects.map((project) => (
-            <div
-              key={project.id}
-              className={`group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] ${
-                currentView === "list" ? "p-60" : "p-6"
-              }`}
-              style={{
-                background: `linear-gradient(135deg, 
-                  rgba(59, 130, 246, 0.03) 0%, 
-                  rgba(147, 51, 234, 0.02) 50%, 
-                  rgba(236, 72, 153, 0.03) 100%)`,
-                boxShadow: `
-                  0 8px 32px rgba(0, 0, 0, 0.2),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.05)
-                `,
-              }}
-            >
+            <div key={project.id}>
+              {/* Project Card */}
+              <div
+                className={`group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] ${
+                  currentView === "list" ? "p-60" : "p-6"
+                }`}
+                style={{
+                  background: `linear-gradient(135deg, 
+                    rgba(59, 130, 246, 0.03) 0%, 
+                    rgba(147, 51, 234, 0.02) 50%, 
+                    rgba(236, 72, 153, 0.03) 100%)`,
+                  boxShadow: `
+                    0 8px 32px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05)
+                  `,
+                }}
+              >
               {/* Project Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -1735,13 +1875,13 @@ const ClientDashboard: React.FC = () => {
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-gray-400">Progress</span>
                   <span className="text-sm font-medium text-white">
-                    {project.progress}%
+                    {calculateCompletionPercentage(project)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div
                     className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${project.progress}%` }}
+                    style={{ width: `${calculateCompletionPercentage(project)}%` }}
                   ></div>
                 </div>
               </div>
@@ -1767,24 +1907,82 @@ const ClientDashboard: React.FC = () => {
 
               {/* Project Info */}
               <div className="space-y-2 mb-4">
-                {project.pricing && (
-                  <div className="flex items-center space-x-2 text-sm">
-                    <DollarSign className="w-4 h-4 text-green-400" />
-                    <span className="text-gray-400">
-                      {project.pricing.type === "fixed"
-                        ? formatCurrency(
-                            project.pricing.fixedBudget,
-                            project.pricing.currency
-                          )
-                        : project.pricing.type === "hourly"
-                        ? `${formatCurrency(
-                            project.pricing.hourlyRate,
-                            project.pricing.currency
-                          )}/hr`
-                        : formatCurrency(
-                            project.pricing.totalPaid,
-                            project.pricing.currency
-                          )}
+                {project.pricing && (() => {
+                  const statusInfo = getProjectStatusInfo(project);
+                  return (
+                    <>
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="w-4 h-4 text-green-400" />
+                          <span className="text-gray-400">Budget:</span>
+                        </div>
+                        <span className="text-white font-medium">
+                          {statusInfo.budgetDisplay}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                          </div>
+                          <span className="text-gray-400">Paid:</span>
+                        </div>
+                        <span className="text-blue-400 font-medium">
+                          {statusInfo.paidDisplay}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                          </div>
+                          <span className="text-gray-400">Remaining:</span>
+                        </div>
+                        <span className={`font-medium ${
+                          statusInfo.remaining > 0 ? "text-yellow-400" : "text-green-400"
+                        }`}>
+                          {statusInfo.remainingDisplay}
+                        </span>
+                      </div>
+                      
+                      {/* Budget Progress Bar */}
+                      <div className="mt-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs text-gray-500">Budget Progress</span>
+                          <span className="text-xs text-gray-400">
+                            {statusInfo.totalBudget > 0 
+                              ? Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100)
+                              : 0}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-1.5">
+                          <div
+                            className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 rounded-full transition-all duration-500"
+                            style={{ 
+                              width: `${statusInfo.totalBudget > 0 
+                                ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
+                                : 0}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+
+                {/* Milestone Progress for milestone-based projects */}
+                {project.pricing?.type === "milestone" && project.milestones && (
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                      </div>
+                      <span className="text-gray-400">Milestones:</span>
+                    </div>
+                    <span className="text-purple-400 font-medium">
+                      {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
                     </span>
                   </div>
                 )}
@@ -1801,7 +1999,7 @@ const ClientDashboard: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="realtive w-full bottom-0 flex items-center justify-between pt-4 border-t border-white/10">
+              <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-white/10">
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => {
@@ -1814,18 +2012,55 @@ const ClientDashboard: React.FC = () => {
                     <span>View</span>
                   </button>
 
-                  {project.updates && project.updates.length > 0 && (
-                    <button className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-blue-500/20 text-blue-300 text-sm rounded-md hover:bg-blue-500/30 transition-colors">
-                      <MessageSquare className="w-3 h-3" />
-                      <span>{project.updates.length}</span>
-                    </button>
-                  )}
+
+                  <button
+                    onClick={() => handleDeleteProject(project.id)}
+                    className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-red-500/20 text-red-300 text-sm rounded-md hover:bg-red-500/30 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Delete</span>
+                  </button>
                 </div>
 
-                <div className="text-xs text-gray-500">
-                  Updated {project.updatedAt?.toLocaleDateString()}
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center space-x-2 mb-1">
+                    {project.updates && project.updates.length > 0 && (
+                      <div className="flex items-center space-x-1 text-xs text-blue-400">
+                        <MessageSquare className="w-3 h-3" />
+                        <span>{project.updates.length}</span>
+                      </div>
+                    )}
+                    
+                    {project.files && project.files.length > 0 && (
+                      <div className="flex items-center space-x-1 text-xs text-green-400">
+                        <div className="w-3 h-3 rounded bg-green-400 flex items-center justify-center">
+                          <span className="text-xs font-bold text-green-900">{project.files.length}</span>
+                        </div>
+                        <span>Files</span>
+                      </div>
+                    )}
+                    
+                    {project.payments && project.payments.length > 0 && (
+                      <div className="flex items-center space-x-1 text-xs text-orange-400">
+                        <div className="w-3 h-3 rounded bg-orange-400 flex items-center justify-center">
+                          <span className="text-xs font-bold text-orange-900">{project.payments.length}</span>
+                        </div>
+                        <span>Payments</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    Updated {project.updatedAt?.toLocaleDateString()}
+                  </div>
+                  {project.pricing?.type === "milestone" && project.milestones && (
+                    <div className="text-xs text-purple-400 mt-1">
+                      Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
             </div>
           ))}
         </div>
@@ -1906,11 +2141,13 @@ const ClientDashboard: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2 text-gray-300">
                     <FaBell className="text-lg" />
-                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-semibold">
-                        {notifications.length}
-                      </span>
-                    </div>
+                    {toastNotifications.length > 0 && (
+                      <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-semibold">
+                          {toastNotifications.length}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1963,36 +2200,23 @@ const ClientDashboard: React.FC = () => {
         )}
 
         {/* Toast Notifications */}
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-              notification.type === "success"
-                ? "bg-green-500/20 border-green-500/30 text-green-400"
-                : notification.type === "error"
-                ? "bg-red-500/20 border-red-500/30 text-red-400"
-                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-            }`}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-2">
-                {notification.type === "success" && <FaCheck />}
-                {notification.type === "error" && <FaTimes />}
-                {notification.type === "info" && <FaInfoCircle />}
-                <span className="font-medium">{notification.message}</span>
-              </div>
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          </div>
-        ))}
+        <ToastContainer 
+          notifications={toastNotifications}
+          onRemoveNotification={removeToastNotification}
+          position="top-right"
+        />
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirmationModal.isOpen}
+          title={confirmationModal.title}
+          message={confirmationModal.message}
+          onConfirm={confirmationModal.onConfirm}
+          onCancel={handleCloseConfirmationModal}
+          variant={confirmationModal.variant}
+          loading={confirmationModal.loading}
+          confirmText={confirmationModal.variant === "danger" ? "Delete" : "Confirm"}
+        />
       </div>
     </>
   );

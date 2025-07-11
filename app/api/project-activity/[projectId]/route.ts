@@ -159,7 +159,74 @@ export async function GET(
       });
     }
 
-    // 3. Try to fetch chat messages from MongoDB
+    // 3. Add project updates
+    if (project.updates && project.updates.length > 0) {
+      project.updates.forEach((update: any) => {
+        activities.push({
+          id: `update-${update.id || update._id}`,
+          type: 'update',
+          title: `Project Update: ${update.title}`,
+          description: update.description,
+          createdAt: update.createdAt,
+          actor: {
+            id: update.authorId || 'system',
+            name: update.author || 'System',
+            role: update.authorRole || 'system'
+          }
+        });
+      });
+    }
+
+    // 4. Add milestones
+    if (project.milestones && project.milestones.length > 0) {
+      project.milestones.forEach((milestone: any) => {
+        activities.push({
+          id: `milestone-${milestone.id || milestone._id}`,
+          type: 'milestone',
+          title: `Milestone: ${milestone.title}`,
+          description: `Status: ${milestone.status}`,
+          createdAt: milestone.updatedAt || milestone.createdAt,
+          actor: {
+            id: 'system',
+            name: 'System',
+            role: 'system'
+          }
+        });
+      });
+    }
+
+    // 5. Add payments
+    if (project.payments && project.payments.length > 0) {
+      project.payments.forEach((payment: any) => {
+        // Ensure currency is properly set
+        const currency = payment.currency || 'USD';
+        // Use createdAt instead of date field for activity timestamp
+        const activityDate = payment.createdAt || payment.date || new Date();
+        
+        activities.push({
+          id: `payment-${payment.id || payment._id}`,
+          type: 'payment',
+          title: `Payment of ${payment.amount} ${currency} received`,
+          description: `Status: ${payment.status}`,
+          createdAt: activityDate,
+          actor: {
+            id: 'system',
+            name: 'System',
+            role: 'system'
+          },
+          metadata: {
+            paymentId: payment.id || payment._id,
+            amount: payment.amount,
+            currency: currency,
+            method: payment.method,
+            status: payment.status,
+            submittedBy: payment.submittedBy
+          }
+        });
+      });
+    }
+
+    // 6. Try to fetch chat messages from MongoDB
     try {
       const chatsCollection = db.collection('chats');
       const chatMessagesCollection = db.collection('chatMessages');
@@ -196,7 +263,7 @@ export async function GET(
       console.error('[API] Error fetching chat messages:', chatError);
     }
 
-    // 4. Try to fetch project assignments
+    // 7. Try to fetch project assignments
     try {
       const assignmentsCollection = db.collection('projectAssignments');
       const assignments = await assignmentsCollection.find({

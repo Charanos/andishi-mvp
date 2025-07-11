@@ -70,6 +70,7 @@ export default function ClientDashboardStartProject({}) {
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
   const [formData, setFormData] = useState<FormData>({
     userInfo: {
       firstName: "",
@@ -313,15 +314,35 @@ export default function ClientDashboardStartProject({}) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent duplicate submissions
+    if (submitStatus === "loading") {
+      console.log("Submission already in progress, preventing duplicate");
+      return;
+    }
+
+    // Debounce rapid submissions (prevent submissions within 3 seconds)
+    const now = Date.now();
+    if (now - lastSubmitTime < 3000) {
+      console.log("Preventing rapid submission, please wait...");
+      toast.error("Please wait before submitting again.");
+      return;
+    }
+    setLastSubmitTime(now);
+
     if (!token) {
       toast.error("Authentication error. Please log in again.");
       setSubmitStatus("error");
       return;
     }
 
+    console.log("Starting project submission...");
     setSubmitStatus("loading");
     try {
+      // Generate unique client-side ID to prevent server-side duplicates
+      const clientSubmissionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
       const projectData = {
+        clientSubmissionId, // Add unique identifier
         title: formData.projectDetails.title,
         description: formData.projectDetails.description,
         category: formData.projectDetails.category,
@@ -336,9 +357,12 @@ export default function ClientDashboardStartProject({}) {
           fixedBudget: formData.pricing.fixedBudget,
           hourlyRate: formData.pricing.hourlyRate,
           estimatedHours: formData.pricing.estimatedHours,
+          milestones: formData.pricing.milestones,
         },
         userInfo: formData.userInfo,
       };
+      
+      console.log("Project data with unique ID:", { clientSubmissionId, title: projectData.title });
 
       const response = await fetch("/api/client-projects", {
         method: "POST",
@@ -1163,15 +1187,24 @@ export default function ClientDashboardStartProject({}) {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={!termsAccepted}
+                disabled={!termsAccepted || submitStatus === "loading"}
                 className={`monty uppercase flex items-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 ${
-                  termsAccepted
+                  termsAccepted && submitStatus !== "loading"
                     ? "bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 cursor-pointer"
                     : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                <FaCheck className="text-sm" />
-                <span>Submit Project</span>
+                {submitStatus === "loading" ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaCheck className="text-sm" />
+                    <span>Submit Project</span>
+                  </>
+                )}
               </button>
             )}
           </div>

@@ -433,69 +433,6 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
       {!readOnly && (
         <>
-          {/* Enhanced Search and Filters */}
-          <div className="bg-gray-800/30 rounded-2xl p-6 border border-gray-700/50">
-            <div className="flex gap-3 flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-              <div className="flex-1 relative">
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search developers by name, email, or company..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 transition-all duration-200"
-                />
-              </div>
-
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center space-x-2 px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl hover:bg-gray-600/50 transition-colors text-white"
-                >
-                  <FaFilter />
-                  <FaChevronDown
-                    className={`transform transition-transform ${showFilters ? "rotate-180" : ""
-                      }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            {showFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-700/50">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <label className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl hover:bg-gray-600/30 transition-colors cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filterAvailable}
-                      onChange={(e) => setFilterAvailable(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-white">Available only</span>
-                  </label>
-
-                  <div className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl">
-                    <FaSort className="text-gray-400" />
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as any)}
-                      className="bg-transparent text-white focus:outline-none"
-                    >
-                      <option value="compatibility">Sort by Compatibility</option>
-                      <option value="rating">Sort by Rating</option>
-                      <option value="projects">Sort by Projects</option>
-                      <option value="rate">Sort by Rate</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center justify-center p-3 bg-gray-700/30 rounded-xl text-gray-400">
-                    {getFilteredDevelopers().length} developers found
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Enhanced Available Developers */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">

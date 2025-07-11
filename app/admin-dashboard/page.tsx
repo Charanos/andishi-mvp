@@ -45,6 +45,14 @@ import {
   FaBuilding,
   FaFlag,
 } from "react-icons/fa";
+import {
+  MoreVertical,
+  Calendar,
+  DollarSign,
+  MessageSquare,
+  Eye,
+  Trash2,
+} from "lucide-react";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
 import ProjectAssignments from "./ProjectAssignments";
 import AdvancedAnalyticsDashboard from "./renderAnalytics";
@@ -1516,158 +1524,221 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 return (
                   <div
                     key={project?._id}
-                    className="group relative bg-white/5 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 hover:border-slate-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                    onClick={() => setSelectedProject(project)}
+                    className="group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] p-6"
+                    style={{
+                      background: `linear-gradient(135deg, 
+                        rgba(59, 130, 246, 0.03) 0%, 
+                        rgba(147, 51, 234, 0.02) 50%, 
+                        rgba(236, 72, 153, 0.03) 100%)`,
+                      boxShadow: `
+                        0 8px 32px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.05)
+                      `,
+                    }}
                   >
-                    {/* Priority Indicator */}
-                    <div
-                      className={`absolute top-4 right-4 w-3 h-3 rounded-full ${priority === "critical"
-                        ? "bg-red-500/20 shadow-lg shadow-red-500/30"
-                        : priority === "high"
-                          ? "bg-orange-500/20 shadow-lg shadow-orange-500/30"
-                          : priority === "medium"
-                            ? "bg-yellow-500/20 shadow-lg shadow-yellow-500/30"
-                            : "bg-green-500/20 shadow-lg shadow-green-500/30"
-                        }`}
-                    />
-
-                    {/* Header */}
+                    {/* Project Header */}
                     <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1 pr-4">
-                        <h3 className="text-lg font-semibold text-white mb-4 group-hover:text-blue-400 transition-colors line-clamp-2">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
                           {project?.projectDetails?.title ?? "Untitled Project"}
                         </h3>
-                        <p className="text-sm text-gray-400 flex items-center gap-2">
-                          <FaUser className="text-blue-400" />
-                          {project?.userInfo?.firstName ?? "Unknown"}{" "}
-                          {project?.userInfo?.lastName ?? ""}
+                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">
+                          {project?.projectDetails?.description ?? "No description"}
                         </p>
-                        <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                          <FaBuilding className="text-purple-400" />
-                          {project?.userInfo?.company ?? "No Company"}
-                        </p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <p className="text-sm text-gray-400 flex items-center gap-2">
+                            <FaUser className="text-blue-400" />
+                            {project?.userInfo?.firstName ?? "Unknown"} {project?.userInfo?.lastName ?? ""}
+                          </p>
+                          {project?.userInfo?.company && (
+                            <p className="text-sm text-gray-400 flex items-center gap-2">
+                              <FaBuilding className="text-purple-400" />
+                              {project?.userInfo?.company}
+                            </p>
+                          )}
+                        </div>
                       </div>
-
-                      {/* Status Badge */}
-                      <div className="flex flex-col items-end gap-2">
-                        <div
-                          className={`flex items-center monty uppercase gap-1 px-3 py-1 rounded-full text-xs font-medium ${status === "in-progress"
-                            ? " text-green-400 border border-green-500/30"
-                            : status === "completed"
-                              ? " text-blue-400 border border-blue-500/30"
-                              : status === "pending"
-                                ? " text-orange-400 border border-orange-500/30"
-                                : " text-red-400 border border-red-500/30"
-                            }`}
-                        >
-                          {getStatusIcon(status)}
-                          {status}
-                        </div>
-                        <div
-                          className={`px-2 py-1 monty uppercase rounded-full text-xs font-medium ${getPriorityColor(
-                            priority
-                          )}`}
-                        >
-                          {priority}
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <button className="p-1 text-gray-400 hover:text-white transition-colors">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
 
-                    {/* Project Details */}
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center text-sm text-gray-300">
-                        <FaProjectDiagram className="mr-3 text-blue-400" />
-                        <span className="font-medium monty uppercase">
-                          {project?.projectDetails?.category ?? "Uncategorized"}
+                    {/* Status and Priority Badges */}
+                    <div className="flex items-center space-x-2 mb-4">
+                      <span
+                        className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(status)}`}
+                      >
+                        {getStatusIcon(status)}
+                        <span className="capitalize">
+                          {status?.replace("_", " ") || "pending"}
                         </span>
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-300">
-                        <FaDollarSign className="mr-3 text-indigo-400" />
-                        <span className="font-semibold text-xl text-green-400">
-                          {formatCurrency(
-                            calculateProjectBudget(project),
-                            project?.pricing?.currency ?? "USD"
-                          )}
-                        </span>
-                      </div>
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(priority)}`}
+                      >
+                        {(priority || "low").toUpperCase()}
+                      </span>
                     </div>
 
                     {/* Progress Bar */}
                     <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-gray-400">Progress</span>
                         <span className="text-sm font-medium text-white">
                           {progress}%
                         </span>
                       </div>
-                      <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-gray-700 rounded-full h-2">
                         <div
-                          className={`h-full transition-all duration-500 ease-out ${progress < 25
-                            ? "bg-gradient-to-r from-red-500 to-red-400"
-                            : progress < 50
-                              ? "bg-gradient-to-r from-orange-500 to-orange-400"
-                              : progress < 75
-                                ? "bg-gradient-to-r from-yellow-500 to-yellow-400"
-                                : progress < 100
-                                  ? "bg-gradient-to-r from-blue-500 to-blue-400"
-                                  : "bg-gradient-to-r from-green-500 to-green-400"
-                            }`}
+                          className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
                           style={{ width: `${progress}%` }}
-                        />
+                        ></div>
                       </div>
                     </div>
 
-                    {/* Milestones Indicator */}
-                    {project?.milestones && project.milestones.length > 0 && (
+                    {/* Tech Stack */}
+                    {project?.projectDetails?.techStack && (
                       <div className="mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                          <FaFlag className="text-purple-400" />
-                          <span>Milestones</span>
-                        </div>
-                        <div className="flex gap-1">
-                          {project.milestones
-                            .slice(0, 5)
-                            .map((milestone: any, index: number) => (
-                              <div
-                                key={index}
-                                className={`w-2 h-2 rounded-full ${milestone.completed
-                                  ? "bg-green-400"
-                                  : "bg-gray-600"
-                                  }`}
-                              />
-                            ))}
-                          {project.milestones.length > 5 && (
-                            <span className="text-xs text-gray-500 ml-1">
-                              +{project.milestones.length - 5}
+                        <div className="flex flex-wrap gap-1">
+                          {(project.projectDetails.techStack || []).slice(0, 3).map((tech: string, index: number) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                          {(project.projectDetails.techStack || []).length > 3 && (
+                            <span className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md">
+                              +{(project.projectDetails.techStack || []).length - 3} more
                             </span>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-600/30">
-                      <div className="flex items-center monty uppercase gap-2 text-sm text-gray-400">
-                        <FaCalendarAlt className="text-blue-400" />
-                        <span>
-                          {project?.createdAt
-                            ? formatDate(project.createdAt)
-                            : "No date"}
-                        </span>
-                      </div>
+                    {/* Project Info */}
+                    <div className="space-y-2 mb-4">
+                      {project?.pricing && (() => {
+                        const getProjectStatusInfo = (project: ProjectData) => {
+                          const totalBudget = calculateProjectBudget(project);
+                          const totalPaid = project.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+                          const remaining = totalBudget - totalPaid;
 
-                      <div className="flex items-center gap-2">
+                          return {
+                            budgetDisplay: formatCurrency(totalBudget, project.pricing.currency),
+                            paidDisplay: formatCurrency(totalPaid, project.pricing.currency),
+                            remainingDisplay: formatCurrency(remaining, project.pricing.currency),
+                            totalBudget,
+                            totalPaid,
+                            remaining,
+                          };
+                        };
+
+                        const statusInfo = getProjectStatusInfo(project);
+                        return (
+                          <>
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                <DollarSign className="w-4 h-4 text-green-400" />
+                                <span className="text-gray-400">Budget:</span>
+                              </div>
+                              <span className="text-white font-medium">
+                                {statusInfo.budgetDisplay}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                                </div>
+                                <span className="text-gray-400">Paid:</span>
+                              </div>
+                              <span className="text-blue-400 font-medium">
+                                {statusInfo.paidDisplay}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                                </div>
+                                <span className="text-gray-400">Remaining:</span>
+                              </div>
+                              <span className={`font-medium ${
+                                statusInfo.remaining > 0 ? "text-yellow-400" : "text-green-400"
+                              }`}>
+                                {statusInfo.remainingDisplay}
+                              </span>
+                            </div>
+                            
+                            {/* Budget Progress Bar */}
+                            <div className="mt-2">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs text-gray-500">Budget Progress</span>
+                                <span className="text-xs text-gray-400">
+                                  {statusInfo.totalBudget > 0 
+                                    ? Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100)
+                                    : 0}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-1.5">
+                                <div
+                                  className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 rounded-full transition-all duration-500"
+                                  style={{ 
+                                    width: `${statusInfo.totalBudget > 0 
+                                      ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
+                                      : 0}%` 
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {/* Milestone Progress for milestone-based projects */}
+                      {project?.pricing?.type === "milestone" && project?.milestones && (
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                            </div>
+                            <span className="text-gray-400">Milestones:</span>
+                          </div>
+                          <span className="text-purple-400 font-medium">
+                            {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
+                          </span>
+                        </div>
+                      )}
+
+                      {project?.createdAt && (
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Calendar className="w-4 h-4 text-blue-400" />
+                          <span className="text-gray-400">
+                            Created: {formatDate(project.createdAt)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-white/10">
+                      <div className="flex items-center space-x-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedProject(project);
                             setViewMode("detail");
                           }}
-                          className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all duration-200"
-                          title="View Details"
+                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-purple-500/20 text-purple-300 text-sm rounded-md hover:bg-purple-500/30 transition-colors"
                         >
-                          <FaEye />
+                          <Eye className="w-3 h-3" />
+                          <span>View</span>
                         </button>
 
                         <button
@@ -1678,16 +1749,51 @@ export default function EnhancedAdminDashboard(): ReactNode {
                               setProjectDeleteModalOpen(true);
                             }
                           }}
-                          className="cursor-pointer p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200"
-                          title="Delete Project"
+                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-red-500/20 text-red-300 text-sm rounded-md hover:bg-red-500/30 transition-colors"
                         >
-                          <FaTrash />
+                          <Trash2 className="w-3 h-3" />
+                          <span>Delete</span>
                         </button>
                       </div>
-                    </div>
 
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                      <div className="flex flex-col items-end">
+                        <div className="flex items-center space-x-2 mb-1">
+                          {project?.updates && project.updates.length > 0 && (
+                            <div className="flex items-center space-x-1 text-xs text-blue-400">
+                              <MessageSquare className="w-3 h-3" />
+                              <span>{project.updates.length}</span>
+                            </div>
+                          )}
+                          
+                          {project?.files && project.files.length > 0 && (
+                            <div className="flex items-center space-x-1 text-xs text-green-400">
+                              <div className="w-3 h-3 rounded bg-green-400 flex items-center justify-center">
+                                <span className="text-xs font-bold text-green-900">{project.files.length}</span>
+                              </div>
+                              <span>Files</span>
+                            </div>
+                          )}
+                          
+                          {project?.payments && project.payments.length > 0 && (
+                            <div className="flex items-center space-x-1 text-xs text-orange-400">
+                              <div className="w-3 h-3 rounded bg-orange-400 flex items-center justify-center">
+                                <span className="text-xs font-bold text-orange-900">{project.payments.length}</span>
+                              </div>
+                              <span>Payments</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="text-xs text-gray-500">
+                          Updated {project?.updatedAt ? formatDate(project.updatedAt) : 'N/A'}
+                        </div>
+                        {project?.pricing?.type === "milestone" && project?.milestones && (
+                          <div className="text-xs text-purple-400 mt-1">
+                            Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })}

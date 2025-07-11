@@ -43,6 +43,27 @@ model DeveloperProfile {
   assignments     ProjectAssignment[]
 }
 
+type Milestone {
+  id           String
+  title        String
+  description  String?
+  budget       Float
+  timeline     String?
+  status       String    @default("pending")
+  dueDate      DateTime?
+  order        Int
+  deliverables String[]
+  completedAt  DateTime?
+}
+
+type Pricing {
+    type String
+    currency String
+    fixedBudget Float?
+    hourlyRate Float?
+    estimatedHours Int?
+}
+
 model Project {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   title           String
@@ -59,6 +80,8 @@ model Project {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   assignments     ProjectAssignment[]
+  milestones      Milestone[]
+  pricing         Pricing?
 }
 
 model ProjectAssignment {

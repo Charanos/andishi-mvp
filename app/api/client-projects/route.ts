@@ -62,19 +62,9 @@ interface ProjectPayment {
   status: string;
   submittedBy: string;
   notes?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-interface ProjectPayment {
-  _id?: ObjectId;
-  id?: string;
-  amount: number;
-  date: Date;
-  method: string;
-  status: string;
-  submittedBy: string;
-  notes?: string;
+  description?: string;
+  currency?: string;
+  invoiceUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -231,7 +221,11 @@ export async function GET(req: NextRequest) {
       console.log(`\n=== TRANSFORMING PROJECT: ${project._id} ===`);
       console.log('Raw project milestones:', project.milestones?.length || 0);
       console.log('Raw pricing milestones:', project.pricing?.milestones?.length || 0);
+      console.log('Raw project payments:', project.payments?.length || 0);
       console.log('Raw pricing:', project.pricing);
+      console.log('Project milestones data:', project.milestones);
+      console.log('Pricing milestones data:', project.pricing?.milestones);
+      console.log('Project payments data:', project.payments);
       
       const transformedProject = {
         _id: project._id.toString(),
@@ -281,10 +275,17 @@ export async function GET(req: NextRequest) {
         payments: (project.payments || []).map((p: any) => ({
           id: p._id?.toString() || p.id,
           amount: p.amount,
-        method: p.method,
-        notes: p.notes,
-        date: p.date ? new Date(p.date) : undefined,
-      })),
+          method: p.method,
+          notes: p.notes,
+          date: p.date ? (typeof p.date === 'string' ? p.date : new Date(p.date).toISOString().split('T')[0]) : undefined,
+          status: p.status || 'pending',
+          submittedBy: p.submittedBy || 'client',
+          currency: p.currency || 'USD',
+          description: p.description || p.notes || '',
+          invoiceUrl: p.invoiceUrl || '',
+          createdAt: p.createdAt ? (typeof p.createdAt === 'string' ? p.createdAt : new Date(p.createdAt).toISOString()) : new Date().toISOString(),
+          updatedAt: p.updatedAt ? (typeof p.updatedAt === 'string' ? p.updatedAt : new Date(p.updatedAt).toISOString()) : undefined,
+        })),
       files: (project.files || []).map((f: ProjectFile) => ({
         id: f._id?.toString() || f.id,
         fileName: f.fileName,
@@ -310,6 +311,8 @@ export async function GET(req: NextRequest) {
       
       console.log('Transformed project milestones:', transformedProject.milestones?.length || 0);
       console.log('Transformed project pricing:', transformedProject.pricing);
+      console.log('Transformed project payments:', transformedProject.payments?.length || 0);
+      console.log('Transformed project payments data:', transformedProject.payments);
       
       return transformedProject;
     });
@@ -365,11 +368,35 @@ export async function POST(req: NextRequest) {
     }
 
     const projectData = await req.json();
+    
+    console.log('\n=== PROJECT CREATION DEBUG ===');
+    console.log('Received project data:', JSON.stringify(projectData, null, 2));
+    console.log('Pricing type:', projectData.pricing?.type);
+    console.log('Pricing milestones:', projectData.pricing?.milestones);
+    console.log('Milestone count:', projectData.pricing?.milestones?.length || 0);
+    console.log('Client submission ID:', projectData.clientSubmissionId);
+    
+    // Check for duplicate submission using clientSubmissionId
+    if (projectData.clientSubmissionId) {
+      const existingProject = await db.collection('projects').findOne({
+        clientSubmissionId: projectData.clientSubmissionId
+      });
+      
+      if (existingProject) {
+        console.log('Duplicate submission detected:', projectData.clientSubmissionId);
+        return new NextResponse(JSON.stringify({
+          success: false,
+          message: 'Duplicate submission detected. Project already exists.',
+          existingProjectId: existingProject._id
+        }), { status: 409, headers: corsHeaders });
+      }
+    }
 
     // Add metadata
     const now = new Date();
     const projectToInsert = {
       ...projectData,
+      clientSubmissionId: projectData.clientSubmissionId, // Store for duplicate prevention
       projectDetails: {
         title: projectData.title,
         description: projectData.description,
@@ -391,8 +418,34 @@ export async function POST(req: NextRequest) {
         firstName: user.firstName,
         lastName: user.lastName,
         company: user.company
-      }
+      },
+      // Initialize empty arrays for CRUD operations
+      payments: [],
+      files: [],
+      updates: []
     };
+
+    // Handle milestones if pricing type is milestone
+    console.log('\n=== MILESTONE STORAGE DEBUG ===');
+    console.log('Pricing type check:', projectData.pricing?.type === 'milestone');
+    console.log('Milestones exist check:', projectData.pricing?.milestones && projectData.pricing?.milestones.length > 0);
+    
+    if (projectData.pricing?.type === 'milestone' && projectData.pricing.milestones && projectData.pricing.milestones.length > 0) {
+      console.log('Creating milestones from pricing data...');
+      projectToInsert.milestones = projectData.pricing.milestones.map((m: any) => ({
+        ...m,
+        _id: new ObjectId(),
+        id: new ObjectId().toString(),
+        status: m.status || 'pending',
+        dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+      console.log('Created milestones:', projectToInsert.milestones);
+    } else {
+      console.log('No milestones to create, setting empty array');
+      projectToInsert.milestones = [];
+    }
 
     const result = await db.collection('projects').insertOne(projectToInsert);
 
@@ -608,21 +661,33 @@ export async function PATCH(req: NextRequest) {
             break;
             
           case 'payment_create':
+            console.log('\n=== PAYMENT CREATION DEBUG ===');
+            console.log('Received payment data:', data);
+            
             const newPayment: ProjectPayment = {
               _id: new ObjectId(),
               id: new ObjectId().toString(),
               amount: data.amount,
-              date: data.date ? new Date(data.date) : new Date(),
-              method: data.method,
-              status: data.status,
-              submittedBy: data.submittedBy,
-              notes: data.description, // Map description to notes
+              date: data.date || new Date().toISOString().split('T')[0], // Use current date if not provided
+              method: data.method || 'bank_transfer',
+              status: data.status || 'pending',
+              submittedBy: data.submittedBy || 'client',
+              notes: data.description || data.notes || '',
+              description: data.description || data.notes || '',
+              currency: data.currency || 'USD',
+              invoiceUrl: data.invoiceUrl || '',
               createdAt: new Date(),
+              updatedAt: new Date(),
             };
+            
+            console.log('Creating payment object:', newPayment);
+            
             operationResult = await db.collection('projects').updateOne(
               { _id: new ObjectId(projectId) },
               { $push: { payments: { $each: [newPayment] } } } as any
             );
+            
+            console.log('Payment creation result:', operationResult);
             break;
             
           case 'payment_update':

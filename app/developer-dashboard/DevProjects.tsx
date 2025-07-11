@@ -634,30 +634,32 @@ export default function DevProjects({ projects }: DevProjectsProps) {
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
                       <div
                         className={`w-4 h-4 rounded-full ${
-                          milestone.completed ? "bg-green-500" : "bg-gray-500"
+                          milestone.completedAt ? "bg-green-500" : "bg-gray-500"
                         } flex items-center justify-center`}
                       >
-                        {milestone.completed && (
+                        {milestone.completedAt && (
                           <FaCheck className="text-white text-xs" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <span
                           className={`text-sm block truncate ${
-                            milestone.completed ? "text-white" : "text-gray-400"
+                            milestone.completedAt ? "text-white" : "text-gray-400"
                           }`}
                         >
                           {milestone.title}
                         </span>
                         <span className="text-xs text-gray-500">
                           Due:{" "}
-                          {new Date(milestone.dueDate).toLocaleDateString()}
+                          {milestone.dueDate
+                            ? new Date(milestone.dueDate).toLocaleDateString()
+                            : "N/A"}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="text-green-400 font-semibold text-sm">
-                        ${milestone.payment.toLocaleString()}
+                        ${parseFloat(milestone.budget).toLocaleString()}
                       </span>
                     </div>
                   </div>

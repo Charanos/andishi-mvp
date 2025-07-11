@@ -1,4 +1,4 @@
-import { Milestone } from './index';
+
 
 export interface ProjectMetrics {
   linesOfCode: number;
@@ -30,13 +30,7 @@ export interface ProjectAssignment {
     estimatedHours: number;
     actualHours?: number;
   }[];
-  milestones: {
-    id: string;
-    title: string;
-    dueDate: string;
-    completed: boolean;
-    payment: number;
-  }[];
+  milestones: Milestone[];
   riskLevel: "low" | "medium" | "high";
   satisfaction: number;
   category: string;
@@ -46,6 +40,31 @@ export interface ProjectAssignment {
   actualHours: number;
   efficiency: number;
 }
+
+
+
+export type MilestoneStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "in-progress"
+  | "completed"
+  | "cancelled";
+
+export interface Milestone {
+  id: string;
+  title: string;
+  description: string;
+  budget: string;
+  timeline: string;
+  status: MilestoneStatus;
+  dueDate?: Date;
+  completedAt?: Date;
+  submittedBy?: "client" | "admin";
+  order: number;
+  deliverables?: string[];
+}
+
 
 export interface Assignment {
   id: string;

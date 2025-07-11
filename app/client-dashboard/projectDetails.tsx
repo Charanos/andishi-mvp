@@ -265,14 +265,68 @@ export default function EnhancedProjectTracking({
         actualCompletionDate: data.actualCompletionDate
           ? new Date(data.actualCompletionDate)
           : undefined,
-        milestones: (data.milestones?.length
-          ? data.milestones
-          : data.pricing?.milestones || []
-        ).map((m) => ({
-          ...m,
-          dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-          completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-        })),
+        milestones: (() => {
+          // If project has milestones, use them
+          if (data.milestones?.length) {
+            return data.milestones.map((m) => ({
+              ...m,
+              dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+              completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+              budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
+              title: m.title || 'Untitled Milestone',
+              description: m.description || 'No description provided',
+              status: m.status || 'pending'
+            }));
+          }
+          
+          // If pricing has milestones, use them
+          if (data.pricing?.milestones?.length) {
+            return data.pricing.milestones.map((m) => ({
+              ...m,
+              dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+              completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+              budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
+              title: m.title || 'Untitled Milestone',
+              description: m.description || 'No description provided',
+              status: m.status || 'pending'
+            }));
+          }
+          
+          // If pricing type is milestone but no milestones exist, create default ones
+          if (data.pricing?.type === 'milestone') {
+            return [
+              {
+                id: 'default-milestone-1',
+                title: 'Project Planning & Setup',
+                description: 'Initial project setup, requirements gathering, and planning phase',
+                budget: '0',
+                status: 'pending' as const,
+                dueDate: undefined,
+                completedAt: undefined
+              },
+              {
+                id: 'default-milestone-2',
+                title: 'Development Phase',
+                description: 'Core development work and feature implementation',
+                budget: '0',
+                status: 'pending' as const,
+                dueDate: undefined,
+                completedAt: undefined
+              },
+              {
+                id: 'default-milestone-3',
+                title: 'Testing & Deployment',
+                description: 'Quality assurance, testing, and final deployment',
+                budget: '0',
+                status: 'pending' as const,
+                dueDate: undefined,
+                completedAt: undefined
+              }
+            ];
+          }
+          
+          return [];
+        })(),
         updates: data.updates?.map((u) => ({
           ...u,
           createdAt: new Date(u.createdAt),
@@ -612,11 +666,9 @@ export default function EnhancedProjectTracking({
 
   const trackingTabs = [
     { id: "overview", label: "Overview", icon: Target },
-    { id: "timeline", label: "Timeline", icon: Calendar },
     { id: "milestones", label: "Milestones", icon: CheckCircle },
     { id: "budget", label: "Budget & Payments", icon: DollarSign },
     { id: "files", label: "Files", icon: FileText },
-    { id: "updates", label: "Updates", icon: MessageSquare },
     { id: "activity", label: "Activity", icon: Activity },
     { id: "assignments", label: "Team Assignments", icon: CheckCircle },
     { id: "chat", label: "Project Chat", icon: MessageSquare },
@@ -818,81 +870,7 @@ export default function EnhancedProjectTracking({
           </div>
         );
 
-      case "timeline":
-        return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Project Timeline
-            </h2>
-            <div className="space-y-4">
-              <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                <label className="text-sm font-medium text-gray-400 mb-1 block">
-                  Created
-                </label>
-                <p className="text-white font-medium">
-                  {new Date(projectData.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-              {projectData.startDate && (
-                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <label className="text-sm font-medium text-gray-400 mb-1 block">
-                    Started
-                  </label>
-                  <p className="text-white font-medium">
-                    {(typeof projectData.startDate === "string"
-                      ? new Date(projectData.startDate)
-                      : projectData.startDate
-                    ).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              )}
-              {projectData.estimatedCompletionDate && (
-                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <label className="text-sm font-medium text-gray-400 mb-1 block">
-                    {projectData.actualCompletionDate
-                      ? "Estimated Completion"
-                      : "Expected Completion"}
-                  </label>
-                  <p className="text-white font-medium">
-                    {(typeof projectData.estimatedCompletionDate === "string"
-                      ? new Date(projectData.estimatedCompletionDate)
-                      : projectData.estimatedCompletionDate
-                    ).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              )}
-              {projectData.actualCompletionDate && (
-                <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                  <label className="text-sm font-medium text-green-400 mb-1 block">
-                    Completed
-                  </label>
-                  <p className="text-white font-medium">
-                    {(typeof projectData.actualCompletionDate === "string"
-                      ? new Date(projectData.actualCompletionDate)
-                      : projectData.actualCompletionDate
-                    ).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
+      
 
       case "milestones":
         return (
@@ -1631,172 +1609,7 @@ export default function EnhancedProjectTracking({
           </div>
         );
 
-      case "updates":
-        return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Project Updates
-            </h2>
-
-            {/* Add Update Form */}
-            <div className="mb-8 p-6 bg-white/[0.03] rounded-xl border border-white/10">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Post an Update
-              </h3>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Update title"
-                  value={newUpdate.title || ""}
-                  onChange={(e) =>
-                    setNewUpdate({ ...newUpdate, title: e.target.value })
-                  }
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
-                />
-                <textarea
-                  placeholder="What's the update about?"
-                  value={newUpdate.description || ""}
-                  onChange={(e) =>
-                    setNewUpdate({ ...newUpdate, description: e.target.value })
-                  }
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
-                  rows={4}
-                />
-                <div className="flex items-center space-x-4">
-                  <select
-                    value={newUpdate.type || "general"}
-                    onChange={(e) =>
-                      setNewUpdate({
-                        ...newUpdate,
-                        type: e.target.value as UpdateType,
-                      })
-                    }
-                    className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
-                  >
-                    <option value="general">General Update</option>
-                    <option value="milestone">Milestone Update</option>
-                    <option value="payment">Payment Update</option>
-                    <option value="file">File Update</option>
-                  </select>
-                  <button
-                    onClick={handleAddUpdate}
-                    className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Post Update</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Updates List */}
-            <div className="space-y-6">
-              {projectData.updates?.map((update) => (
-                <div
-                  key={update.id}
-                  className={`p-6 rounded-xl border transition-all duration-200 ${update.isAdminResponse
-                    ? "bg-blue-500/5 border-blue-500/20 ml-8"
-                    : "bg-white/[0.03] border-white/10 hover:bg-white/[0.05]"
-                    }`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-white">
-                          {update.title}
-                        </h3>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${update.type === "admin_response"
-                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                            : "bg-gray-500/20 text-gray-300 border border-gray-500/30"
-                            }`}
-                        >
-                          {update.type.replace("_", " ")}
-                        </span>
-                        {update.isAdminResponse && (
-                          <span className="px-2 py-1 bg-blue-500/30 text-blue-200 rounded text-xs">
-                            Admin
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-gray-300 mb-3">{update.description}</p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span>By {update.author || "Unknown"}</span>
-                        <span>•</span>
-                        <span>
-                          {(typeof update.createdAt === "string"
-                            ? new Date(update.createdAt)
-                            : update.createdAt
-                          ).toLocaleDateString()}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          {(typeof update.createdAt === "string"
-                            ? new Date(update.createdAt)
-                            : update.createdAt
-                          ).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Reply Section */}
-                  {!update.isAdminResponse && (
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      {replyingTo === update.id ? (
-                        <div className="space-y-3">
-                          <textarea
-                            placeholder="Write your response..."
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
-                            rows={3}
-                          />
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={() => handleReply(update.id)}
-                              className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition-colors"
-                            >
-                              <Send className="w-4 h-4" />
-                              <span>Send Reply</span>
-                            </button>
-                            <button
-                              onClick={() => setReplyingTo(null)}
-                              className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                              <span>Cancel</span>
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setReplyingTo(update.id)}
-                          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-                        >
-                          <Reply className="w-4 h-4" />
-                          <span>Reply</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {(projectData.updates || []).length === 0 && (
-                <div className="text-center py-12">
-                  <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    No Updates Yet
-                  </h3>
-                  <p className="text-gray-400">
-                    Post your first update to get started.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
+      
 
       case "milestones":
         return (
@@ -2001,17 +1814,14 @@ export default function EnhancedProjectTracking({
       case "assignments":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            {loadingDevelopers ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-                <span className="ml-3 text-gray-400">Loading developers...</span>
-              </div>
-            ) : (
+            {user && (
               <ProjectAssignmentsComponent
                 projectId={projectData._id}
                 projectTitle={projectData.projectDetails.title}
                 projectTechStack={projectData.projectDetails.techStack}
-                projectExperienceLevel={projectData.projectDetails.experienceLevel}
+                projectExperienceLevel={
+                  projectData.projectDetails.experienceLevel
+                }
                 developers={developers}
                 readOnly={true}
               />

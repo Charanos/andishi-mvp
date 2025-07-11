@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import clientPromise from '@/lib/mongodb';
 import { getSession } from '@/lib/getSession';
+import { ObjectId } from 'mongodb';
 
 export interface ActivityItem {
   id: string;
@@ -79,27 +80,16 @@ export async function GET(
 
     let project;
     try {
-      project = await prisma.project.findUnique({
-        where: { id: projectId },
-        include: {
-          assignments: {
-            include: {
-              developer: {
-                include: {
-                  user: {
-                    select: {
-                      id: true,
-                      firstName: true,
-                      lastName: true,
-                      email: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+      const client = await clientPromise;
+      const db = client.db('andishi-mvp');
+      const projectsCollection = db.collection('projects');
+      
+      // Try to find project by _id (MongoDB ObjectId)
+      project = await projectsCollection.findOne({
+        _id: new ObjectId(projectId)
       });
+      
+      console.log('[API] Project found:', project ? 'Yes' : 'No');
     } catch (dbError) {
       console.error('[API] Database error while fetching project:', dbError);
       return NextResponse.json(
@@ -121,8 +111,10 @@ export async function GET(
     const userId = session.user.id;
     const hasAccess =
       userRole === 'admin' ||
-      project.clientId === userId ||
-      project.assignments.some(a => a.developer?.userId === userId);
+      project.clientId?.toString() === userId ||
+      project.createdBy?.toString() === userId;
+    
+    console.log('[API] Access check:', { userRole, userId, clientId: project.clientId?.toString(), createdBy: project.createdBy?.toString(), hasAccess });
 
     if (!hasAccess) {
       console.log(`[API] User ${userId} does not have access to project ${projectId}`);
@@ -133,114 +125,12 @@ export async function GET(
     }
 
     const activities: ActivityItem[] = [];
+    
+    console.log('[API] Generating activities for project:', project.title);
 
-    // 1. Fetch Chat Messages (system messages and regular messages)
-    try {
-      const chatMessages = await prisma.chatMessage.findMany({
-        where: {
-          chat: {
-            projectId: projectId
-          }
-        },
-        orderBy: {
-          timestamp: 'desc'
-        },
-        take: 50
-      });
-
-      // Convert chat messages to activities
-      chatMessages.forEach(message => {
-        if (message.senderId === 'system') {
-          activities.push({
-            id: `chat-${message.id}`,
-            type: 'system',
-            title: 'System Notification',
-            description: message.content,
-            createdAt: message.timestamp,
-            actor: {
-              id: 'system',
-              name: 'System',
-              role: 'system'
-            }
-          });
-        } else {
-          activities.push({
-            id: `chat-${message.id}`,
-            type: 'chat',
-            title: `${message.senderName} sent a message`,
-            description: message.content.length > 100 ?
-              `${message.content.substring(0, 100)}...` :
-              message.content,
-            createdAt: message.timestamp,
-            actor: {
-              id: message.senderId,
-              name: message.senderName,
-              role: message.senderRole
-            }
-          });
-        }
-      });
-    } catch (chatError) {
-      console.error('[API] Error fetching chat messages:', chatError);
-      // Don't fail the entire request, just log the error
-    }
-
-    // 2. Fetch Assignment Activities
-    try {
-      const assignments = await prisma.projectAssignment.findMany({
-        where: {
-          projectId: projectId
-        },
-        include: {
-          developer: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: {
-          assignedAt: 'desc'
-        }
-      });
-
-      assignments.forEach(assignment => {
-        const developerName = assignment.developer?.user
-          ? `${assignment.developer.user.firstName} ${assignment.developer.user.lastName}`
-          : 'Unknown Developer';
-
-        activities.push({
-          id: `assignment-${assignment.id}`,
-          type: 'assignment',
-          title: `${developerName} was assigned`,
-          description: `Added as ${assignment.role} to the project team`,
-          createdAt: assignment.assignedAt,
-          actor: {
-            id: 'system',
-            name: 'System',
-            role: 'system'
-          },
-          metadata: {
-            developerId: assignment.developerId,
-            role: assignment.role,
-            status: assignment.status
-          }
-        });
-      });
-    } catch (assignmentError) {
-      console.error('[API] Error fetching assignments:', assignmentError);
-      // Don't fail the entire request, just log the error
-    }
-
-    // 3. Add project creation activity
+    // 1. Add project creation activity
     activities.push({
-      id: `project-created-${project.id}`,
+      id: `project-created-${project._id}`,
       type: 'system',
       title: 'Project Created',
       description: `Project "${project.title}" was created`,
@@ -251,6 +141,84 @@ export async function GET(
         role: 'system'
       }
     });
+    
+    // 2. Add project completion activity if completed
+    if (project.actualCompletionDate) {
+      activities.push({
+        id: `project-completed-${project._id}`,
+        type: 'milestone',
+        title: 'Project Completed',
+        description: `Project "${project.title}" was marked as completed`,
+        createdAt: project.actualCompletionDate,
+        actor: {
+          id: 'system',
+          name: 'System',
+          role: 'system'
+        }
+      });
+    }
+    
+    // 3. Try to fetch chat messages from MongoDB
+    try {
+      const chatsCollection = db.collection('chats');
+      const chatMessagesCollection = db.collection('chatMessages');
+      
+      // Find chat for this project
+      const projectChat = await chatsCollection.findOne({
+        projectId: new ObjectId(projectId)
+      });
+      
+      if (projectChat) {
+        // Find recent messages
+        const recentMessages = await chatMessagesCollection.find({
+          chatId: projectChat._id
+        }).sort({ timestamp: -1 }).limit(10).toArray();
+        
+        recentMessages.forEach(message => {
+          activities.push({
+            id: `chat-${message._id}`,
+            type: 'chat',
+            title: `${message.senderName || 'User'} sent a message`,
+            description: message.content.length > 100 ?
+              `${message.content.substring(0, 100)}...` :
+              message.content,
+            createdAt: message.timestamp,
+            actor: {
+              id: message.senderId || 'unknown',
+              name: message.senderName || 'Unknown User',
+              role: message.senderRole || 'user'
+            }
+          });
+        });
+      }
+    } catch (chatError) {
+      console.error('[API] Error fetching chat messages:', chatError);
+    }
+    
+    // 4. Try to fetch project assignments
+    try {
+      const assignmentsCollection = db.collection('projectAssignments');
+      const assignments = await assignmentsCollection.find({
+        projectId: new ObjectId(projectId)
+      }).sort({ assignedAt: -1 }).toArray();
+      
+      assignments.forEach(assignment => {
+        activities.push({
+          id: `assignment-${assignment._id}`,
+          type: 'assignment',
+          title: `Developer assigned to project`,
+          description: `A developer was assigned to work on this project`,
+          createdAt: assignment.assignedAt,
+          actor: {
+            id: 'system',
+            name: 'System',
+            role: 'system'
+          }
+        });
+      });
+    } catch (assignmentError) {
+      console.error('[API] Error fetching assignments:', assignmentError);
+    }
 
     // Sort all activities by createdAt (most recent first)
     activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

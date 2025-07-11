@@ -297,20 +297,68 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           actualCompletionDate: data.actualCompletionDate
             ? new Date(data.actualCompletionDate)
             : undefined,
-          milestones: (data.milestones?.length
-            ? data.milestones
-            : data.pricing?.milestones || []
-          ).map((m) => ({
-            ...m,
-            dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-            completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-            // Ensure budget is always a string
-            budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
-            // Ensure essential fields exist
-            title: m.title || 'Untitled Milestone',
-            description: m.description || 'No description provided',
-            status: m.status || 'pending'
-          })),
+          milestones: (() => {
+            // If project has milestones, use them
+            if (data.milestones?.length) {
+              return data.milestones.map((m) => ({
+                ...m,
+                dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+                completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+                budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
+                title: m.title || 'Untitled Milestone',
+                description: m.description || 'No description provided',
+                status: m.status || 'pending'
+              }));
+            }
+            
+            // If pricing has milestones, use them
+            if (data.pricing?.milestones?.length) {
+              return data.pricing.milestones.map((m) => ({
+                ...m,
+                dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+                completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+                budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
+                title: m.title || 'Untitled Milestone',
+                description: m.description || 'No description provided',
+                status: m.status || 'pending'
+              }));
+            }
+            
+            // If pricing type is milestone but no milestones exist, create default ones
+            if (data.pricing?.type === 'milestone') {
+              return [
+                {
+                  id: 'default-milestone-1',
+                  title: 'Project Planning & Setup',
+                  description: 'Initial project setup, requirements gathering, and planning phase',
+                  budget: '0',
+                  status: 'pending' as const,
+                  dueDate: undefined,
+                  completedAt: undefined
+                },
+                {
+                  id: 'default-milestone-2',
+                  title: 'Development Phase',
+                  description: 'Core development work and feature implementation',
+                  budget: '0',
+                  status: 'pending' as const,
+                  dueDate: undefined,
+                  completedAt: undefined
+                },
+                {
+                  id: 'default-milestone-3',
+                  title: 'Testing & Deployment',
+                  description: 'Quality assurance, testing, and final deployment',
+                  budget: '0',
+                  status: 'pending' as const,
+                  dueDate: undefined,
+                  completedAt: undefined
+                }
+              ];
+            }
+            
+            return [];
+          })(),
           updates: data.updates?.map((u) => ({
             ...u,
             createdAt: new Date(u.createdAt),

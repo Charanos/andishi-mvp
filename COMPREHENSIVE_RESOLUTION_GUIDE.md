@@ -12,6 +12,9 @@
 - Admin dashboard missing activity case in renderContent switch
 - Potential API data structure mismatches
 
+### 3. Authentication Token Issues
+- Authentication token not being recognized, leading to errors.
+
 ## Root Causes
 
 ### Milestones Issues:
@@ -23,6 +26,12 @@
 1. **Missing Activity Case**: Admin dashboard doesn't have an "activity" case in the renderContent function
 2. **API Response Structure**: Mismatch between expected ActivityItem interface and actual API response
 3. **Error Handling**: Poor error handling in SWR data fetching
+
+### Authentication Issues:
+1. **Token Storage**: Token not correctly stored in localStorage.
+2. **Authentication Flow**: Login process not executing as intended.
+3. **Token Verification**: `getSession` and `verifyAuthToken` not fetching/verifying the token correctly.
+4. **Deployment Configuration**: CORS and secure cookies might be misconfigured in production.
 
 ## Solutions
 
@@ -255,6 +264,22 @@ useEffect(() => {
   console.log('Activity Data:', activityData);
 }, [projectData, activityData]);
 ```
+
+### Step 6: Address Authentication Token Issues
+
+1.  **Verify Token Storage**:
+    *   Ensure that the token is correctly stored in `localStorage` after logging in.
+    *   Use browser developer tools to confirm the token is present.
+2.  **Authentication Flow**:
+    *   Double-check the login process to ensure it executes as intended and stores the token.
+    *   Ensure the server correctly sets the token as a cookie and in `localStorage`.
+3.  **Token Verification**:
+    *   Ensure that `getSession` and `verifyAuthToken` correctly fetch and verify the token.
+    *   If deploying to production, make sure CORS and secure cookies are correctly configured.
+4.  **Integration Testing**:
+    *   Use the deployed app to confirm the flow from login to accessing the admin dashboard works without errors.
+
+For effective troubleshooting, it'd be helpful to test changes locally, adjusting logging levels to capture more diagnostic information, before deploying any fixes.
 
 ## Implementation Status ✅
 

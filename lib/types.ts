@@ -64,6 +64,7 @@ export interface ProjectMilestone {
   title: string;
   dueDate: string;
   completed: boolean;
+  budget?: string;
   payment: number;
 }
 

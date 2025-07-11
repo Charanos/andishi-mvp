@@ -183,6 +183,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
             status:
               project.status === "in-progress" ? "in-progress" : project.status,
             priority: project.priority || "low",
+            milestones: project.milestones || project.pricing?.milestones || [],
+            pricing: project.pricing || { type: "fixed", currency: "USD", fixedBudget: "0" },
           })
         );
         setProjects(transformedProjects);
@@ -191,16 +193,16 @@ export default function EnhancedAdminDashboard(): ReactNode {
         const profilesArray = Array.isArray(devProfilesData)
           ? devProfilesData
           : Array.isArray(devProfilesData?.profiles)
-          ? devProfilesData.profiles
-          : [];
+            ? devProfilesData.profiles
+            : [];
         setDevProfiles(profilesArray);
 
         // Users array normalisation
         const usersArray = Array.isArray(usersData)
           ? usersData
           : Array.isArray(usersData?.users)
-          ? usersData.users
-          : [];
+            ? usersData.users
+            : [];
         setUsers(usersArray);
 
         // Generate dashboard analytics
@@ -219,7 +221,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   const [error, setError] = useState<string | null>(null);
 
-  
+
 
   const [notifications, setNotifications] = useState<
     Array<{
@@ -530,7 +532,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       revenueMonthly[revenueMonthly.length - 2]?.revenue || 0;
     const monthlyGrowth = previousMonthRevenue
       ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) *
-        100
+      100
       : 0;
 
     setAnalytics({
@@ -582,7 +584,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     } else {
       return toUSD(
         parseFloat(project.pricing.hourlyRate || "0") *
-          parseFloat(project.pricing.estimatedHours || "0"),
+        parseFloat(project.pricing.estimatedHours || "0"),
         project.pricing.currency
       );
     }
@@ -689,15 +691,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
           // Ensure pricing is always a valid PricingOption
           pricing: project.pricing
             ? {
-                ...project.pricing,
-                milestones: updatedMilestones,
-              }
+              ...project.pricing,
+              milestones: updatedMilestones,
+            }
             : {
-                // Provide default values that match PricingOption type
-                type: "fixed", // or whatever default makes sense
-                currency: "USD",
-                milestones: updatedMilestones,
-              },
+              // Provide default values that match PricingOption type
+              type: "fixed", // or whatever default makes sense
+              currency: "USD",
+              milestones: updatedMilestones,
+            },
           updatedAt: new Date().toISOString(),
         };
 
@@ -892,10 +894,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
         prevProjects.map((project) =>
           project._id === projectId
             ? {
-                ...project,
-                payments: [newPayment, ...(project.payments || [])],
-                updatedAt: new Date().toISOString(),
-              }
+              ...project,
+              payments: [newPayment, ...(project.payments || [])],
+              updatedAt: new Date().toISOString(),
+            }
             : project
         )
       );
@@ -907,8 +909,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       });
 
       toast.success(
-        `Payment of ${payment.amount} ${
-          payment.currency || "USD"
+        `Payment of ${payment.amount} ${payment.currency || "USD"
         } recorded successfully`,
         { autoClose: 3000 }
       );
@@ -1001,6 +1002,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
         return <FaCheck className="text-green-400" />;
       case "rejected":
         return <FaTimes className="text-red-400" />;
+      case "in-progress":
+        return <FaCode className="text-blue-400" />;
+      case "completed":
+        return <FaCheckCircle className="text-green-400" />;
+      case "cancelled":
+        return <FaTimes className="text-red-400" />;
+      case "on_hold":
+        return <FaPause className="text-orange-400" />;
       case "active":
         return <FaCheck className="text-green-400" />;
       case "inactive":
@@ -1008,7 +1017,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       case "suspended":
         return <FaTimes className="text-red-400" />;
       default:
-        return <FaClock className="text-gray-400" />;
+        return <FaInfoCircle className="text-gray-400" />;
     }
   };
 
@@ -1151,9 +1160,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <FaSortAmountDown className="text-red-400 mr-1" />
                   )}
                   <span
-                    className={`text-sm ${
-                      metric.trend === "up" ? "text-green-400" : "text-red-400"
-                    }`}
+                    className={`text-sm ${metric.trend === "up" ? "text-green-400" : "text-red-400"
+                      }`}
                   >
                     {metric.change}
                   </span>
@@ -1501,192 +1509,188 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 currentPage * projectsPerPage
               )
               .map((project) => {
-              const progress = project?.progress || 0;
-              const status = project?.status || "pending";
-              const priority = project?.priority || "low";
+                const progress = project?.progress || 0;
+                const status = project?.status || "pending";
+                const priority = project?.priority || "low";
 
-              return (
-                <div
-                  key={project?._id}
-                  className="group relative bg-white/5 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 hover:border-slate-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                  onClick={() => setSelectedProject(project)}
-                >
-                  {/* Priority Indicator */}
+                return (
                   <div
-                    className={`absolute top-4 right-4 w-3 h-3 rounded-full ${
-                      priority === "critical"
+                    key={project?._id}
+                    className="group relative bg-white/5 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 hover:border-slate-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                    onClick={() => setSelectedProject(project)}
+                  >
+                    {/* Priority Indicator */}
+                    <div
+                      className={`absolute top-4 right-4 w-3 h-3 rounded-full ${priority === "critical"
                         ? "bg-red-500/20 shadow-lg shadow-red-500/30"
                         : priority === "high"
-                        ? "bg-orange-500/20 shadow-lg shadow-orange-500/30"
-                        : priority === "medium"
-                        ? "bg-yellow-500/20 shadow-lg shadow-yellow-500/30"
-                        : "bg-green-500/20 shadow-lg shadow-green-500/30"
-                    }`}
-                  />
+                          ? "bg-orange-500/20 shadow-lg shadow-orange-500/30"
+                          : priority === "medium"
+                            ? "bg-yellow-500/20 shadow-lg shadow-yellow-500/30"
+                            : "bg-green-500/20 shadow-lg shadow-green-500/30"
+                        }`}
+                    />
 
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 pr-4">
-                      <h3 className="text-lg font-semibold text-white mb-4 group-hover:text-blue-400 transition-colors line-clamp-2">
-                        {project?.projectDetails?.title ?? "Untitled Project"}
-                      </h3>
-                      <p className="text-sm text-gray-400 flex items-center gap-2">
-                        <FaUser className="text-blue-400" />
-                        {project?.userInfo?.firstName ?? "Unknown"}{" "}
-                        {project?.userInfo?.lastName ?? ""}
-                      </p>
-                      <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                        <FaBuilding className="text-purple-400" />
-                        {project?.userInfo?.company ?? "No Company"}
-                      </p>
-                    </div>
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1 pr-4">
+                        <h3 className="text-lg font-semibold text-white mb-4 group-hover:text-blue-400 transition-colors line-clamp-2">
+                          {project?.projectDetails?.title ?? "Untitled Project"}
+                        </h3>
+                        <p className="text-sm text-gray-400 flex items-center gap-2">
+                          <FaUser className="text-blue-400" />
+                          {project?.userInfo?.firstName ?? "Unknown"}{" "}
+                          {project?.userInfo?.lastName ?? ""}
+                        </p>
+                        <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
+                          <FaBuilding className="text-purple-400" />
+                          {project?.userInfo?.company ?? "No Company"}
+                        </p>
+                      </div>
 
-                    {/* Status Badge */}
-                    <div className="flex flex-col items-end gap-2">
-                      <div
-                        className={`flex items-center monty uppercase gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                          status === "in-progress"
+                      {/* Status Badge */}
+                      <div className="flex flex-col items-end gap-2">
+                        <div
+                          className={`flex items-center monty uppercase gap-1 px-3 py-1 rounded-full text-xs font-medium ${status === "in-progress"
                             ? " text-green-400 border border-green-500/30"
                             : status === "completed"
-                            ? " text-blue-400 border border-blue-500/30"
-                            : status === "pending"
-                            ? " text-orange-400 border border-orange-500/30"
-                            : " text-red-400 border border-red-500/30"
-                        }`}
-                      >
-                        {getStatusIcon(status)}
-                        {status}
+                              ? " text-blue-400 border border-blue-500/30"
+                              : status === "pending"
+                                ? " text-orange-400 border border-orange-500/30"
+                                : " text-red-400 border border-red-500/30"
+                            }`}
+                        >
+                          {getStatusIcon(status)}
+                          {status}
+                        </div>
+                        <div
+                          className={`px-2 py-1 monty uppercase rounded-full text-xs font-medium ${getPriorityColor(
+                            priority
+                          )}`}
+                        >
+                          {priority}
+                        </div>
                       </div>
-                      <div
-                        className={`px-2 py-1 monty uppercase rounded-full text-xs font-medium ${getPriorityColor(
-                          priority
-                        )}`}
-                      >
-                        {priority}
+                    </div>
+
+                    {/* Project Details */}
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center text-sm text-gray-300">
+                        <FaProjectDiagram className="mr-3 text-blue-400" />
+                        <span className="font-medium monty uppercase">
+                          {project?.projectDetails?.category ?? "Uncategorized"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-300">
+                        <FaDollarSign className="mr-3 text-indigo-400" />
+                        <span className="font-semibold text-xl text-green-400">
+                          {formatCurrency(
+                            calculateProjectBudget(project),
+                            project?.pricing?.currency ?? "USD"
+                          )}
+                        </span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Project Details */}
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center text-sm text-gray-300">
-                      <FaProjectDiagram className="mr-3 text-blue-400" />
-                      <span className="font-medium monty uppercase">
-                        {project?.projectDetails?.category ?? "Uncategorized"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-300">
-                      <FaDollarSign className="mr-3 text-indigo-400" />
-                      <span className="font-semibold text-xl text-green-400">
-                        {formatCurrency(
-                          calculateProjectBudget(project),
-                          project?.pricing?.currency ?? "USD"
-                        )}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-400">Progress</span>
-                      <span className="text-sm font-medium text-white">
-                        {progress}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ease-out ${
-                          progress < 25
+                    {/* Progress Bar */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-400">Progress</span>
+                        <span className="text-sm font-medium text-white">
+                          {progress}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ease-out ${progress < 25
                             ? "bg-gradient-to-r from-red-500 to-red-400"
                             : progress < 50
-                            ? "bg-gradient-to-r from-orange-500 to-orange-400"
-                            : progress < 75
-                            ? "bg-gradient-to-r from-yellow-500 to-yellow-400"
-                            : progress < 100
-                            ? "bg-gradient-to-r from-blue-500 to-blue-400"
-                            : "bg-gradient-to-r from-green-500 to-green-400"
-                        }`}
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Milestones Indicator */}
-                  {project?.milestones && project.milestones.length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                        <FaFlag className="text-purple-400" />
-                        <span>Milestones</span>
+                              ? "bg-gradient-to-r from-orange-500 to-orange-400"
+                              : progress < 75
+                                ? "bg-gradient-to-r from-yellow-500 to-yellow-400"
+                                : progress < 100
+                                  ? "bg-gradient-to-r from-blue-500 to-blue-400"
+                                  : "bg-gradient-to-r from-green-500 to-green-400"
+                            }`}
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
-                      <div className="flex gap-1">
-                        {project.milestones
-                          .slice(0, 5)
-                          .map((milestone: any, index: number) => (
-                            <div
-                              key={index}
-                              className={`w-2 h-2 rounded-full ${
-                                milestone.completed
+                    </div>
+
+                    {/* Milestones Indicator */}
+                    {project?.milestones && project.milestones.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                          <FaFlag className="text-purple-400" />
+                          <span>Milestones</span>
+                        </div>
+                        <div className="flex gap-1">
+                          {project.milestones
+                            .slice(0, 5)
+                            .map((milestone: any, index: number) => (
+                              <div
+                                key={index}
+                                className={`w-2 h-2 rounded-full ${milestone.completed
                                   ? "bg-green-400"
                                   : "bg-gray-600"
-                              }`}
-                            />
-                          ))}
-                        {project.milestones.length > 5 && (
-                          <span className="text-xs text-gray-500 ml-1">
-                            +{project.milestones.length - 5}
-                          </span>
-                        )}
+                                  }`}
+                              />
+                            ))}
+                          {project.milestones.length > 5 && (
+                            <span className="text-xs text-gray-500 ml-1">
+                              +{project.milestones.length - 5}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-600/30">
+                      <div className="flex items-center monty uppercase gap-2 text-sm text-gray-400">
+                        <FaCalendarAlt className="text-blue-400" />
+                        <span>
+                          {project?.createdAt
+                            ? formatDate(project.createdAt)
+                            : "No date"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProject(project);
+                            setViewMode("detail");
+                          }}
+                          className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all duration-200"
+                          title="View Details"
+                        >
+                          <FaEye />
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (project?._id) {
+                              setProjectToDelete(project._id);
+                              setProjectDeleteModalOpen(true);
+                            }
+                          }}
+                          className="cursor-pointer p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200"
+                          title="Delete Project"
+                        >
+                          <FaTrash />
+                        </button>
                       </div>
                     </div>
-                  )}
 
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-600/30">
-                    <div className="flex items-center monty uppercase gap-2 text-sm text-gray-400">
-                      <FaCalendarAlt className="text-blue-400" />
-                      <span>
-                        {project?.createdAt
-                          ? formatDate(project.createdAt)
-                          : "No date"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedProject(project);
-                          setViewMode("detail");
-                        }}
-                        className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all duration-200"
-                        title="View Details"
-                      >
-                        <FaEye />
-                      </button>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (project?._id) {
-                            setProjectToDelete(project._id);
-                            setProjectDeleteModalOpen(true);
-                          }
-                        }}
-                        className="cursor-pointer p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200"
-                        title="Delete Project"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </div>
-
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
 
           {/* Empty State */}
@@ -1722,8 +1726,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 </h3>
                 <p className="text-gray-400">
                   {searchTerm ||
-                  statusFilter !== "all" ||
-                  priorityFilter !== "all"
+                    statusFilter !== "all" ||
+                    priorityFilter !== "all"
                     ? "Try adjusting your filters to see more projects."
                     : "Start by creating your first project to see it here."}
                 </p>
@@ -1777,8 +1781,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (data.success) {
         setUsers((prev) => [...prev, data.user]);
         toast.success(
-          `User created successfully! ${
-            data.generatedPassword ? "Password: " + data.generatedPassword : ""
+          `User created successfully! ${data.generatedPassword ? "Password: " + data.generatedPassword : ""
           }`
         );
 
@@ -1840,24 +1843,24 @@ export default function EnhancedAdminDashboard(): ReactNode {
           prev.map((user) =>
             user._id === userId
               ? {
-                  ...user,
-                  ...userData,
-                  skills:
-                    typeof userData.skills === "string"
-                      ? userData.skills
-                          .split(",")
-                          .map((s: string) => s.trim())
-                          .filter(Boolean)
-                      : userData.skills ?? user.skills,
-                  hourlyRate:
-                    userData.hourlyRate !== undefined
-                      ? typeof userData.hourlyRate === "string"
-                        ? userData.hourlyRate === ""
-                          ? undefined
-                          : Number(userData.hourlyRate)
-                        : userData.hourlyRate
-                      : user.hourlyRate,
-                }
+                ...user,
+                ...userData,
+                skills:
+                  typeof userData.skills === "string"
+                    ? userData.skills
+                      .split(",")
+                      .map((s: string) => s.trim())
+                      .filter(Boolean)
+                    : userData.skills ?? user.skills,
+                hourlyRate:
+                  userData.hourlyRate !== undefined
+                    ? typeof userData.hourlyRate === "string"
+                      ? userData.hourlyRate === ""
+                        ? undefined
+                        : Number(userData.hourlyRate)
+                      : userData.hourlyRate
+                    : user.hourlyRate,
+              }
               : user
           )
         );
@@ -1934,8 +1937,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
           )
         );
         toast.success(
-          `User ${
-            newStatus === "active" ? "activated" : "deactivated"
+          `User ${newStatus === "active" ? "activated" : "deactivated"
           } successfully!`
         );
         return data;
@@ -2124,9 +2126,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <FaSortAmountDown className="text-red-400 mr-1" />
                   )}
                   <span
-                    className={`text-sm ${
-                      metric.trend === "up" ? "text-green-400" : "text-red-400"
-                    }`}
+                    className={`text-sm ${metric.trend === "up" ? "text-green-400" : "text-red-400"
+                      }`}
                   >
                     {metric.change}
                   </span>
@@ -2168,10 +2169,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{
-                          width: `${
-                            ((count ?? 0) / (analytics?.totalProjects ?? 1)) *
+                          width: `${((count ?? 0) / (analytics?.totalProjects ?? 1)) *
                             100
-                          }%`,
+                            }%`,
                         }}
                       ></div>
                     </div>
@@ -2734,12 +2734,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
     const action = disable ? "disable" : "enable";
     const confirmMessage = disable
-      ? `Are you sure you want to disable access for ${
-          selectedUser?.email ?? "Unknown"
-        }? This will prevent them from logging in.`
-      : `Are you sure you want to enable access for ${
-          selectedUser?.email ?? "Unknown"
-        }?`;
+      ? `Are you sure you want to disable access for ${selectedUser?.email ?? "Unknown"
+      }? This will prevent them from logging in.`
+      : `Are you sure you want to enable access for ${selectedUser?.email ?? "Unknown"
+      }?`;
 
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
@@ -2809,26 +2807,23 @@ export default function EnhancedAdminDashboard(): ReactNode {
     // For MVP, show different messages based on account status
     if (generatedPassword) {
       // Newly generated password
-      const message = `Login Credentials for ${
-        selectedUser?.email ?? "Unknown"
-      }:
+      const message = `Login Credentials for ${selectedUser?.email ?? "Unknown"
+        }:
 
 Email: ${selectedUser?.email ?? "Unknown"}
 Password: ${generatedPassword}
 Login URL: ${window.location.origin}/login
 
-This ${
-        statusInfo.hasAccount ? "updates their existing" : "creates a new"
-      } account.
+This ${statusInfo.hasAccount ? "updates their existing" : "creates a new"
+        } account.
 Role: ${selectedUser?.role ?? "Unknown"}
 Status: Active`;
 
       alert(message);
     } else if (accountExists) {
       // Existing account
-      const message = `Account Information for ${
-        selectedUser?.email ?? "Unknown"
-      }:
+      const message = `Account Information for ${selectedUser?.email ?? "Unknown"
+        }:
 
 Email: ${selectedUser?.email ?? "Unknown"}
 Password: [Hidden for security - generate new to reset]
@@ -2836,22 +2831,19 @@ Login URL: ${window.location.origin}/login
 
 Account Status: ${statusInfo.isActive ? "Active" : "Inactive"}
 Role: ${statusInfo.role}
-Last Login: ${
-        statusInfo.lastLogin
+Last Login: ${statusInfo.lastLogin
           ? new Date(statusInfo.lastLogin).toLocaleDateString()
           : "Never"
-      }
-Account Created: ${
-        statusInfo.accountCreated
+        }
+Account Created: ${statusInfo.accountCreated
           ? new Date(statusInfo.accountCreated).toLocaleDateString()
           : "Unknown"
-      }
+        }
 
-${
-  statusInfo.isActive
-    ? "User can log in with existing password."
-    : "Account is disabled - enable to allow login."
-}
+${statusInfo.isActive
+          ? "User can log in with existing password."
+          : "Account is disabled - enable to allow login."
+        }
 Generate new credentials to reset password.`;
 
       alert(message);
@@ -2870,9 +2862,8 @@ Generate new credentials to reset password.`;
   const deleteUserAccount = async () => {
     if (!selectedUser) return;
 
-    const confirmMessage = `Are you sure you want to permanently delete the account for ${
-      selectedUser?.email ?? "Unknown"
-    }? This action cannot be undone.`;
+    const confirmMessage = `Are you sure you want to permanently delete the account for ${selectedUser?.email ?? "Unknown"
+      }? This action cannot be undone.`;
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
 
@@ -2919,9 +2910,8 @@ Generate new credentials to reset password.`;
   const copyCredentials = async () => {
     if (!selectedUser || !generatedPassword) return;
 
-    const credentials = `Email: ${
-      selectedUser?.email ?? "Unknown"
-    }\nPassword: ${generatedPassword}`;
+    const credentials = `Email: ${selectedUser?.email ?? "Unknown"
+      }\nPassword: ${generatedPassword}`;
 
     try {
       await navigator.clipboard.writeText(credentials);
@@ -3012,11 +3002,10 @@ Generate new credentials to reset password.`;
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as ActiveTab)}
-                      className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                        activeTab === tab.id
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-white/10 hover:text-white"
-                      }`}
+                      className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${activeTab === tab.id
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-white/10 hover:text-white"
+                        }`}
                     >
                       <tab.icon className="text-sm" />
                       <span>{tab.label}</span>
@@ -3054,11 +3043,10 @@ Generate new credentials to reset password.`;
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as ActiveTab)}
-                className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:bg-white/10 hover:text-white"
-                }`}
+                className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${activeTab === tab.id
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
               >
                 <tab.icon className="text-lg" />
                 <span className="text-xs">{tab.label}</span>
@@ -3110,13 +3098,12 @@ Generate new credentials to reset password.`;
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-            notification.type === "success"
-              ? "bg-green-500/20 border-green-500/30 text-green-400"
-              : notification.type === "error"
+          className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${notification.type === "success"
+            ? "bg-green-500/20 border-green-500/30 text-green-400"
+            : notification.type === "error"
               ? "bg-red-500/20 border-red-500/30 text-red-400"
               : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-          }`}
+            }`}
           style={{
             animation: "slideInRight 0.3s ease-out",
           }}

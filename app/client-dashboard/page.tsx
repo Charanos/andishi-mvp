@@ -44,7 +44,42 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
 import ClientDashboardStartProject from "./StartNewProject";
-import { ProjectWithDetails } from "../../types/index";
+import { ProjectWithDetails, ProjectData } from "../../types/index";
+
+// Function to transform ProjectWithDetails to ProjectData
+const transformProjectToData = (
+  project: ProjectWithDetails
+): ProjectData => {
+  return {
+    _id: project.id,
+    projectDetails: {
+      title: project.title,
+      description: project.description,
+      category: project.category,
+      timeline: project.timeline || "",
+      priority: project.priority,
+      techStack: project.techStack,
+      requirements: project.requirements || "",
+    },
+    pricing: {
+      type: project.pricing?.type || "fixed",
+      currency: project.pricing?.currency || "USD",
+      fixedBudget: project.pricing?.fixedBudget,
+      hourlyRate: project.pricing?.hourlyRate,
+      estimatedHours: project.pricing?.estimatedHours?.toString(),
+    },
+    status: project.status,
+    priority: project.priority === "urgent" ? "critical" : project.priority,
+    progress: project.progress,
+    createdAt: project.createdAt.toString(),
+    updatedAt: project.updatedAt.toString(),
+    userInfo: project.userInfo,
+    milestones: project.milestones || (project.pricing ? project.pricing.milestones : undefined),
+    updates: project.updates,
+    files: project.files,
+    payments: project.payments,
+  };
+};
 import EnhancedProjectTracking from "./projectDetails";
 
 type ActiveTab = "projects" | "analytics" | "create" | "settings";
@@ -1560,50 +1595,7 @@ const ClientDashboard: React.FC = () => {
         selectedProject && (
           <EnhancedProjectTracking
             onBack={() => setViewMode("list")}
-            project={{
-              _id: selectedProject.id,
-              projectDetails: {
-                title: selectedProject.title,
-                description: selectedProject.description,
-                category: selectedProject.category,
-                timeline: selectedProject.timeline ?? "",
-                priority: selectedProject.priority,
-                techStack: selectedProject.techStack,
-                requirements: selectedProject.requirements ?? "",
-              },
-              pricing: selectedProject.pricing
-                ? {
-                    ...selectedProject.pricing,
-                    estimatedHours:
-                      selectedProject.pricing.estimatedHours?.toString(),
-                  }
-                : {
-                    type: "fixed" as const,
-                    currency: "USD" as const,
-                  },
-              status: selectedProject.status,
-              priority:
-                selectedProject.priority === "urgent"
-                  ? "critical"
-                  : selectedProject.priority,
-              progress: selectedProject.progress,
-              createdAt: selectedProject.createdAt.toString(),
-              updatedAt: selectedProject.updatedAt.toString(),
-              userInfo: selectedProject.userInfo
-                ? {
-                    firstName: selectedProject.userInfo.firstName,
-                    lastName: selectedProject.userInfo.lastName,
-                    email: selectedProject.userInfo.email,
-                    phone: selectedProject.userInfo.phone ?? "",
-                    company: selectedProject.userInfo.company ?? "",
-                    role: selectedProject.userInfo.role ?? "",
-                  }
-                : undefined,
-              milestones: selectedProject.milestones,
-              updates: selectedProject.updates,
-              files: selectedProject.files,
-              payments: selectedProject.payments,
-            }}
+            project={transformProjectToData(selectedProject)}
           />
         )
       );
@@ -1953,12 +1945,8 @@ const ClientDashboard: React.FC = () => {
           {/* Main Content */}
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
             {activeTab === "projects" && renderProjects()}
-            {activeTab === "analytics" &&
-              projects.length > 0 &&
-              renderAnalytics(projects)}
-            {activeTab === "create" &&
-              projects.length > 0 &&
-              renderCreateNewProject()}
+            {activeTab === "analytics" && renderAnalytics(projects)}
+            {activeTab === "create" && renderCreateNewProject()}
             {activeTab === "settings" && renderOverallSettings(projects)}
           </div>
         </div>

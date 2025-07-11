@@ -19,6 +19,28 @@ import {
   FaSmile,
   FaPaperclip,
   FaMicrophone,
+  FaChevronLeft,
+  FaChevronRight,
+  FaCalendarAlt,
+  FaFolder,
+  FaLink,
+  FaEdit,
+  FaTrash,
+  FaPlus,
+  FaUpload,
+  FaEye,
+  FaTag,
+  FaInfoCircle,
+  FaTasks,
+  FaComments,
+  FaProjectDiagram,
+  FaFlag,
+  FaBookmark,
+  FaShare,
+  FaCog,
+  FaFileAlt,
+  FaArchive,
+  FaExternalLinkAlt,
 } from "react-icons/fa";
 import { useProjectChat } from "../../hooks/useProjectChat";
 
@@ -28,6 +50,44 @@ interface ProjectChatProps {
   currentUserId: string;
   currentUserRole: "admin" | "client" | "developer";
   currentUserName: string;
+}
+
+interface ChatResource {
+  id: string;
+  name: string;
+  type: "file" | "link" | "image" | "document";
+  url: string;
+  uploadedBy: string;
+  uploadedAt: Date;
+  size?: string;
+  description?: string;
+}
+
+interface ProjectMilestone {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: Date;
+  status: "pending" | "in-progress" | "completed" | "overdue";
+  assignedTo: string[];
+  priority: "low" | "medium" | "high";
+}
+
+interface ProjectDetail {
+  id: string;
+  title: string;
+  description: string;
+  status: "active" | "paused" | "completed" | "cancelled";
+  startDate: Date;
+  endDate?: Date;
+  priority: "low" | "medium" | "high";
+  budget?: number;
+  progress: number;
+  tags: string[];
+  milestones: ProjectMilestone[];
+  resources: ChatResource[];
+  notes: string;
+  lastActivity: Date;
 }
 
 const ProjectChat: React.FC<ProjectChatProps> = ({
@@ -48,12 +108,93 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
 
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showDetails, setShowDetails] = useState(true);
+  const [activeTab, setActiveTab] = useState<"overview" | "resources" | "milestones" | "participants">("overview");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Mock data for demonstration - in real app, this would come from props or API
+  const [projectDetails] = useState<ProjectDetail>({
+    id: projectId,
+    title: projectTitle,
+    description: "Advanced web application development project with modern technologies and user-centric design approach.",
+    status: "active",
+    startDate: new Date("2024-01-15"),
+    endDate: new Date("2024-06-30"),
+    priority: "high",
+    budget: 25000,
+    progress: 67,
+    tags: ["React", "TypeScript", "Node.js", "PostgreSQL", "AWS"],
+    milestones: [
+      {
+        id: "1",
+        title: "UI/UX Design Completion",
+        description: "Complete all design mockups and prototypes",
+        dueDate: new Date("2024-02-28"),
+        status: "completed",
+        assignedTo: ["designer-1", "ux-lead"],
+        priority: "high"
+      },
+      {
+        id: "2",
+        title: "Backend API Development",
+        description: "Develop core API endpoints and database schema",
+        dueDate: new Date("2024-04-15"),
+        status: "in-progress",
+        assignedTo: ["dev-1", "dev-2"],
+        priority: "high"
+      },
+      {
+        id: "3",
+        title: "Frontend Implementation",
+        description: "Build responsive user interface components",
+        dueDate: new Date("2024-05-30"),
+        status: "pending",
+        assignedTo: ["frontend-dev"],
+        priority: "medium"
+      }
+    ],
+    resources: [
+      {
+        id: "1",
+        name: "Project Requirements.pdf",
+        type: "document",
+        url: "/files/requirements.pdf",
+        uploadedBy: "Client Manager",
+        uploadedAt: new Date("2024-01-16"),
+        size: "2.4 MB",
+        description: "Detailed project requirements and specifications"
+      },
+      {
+        id: "2",
+        name: "Design Mockups",
+        type: "image",
+        url: "/files/mockups.zip",
+        uploadedBy: "UI Designer",
+        uploadedAt: new Date("2024-02-10"),
+        size: "15.7 MB",
+        description: "High-fidelity design mockups for all screens"
+      },
+      {
+        id: "3",
+        name: "API Documentation",
+        type: "link",
+        url: "https://api-docs.example.com",
+        uploadedBy: "Backend Developer",
+        uploadedAt: new Date("2024-03-05"),
+        description: "Interactive API documentation with examples"
+      }
+    ],
+    notes: "Regular check-ins scheduled for Tuesdays and Fridays. Client prefers morning meetings.",
+    lastActivity: new Date()
+  });
+
   const permissions = {
-    canRead: true, // TODO: wire to backend if needed
-    canWrite: true, // TODO: wire to backend if needed
+    canRead: true,
+    canWrite: true,
     canViewAll: currentUserRole === "admin",
+    canManageProject: currentUserRole === "admin",
+    canUploadFiles: true,
+    canEditMilestones: currentUserRole === "admin" || currentUserRole === "developer",
   };
 
   const scrollToBottom = () => {
@@ -82,6 +223,14 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString([], {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "admin":
@@ -108,6 +257,55 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+      case "in-progress":
+        return "text-blue-400 bg-blue-500/10 border-blue-500/30";
+      case "pending":
+        return "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
+      case "overdue":
+        return "text-red-400 bg-red-500/10 border-red-500/30";
+      case "active":
+        return "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+      case "paused":
+        return "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
+      case "cancelled":
+        return "text-red-400 bg-red-500/10 border-red-500/30";
+      default:
+        return "text-gray-400 bg-gray-500/10 border-gray-500/30";
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "text-red-400 bg-red-500/10 border-red-500/30";
+      case "medium":
+        return "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
+      case "low":
+        return "text-green-400 bg-green-500/10 border-green-500/30";
+      default:
+        return "text-gray-400 bg-gray-500/10 border-gray-500/30";
+    }
+  };
+
+  const getFileIcon = (type: string) => {
+    switch (type) {
+      case "document":
+        return <FaFileAlt className="text-blue-400" />;
+      case "image":
+        return <FaImage className="text-purple-400" />;
+      case "link":
+        return <FaLink className="text-green-400" />;
+      case "file":
+        return <FaFile className="text-gray-400" />;
+      default:
+        return <FaFile className="text-gray-400" />;
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -116,14 +314,16 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
       .toUpperCase();
   };
 
+  const toggleDetails = () => {
+    setShowDetails(!showDetails);
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-          </div>
-          <span className="text-gray-400 font-medium">Loading chat...</span>
+      <div className="flex items-center justify-center py-16">
+        <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+          <span className="text-white font-medium">Loading Project Chat...</span>
         </div>
       </div>
     );
@@ -141,251 +341,537 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     );
   }
 
-  return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black">
-      {/* Chat Header */}
-      <div className="bg-black/40 backdrop-blur-sm border-b border-gray-800/50 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <FaUsers className="text-white text-lg" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-white">Project Chat</h2>
-                <p className="text-sm text-indigo-400 font-medium uppercase tracking-wide">
-                  {projectTitle}
-                </p>
-              </div>
-            </div>
+  const renderOverviewTab = () => (
+    <div className="space-y-6">
+      {/* Project Status */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+        <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
+          <FaProjectDiagram className="mr-2" />
+          Project Status
+        </h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Status</span>
+            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(projectDetails.status)}`}>
+              {projectDetails.status}
+            </span>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
-                <FaSearch className="text-sm" />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
-                <FaPhone className="text-sm" />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
-                <FaVideo className="text-sm" />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
-                <FaEllipsisV className="text-sm" />
-              </button>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Priority</span>
+            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(projectDetails.priority)}`}>
+              {projectDetails.priority}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Progress</span>
+            <span className="text-xs text-white font-medium">{projectDetails.progress}%</span>
+          </div>
+          <div className="w-full bg-gray-700 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${projectDetails.progress}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+        <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
+          <FaCalendarAlt className="mr-2" />
+          Timeline
+        </h3>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Start Date</span>
+            <span className="text-xs text-white">{formatDate(projectDetails.startDate)}</span>
+          </div>
+          {projectDetails.endDate && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">End Date</span>
+              <span className="text-xs text-white">{formatDate(projectDetails.endDate)}</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-gray-400 font-medium">
-                {participants.length} members
-              </span>
-              <div className="flex -space-x-2">
-                {participants.slice(0, 4).map((participant: any) => (
-                  <div
-                    key={participant.id}
-                    className="relative group"
-                    title={`${participant.name} (${participant.role})`}
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-full bg-gradient-to-r ${getRoleGradient(
-                        participant.role
-                      )} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-sm shadow-lg hover:scale-110 transition-transform`}
-                    >
-                      {getInitials(participant.name)}
-                    </div>
-                    {participant.isOnline && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-sm animate-pulse"></div>
-                    )}
-                  </div>
-                ))}
-                {participants.length > 4 && (
-                  <div className="w-10 h-10 rounded-full bg-gray-700 border-2 border-gray-900 flex items-center justify-center text-xs text-gray-300 font-medium shadow-lg">
-                    +{participants.length - 4}
-                  </div>
-                )}
+          )}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">Last Activity</span>
+            <span className="text-xs text-white">{formatTime(projectDetails.lastActivity)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tags */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+        <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
+          <FaTag className="mr-2" />
+          Technologies
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {projectDetails.tags.map((tag, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded-full text-xs font-medium"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Notes */}
+      {projectDetails.notes && (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+          <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
+            <FaInfoCircle className="mr-2" />
+            Notes
+          </h3>
+          <p className="text-xs text-gray-400 leading-relaxed">{projectDetails.notes}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderResourcesTab = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-gray-300">Resources</h3>
+        {permissions.canUploadFiles && (
+          <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+            <FaPlus className="text-xs" />
+          </button>
+        )}
+      </div>
+
+      {projectDetails.resources.map((resource) => (
+        <div key={resource.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-gray-600/50 transition-all">
+          <div className="flex items-start space-x-3">
+            <div className="w-10 h-10 bg-gray-700/50 rounded-lg flex items-center justify-center">
+              {getFileIcon(resource.type)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-white truncate">{resource.name}</h4>
+                <div className="flex items-center space-x-2">
+                  <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
+                    <FaEye className="text-xs" />
+                  </button>
+                  <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
+                    <FaDownload className="text-xs" />
+                  </button>
+                  {resource.type === "link" && (
+                    <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
+                      <FaExternalLinkAlt className="text-xs" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">{resource.description}</p>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xs text-gray-500">by {resource.uploadedBy}</span>
+                <div className="flex items-center space-x-3 text-xs text-gray-500">
+                  {resource.size && <span>{resource.size}</span>}
+                  <span>{formatDate(resource.uploadedAt)}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      ))}
+    </div>
+  );
+
+  const renderMilestonesTab = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-gray-300">Milestones</h3>
+        {permissions.canEditMilestones && (
+          <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+            <FaPlus className="text-xs" />
+          </button>
+        )}
       </div>
-      {/* Messages Container */}
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <FaUsers className="text-3xl" />
+
+      {projectDetails.milestones.map((milestone) => (
+        <div key={milestone.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-white">{milestone.title}</h4>
+              <p className="text-xs text-gray-400 mt-1">{milestone.description}</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(milestone.status)}`}>
+                {milestone.status}
+              </span>
+              <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(milestone.priority)}`}>
+                {milestone.priority}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span>Due: {formatDate(milestone.dueDate)}</span>
+            <span>{milestone.assignedTo.length} assigned</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderParticipantsTab = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-gray-300">Team Members</h3>
+        <span className="text-xs text-gray-500">{participants.length} members</span>
+      </div>
+
+      {participants.map((participant: any) => (
+        <div key={participant.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div
+                className={`w-10 h-10 rounded-full bg-gradient-to-r ${getRoleGradient(participant.role)} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-sm shadow-lg`}
+              >
+                {getInitials(participant.name)}
               </div>
-              <h3 className="text-lg font-medium mb-2">No messages yet</h3>
-              <p className="text-sm text-center">
-                Start the conversation and get your project moving!
+              {participant.isOnline && (
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-white">{participant.name}</h4>
+                <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getRoleBadge(participant.role)}`}>
+                  {participant.role}
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                {participant.isOnline ? "Online" : `Last seen ${formatTime(participant.lastSeen || new Date())}`}
               </p>
             </div>
-          ) : (
-            messages.map((message: any, index: number) => {
-              const isOwnMessage = message.senderId === currentUserId;
-              const showAvatar =
-                index === 0 || messages[index - 1].senderId !== message.senderId;
-              const showTimestamp =
-                index === 0 ||
-                new Date(message.timestamp).getTime() -
-                new Date(messages[index - 1].timestamp).getTime() >
-                300000;
-              return (
-                <div key={message.id} className="space-y-2">
-                  {showTimestamp && (
-                    <div className="flex justify-center">
-                      <span className="text-xs text-gray-500 bg-gray-800/50 monty px-3 py-1 rounded-full">
-                        {formatTime(message.timestamp)}
-                      </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black">
+      {/* Chat Panel */}
+      <div className={`flex flex-col transition-all duration-300 ${showDetails ? 'w-2/3' : 'w-full'}`}>
+        {/* Chat Header */}
+        <div className="bg-black/40 backdrop-blur-sm border-b border-gray-800/50 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <FaUsers className="text-white text-lg" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Project Chat</h2>
+                  <p className="text-sm text-indigo-400 font-medium uppercase tracking-wide">
+                    {projectTitle}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+                  <FaSearch className="text-sm" />
+                </button>
+                <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+                  <FaPhone className="text-sm" />
+                </button>
+                <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+                  <FaVideo className="text-sm" />
+                </button>
+                <button
+                  onClick={toggleDetails}
+                  className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
+                >
+                  {showDetails ? <FaChevronRight className="text-sm" /> : <FaChevronLeft className="text-sm" />}
+                </button>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-400 font-medium">
+                  {participants.length} members
+                </span>
+                <div className="flex -space-x-2">
+                  {participants.slice(0, 3).map((participant: any) => (
+                    <div
+                      key={participant.id}
+                      className="relative group"
+                      title={`${participant.name} (${participant.role})`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(participant.role)} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-xs shadow-lg hover:scale-110 transition-transform`}
+                      >
+                        {getInitials(participant.name)}
+                      </div>
+                      {participant.isOnline && (
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-gray-900 shadow-sm"></div>
+                      )}
+                    </div>
+                  ))}
+                  {participants.length > 3 && (
+                    <div className="w-8 h-8 rounded-full bg-gray-700 border-2 border-gray-900 flex items-center justify-center text-xs text-gray-300 font-medium shadow-lg">
+                      +{participants.length - 3}
                     </div>
                   )}
-                  <div
-                    className={`flex items-end space-x-3 ${isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
-                      }`}
-                  >
-                    {/* Avatar */}
-                    {!isOwnMessage && (
-                      <div
-                        className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(
-                          message.senderRole
-                        )} flex items-center justify-center text-white text-xs font-medium shadow-lg ${showAvatar ? "opacity-100" : "opacity-0"
-                          }`}
-                      >
-                        {getInitials(message.senderName)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages Container */}
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                  <FaUsers className="text-3xl" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">No messages yet</h3>
+                <p className="text-sm text-center">
+                  Start the conversation and get your project moving!
+                </p>
+              </div>
+            ) : (
+              messages.map((message: any, index: number) => {
+                const isOwnMessage = message.senderId === currentUserId;
+                const showAvatar =
+                  index === 0 || messages[index - 1].senderId !== message.senderId;
+                const showTimestamp =
+                  index === 0 ||
+                  new Date(message.timestamp).getTime() -
+                  new Date(messages[index - 1].timestamp).getTime() >
+                  300000;
+                return (
+                  <div key={message.id} className="space-y-2">
+                    {showTimestamp && (
+                      <div className="flex justify-center">
+                        <span className="text-xs text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full">
+                          {formatTime(message.timestamp)}
+                        </span>
                       </div>
                     )}
-                    {/* Message Content */}
                     <div
-                      className={`max-w-xs lg:max-w-md xl:max-w-lg ${isOwnMessage ? "ml-auto" : ""
-                        }`}
+                      className={`flex items-end space-x-3 ${isOwnMessage ? "flex-row-reverse space-x-reverse" : ""}`}
                     >
-                      {/* Sender Info */}
-                      {!isOwnMessage && showAvatar && (
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-sm font-semibold monty text-white">
-                            {message.senderName}
-                          </span>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs border monty uppercase font-medium ${getRoleBadge(
-                              message.senderRole
-                            )}`}
-                          >
-                            {message.senderRole}
-                          </span>
+                      {/* Avatar */}
+                      {!isOwnMessage && (
+                        <div
+                          className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(message.senderRole)} flex items-center justify-center text-white text-xs font-medium shadow-lg ${showAvatar ? "opacity-100" : "opacity-0"}`}
+                        >
+                          {getInitials(message.senderName)}
                         </div>
                       )}
-                      {/* Message Bubble */}
-                      <div
-                        className={`relative px-4 py-3 rounded-2xl shadow-lg ${isOwnMessage
-                            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto"
-                            : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
-                          } ${showAvatar ? "rounded-tl-md" : ""}`}
-                      >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                          {message.content}
-                        </p>
-                        {/* Message Status */}
-                        {isOwnMessage && (
-                          <div className="flex items-center justify-end mt-1 space-x-1">
-                            <span className="text-xs text-blue-200 opacity-70 monty">
-                              {formatTime(message.timestamp)}
+                      {/* Message Content */}
+                      <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${isOwnMessage ? "ml-auto" : ""}`}>
+                        {/* Sender Info */}
+                        {!isOwnMessage && showAvatar && (
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-sm font-semibold text-white">
+                              {message.senderName}
                             </span>
-                            {message.isRead ? (
-                              <FaCheckDouble className="text-xs text-blue-200" />
-                            ) : (
-                              <FaCheck className="text-xs text-blue-200" />
-                            )}
+                            <span className={`px-2 py-1 rounded-full text-xs border uppercase font-medium ${getRoleBadge(message.senderRole)}`}>
+                              {message.senderRole}
+                            </span>
                           </div>
                         )}
+                        {/* Message Bubble */}
+                        <div
+                          className={`relative px-4 py-3 rounded-2xl shadow-lg ${isOwnMessage
+                            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto"
+                            : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
+                            } ${showAvatar ? "rounded-tl-md" : ""}`}
+                        >
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {message.content}
+                          </p>
+                          {/* Message Status */}
+                          {isOwnMessage && (
+                            <div className="flex items-center justify-end mt-1 space-x-1">
+                              <span className="text-xs text-blue-200 opacity-70">
+                                {formatTime(message.timestamp)}
+                              </span>
+                              {message.isRead ? (
+                                <FaCheckDouble className="text-xs text-blue-200" />
+                              ) : (
+                                <FaCheck className="text-xs text-blue-200" />
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
+                );
+              })
+            )}
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                  </div>
                 </div>
-              );
-            })
-          )}
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                <div className="flex space-x-1">
-                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div
-                    className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.1s" }}
-                  ></div>
-                  <div
-                    className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
-                </div>
+                <span className="text-xs text-gray-400">Someone is typing...</span>
               </div>
-              <span className="text-xs text-gray-400">Someone is typing...</span>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
-      </div>
-      {/* Message Input */}
-      {permissions.canWrite && (
-        <div className="bg-black/40 backdrop-blur-sm border-t  w-full border-gray-800/50 p-4">
-          <div className="flex items-end space-x-3">
-            <button className="cursor-pointer p-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all">
-              <FaPaperclip className="text-lg" />
-            </button>
-            <div className="flex-1 relative">
-              <textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                className="w-full px-4 py-3 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-white placeholder-gray-400 resize-none scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
-                rows={1}
-                style={{ minHeight: "48px", maxHeight: "120px" }}
-              />
-              <button className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors">
-                <FaSmile className="text-lg" />
+
+        {/* Message Input */}
+        {permissions.canWrite && (
+          <div className="bg-black/40 backdrop-blur-sm border-t border-gray-800/50 p-4">
+            <div className="flex items-end space-x-3">
+              <button className="cursor-pointer p-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all">
+                <FaPaperclip className="text-lg" />
+              </button>
+              <div className="flex-1 relative">
+                <textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type your message..."
+                  className="w-full px-4 py-3 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-white placeholder-gray-400 resize-none scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+                  rows={1}
+                  style={{ minHeight: "48px", maxHeight: "120px" }}
+                />
+                <button className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors">
+                  <FaSmile className="text-lg" />
+                </button>
+              </div>
+              <button className="cursor-pointer p-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all">
+                <FaMicrophone className="text-lg" />
+              </button>
+              <button
+                onClick={handleSendMessage}
+                disabled={!newMessage.trim()}
+                className="cursor-pointer p-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-105 disabled:scale-100"
+              >
+                <FaPaperPlane className="text-lg" />
               </button>
             </div>
-            <button className="cursor-pointer p-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all">
-              <FaMicrophone className="text-lg" />
-            </button>
-            <button
-              onClick={handleSendMessage}
-              disabled={!newMessage.trim()}
-              className="cursor-pointer p-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-105 disabled:scale-100"
-            >
-              <FaPaperPlane className="text-lg" />
-            </button>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="bg-black/20 backdrop-blur-sm px-6 py-3 border-t border-gray-800/30">
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center space-x-4">
+              <span className="flex items-center space-x-2">
+                <FaCircle className="text-green-500 text-xs" />
+                <span>
+                  {participants.filter((p: any) => p.isOnline).length} online
+                </span>
+              </span>
+              <span>
+                {participants.length} total member
+                {participants.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <FaClock className="text-xs" />
+              <span>
+                Last activity:{" "}
+                {messages.length > 0
+                  ? formatTime(messages[messages.length - 1].timestamp)
+                  : "Never"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Details Panel */}
+      {showDetails && (
+        <div className="w-1/3 bg-black/20 backdrop-blur-sm border-l border-gray-800/50 flex flex-col">
+          {/* Details Header */}
+          <div className="bg-black/40 backdrop-blur-sm border-b border-gray-800/50 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Project Details</h3>
+                <p className="text-sm text-gray-400">{projectDetails.description}</p>
+              </div>
+              <button
+                onClick={toggleDetails}
+                className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
+              >
+                <FaChevronRight className="text-sm" />
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="bg-black/20 backdrop-blur-sm border-b border-gray-800/30 p-4">
+            <div className="flex space-x-1 bg-gray-800/50 rounded-lg p-1">
+              {[
+                { id: "overview", label: "Overview", icon: FaInfoCircle },
+                { id: "resources", label: "Resources", icon: FaFolder },
+                { id: "milestones", label: "Milestones", icon: FaTasks },
+                { id: "participants", label: "Team", icon: FaUsers },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`cursor-pointer flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-xs font-medium transition-all ${activeTab === tab.id
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                    }`}
+                >
+                  <tab.icon className="text-xs" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            {activeTab === "overview" && renderOverviewTab()}
+            {activeTab === "resources" && renderResourcesTab()}
+            {activeTab === "milestones" && renderMilestonesTab()}
+            {activeTab === "participants" && renderParticipantsTab()}
+          </div>
+
+          {/* Details Footer */}
+          <div className="bg-black/20 backdrop-blur-sm border-t border-gray-800/30 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {permissions.canManageProject && (
+                  <>
+                    <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+                      <FaEdit className="text-sm" />
+                    </button>
+                    <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+                      <FaCog className="text-sm" />
+                    </button>
+                  </>
+                )}
+                <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
+                  <FaShare className="text-sm" />
+                </button>
+              </div>
+              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                <FaProjectDiagram className="text-xs" />
+                <span>ID: {projectId.slice(0, 8)}</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
-      {/* Footer */}
-      <div className="bg-black/20 backdrop-blur-sm px-6 py-3 border-t border-gray-800/30">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center space-x-4">
-            <span className="flex items-center space-x-2">
-              <FaCircle className="text-green-500 text-xs" />
-              <span>
-                {participants.filter((p: any) => p.isOnline).length} online
-              </span>
-            </span>
-            <span>
-              {participants.length} total member
-              {participants.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <FaClock className="text-xs" />
-            <span>
-              Last activity:{" "}
-              {messages.length > 0
-                ? formatTime(messages[messages.length - 1].timestamp)
-                : "Never"}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

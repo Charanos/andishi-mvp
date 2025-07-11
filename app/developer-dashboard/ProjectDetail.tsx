@@ -6,7 +6,7 @@ import { FaArrowLeft, FaComments, FaCode, FaCalendarAlt, FaDollarSign, FaUsers, 
 import ProjectChatComponent from "../admin-dashboard/ProjectChat";
 import ProjectAssignmentsComponent from "../admin-dashboard/ProjectAssignments";
 import { useAuth } from "@/hooks/useAuth";
-import { SystemUser } from "../admin-dashboard/ProjectOverview";
+import { SystemUser } from "~/types";
 import useSWR from "swr";
 import {
   Activity,

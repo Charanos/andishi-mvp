@@ -33,7 +33,7 @@ import ProjectChatComponent from "../admin-dashboard/ProjectChat";
 import ProjectAssignmentsComponent from "../admin-dashboard/ProjectAssignments";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjectAssignments } from "@/hooks/useProjectAssignments";
-import { SystemUser } from "../admin-dashboard/ProjectOverview";
+import { SystemUser } from "~/types";
 
 export interface ActivityItem {
   id: string;
@@ -65,10 +65,16 @@ const fetcher = async (url: string) => {
   });
 
   if (!res.ok) {
-    const error: FetcherError = new Error("An error occurred while fetching the data.");
-    // Attach extra info to the error object.
-    error.info = await res.json();
+    const error: FetcherError = new Error(
+      "An error occurred while fetching the data."
+    );
+    try {
+      error.info = await res.json();
+    } catch (e) {
+      error.info = { message: await res.text() };
+    }
     error.status = res.status;
+    console.error("API Error:", error.status, error.info);
     throw error;
   }
 
@@ -182,8 +188,25 @@ export default function EnhancedProjectTracking({
     error: activityError,
   } = useSWR(
     projectData ? `/api/project-activity/${projectData._id}` : null,
-    fetcher
+    fetcher,
+    {
+      onError: (error) => {
+        console.error('Activity fetch error:', error);
+      },
+      revalidateOnFocus: false,
+      shouldRetryOnError: true,
+      errorRetryCount: 3
+    }
   );
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Client Dashboard - Project Data:', projectData);
+    console.log('Client Dashboard - Milestones:', projectData.milestones);
+    console.log('Client Dashboard - Pricing:', projectData.pricing);
+    console.log('Client Dashboard - Activity Data:', activityData);
+    console.log('Client Dashboard - Activity Error:', activityError);
+  }, [projectData, activityData, activityError]);
 
   const {
     loading: crudLoading,
@@ -218,7 +241,7 @@ export default function EnhancedProjectTracking({
         });
         if (response.ok) {
           const data = await response.json();
-          setDevelopers(data.filter((user: any) => user.role === 'developer'));
+          setDevelopers(data.users.filter((user: any) => user.role === 'developer'));
         }
       } catch (error) {
         console.error('Error fetching developers:', error);
@@ -268,34 +291,19 @@ export default function EnhancedProjectTracking({
     setProjectData(convertDates(project));
   }, [project]);
 
-  // Files state
-  const [files, setFiles] = useState<ProjectFile[]>(projectData.files || []);
+  // State for forms and modals
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [newFile, setNewFile] = useState<Partial<ProjectFile>>({});
   const [showAddFile, setShowAddFile] = useState(false);
 
-  // Milestones state
-  const [milestones, setMilestones] = useState<Milestone[]>(
-    projectData.milestones?.length
-      ? projectData.milestones
-      : projectData.pricing?.milestones || []
-  );
   const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
   const [newMilestone, setNewMilestone] = useState<Partial<Milestone>>({});
   const [showAddMilestone, setShowAddMilestone] = useState(false);
 
-  // Payments state
-  const [payments, setPayments] = useState<Payment[]>(
-    projectData.payments || []
-  );
   const [editingPayment, setEditingPayment] = useState<string | null>(null);
   const [newPayment, setNewPayment] = useState<Partial<Payment>>({});
   const [showAddPayment, setShowAddPayment] = useState(false);
 
-  // Updates state
-  const [updates, setUpdates] = useState<ProjectUpdate[]>(
-    projectData.updates || []
-  );
   const [newUpdate, setNewUpdate] = useState<Partial<ProjectUpdate>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -313,8 +321,8 @@ export default function EnhancedProjectTracking({
   }, [crudError]);
 
   // Calculate project statistics
-  const totalMilestones = milestones.length;
-  const completedMilestones = milestones.filter(
+  const totalMilestones = projectData.milestones?.length || 0;
+  const completedMilestones = (projectData.milestones || []).filter(
     (m) => m.status === "completed"
   ).length;
   const milestoneProgress =
@@ -323,9 +331,9 @@ export default function EnhancedProjectTracking({
   const totalBudget =
     projectData.pricing?.type === "fixed" && projectData.pricing.fixedBudget
       ? parseFloat(projectData.pricing.fixedBudget)
-      : milestones.reduce((sum, m) => sum + parseFloat(m.budget), 0);
+      : (projectData.milestones || []).reduce((sum, m) => sum + parseFloat(m.budget), 0);
 
-  const spentBudget = payments.reduce((sum, p) => sum + p.amount, 0);
+  const spentBudget = (projectData.payments || []).reduce((sum, p) => sum + p.amount, 0);
   const budgetProgress =
     totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
 
@@ -376,7 +384,10 @@ export default function EnhancedProjectTracking({
           createdAt: new Date(),
           ...fileData,
         };
-        setFiles([...files, file]);
+        setProjectData((prev) => ({
+          ...prev,
+          files: [...(prev.files || []), file],
+        }));
         setNewFile({});
         setShowAddFile(false);
       }
@@ -389,11 +400,12 @@ export default function EnhancedProjectTracking({
   ) => {
     const result = await updateFile(projectData._id, id, updatedFile);
     if (result.success) {
-      setFiles(
-        files.map((file) =>
+      setProjectData((prev) => ({
+        ...prev,
+        files: prev.files?.map((file) =>
           file.id === id ? { ...file, ...updatedFile } : file
-        )
-      );
+        ) || [],
+      }));
       setEditingFile(null);
     }
   };
@@ -401,7 +413,10 @@ export default function EnhancedProjectTracking({
   const handleDeleteFile = async (id: string) => {
     const result = await deleteFile(projectData._id, id);
     if (result.success) {
-      setFiles(files.filter((file) => file.id !== id));
+      setProjectData((prev) => ({
+        ...prev,
+        files: prev.files?.filter((file) => file.id !== id) || [],
+      }));
     }
   };
 
@@ -416,7 +431,7 @@ export default function EnhancedProjectTracking({
         status: "pending" as MilestoneStatus,
         submittedBy: "client" as const,
         dueDate: newMilestone.dueDate || new Date(),
-        order: milestones.length + 1,
+        order: (projectData.milestones || []).length + 1,
         deliverables: newMilestone.deliverables || [],
       };
 
@@ -426,7 +441,10 @@ export default function EnhancedProjectTracking({
           id: Date.now().toString(),
           ...milestoneData,
         };
-        setMilestones([...milestones, milestone]);
+        setProjectData((prev) => ({
+          ...prev,
+          milestones: [...(prev.milestones || []), milestone],
+        }));
         setNewMilestone({});
         setShowAddMilestone(false);
       }
@@ -439,13 +457,14 @@ export default function EnhancedProjectTracking({
   ) => {
     const result = await updateMilestone(projectData._id, id, updatedMilestone);
     if (result.success) {
-      setMilestones(
-        milestones.map((milestone) =>
+      setProjectData((prev) => ({
+        ...prev,
+        milestones: prev.milestones?.map((milestone) =>
           milestone.id === id
             ? { ...milestone, ...updatedMilestone }
             : milestone
-        )
-      );
+        ) || [],
+      }));
       setEditingMilestone(null);
     }
   };
@@ -453,7 +472,10 @@ export default function EnhancedProjectTracking({
   const handleDeleteMilestone = async (id: string) => {
     const result = await deleteMilestone(projectData._id, id);
     if (result.success) {
-      setMilestones(milestones.filter((milestone) => milestone.id !== id));
+      setProjectData((prev) => ({
+        ...prev,
+        milestones: prev.milestones?.filter((milestone) => milestone.id !== id) || [],
+      }));
     }
   };
 
@@ -480,7 +502,10 @@ export default function EnhancedProjectTracking({
           id: Date.now().toString(),
           ...paymentData,
         };
-        setPayments([...payments, payment]);
+        setProjectData((prev) => ({
+          ...prev,
+          payments: [...(prev.payments || []), payment],
+        }));
         setNewPayment({});
         setShowAddPayment(false);
       }
@@ -493,11 +518,12 @@ export default function EnhancedProjectTracking({
   ) => {
     const result = await updatePayment(projectData._id, id, updatedPayment);
     if (result.success) {
-      setPayments(
-        payments.map((payment) =>
+      setProjectData((prev) => ({
+        ...prev,
+        payments: prev.payments?.map((payment) =>
           payment.id === id ? { ...payment, ...updatedPayment } : payment
-        )
-      );
+        ) || [],
+      }));
       setEditingPayment(null);
     }
   };
@@ -505,7 +531,10 @@ export default function EnhancedProjectTracking({
   const handleDeletePayment = async (id: string) => {
     const result = await deletePayment(projectData._id, id);
     if (result.success) {
-      setPayments(payments.filter((payment) => payment.id !== id));
+      setProjectData((prev) => ({
+        ...prev,
+        payments: prev.payments?.filter((payment) => payment.id !== id) || [],
+      }));
     }
   };
 
@@ -526,7 +555,10 @@ export default function EnhancedProjectTracking({
           createdAt: new Date(),
           ...updateData,
         };
-        setUpdates([update, ...updates]);
+        setProjectData((prev) => ({
+          ...prev,
+          updates: [update, ...(prev.updates || [])],
+        }));
         setNewUpdate({});
       }
     }
@@ -544,15 +576,18 @@ export default function EnhancedProjectTracking({
         isAdminResponse: true,
         parentUpdateId: updateId,
       };
-      setUpdates([reply, ...updates]);
+      setProjectData((prev) => ({
+        ...prev,
+        updates: [reply, ...(prev.updates || [])],
+      }));
       setReplyText("");
       setReplyingTo(null);
     }
   };
 
   const recentActivity = [
-    ...updates.map((u) => ({ ...u, activityType: "update" })),
-    ...milestones
+    ...(projectData.updates || []).map((u) => ({ ...u, activityType: "update" })),
+    ...(projectData.milestones || [])
       .filter((m) => m.completedAt)
       .map((m) => ({
         id: m.id,
@@ -982,7 +1017,7 @@ export default function EnhancedProjectTracking({
 
             {/* Milestones List */}
             <div className="space-y-4">
-              {milestones.map((milestone) => (
+              {projectData.milestones?.map((milestone) => (
                 <div
                   key={milestone.id}
                   className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
@@ -1294,7 +1329,7 @@ export default function EnhancedProjectTracking({
 
               {/* Payments List */}
               <div className="space-y-4">
-                {payments.map((payment) => (
+                {(projectData.payments || []).map((payment: Payment) => (
                   <div
                     key={payment.id}
                     className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
@@ -1520,7 +1555,7 @@ export default function EnhancedProjectTracking({
 
             {/* Files List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {files.map((file) => (
+              {projectData.files?.map((file) => (
                 <div
                   key={file.id}
                   className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
@@ -1656,7 +1691,7 @@ export default function EnhancedProjectTracking({
 
             {/* Updates List */}
             <div className="space-y-6">
-              {updates.map((update) => (
+              {projectData.updates?.map((update) => (
                 <div
                   key={update.id}
                   className={`p-6 rounded-xl border transition-all duration-200 ${update.isAdminResponse
@@ -1748,7 +1783,7 @@ export default function EnhancedProjectTracking({
                 </div>
               ))}
 
-              {updates.length === 0 && (
+              {(projectData.updates || []).length === 0 && (
                 <div className="text-center py-12">
                   <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -1768,7 +1803,7 @@ export default function EnhancedProjectTracking({
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Milestones</h2>
             <div className="space-y-4">
-              {(milestones || []).map((milestone) => (
+              {(projectData.milestones || []).map((milestone: Milestone) => (
                 <div
                   key={milestone.id}
                   className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
@@ -1804,7 +1839,7 @@ export default function EnhancedProjectTracking({
                   </div>
                 </div>
               ))}
-              {(milestones || []).length === 0 && (
+              {(projectData.milestones || []).length === 0 && (
                 <div className="text-center py-12">
                   <Target className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -1824,7 +1859,7 @@ export default function EnhancedProjectTracking({
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Payments</h2>
             <div className="space-y-4">
-              {(payments || []).map((payment) => (
+              {(projectData.payments || []).map((payment) => (
                 <div
                   key={payment.id}
                   className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
@@ -1857,7 +1892,7 @@ export default function EnhancedProjectTracking({
                   </div>
                 </div>
               ))}
-              {(payments || []).length === 0 && (
+              {(projectData.payments || []).length === 0 && (
                 <div className="text-center py-12">
                   <DollarSign className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -1899,7 +1934,7 @@ export default function EnhancedProjectTracking({
                   </p>
                 </div>
               ) : (
-                activityData?.data.map((activity: ActivityItem) => (
+                (activityData || []).map((activity: ActivityItem) => (
                   <div
                     key={`${activity.type}-${activity.id}`}
                     className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
@@ -1933,7 +1968,7 @@ export default function EnhancedProjectTracking({
                     </div>
                   </div>
                 )))}
-              {(activityData?.data.length === 0 || activityError) && (
+              {(activityData?.length === 0 || activityError) && (
                 <div className="text-center py-12">
                   <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -2077,7 +2112,7 @@ export default function EnhancedProjectTracking({
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">
-                  {files.length}
+                  {(projectData.files || []).length}
                 </div>
                 <div className="text-gray-400 text-sm">Files</div>
               </div>

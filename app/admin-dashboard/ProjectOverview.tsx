@@ -107,32 +107,7 @@ const fetcher = async (url: string) => {
 };
 
 
-export interface SystemUser {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  company?: string;
-  role: "client" | "developer" | "admin";
-  status: "active" | "inactive" | "suspended";
-  createdAt: string;
-  lastLogin?: string;
-  projectsCount?: number;
-  skills?: string[];
-  hourlyRate?: number;
-  passwordLastChanged?: string;
-  loginAttempts?: number;
-  accountLocked?: boolean;
-  completedProjects?: number;
-  activeProjects?: number;
-  totalEarnings?: number;
-  isActive: boolean;
-  accountCreated: boolean;
-  passwordGenerated: boolean;
-  developerProfileStatus?: "pending" | "approved" | "rejected";
-  developerProfileId?: string;
-}
+import { SystemUser } from "~/types";
 
 
 interface ProjectOverviewProps {
@@ -239,38 +214,18 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
   const [projectData, setProjectData] = useState<ProjectData>(selectedProject || {} as ProjectData);
 
-  const [files, setFiles] = useState<ProjectFile[]>(projectData?.files || []);
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [newFile, setNewFile] = useState<Partial<ProjectFile>>({});
   const [showAddFile, setShowAddFile] = useState(false);
 
-  const [milestones, setMilestones] = useState<Milestone[]>(
-    projectData.milestones?.length
-      ? projectData.milestones
-      : projectData.pricing?.milestones || []
-  );
   const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
   const [newMilestone, setNewMilestone] = useState<Partial<Milestone>>({});
   const [showAddMilestone, setShowAddMilestone] = useState(false);
 
-  const [payments, setPayments] = useState<Payment[]>(
-    projectData.payments || []
-  );
   const [editingPayment, setEditingPayment] = useState<string | null>(null);
   const [newPayment, setNewPayment] = useState<Partial<Payment>>({});
   const [showAddPayment, setShowAddPayment] = useState(false);
 
-  // Assignment state management
-  const [localDevelopers, setLocalDevelopers] = useState<any[]>([]);
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterAvailable, setFilterAvailable] = useState(true);
-  const [assignmentLoading, setAssignmentLoading] = useState(false);
-
-  const [updates, setUpdates] = useState<ProjectUpdate[]>(
-    projectData.updates || []
-  );
   const [newUpdate, setNewUpdate] = useState<Partial<ProjectUpdate>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -286,6 +241,21 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   );
 
   const { user: currentUser } = useAuth();
+
+  // Fetch activity data using SWR
+  const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
+    selectedProject ? `/api/project-activity/${selectedProject._id}` : null,
+    fetcher
+  );
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Admin Dashboard - Project Data:', projectData);
+    console.log('Admin Dashboard - Milestones:', projectData.milestones);
+    console.log('Admin Dashboard - Pricing:', projectData.pricing);
+    console.log('Admin Dashboard - Activity Data:', activityData);
+    console.log('Admin Dashboard - Activity Error:', activityError);
+  }, [projectData, activityData, activityError]);
 
   const [updateForm, setUpdateForm] = useState({
     title: "",
@@ -334,6 +304,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             ...m,
             dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
             completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+            // Ensure budget is always a string
+            budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
+            // Ensure essential fields exist
+            title: m.title || 'Untitled Milestone',
+            description: m.description || 'No description provided',
+            status: m.status || 'pending'
           })),
           updates: data.updates?.map((u) => ({
             ...u,
@@ -351,27 +327,30 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       };
 
       setProjectData(convertDates(selectedProject));
-      setFiles(selectedProject.files || []);
-      setMilestones(selectedProject.milestones || []);
-      setPayments(selectedProject.payments || []);
-      setUpdates(selectedProject.updates || []);
     }
   }, [selectedProject]);
 
   // Calculate project statistics
-  const totalMilestones = milestones.length;
-  const completedMilestones = milestones.filter(
+  const totalMilestones = projectData.milestones?.length || 0;
+  const completedMilestones = (projectData.milestones || []).filter(
     (m) => m.status === "completed"
   ).length;
   const milestoneProgress =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
 
-  const totalBudget =
-    projectData.pricing?.type === "fixed" && projectData.pricing.fixedBudget
-      ? parseFloat(projectData.pricing.fixedBudget)
-      : milestones.reduce((sum, m) => sum + parseFloat(m.budget), 0);
+  const totalBudget = (() => {
+    if (projectData.pricing?.type === "fixed" && projectData.pricing.fixedBudget) {
+      return parseFloat(projectData.pricing.fixedBudget) || 0;
+    }
+    
+    const milestones = projectData.milestones || projectData.pricing?.milestones || [];
+    return milestones.reduce((sum, m) => {
+      const budget = typeof m.budget === 'string' ? parseFloat(m.budget) : (m.budget || 0);
+      return sum + (isNaN(budget) ? 0 : budget);
+    }, 0);
+  })();
 
-  const spentBudget = payments.reduce((sum, p) => sum + p.amount, 0);
+  const spentBudget = (projectData.payments || []).reduce((sum, p) => sum + p.amount, 0);
   const budgetProgress =
     totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
 
@@ -414,7 +393,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Milestones</h2>
             <div className="space-y-4">
-              {(milestones || []).map((milestone) => (
+              {(projectData.milestones || []).map((milestone) => (
                 <div
                   key={milestone.id}
                   className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
@@ -450,7 +429,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
                 </div>
               ))}
-              {(milestones || []).length === 0 && (
+              {(projectData.milestones || []).length === 0 && (
                 <div className="text-center py-12">
                   <Target className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -469,7 +448,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Payments</h2>
             <div className="space-y-4">
-              {(payments || []).map((payment) => (
+              {(projectData.payments || []).map((payment) => (
                 <div
                   key={payment.id}
                   className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
@@ -502,7 +481,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
                 </div>
               ))}
-              {(payments || []).length === 0 && (
+              {(projectData.payments || []).length === 0 && (
                 <div className="text-center py-12">
                   <DollarSign className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -541,6 +520,99 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               currentUserRole={currentUser.role as "admin" | "client" | "developer"}
               currentUserName={currentUser.name || currentUser.email}
             />
+          </div>
+        );
+      case "activity":
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Recent Activity</h2>
+            
+            <div className="space-y-4">
+              {activityLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-gray-400">Loading activity...</span>
+                  </div>
+                </div>
+              ) : activityError ? (
+                <div className="text-center py-12">
+                  <Activity className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Error Loading Activity
+                  </h3>
+                  <p className="text-gray-400">
+                    There was an error loading the activity. Please try again later.
+                  </p>
+                  <p className="text-red-400 text-sm mt-2">
+                    {activityError.message || 'Unknown error occurred'}
+                  </p>
+                </div>
+              ) : activityData && activityData.data ? (
+                activityData.data.map((activity: ActivityItem) => (
+                  <div
+                    key={`${activity.type}-${activity.id}`}
+                    className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                  >
+                    <div className="flex-shrink-0 mt-1">
+                      {activity.type === "milestone" ? (
+                        <div className="p-2 bg-green-500/20 rounded-lg">
+                          <CheckCircle className="w-5 h-5 text-green-300" />
+                        </div>
+                      ) : activity.type === "update" ? (
+                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                          <MessageSquare className="w-5 h-5 text-blue-300" />
+                        </div>
+                      ) : activity.type === "chat" ? (
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <MessageSquare className="w-5 h-5 text-purple-300" />
+                        </div>
+                      ) : activity.type === "assignment" ? (
+                        <div className="p-2 bg-indigo-500/20 rounded-lg">
+                          <FaUsers className="w-5 h-5 text-indigo-300" />
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-gray-500/20 rounded-lg">
+                          <Activity className="w-5 h-5 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium">{activity.title}</h3>
+                      <p className="text-gray-400 text-sm">{activity.description}</p>
+                      <div className="flex items-center space-x-4 mt-2">
+                        <p className="text-gray-500 text-xs">
+                          {(typeof activity.createdAt === "string"
+                            ? new Date(activity.createdAt)
+                            : activity.createdAt
+                          ).toLocaleDateString()}{" "}
+                          at{" "}
+                          {(typeof activity.createdAt === "string"
+                            ? new Date(activity.createdAt)
+                            : activity.createdAt
+                          ).toLocaleTimeString()}
+                        </p>
+                        {activity.actor && (
+                          <span className="text-xs text-gray-500">
+                            by {activity.actor.name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    No Activity Yet
+                  </h3>
+                  <p className="text-gray-400">
+                    Activity will appear here as the project progresses.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         );
       default:
@@ -694,21 +766,29 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         ...(newFile.uploadedBy && { uploadedBy: newFile.uploadedBy }),
         ...(newFile.description && { description: newFile.description }),
       };
-      setFiles([...files, file]);
+      setProjectData((prevData) => ({
+        ...prevData,
+        files: [...(prevData.files || []), file],
+      }));
       setNewFile({});
       setShowAddFile(false);
     }
   };
 
   const handleUpdateFile = (id: string, updatedFile: Partial<ProjectFile>) => {
-    setFiles(
-      files.map((file) => (file.id === id ? { ...file, ...updatedFile } : file))
-    );
-    setEditingFile(null);
+    setProjectData((prevData) => ({
+      ...prevData,
+      files: prevData.files?.map((file) =>
+        file.id === id ? { ...file, ...updatedFile } : file
+      ) || [],
+    }));
   };
 
   const handleDeleteFile = (id: string) => {
-    setFiles(files.filter((file) => file.id !== id));
+    setProjectData((prevData) => ({
+      ...prevData,
+      files: prevData.files?.filter((file) => file.id !== id) || [],
+    }));
   };
 
   // Milestone CRUD operations
@@ -722,10 +802,13 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         timeline: newMilestone.timeline || "",
         status: (newMilestone.status || "pending") as MilestoneStatus,
         dueDate: newMilestone.dueDate || new Date(),
-        order: milestones.length + 1,
+        order: (projectData.milestones?.length || 0) + 1,
         deliverables: newMilestone.deliverables || [],
       };
-      setMilestones([...milestones, milestone]);
+      setProjectData((prevData) => ({
+        ...prevData,
+        milestones: [...(prevData.milestones || []), milestone],
+      }));
       setNewMilestone({});
       setShowAddMilestone(false);
     }
@@ -735,16 +818,20 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     id: string,
     updatedMilestone: Partial<Milestone>
   ) => {
-    setMilestones(
-      milestones.map((milestone) =>
+    setProjectData((prevData) => ({
+      ...prevData,
+      milestones: prevData.milestones?.map((milestone) =>
         milestone.id === id ? { ...milestone, ...updatedMilestone } : milestone
-      )
-    );
+      ) || [],
+    }));
     setEditingMilestone(null);
   };
 
   const handleDeleteMilestone = (id: string) => {
-    setMilestones(milestones.filter((milestone) => milestone.id !== id));
+    setProjectData((prevData) => ({
+      ...prevData,
+      milestones: prevData.milestones?.filter((milestone) => milestone.id !== id) || [],
+    }));
   };
 
   // Payment CRUD operations
@@ -765,7 +852,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         ...(newPayment.notes && { notes: newPayment.notes }),
         ...(newPayment.invoiceUrl && { invoiceUrl: newPayment.invoiceUrl }),
       };
-      setPayments([...payments, payment]);
+      setProjectData((prevData) => ({
+        ...prevData,
+        payments: [...(prevData.payments || []), payment],
+      }));
       setNewPayment({});
       setShowAddPayment(false);
     }
@@ -775,16 +865,20 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     id: string,
     updatedPayment: Partial<Payment>
   ) => {
-    setPayments(
-      payments.map((payment) =>
+    setProjectData((prevData) => ({
+      ...prevData,
+      payments: prevData.payments?.map((payment) =>
         payment.id === id ? { ...payment, ...updatedPayment } : payment
-      )
-    );
+      ) || [],
+    }));
     setEditingPayment(null);
   };
 
   const handleDeletePayment = (id: string) => {
-    setPayments(payments.filter((payment) => payment.id !== id));
+    setProjectData((prevData) => ({
+      ...prevData,
+      payments: prevData.payments?.filter((payment) => payment.id !== id) || [],
+    }));
   };
 
   // Payment approval functions
@@ -842,7 +936,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         createdAt: new Date(),
         author: "Admin",
       };
-      setUpdates([update, ...updates]);
+      setProjectData((prevData) => ({
+        ...prevData,
+        updates: [update, ...(prevData.updates || [])],
+      }));
       setNewUpdate({});
     }
   };
@@ -859,22 +956,18 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         isAdminResponse: true,
         parentUpdateId: updateId,
       };
-      setUpdates([reply, ...updates]);
+      setProjectData((prevData) => ({
+        ...prevData,
+        updates: [reply, ...(prevData.updates || [])],
+      }));
       setReplyText("");
       setReplyingTo(null);
     }
   };
-
-  // Fetch activity data using SWR
-  const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
-    selectedProject ? `/api/project-activity/${selectedProject._id}` : null,
-    fetcher
-  );
-
   // Fallback to static data if API fails
   const recentActivity = activityData?.activities || [
-    ...updates.map((u) => ({ ...u, activityType: "update" })),
-    ...milestones
+    ...(projectData.updates || []).map((u) => ({ ...u, activityType: "update" })),
+    ...(projectData.milestones || [])
       .filter((m) => m.completedAt)
       .map((m) => ({
         id: m.id,
@@ -1612,11 +1705,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               <h3 className="text-lg font-semibold text-white mb-4">
                 Pending Milestone Approvals
               </h3>
-              {milestones.filter(
+              {(projectData.milestones || []).filter(
                 (m) => m.status === "pending" && m.submittedBy === "client"
               ).length > 0 ? (
                 <div className="space-y-4">
-                  {milestones
+                  {(projectData.milestones || [])
                     .filter(
                       (m) =>
                         m.status === "pending" && m.submittedBy === "client"
@@ -1697,9 +1790,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               )}
             </div>
 
-            {milestones && milestones.length > 0 ? (
+            {(projectData.milestones || []).length > 0 ? (
               <div className="space-y-4">
-                {milestones
+                {(projectData.milestones || [])
                   .sort((a, b) => a.order - b.order)
                   .map((milestone, index) => (
                     <div
@@ -1847,9 +1940,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </button>
             </div>
 
-            {selectedProject.updates && selectedProject.updates.length > 0 ? (
+            {(projectData.updates || []).length > 0 ? (
               <div className="space-y-4">
-                {selectedProject.updates
+                {(projectData.updates || [])
                   .sort(
                     (a, b) =>
                       new Date(b.createdAt).getTime() -
@@ -1908,9 +2001,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </button>
             </div>
 
-            {selectedProject.files && selectedProject.files.length > 0 ? (
+            {(projectData.files || []).length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {selectedProject.files.map((file) => (
+                {(projectData.files || []).map((file) => (
                   <div
                     key={file.id}
                     className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300"
@@ -2163,16 +2256,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               <h3 className="text-lg font-semibold text-white mb-4">
                 Pending Approvals
               </h3>
-              {payments.filter(
-                (p) => p.status === "pending" && p.submittedBy === "client"
+              {(projectData.payments || []).filter(
+                (p: Payment) => p.status === "pending" && p.submittedBy === "client"
               ).length > 0 ? (
                 <div className="space-y-4">
-                  {payments
+                  {(projectData.payments || [])
                     .filter(
-                      (p) =>
+                      (p: Payment) =>
                         p.status === "pending" && p.submittedBy === "client"
                     )
-                    .map((payment) => (
+                    .map((payment: Payment) => (
                       <div
                         key={payment.id}
                         className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4"
@@ -2258,9 +2351,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               <h3 className="text-lg font-semibold text-white mb-4">
                 Payment History
               </h3>
-              {payments.length > 0 ? (
+              {(projectData.payments || []).length > 0 ? (
                 <div className="space-y-4">
-                  {payments.map((payment) => (
+                  {(projectData.payments || []).map((payment: Payment) => (
                     <div
                       key={payment.id}
                       className={`p-4 rounded-xl border ${payment.status === "approved"

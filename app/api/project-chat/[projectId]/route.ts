@@ -140,7 +140,7 @@ export async function GET(
       // Ensure core participants and add a system message for the new chat
       const defaultSender = { id: "system", name: "System", role: "system" };
       await ensureCoreParticipants(chat.id, projectId, defaultSender);
-      await createSystemMessage(chat.id, `Project chat started for project ${projectId}.`);
+      await createSystemMessage(chat.id, `Chat started for project ${projectId}.`);
     }
 
     // Ensure the current user is a participant in the chat

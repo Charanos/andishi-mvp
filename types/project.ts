@@ -1,3 +1,5 @@
+import { Milestone } from './index';
+
 export interface ProjectMetrics {
   linesOfCode: number;
   commits: number;
@@ -81,6 +83,93 @@ export interface Developer {
   };
   currentProjects?: number;
   isAvailable?: boolean;
+}
+
+export interface ProjectDetails {
+  title: string;
+  description: string;
+  category: string;
+  techStack: string[];
+  requirements?: string;
+  timeline: string;
+  priority: "low" | "medium" | "high" | "critical";
+}
+
+
+
+export interface PricingOption {
+  type: "fixed" | "milestone" | "hourly";
+  currency: "USD" | "KES";
+  fixedBudget?: string;
+  hourlyRate?: string;
+  estimatedHours?: number;
+  milestones?: Milestone[];
+  totalPaid?: string;
+}
+
+export interface Payment {
+  id: string;
+  amount: number;
+  date: string;
+  method: string;
+  status: "pending" | "paid" | "overdue" | "partial";
+  currency?: "USD" | "KES";
+  description?: string;
+  notes?: string;
+  invoiceUrl?: string;
+  submittedBy?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectedBy?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+}
+
+export interface ProjectFile {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  createdAt: Date;
+  fileSize?: number;
+  fileType?: "document" | "image" | "video" | "other";
+  uploadedBy?: string;
+  description?: string;
+}
+
+export interface ProjectUpdate {
+  id: string;
+  title: string;
+  description: string;
+  type: "general" | "milestone" | "payment" | "file" | "admin_response";
+  createdAt: Date;
+  author: string;
+  isAdminResponse?: boolean;
+  parentUpdateId?: string;
+}
+
+export interface ProjectData {
+  _id: string;
+  projectDetails: ProjectDetails;
+  pricing: PricingOption;
+  status: "pending" | "in-progress" | "completed" | "on_hold" | "cancelled" | "rejected" | "reviewed";
+  progress: number;
+  createdAt: Date;
+  startDate?: Date;
+  endDate?: Date;
+  estimatedCompletionDate?: Date;
+  actualCompletionDate?: Date;
+  milestones?: Milestone[];
+  payments?: Payment[];
+  files?: ProjectFile[];
+  updates?: ProjectUpdate[];
+  priority: "low" | "medium" | "high" | "critical";
+  userInfo?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    company?: string;
+  };
 }
 
 export interface Project {

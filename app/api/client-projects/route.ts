@@ -152,10 +152,39 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
+    const { searchParams } = new URL(req.url);
+    const projectId = searchParams.get('id');
+
     let projects: any[] = [];
     let clientUser: any = null; // populated for client role
 
-    if (userRole === 'admin') {
+    if (projectId) {
+      // Fetch a single project by ID
+      let query: any = { _id: new ObjectId(projectId) };
+      if (userRole === 'client') {
+        const user = await db.collection('users').findOne({
+          email: userEmail,
+          role: 'client',
+          isActive: true
+        });
+        if (!user) {
+          return new NextResponse(
+            JSON.stringify({ success: false, message: 'User not found or not authorized' }),
+            { status: 404, headers: corsHeaders }
+          );
+        }
+        query = { _id: new ObjectId(projectId), $or: [{ clientId: user._id.toString() }, { 'userInfo.email': userEmail }] };
+      }
+      const project = await db.collection('projects').findOne(query);
+
+      if (!project) {
+        return new NextResponse(
+          JSON.stringify({ success: false, message: 'Project not found' }),
+          { status: 404, headers: corsHeaders }
+        );
+      }
+      projects = [project];
+    } else if (userRole === 'admin') {
       // Admins have access to all projects
       projects = await db
         .collection('projects')
@@ -198,53 +227,60 @@ export async function GET(req: NextRequest) {
     }
 
     // Transform projects to ensure consistent structure
-    const transformedProjects = projects.map(project => ({
-      _id: project._id.toString(),
-        id: project._id.toString(),
-      title: project.title || '',
-      description: project.description || '',
-      status: project.status || 'pending',
-      priority: project.priority || project.projectDetails?.priority || 'low',
-      progress: project.progress || 0,
-      techStack: project.techStack || project.projectDetails?.techStack || [],
-      createdAt: project.createdAt ? new Date(project.createdAt) : new Date(),
-      updatedAt: project.updatedAt ? new Date(project.updatedAt) : new Date(),
-      category: project.category || project.projectDetails?.category,
-      timeline: project.timeline || project.projectDetails?.timeline,
-      requirements: project.requirements || project.projectDetails?.requirements,
-      startDate: project.startDate ? new Date(project.startDate) : undefined,
-      endDate: project.endDate ? new Date(project.endDate) : undefined,
-      estimatedCompletionDate: project.estimatedCompletionDate ? new Date(project.estimatedCompletionDate) : undefined,
-      actualCompletionDate: project.actualCompletionDate ? new Date(project.actualCompletionDate) : undefined,
-      pricing: project.pricing ? {
-        type: project.pricing.type || 'fixed',
-        currency: project.pricing.currency || 'USD',
-        fixedBudget: project.pricing.fixedBudget,
-        hourlyRate: project.pricing.hourlyRate,
-        estimatedHours: project.pricing.estimatedHours,
-        totalPaid: project.pricing.totalPaid
-      } : undefined,
-      milestones: (project.milestones && project.milestones.length ? project.milestones : project.pricing?.milestones || []).map((m: ProjectMilestone) => ({
-        id: m._id?.toString() || m.id,
-        title: m.title,
-        description: m.description,
-        budget: m.budget,
-        timeline: m.timeline,
-        status: m.status || 'pending',
-        dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-        completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-        order: m.order || 0
-      })),
-      updates: (project.updates || []).map((u: ProjectUpdate) => ({
-        id: u._id?.toString() || u.id,
-        title: u.title,
-        description: u.description,
-        type: u.type || 'general',
-        createdAt: u.createdAt ? new Date(u.createdAt) : new Date()
-      })),
-      payments: (project.payments || []).map((p: any) => ({
-        id: p._id?.toString() || p.id,
-        amount: p.amount,
+    const transformedProjects = projects.map(project => {
+      console.log(`\n=== TRANSFORMING PROJECT: ${project._id} ===`);
+      console.log('Raw project milestones:', project.milestones?.length || 0);
+      console.log('Raw pricing milestones:', project.pricing?.milestones?.length || 0);
+      console.log('Raw pricing:', project.pricing);
+      
+      const transformedProject = {
+        _id: project._id.toString(),
+          id: project._id.toString(),
+        title: project.title || '',
+        description: project.description || '',
+        status: project.status || 'pending',
+        priority: project.priority || project.projectDetails?.priority || 'low',
+        progress: project.progress || 0,
+        techStack: project.techStack || project.projectDetails?.techStack || [],
+        createdAt: project.createdAt ? new Date(project.createdAt) : new Date(),
+        updatedAt: project.updatedAt ? new Date(project.updatedAt) : new Date(),
+        category: project.category || project.projectDetails?.category,
+        timeline: project.timeline || project.projectDetails?.timeline,
+        requirements: project.requirements || project.projectDetails?.requirements,
+        startDate: project.startDate ? new Date(project.startDate) : undefined,
+        endDate: project.endDate ? new Date(project.endDate) : undefined,
+        estimatedCompletionDate: project.estimatedCompletionDate ? new Date(project.estimatedCompletionDate) : undefined,
+        actualCompletionDate: project.actualCompletionDate ? new Date(project.actualCompletionDate) : undefined,
+        pricing: project.pricing ? {
+          type: project.pricing.type || 'fixed',
+          currency: project.pricing.currency || 'USD',
+          fixedBudget: project.pricing.fixedBudget,
+          hourlyRate: project.pricing.hourlyRate,
+          estimatedHours: project.pricing.estimatedHours,
+          totalPaid: project.pricing.totalPaid,
+          milestones: project.pricing.milestones
+        } : undefined,
+        milestones: (project.milestones && project.milestones.length ? project.milestones : project.pricing?.milestones || []).map((m: ProjectMilestone) => ({
+          id: m._id?.toString() || m.id,
+          title: m.title,
+          description: m.description,
+          budget: m.budget,
+          timeline: m.timeline,
+          status: m.status || 'pending',
+          dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
+          completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
+          order: m.order || 0
+        })),
+        updates: (project.updates || []).map((u: ProjectUpdate) => ({
+          id: u._id?.toString() || u.id,
+          title: u.title,
+          description: u.description,
+          type: u.type || 'general',
+          createdAt: u.createdAt ? new Date(u.createdAt) : new Date()
+        })),
+        payments: (project.payments || []).map((p: any) => ({
+          id: p._id?.toString() || p.id,
+          amount: p.amount,
         method: p.method,
         notes: p.notes,
         date: p.date ? new Date(p.date) : undefined,
@@ -265,17 +301,30 @@ export async function GET(req: NextRequest) {
         company: clientUser.company || '',
         role: 'client'
       } : {}),
-      projectDetails: {
-        ...project.projectDetails,
-        priority: project.projectDetails?.priority || project.priority || 'low',
-        techStack: project.projectDetails?.techStack || []
-      }
-    }));
+        projectDetails: {
+          ...project.projectDetails,
+          priority: project.projectDetails?.priority || project.priority || 'low',
+          techStack: project.projectDetails?.techStack || []
+        }
+      };
+      
+      console.log('Transformed project milestones:', transformedProject.milestones?.length || 0);
+      console.log('Transformed project pricing:', transformedProject.pricing);
+      
+      return transformedProject;
+    });
 
-    return new NextResponse(JSON.stringify({
-      success: true,
-      data: transformedProjects
-    }), { status: 200, headers: corsHeaders });
+    if (projectId) {
+      return new NextResponse(JSON.stringify({
+        success: true,
+        data: transformedProjects[0] || null
+      }), { status: 200, headers: corsHeaders });
+    } else {
+      return new NextResponse(JSON.stringify({
+        success: true,
+        data: transformedProjects
+      }), { status: 200, headers: corsHeaders });
+    }
 
   } catch (error) {
     console.error('Error fetching client projects:', error);
@@ -356,7 +405,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(JSON.stringify({
       success: true,
       message: 'Project created successfully',
-      projectId: result.insertedId
+      project: { ...projectToInsert, id: result.insertedId.toString(), _id: result.insertedId }
     }), { status: 200, headers: corsHeaders });
 
   } catch (error) {

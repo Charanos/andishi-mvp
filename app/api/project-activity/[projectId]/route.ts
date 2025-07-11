@@ -7,13 +7,14 @@ export interface ActivityItem {
   type: 'chat' | 'assignment' | 'milestone' | 'payment' | 'update' | 'system';
   title: string;
   description: string;
-  timestamp: Date;
-  actor: {
+  createdAt: Date | string;
+  actor?: {
     id: string;
     name: string;
     role: string;
   };
   metadata?: any;
+  activityType?: string;
 }
 
 interface ApiResponse {
@@ -155,7 +156,7 @@ export async function GET(
             type: 'system',
             title: 'System Notification',
             description: message.content,
-            timestamp: message.timestamp,
+            createdAt: message.timestamp,
             actor: {
               id: 'system',
               name: 'System',
@@ -170,7 +171,7 @@ export async function GET(
             description: message.content.length > 100 ?
               `${message.content.substring(0, 100)}...` :
               message.content,
-            timestamp: message.timestamp,
+            createdAt: message.timestamp,
             actor: {
               id: message.senderId,
               name: message.senderName,
@@ -219,7 +220,7 @@ export async function GET(
           type: 'assignment',
           title: `${developerName} was assigned`,
           description: `Added as ${assignment.role} to the project team`,
-          timestamp: assignment.assignedAt,
+          createdAt: assignment.assignedAt,
           actor: {
             id: 'system',
             name: 'System',
@@ -243,7 +244,7 @@ export async function GET(
       type: 'system',
       title: 'Project Created',
       description: `Project "${project.title}" was created`,
-      timestamp: project.createdAt,
+      createdAt: project.createdAt,
       actor: {
         id: 'system',
         name: 'System',
@@ -251,8 +252,8 @@ export async function GET(
       }
     });
 
-    // Sort all activities by timestamp (most recent first)
-    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    // Sort all activities by createdAt (most recent first)
+    activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Limit to most recent activities
     const recentActivities = activities.slice(0, 20);

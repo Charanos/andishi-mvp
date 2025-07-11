@@ -380,20 +380,22 @@ export default function ClientDashboardStartProject({}) {
             setSubmitStatus("success");
       toast.success("Project submitted successfully!");
 
-      // Broadcast the newly created project so open dashboards can update seamlessly
+      // Broadcast the newly created project and redirect
       try {
         const createdProject = data.project || data.data || null;
         if (createdProject) {
           window.dispatchEvent(
             new CustomEvent("projectCreated", { detail: createdProject })
           );
+          console.log("Redirecting to project ID:", createdProject.id);
+          router.push(`/client-dashboard/project/${createdProject.id}`);
+        } else {
+          router.push("/client-dashboard");
         }
       } catch (err) {
-        console.error("Event dispatch error:", err);
+        console.error("Event dispatch or redirect error:", err);
+        router.push("/client-dashboard");
       }
-
-      // Redirect to dashboard
-      router.push("/client-dashboard");
     } catch (error) {
       setSubmitStatus("error");
       toast.error("An error occurred while submitting your project");

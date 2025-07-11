@@ -2,9 +2,9 @@ export interface UserInfo {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
-  company: string;
-  role: string;
+  phone?: string;
+  company?: string;
+  role?: string;
 }
 
 export interface ProjectDetails {
@@ -46,6 +46,7 @@ export interface Milestone {
   rejectedBy?: string;
   rejectedAt?: Date | string;
   rejectionReason?: string;
+  payment?: number; // Added
 }
 
 export interface PricingOption {
@@ -145,6 +146,33 @@ export interface BaseProjectWithDetails {
 }
 
 // Extend base interface for optional fields
+export interface SystemUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  role: "client" | "developer" | "admin";
+  status: "active" | "inactive" | "suspended";
+  createdAt: string;
+  lastLogin?: string;
+  projectsCount?: number;
+  skills?: string[];
+  hourlyRate?: number;
+  passwordLastChanged?: string;
+  loginAttempts?: number;
+  accountLocked?: boolean;
+  completedProjects?: number;
+  activeProjects?: number;
+  totalEarnings?: number;
+  isActive: boolean;
+  accountCreated: boolean;
+  passwordGenerated: boolean;
+  developerProfileStatus?: "pending" | "approved" | "rejected";
+  developerProfileId?: string;
+}
+
 export interface ProjectWithDetails extends BaseProjectWithDetails {
   timeline?: string;
   requirements?: string;
@@ -159,6 +187,7 @@ export interface ProjectWithDetails extends BaseProjectWithDetails {
     hourlyRate?: string;
     estimatedHours?: number;
     totalPaid?: string;
+    milestones?: Milestone[];
   };
   milestones?: Milestone[];
   updates?: ProjectUpdate[];

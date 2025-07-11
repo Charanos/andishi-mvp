@@ -27,7 +27,7 @@ import {
 import { useProjectAssignments } from "@/hooks/useProjectAssignments";
 
 import type { Assignment } from "@/types/project";
-import { SystemUser } from "./ProjectOverview";
+import { SystemUser } from "~/types";
 
 interface ToastNotification {
   id: string;
@@ -551,7 +551,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         <div className="flex flex-wrap gap-2">
                           {(developer.skills || [])
                             .slice(0, 4)
-                            .map((skill, index) => (
+                            .map((skill: string, index: number) => (
                               <span
                                 key={index}
                                 className="px-2 py-1 bg-gray-600/30 rounded-lg text-xs text-gray-300 border border-gray-600/30"

@@ -71,7 +71,7 @@ model ProjectAssignment {
   updatedAt   DateTime @updatedAt
   
   project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  developer   DeveloperProfile @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  developer   DeveloperProfile? @relation(fields: [developerId], references: [id], onDelete: Cascade)
   
   @@unique([projectId, developerId])
 }

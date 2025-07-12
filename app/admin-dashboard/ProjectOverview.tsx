@@ -3482,8 +3482,3 @@ export default ProjectOverview;
 
 
 
-
-// i need you to create an md file of some fixes i         
-//   want imlemented very concisely and comprehensively      
-//    in regard to the admin and client dashboards, so        
-//   be careful to know what to implement and where  

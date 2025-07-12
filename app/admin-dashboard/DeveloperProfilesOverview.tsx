@@ -132,7 +132,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
 
       const matchesAvailability =
         selectedAvailability === "all" ||
-        profile.professionalInfo.availability === selectedAvailability;
+        (selectedAvailability === "available" && profile.isAvailable) ||
+        (selectedAvailability === "unavailable" && !profile.isAvailable) ||
+        (selectedAvailability === "busy" && profile.professionalInfo.availability === "busy");
 
       return matchesSearch && matchesExperience && matchesAvailability;
     });
@@ -1774,7 +1776,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
               <div className="text-2xl font-bold text-green-400 mb-1">
                 {
                   profiles.filter(
-                    (p) => p.professionalInfo.availability === "available"
+                    (p) => p.isAvailable
                   ).length
                 }
               </div>

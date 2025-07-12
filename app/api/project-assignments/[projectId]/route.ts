@@ -119,6 +119,24 @@ export async function PATCH(
       data: updates,
     });
 
+    // If assignment is completed, check if developer should be made available
+    if (updates.status === 'completed') {
+      const otherActiveAssignments = await prisma.projectAssignment.count({
+        where: {
+          developerId,
+          status: { not: 'completed' },
+          id: { not: updatedAssignment.id } // Exclude the current assignment
+        }
+      });
+
+      if (otherActiveAssignments === 0) {
+        await prisma.developerProfile.update({
+          where: { id: developerId },
+          data: { isAvailable: true },
+        });
+      }
+    }
+
     return NextResponse.json(updatedAssignment, { status: 200 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {

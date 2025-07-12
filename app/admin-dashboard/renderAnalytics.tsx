@@ -117,69 +117,69 @@ type TimeRange = "7D" | "30D" | "3M" | "12M";
 type TrendDirection = "up" | "down";
 type MetricColor = "blue" | "green" | "purple" | "orange";
 
-// If no data is supplied (e.g. during initial load) we fall back to mock values for a graceful skeleton.
-const mockAnalytics: AnalyticsData = {
-  totalUsers: 2847,
-  totalProjects: 1294,
-  totalRevenue: 8945600,
-  monthlyGrowth: 15.3,
+// Default structure for loading states
+const defaultAnalytics: AnalyticsData = {
+  totalUsers: 0,
+  totalProjects: 0,
+  totalRevenue: 0,
+  monthlyGrowth: 0,
   projectsByStatus: {
-    completed: 847,
-    "in-progress": 289,
-    pending: 158,
+    completed: 0,
+    "in-progress": 0,
+    pending: 0,
   },
   usersByRole: {
-    client: 1520,
-    developer: 1189,
-    admin: 138,
+    client: 0,
+    developer: 0,
+    admin: 0,
   },
-  revenueByMonth: [
-    { month: "Jan", revenue: 645000 },
-    { month: "Feb", revenue: 721000 },
-    { month: "Mar", revenue: 698000 },
-    { month: "Apr", revenue: 812000 },
-    { month: "May", revenue: 889000 },
-    { month: "Jun", revenue: 934000 },
-    { month: "Jul", revenue: 1024000 },
-    { month: "Aug", revenue: 967000 },
-    { month: "Sep", revenue: 1156000 },
-    { month: "Oct", revenue: 1234000 },
-    { month: "Nov", revenue: 1345000 },
-    { month: "Dec", revenue: 1515000 },
-  ],
-  topClients: [
-    { name: "TechCorp Industries", projects: 45, revenue: 1240000 },
-    { name: "Digital Innovations", projects: 38, revenue: 980000 },
-    { name: "StartupHub", projects: 32, revenue: 750000 },
-    { name: "Enterprise Solutions", projects: 28, revenue: 690000 },
-    { name: "Creative Agency", projects: 24, revenue: 580000 },
-  ],
-  topDevelopers: [
-    { name: "Alex Thompson", projects: 67, rating: 4.9 },
-    { name: "Sarah Chen", projects: 54, rating: 4.8 },
-    { name: "Marcus Rodriguez", projects: 48, rating: 4.7 },
-    { name: "Emily Johnson", projects: 42, rating: 4.6 },
-    { name: "David Kim", projects: 39, rating: 4.5 },
-  ],
+  revenueByMonth: [],
+  topClients: [],
+  topDevelopers: [],
 };
 
-// Additional mock data for enhanced visualizations
-const skillsData: SkillDemand[] = [
-  { skill: "React", demand: 95, developers: 234 },
-  { skill: "Node.js", demand: 87, developers: 198 },
-  { skill: "Python", demand: 82, developers: 176 },
-  { skill: "AWS", demand: 78, developers: 145 },
-  { skill: "TypeScript", demand: 74, developers: 167 },
-  { skill: "Docker", demand: 69, developers: 123 },
-];
+// Financial analytics data interfaces
+interface PaymentStatusData {
+  status: string;
+  count: number;
+  amount: number;
+  color: string;
+}
 
-const performanceMetrics: PerformanceMetric[] = [
-  { metric: "Delivery Time", value: 85, target: 90 },
-  { metric: "Quality Score", value: 92, target: 95 },
-  { metric: "Client Satisfaction", value: 88, target: 85 },
-  { metric: "Developer Retention", value: 78, target: 80 },
-  { metric: "Project Success Rate", value: 94, target: 90 },
-];
+interface MonthlyPaymentData {
+  month: string;
+  pending: number;
+  approved: number;
+  paid: number;
+  rejected: number;
+}
+
+interface PaymentMethodData {
+  method: string;
+  amount: number;
+  percentage: number;
+}
+
+// Real-time analytics data fetching
+interface AnalyticsDataResponse {
+  overview: AnalyticsData;
+  financial: {
+    paymentStatus: PaymentStatusData[];
+    monthlyTrends: MonthlyPaymentData[];
+    paymentMethods: PaymentMethodData[];
+    kpis: {
+      avgPaymentValue: number;
+      successRate: number;
+      avgProcessingTime: number;
+      outstandingAmount: number;
+    };
+  };
+  performance: {
+    skills: SkillDemand[];
+    metrics: PerformanceMetric[];
+  };
+  activities: (Omit<Activity, 'icon'> & { icon: string })[];
+}
 
 const COLORS = [
   "#3B82F6",
@@ -251,9 +251,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
               <ChevronDown className="h-4 w-4 text-red-400" />
             )}
             <span
-              className={`text-sm font-medium ${
-                trend === "up" ? "text-green-400" : "text-red-400"
-              }`}
+              className={`text-sm font-medium ${trend === "up" ? "text-green-400" : "text-red-400"
+                }`}
             >
               {change}
             </span>
@@ -325,18 +324,37 @@ const AnimatedProgressRing: React.FC<AnimatedProgressRingProps> = ({
 const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
   analytics,
 }) => {
-  // Fallback in case the parent hasn’t fetched analytics yet
-  const safeAnalytics =
-    analytics ?? (mockAnalytics as unknown as EnhancedAnalyticsData);
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [analyticsTab, setAnalyticsTab] = useState<"overview" | "financial" | "performance">("overview");
   const [timeRange, setTimeRange] = useState<TimeRange>("12M");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsDataResponse | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState<boolean>(false);
 
+  // Use real analytics data from API or fallback to defaults during loading
+  const safeAnalytics = analyticsData?.overview ?? analytics ?? defaultAnalytics;
+
+  // Fetch comprehensive analytics data
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchAnalyticsData = async () => {
+      setLoadingAnalytics(true);
+      try {
+        const response = await fetch(`/api/analytics/comprehensive?timeRange=${timeRange}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAnalyticsData(data);
+        } else {
+          console.error('Failed to fetch analytics data');
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+      } finally {
+        setLoadingAnalytics(false);
+        setIsLoading(false);
+      }
+    };
+
+    fetchAnalyticsData();
+  }, [timeRange]);
 
   // Transform project status data for PieChart
   const projectStatusData: ProjectStatusData[] = Object.entries(
@@ -346,34 +364,18 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
     value: count,
   }));
 
-  // Real-time activity data
-  const activities: Activity[] = [
-    {
-      type: "project",
-      message:
-        'New project "E-commerce Platform" created by TechCorp Industries',
-      time: "2 minutes ago",
-      icon: Briefcase,
-    },
-    {
-      type: "user",
-      message: 'Sarah Chen completed project "Mobile App Development"',
-      time: "5 minutes ago",
-      icon: Users,
-    },
-    {
-      type: "revenue",
-      message: "Payment of $15,000 received from Digital Innovations",
-      time: "12 minutes ago",
-      icon: DollarSign,
-    },
-    {
-      type: "milestone",
-      message: "Monthly revenue target achieved - $1.2M",
-      time: "1 hour ago",
-      icon: Target,
-    },
-  ];
+  // Get activities from real data or empty array and map icons
+  const iconMap = {
+    'Briefcase': Briefcase,
+    'Users': Users,
+    'DollarSign': DollarSign,
+    'Target': Target
+  };
+  
+  const activities: Activity[] = (analyticsData?.activities || []).map(activity => ({
+    ...activity,
+    icon: iconMap[activity.icon as keyof typeof iconMap] || Briefcase
+  }));
 
   if (isLoading) {
     return (
@@ -392,7 +394,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold text-white mb-2 b">
+            <h1 className="text-3xl font-semibold text-white mb-2">
               Analytics Command Center
             </h1>
             <p className="text-gray-300 text-lg">
@@ -417,302 +419,582 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
           </div>
         </div>
 
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard
-            icon={DollarSign}
-            label="Total Revenue"
-            value={formatCurrency(safeAnalytics.totalRevenue)}
-            change="+15.3%"
-            trend="up"
-            color="green"
-          />
-          <MetricCard
-            icon={Users}
-            label="Active Users"
-            value={formatNumber(safeAnalytics.totalUsers)}
-            change="+8.2%"
-            trend="up"
-            color="blue"
-          />
-          <MetricCard
-            icon={Briefcase}
-            label="Total Projects"
-            value={formatNumber(safeAnalytics.totalProjects)}
-            change="+12.1%"
-            trend="up"
-            color="purple"
-          />
-          <MetricCard
-            icon={Target}
-            label="Success Rate"
-            value="94.2%"
-            change="+2.1%"
-            trend="up"
-            color="orange"
-          />
+        {/* Tab Navigation */}
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-1">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setAnalyticsTab("overview")}
+              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "overview"
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                }`}
+            >
+              <Briefcase className="h-4 w-4" />
+              <span>Overview & Projects</span>
+            </button>
+            <button
+              onClick={() => setAnalyticsTab("financial")}
+              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "financial"
+                  ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                }`}
+            >
+              <DollarSign className="h-4 w-4" />
+              <span>Financial Analytics</span>
+            </button>
+            <button
+              onClick={() => setAnalyticsTab("performance")}
+              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "performance"
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                }`}
+            >
+              <Target className="h-4 w-4" />
+              <span>Performance & Skills</span>
+            </button>
+          </div>
         </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Revenue Trend - Enhanced */}
-          <div className="lg:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">
-                Revenue Analytics
-              </h3>
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-gray-400">Revenue</span>
+        {/* Tab Content */}
+        {analyticsTab === "overview" && (
+          <div className="space-y-6">
+            {/* Key Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <MetricCard
+                icon={Users}
+                label="Active Users"
+                value={formatNumber(safeAnalytics.totalUsers)}
+                change="+8.2%"
+                trend="up"
+                color="blue"
+              />
+              <MetricCard
+                icon={Briefcase}
+                label="Total Projects"
+                value={formatNumber(safeAnalytics.totalProjects)}
+                change="+12.1%"
+                trend="up"
+                color="purple"
+              />
+              <MetricCard
+                icon={Target}
+                label="Success Rate"
+                value="94.2%"
+                change="+2.1%"
+                trend="up"
+                color="orange"
+              />
+              <MetricCard
+                icon={DollarSign}
+                label="Total Revenue"
+                value={formatCurrency(safeAnalytics.totalRevenue)}
+                change="+15.3%"
+                trend="up"
+                color="green"
+              />
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Revenue Trend - Enhanced */}
+              <div className="lg:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">
+                    Revenue Analytics
+                  </h3>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm text-gray-400">Revenue</span>
+                    </div>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={safeAnalytics.revenueByMonth}>
+                    <defs>
+                      <linearGradient
+                        id="revenueGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(255,255,255,0.1)"
+                    />
+                    <XAxis dataKey="month" stroke="#9CA3AF" />
+                    <YAxis
+                      stroke="#9CA3AF"
+                      tickFormatter={(value: number) => `$${value / 1000}K`}
+                    />
+                    <Tooltip
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Revenue",
+                      ]}
+                      contentStyle={{
+                        backgroundColor: "rgba(17, 24, 39, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#3B82F6"
+                      strokeWidth={3}
+                      fill="url(#revenueGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Project Status Distribution */}
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-white mb-6">
+                  Project Status
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={projectStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {projectStatusData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number, name: string) => [value, name]}
+                      contentStyle={{
+                        backgroundColor: "rgba(17, 24, 39, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 space-y-2">
+                  {projectStatusData.map((item, index) => (
+                    <div
+                      key={item.name}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        ></div>
+                        <span className="text-gray-300">{item.name}</span>
+                      </div>
+                      <span className="text-white font-medium">{item.value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={safeAnalytics.revenueByMonth}>
-                <defs>
-                  <linearGradient
-                    id="revenueGradient"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
+
+          </div>
+        )}
+
+        {/* Financial Analytics Tab */}
+        {analyticsTab === "financial" && (
+          <div className="space-y-6">
+            {/* Financial Overview Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-white mb-2">
+                  💰 Financial Analytics
+                </h2>
+                <p className="text-gray-400">
+                  Comprehensive payment tracking and financial insights
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 text-green-400" />
+                <span className="text-green-400 font-semibold">Live Data</span>
+              </div>
+            </div>
+
+            {/* Payment Status Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {loadingAnalytics ? (
+                // Loading skeleton
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 animate-pulse"
                   >
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(255,255,255,0.1)"
-                />
-                <XAxis dataKey="month" stroke="#9CA3AF" />
-                <YAxis
-                  stroke="#9CA3AF"
-                  tickFormatter={(value: number) => `$${value / 1000}K`}
-                />
-                <Tooltip
-                  formatter={(value: number) => [
-                    formatCurrency(value),
-                    "Revenue",
-                  ]}
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.8)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "8px",
-                    backdropFilter: "blur(10px)",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#3B82F6"
-                  strokeWidth={3}
-                  fill="url(#revenueGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Project Status Distribution */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-6">
-              Project Status
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={projectStatusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {projectStatusData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number, name: string) => [value, name]}
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.8)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "8px",
-                    backdropFilter: "blur(10px)",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 space-y-2">
-              {projectStatusData.map((item, index) => (
-                <div
-                  key={item.name}
-                  className="flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    ></div>
-                    <span className="text-gray-300">{item.name}</span>
-                  </div>
-                  <span className="text-white font-medium">{item.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Metrics Radar Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-6">
-              Performance Metrics
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={performanceMetrics}>
-                <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                <PolarAngleAxis
-                  dataKey="metric"
-                  tick={{ fill: "#9CA3AF", fontSize: 12 }}
-                />
-                <PolarRadiusAxis
-                  domain={[0, 100]}
-                  tick={{ fill: "#9CA3AF", fontSize: 10 }}
-                />
-                <Radar
-                  name="Current"
-                  dataKey="value"
-                  stroke="#3B82F6"
-                  fill="#3B82F6"
-                  fillOpacity={0.3}
-                  strokeWidth={2}
-                />
-                <Radar
-                  name="Target"
-                  dataKey="target"
-                  stroke="#10B981"
-                  fill="transparent"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.8)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "8px",
-                    backdropFilter: "blur(10px)",
-                  }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Skills Demand Chart */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-6">
-              Skills in Demand
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={skillsData} layout="horizontal">
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(255,255,255,0.1)"
-                />
-                <XAxis type="number" stroke="#9CA3AF" />
-                <YAxis
-                  dataKey="skill"
-                  type="category"
-                  stroke="#9CA3AF"
-                  width={80}
-                />
-                <Tooltip
-                  formatter={(value: number, name: string) => [
-                    name === "demand" ? `${value}%` : value,
-                    name === "demand" ? "Demand" : "Developers",
-                  ]}
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.8)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "8px",
-                    backdropFilter: "blur(10px)",
-                  }}
-                />
-                <Bar dataKey="demand" fill="#3B82F6" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Top Performers Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Clients */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">Top Clients</h3>
-              <Award className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="space-y-4">
-              {safeAnalytics.topClients.slice(0, 5).map((client, index) => (
-                <div
-                  key={client.name}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center font-semibold text-white">
-                        {index + 1}
-                      </div>
-                      {index === 0 && (
-                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                          <Star className="h-3 w-3 text-yellow-900" />
-                        </div>
-                      )}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+                      <div className="w-16 h-3 bg-gray-600 rounded"></div>
                     </div>
                     <div>
-                      <p className="text-white font-semibold">{client.name}</p>
-                      <p className="text-gray-400 text-sm">
-                        {client.projects} projects
+                      <div className="w-20 h-4 bg-gray-600 rounded mb-2"></div>
+                      <div className="w-24 h-5 bg-gray-600 rounded"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                (analyticsData?.financial?.paymentStatus || []).map((status: any, index: number) => (
+                  <div
+                    key={status.status}
+                    className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: status.color }}
+                      ></div>
+                      <span className="text-xs text-gray-400">{status.count} payments</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium uppercase tracking-wider">
+                        {status.status}
+                      </p>
+                      <p className="text-lg font-semibold text-white mt-1">
+                        {formatCurrency(status.amount)}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-green-400 font-semibold text-lg">
-                      {formatCurrency(client.revenue)}
-                    </p>
-                    <p className="text-gray-400 text-sm">
-                      {formatCurrency(client.revenue / client.projects)}/project
-                    </p>
+                ))
+              )}
+            </div>
+
+            {/* Financial Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Payment Status Distribution */}
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">
+                    Payment Status Distribution
+                  </h3>
+                  <DollarSign className="h-5 w-5 text-green-400" />
+                </div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={analyticsData?.financial?.paymentStatus || []}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={3}
+                      dataKey="amount"
+                    >
+                      {(analyticsData?.financial?.paymentStatus || []).map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => [formatCurrency(value), "Amount"]}
+                      contentStyle={{
+                        backgroundColor: "rgba(17, 24, 39, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-4">
+                  {(analyticsData?.financial?.paymentStatus || []).map((item: any, index: number) => (
+                    <div key={item.status} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <span className="text-gray-300">{item.status}</span>
+                      </div>
+                      <span className="text-white font-medium">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Monthly Payment Trends */}
+              <div className="lg:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">
+                    Monthly Payment Trends
+                  </h3>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span className="text-gray-400">Pending</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="text-gray-400">Approved</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-gray-400">Paid</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="text-gray-400">Rejected</span>
+                    </div>
                   </div>
                 </div>
-              ))}
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={analyticsData?.financial?.monthlyTrends || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="month" stroke="#9CA3AF" />
+                    <YAxis
+                      stroke="#9CA3AF"
+                      tickFormatter={(value: number) => `$${value / 1000}K`}
+                    />
+                    <Tooltip
+                      formatter={(value: number) => [formatCurrency(value), ""]}
+                      contentStyle={{
+                        backgroundColor: "rgba(17, 24, 39, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    />
+                    <Bar dataKey="pending" stackId="a" fill="#F59E0B" />
+                    <Bar dataKey="approved" stackId="a" fill="#10B981" />
+                    <Bar dataKey="paid" stackId="a" fill="#3B82F6" />
+                    <Bar dataKey="rejected" stackId="a" fill="#EF4444" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Payment Methods & Financial KPIs */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Payment Methods Breakdown */}
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-white mb-6">
+                  Payment Methods
+                </h3>
+                <div className="space-y-4">
+                  {(analyticsData?.financial?.paymentMethods || []).map((method: any, index: number) => (
+                    <div key={method.method} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className="w-4 h-4 rounded"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        ></div>
+                        <span className="text-gray-300">{method.method}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-semibold">
+                          {formatCurrency(method.amount)}
+                        </p>
+                        <p className="text-gray-400 text-sm">{method.percentage}%</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Total Revenue</span>
+                    <span className="text-white font-semibold text-lg">
+                      {formatCurrency(
+                        (analyticsData?.financial?.paymentMethods || []).reduce(
+                          (sum: number, method: any) => sum + method.amount, 0
+                        )
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial KPIs */}
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-white mb-6">
+                  Financial KPIs
+                </h3>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500/30">
+                    <div>
+                      <p className="text-green-400 text-sm font-medium">Average Payment Value</p>
+                      <p className="text-white text-2xl font-semibold">
+                        {formatCurrency(analyticsData?.financial?.kpis?.avgPaymentValue || 0)}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-green-500/20 rounded-xl">
+                      <TrendingUp className="h-6 w-6 text-green-400" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl border border-blue-500/30">
+                    <div>
+                      <p className="text-blue-400 text-sm font-medium">Payment Success Rate</p>
+                      <p className="text-white text-2xl font-semibold">
+                        {Math.round((analyticsData?.financial?.kpis?.successRate || 0) * 10) / 10}%
+                      </p>
+                    </div>
+                    <div className="p-3 bg-blue-500/20 rounded-xl">
+                      <Target className="h-6 w-6 text-blue-400" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/30">
+                    <div>
+                      <p className="text-purple-400 text-sm font-medium">Avg. Processing Time</p>
+                      <p className="text-white text-2xl font-semibold">
+                        {Math.round((analyticsData?.financial?.kpis?.avgProcessingTime || 0) * 10) / 10} days
+                      </p>
+                    </div>
+                    <div className="p-3 bg-purple-500/20 rounded-xl">
+                      <Globe className="h-6 w-6 text-purple-400" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-xl border border-orange-500/30">
+                    <div>
+                      <p className="text-orange-400 text-sm font-medium">Outstanding Payments</p>
+                      <p className="text-white text-2xl font-semibold">
+                        {formatCurrency(analyticsData?.financial?.kpis?.outstandingAmount || 0)}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-orange-500/20 rounded-xl">
+                      <Calendar className="h-6 w-6 text-orange-400" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+      {/* Performance & Skills Tab */}
+      {analyticsTab === "performance" && (
+        <div className="space-y-6">
+          {/* Performance Overview Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-white mb-2">
+                🎯 Performance & Skills Analytics
+              </h2>
+              <p className="text-gray-400">
+                Developer performance metrics and skill demand insights
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Target className="h-5 w-5 text-purple-400" />
+              <span className="text-purple-400 font-semibold">Real-time</span>
             </div>
           </div>
 
-          {/* Top Developers */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">
-                Top Developers
-              </h3>
-              <Zap className="h-5 w-5 text-purple-400" />
+          {/* Performance Metrics Radar Chart */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="text-xl font-semibold text-white mb-6">
+                Performance Metrics
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadarChart data={analyticsData?.performance?.metrics || []}>
+                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                    <PolarAngleAxis
+                      dataKey="metric"
+                      tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                    />
+                    <PolarRadiusAxis
+                      domain={[0, 100]}
+                      tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                    />
+                    <Radar
+                      name="Current"
+                      dataKey="value"
+                      stroke="#3B82F6"
+                      fill="#3B82F6"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                    />
+                    <Radar
+                      name="Target"
+                      dataKey="target"
+                      stroke="#10B981"
+                      fill="transparent"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "rgba(17, 24, 39, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Skills Demand Chart */}
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-white mb-6">
+                  Skills in Demand
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analyticsData?.performance?.skills || []} layout="horizontal">
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(255,255,255,0.1)"
+                    />
+                    <XAxis type="number" stroke="#9CA3AF" />
+                    <YAxis
+                      dataKey="skill"
+                      type="category"
+                      stroke="#9CA3AF"
+                      width={80}
+                    />
+                    <Tooltip
+                      formatter={(value: number, name: string) => [
+                        name === "demand" ? `${value}%` : value,
+                        name === "demand" ? "Demand" : "Developers",
+                      ]}
+                      contentStyle={{
+                        backgroundColor: "rgba(17, 24, 39, 0.8)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "8px",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    />
+                    <Bar dataKey="demand" fill="#3B82F6" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div className="space-y-4">
-              {safeAnalytics.topDevelopers
-                .slice(0, 5)
-                .map((developer, index) => (
+
+            {/* Top Performers Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Top Clients */}
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">Top Clients</h3>
+                <Award className="h-5 w-5 text-yellow-400" />
+              </div>
+              <div className="space-y-4">
+                {(analyticsData?.overview?.topClients || []).slice(0, 5).map((client, index) => (
                   <div
-                    key={developer.name}
+                    key={client.name}
                     className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
                   >
                     <div className="flex items-center space-x-4">
                       <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center font-semibold text-white">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center font-semibold text-white">
                           {index + 1}
                         </div>
                         {index === 0 && (
@@ -722,65 +1004,120 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                         )}
                       </div>
                       <div>
-                        <p className="text-white font-semibold">
-                          {developer.name}
-                        </p>
+                        <p className="text-white font-semibold">{client.name}</p>
                         <p className="text-gray-400 text-sm">
-                          {developer.projects} projects completed
+                          {client.projects} projects
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-white font-semibold">
-                          {developer.rating}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-1 mt-1">
-                        <AnimatedProgressRing
-                          percentage={developer.rating * 20}
-                          size={40}
-                          strokeWidth={4}
-                          color="#FBBF24"
-                        />
-                      </div>
+                      <p className="text-green-400 font-semibold text-lg">
+                        {formatCurrency(client.revenue)}
+                      </p>
+                      <p className="text-gray-400 text-sm">
+                        {formatCurrency(client.projects > 0 ? client.revenue / client.projects : 0)}/project
+                      </p>
                     </div>
                   </div>
                 ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Real-time Activity Feed */}
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-white">
-              Live Activity Feed
-            </h3>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-green-400 text-sm">Live</span>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {activities.map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center space-x-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <activity.icon className="h-4 w-4 text-blue-400" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-white text-sm">{activity.message}</p>
-                  <p className="text-gray-400 text-xs">{activity.time}</p>
-                </div>
               </div>
-            ))}
+            </div>
+
+            {/* Top Developers */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">
+                  Top Developers
+                </h3>
+                <Zap className="h-5 w-5 text-purple-400" />
+              </div>
+              <div className="space-y-4">
+                {(analyticsData?.overview?.topDevelopers || [])
+                  .slice(0, 5)
+                  .map((developer, index) => (
+                    <div
+                      key={developer.name}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="relative">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center font-semibold text-white">
+                            {index + 1}
+                          </div>
+                          {index === 0 && (
+                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                              <Star className="h-3 w-3 text-yellow-900" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-white font-semibold">
+                            {developer.name}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            {developer.projects} projects completed
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="text-white font-semibold">
+                            {developer.rating}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1 mt-1">
+                          <AnimatedProgressRing
+                            percentage={developer.rating * 20}
+                            size={40}
+                            strokeWidth={4}
+                            color="#FBBF24"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Real-time Activity Feed */}
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">
+                Live Activity Feed
+              </h3>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-sm">Live</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {activities.length > 0 ? (
+                activities.map((activity, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center space-x-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <activity.icon className="h-4 w-4 text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-white text-sm">{activity.message}</p>
+                      <p className="text-gray-400 text-xs">{activity.time}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400">No recent activities</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+    </div>
     </div>
   );
 };

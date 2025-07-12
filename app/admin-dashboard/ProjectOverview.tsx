@@ -1326,89 +1326,82 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             {/* Left Column - Project Details */}
             <div className="lg:col-span-2 space-y-8">
               {/* Project Overview Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <FaProjectDiagram className="text-white text-lg" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full animate-pulse"></div>
+              <div className="bg-black/5 border border-gray-700/30 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
+                      <FaProjectDiagram className="text-white text-lg" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-semibold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+                      <h3 className="text-xl font-semibold text-white">
                         Project Overview
                       </h3>
-                      <p className="text-gray-400 text-sm mt-1">
-                        Comprehensive project details and progress
+                      <p className="text-gray-400 text-sm">
+                        Project details and progress
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowProgressModal(true)}
-                    className="px-3 py-2 bg-white/10 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 text-indigo-200 hover:text-indigo-200 rounded-xl border border-indigo-500/40 hover:border-indigo-400/60 transition-all duration-300 flex items-center space-x-3 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 "
+                    className="px-4 py-2 bg-white/5 cursor-pointer hover:bg-white/10 text-gray-300 hover:text-white rounded-lg border border-gray-600/50 hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
                   >
                     <FaEdit className="w-4 h-4" />
                     <span className="font-medium">Update Progress</span>
                   </button>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {/* Description Section */}
-                  <div className="relative">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <h4 className="text-lg font-medium !bg-gradient-to-r from-indigo-200  to-purple-200 !bg-clip-text !text-transparent">
-                        Description
-                      </h4>
-                    </div>
-                    <div className="my-8 mx-2 bg-black/5 rounded-2xl p-6 border border-gray-500/20 backdrop-blur-sm">
-                      <p className="text-gray-200 leading-relaxed text-lg">
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-3">
+                      Description
+                    </h4>
+                    <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                      <p className="text-gray-300 leading-relaxed">
                         {selectedProject.projectDetails.description}
                       </p>
                     </div>
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="group/stat bg-gradient-to-br h-fit from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20 rounded-2xl py-3 px-4 border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 backdrop-blur-sm">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <p className="text-blue-300 monty text-sm font-medium tracking-wide uppercase">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                      <div className="mb-2">
+                        <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
                           Timeline
                         </p>
                       </div>
-                      <p className="text-white font-medium text-base group-hover/stat:text-blue-100 transition-colors">
+                      <p className="text-white font-medium">
                         {selectedProject.projectDetails.timeline}
                       </p>
                     </div>
 
-                    <div className="group/stat bg-gradient-to-br from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 h-fit px-4 py-3 hover:to-pink-500/20 rounded-2xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 backdrop-blur-sm">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <p className="text-purple-300 text-sm font-medium monty tracking-wide uppercase">
+                    <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                      <div className="mb-2">
+                        <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
                           Priority
                         </p>
                       </div>
-                      <p className="text-white font-monty text-base capitalize group-hover/stat:text-purple-100 transition-colors">
+                      <p className="text-white font-medium capitalize">
                         {selectedProject.projectDetails.priority}
                       </p>
                     </div>
 
-                    <div className="group/stat bg-gradient-to-br from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 h-fit px-4 py-3 hover:to-green-500/20 rounded-2xl border border-emerald-500/30 hover:border-emerald-400/50 transition-all duration-300 backdrop-blur-sm">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <p className="text-emerald-300 text-sm font-medium monty tracking-wide uppercase">
+                    <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                      <div className="mb-2">
+                        <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
                           Progress
                         </p>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <p className="text-white font-medium text-base group-hover/stat:text-emerald-100 transition-colors">
+                        <p className="text-white font-medium">
                           {selectedProject.progress}%
                         </p>
-                        <div className="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                        <div className="flex-1 bg-gray-700 rounded-full h-2">
                           <div
-                            className="h-full bg-gradient-to-r from-emerald-400 to-green-400 rounded-full transition-all duration-500"
+                            className="h-full bg-blue-500 rounded-full transition-all duration-300"
                             style={{ width: `${selectedProject.progress}%` }}
-                          >
-                            <div className="h-full bg-white/20 animate-pulse"></div>
-                          </div>
+                          ></div>
                         </div>
                       </div>
                     </div>
@@ -1416,41 +1409,32 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
                   {/* Technology Stack */}
                   {selectedProject.projectDetails.techStack.length > 0 && (
-                    <div className="relative">
-                      <div className="flex items-center space-x-3 mb-6">
-                        <h4 className="text-lg font-medium !bg-gradient-to-r from-cyan-200 to-blue-200 !bg-clip-text !text-transparent">
-                          Technology Stack
-                        </h4>
-                      </div>
-                      <div className="">
-                        <div className="flex flex-wrap gap-3">
-                          {selectedProject.projectDetails.techStack.map(
-                            (tech, index) => (
-                              <span
-                                key={index}
-                                className="group/tech px-3 py-2 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 text-cyan-200 hover:text-cyan-100 rounded-2xl text-sm font-semibold border border-cyan-400/40 hover:border-cyan-300/60 transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105"
-                              >
-                                <span className="flex items-center space-x-2">
-                                  <div className="w-2 h-2 bg-cyan-400 rounded-full group-hover/tech:animate-pulse"></div>
-                                  <span>{tech}</span>
-                                </span>
-                              </span>
-                            )
-                          )}
-                        </div>
+                    <div>
+                      <h4 className="text-lg font-medium text-white mb-3">
+                        Technology Stack
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProject.projectDetails.techStack.map(
+                          (tech, index) => (
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm border border-gray-600/30"
+                            >
+                              {tech}
+                            </span>
+                          )
+                        )}
                       </div>
                     </div>
                   )}
 
                   {/* Requirements */}
-                  <div className="relative">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <h4 className="text-lg font-medium !bg-gradient-to-r from-orange-200 to-red-200 !bg-clip-text !text-transparent">
-                        Requirements
-                      </h4>
-                    </div>
-                    <div className="my-8 mx-2 bg-black/5 rounded-2xl p-6 border border-gray-500/20 backdrop-blur-sm">
-                      <p className="text-gray-200 leading-relaxed text-lg">
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-3">
+                      Requirements
+                    </h4>
+                    <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                      <p className="text-gray-300 leading-relaxed">
                         {selectedProject.projectDetails.requirements ? (
                           selectedProject.projectDetails.requirements
                         ) : (
@@ -1465,27 +1449,24 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </div>
 
               {/* Pricing Information Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 ">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <FaDollarSign className="text-white text-lg" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse"></div>
+              <div className="bg-black/5 border border-gray-700/30 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
+                      <FaDollarSign className="text-white text-lg" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-semibold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+                      <h3 className="text-xl font-semibold text-white">
                         Pricing Details
                       </h3>
-                      <p className="text-gray-400 text-sm mt-1">
+                      <p className="text-gray-400 text-sm">
                         Budget and payment information
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowPaymentModal(true)}
-                    className="px-4 py-2 bg-white/10 cursor-pointer hover:from-green-500/30 hover:to-emerald-500/30 text-green-300 hover:text-green-200 rounded-xl border border-green-500/40 hover:border-green-400/60 transition-all duration-300 flex items-center space-x-3 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                    className="px-4 py-2 bg-white/5 cursor-pointer hover:bg-white/10 text-gray-300 hover:text-white rounded-lg border border-gray-600/50 hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
                   >
                     <FaCreditCard className="w-4 h-4" />
                     <span className="font-medium">Record Payment</span>
@@ -1572,39 +1553,36 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             {/* Right Column - Client Info & Actions */}
             <div className="space-y-8">
               {/* Client Information Card */}
-              <div className="bg-white/5 border border-white/20 rounded-3xl p-8 hover:bg-gradient-to-br hover:from-gray-800/90 hover:via-gray-700/70 hover:to-gray-800/90 transition-all duration-500 shadow-2xl hover:shadow-3xl hover:border-white/30 group">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <FaUser className="text-white text-lg" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"></div>
+              <div className="bg-black/5 border border-gray-700/30 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
+                      <FaUser className="text-white text-lg" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-semibold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+                      <h3 className="text-xl font-semibold text-white">
                         Client Details
                       </h3>
-                      <p className="text-gray-400 text-sm mt-1">
+                      <p className="text-gray-400 text-sm">
                         Contact information and profile
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {/* Client Profile Section */}
-                  <div className="relative">
-                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 rounded-2xl p-4 border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 backdrop-blur-sm group/profile">
+                  <div>
+                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-4 border border-gray-700/30">
                       <div className="text-center">
-                        <div className="relative inline-block mb-6">
-                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-xl group-hover/profile:shadow-2xl transition-all duration-300">
+                        <div className="relative inline-block mb-4">
+                          <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-medium text-lg">
                               {selectedProject.userInfo?.firstName?.[0] || "U"}
                               {selectedProject.userInfo?.lastName?.[0] || "U"}
                             </span>
                           </div>
-                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full border-2 border-gray-800 flex items-center justify-center">
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-gray-800">
                             <svg
                               className="w-3 h-3 text-white"
                               fill="none"
@@ -1621,14 +1599,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                           </div>
                         </div>
 
-                        <h4 className="text-xl font-medium bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-2">
+                        <h4 className="text-xl font-medium text-white mb-2">
                           {selectedProject.userInfo?.firstName || "Unknown"}{" "}
                           {selectedProject.userInfo?.lastName || ""}
                         </h4>
 
-                        <div className="inline-flex items-center px-4 py-2  rounded-xl border border-indigo-500/40 backdrop-blur-sm">
+                        <div className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-600/50">
                           <svg
-                            className="w-4 h-4 text-indigo-400 mr-2"
+                            className="w-4 h-4 text-gray-400 mr-2"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1640,7 +1618,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                             />
                           </svg>
-                          <p className="text-indigo-100 font-medium text-sm">
+                          <p className="text-gray-100 font-medium text-sm">
                             {selectedProject.userInfo?.company ||
                               "Independent Client"}
                           </p>
@@ -1650,25 +1628,25 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
 
                   {/* Contact Information Grid */}
-                  <div className="relative">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <h4 className="text-lg font-medium !bg-gradient-to-r from-indigo-200 to-purple-200 !bg-clip-text !text-transparent">
+                  <div>
+                    <div className="mb-4">
+                      <h4 className="text-lg font-medium text-white">
                         Contact Information
                       </h4>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
                       {/* Email Contact */}
-                      <div className="group/contact bg-black/10 rounded-2xl px-4 py-3 h-fit w-full border border-indigo-500/20 hover:border-indigo-400/40 transition-all duration-300 backdrop-blur-sm">
+                      <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
                         <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl flex items-center justify-center group-hover/contact:from-indigo-500/30 group-hover/contact:to-purple-500/30 transition-all duration-300">
-                            <FaEnvelope className="text-indigo-400 text-md group-hover/contact:text-indigo-300" />
+                          <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                            <FaEnvelope className="text-gray-300 text-md" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-indigo-300 monty text-sm font-semibold tracking-wide uppercase mb-1">
+                            <p className="text-gray-400 text-sm font-medium uppercase mb-1">
                               Email Address
                             </p>
-                            <p className="text-white font-medium text-base group-hover/contact:text-indigo-100 transition-colors">
+                            <p className="text-white font-medium text-base">
                               {selectedProject.userInfo?.email ||
                                 "No email provided"}
                             </p>
@@ -1677,16 +1655,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       </div>
 
                       {/* Phone Number */}
-                      <div className="group/contact bgb;ack/10 rounded-2xl px-4 py-3 h-fit w-full border border-indigo-500/20 hover:border-indigo-400/40 transition-all duration-300 backdrop-blur-sm">
+                      <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
                         <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl flex items-center justify-center group-hover/contact:from-indigo-500/30 group-hover/contact:to-purple-500/30 transition-all duration-300">
-                            <FaPhone className="text-indigo-400 text-md group-hover/contact:text-indigo-300" />
+                          <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                            <FaPhone className="text-gray-300 text-md" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-indigo-300 monty text-sm font-semibold tracking-wide uppercase mb-1">
+                            <p className="text-gray-400 text-sm font-medium uppercase mb-1">
                               Phone Number
                             </p>
-                            <p className="text-white font-medium text-base group-hover/contact:text-indigo-100 transition-colors">
+                            <p className="text-white font-medium text-base">
                               {selectedProject.userInfo?.phone ||
                                 "No number provided"}
                             </p>
@@ -1697,25 +1675,25 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
 
                   {/* Client Status */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="group/stat bg-white/10 rounded-2xl px-4 py-3 h-fit w-full border border-emerald-500/30 hover:border-emerald-400/50 transition-all duration-300 backdrop-blur-sm">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <p className="text-emerald-300 text-sm font-semibold tracking-wide uppercase monty">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
+                      <div className="mb-2">
+                        <p className="text-gray-400 text-sm font-medium uppercase">
                           Status
                         </p>
                       </div>
-                      <p className="text-white font-medium text-base group-hover/stat:text-emerald-100 transition-colors">
+                      <p className="text-white font-medium text-base">
                         Active Client
                       </p>
                     </div>
 
-                    <div className="group/stat bg-white/10 rounded-2xl px-4 py-3 h-fit w-full border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 backdrop-blur-sm">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <p className="text-blue-300 text-sm font-semibold tracking-wide uppercase">
+                    <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
+                      <div className="mb-2">
+                        <p className="text-gray-400 text-sm font-medium uppercase">
                           Since
                         </p>
                       </div>
-                      <p className="text-white font-medium text-base group-hover/stat:text-blue-100 transition-colors">
+                      <p className="text-white font-medium text-base">
                         Jan 2025
                       </p>
                     </div>
@@ -1724,74 +1702,62 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </div>
 
               {/* Action Buttons Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <svg
-                          className="w-6 h-6 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full animate-pulse"></div>
+              <div className="bg-black/5 border border-gray-700/30 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-semibold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
-                        Project actions
+                      <h3 className="text-xl font-semibold text-white">
+                        Project Actions
                       </h3>
-                      <p className="text-gray-400 text-sm mt-1">
+                      <p className="text-gray-400 text-sm">
                         Manage project status and updates
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowUpdateModal(true)}
-                    className="p-3 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 cursor-pointer hover:from-blue-500/30 hover:to-indigo-500/30 text-blue-300 hover:text-blue-200 rounded-xl border border-blue-500/40 hover:border-blue-400/60 transition-all duration-300 flex items-center space-x-3 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                    className="p-3 bg-white/5 cursor-pointer hover:bg-white/10 text-gray-300 hover:text-white rounded-lg border border-gray-600/50 hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
                   >
                     <FaComment className="w-4 h-4" />
                     {/* <span className="font-medium">Updates</span> */}
                   </button>
                 </div>
 
-                <div className="space-y-6 mb-8">
+                <div className="space-y-5 mb-6">
                   {/* Quick Status Overview */}
-                  <div className="relative">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <h4 className="text-lg font-medium !bg-gradient-to-r from-indigo-200 to-purple-200 !bg-clip-text !text-transparent">
+                  <div>
+                    <div className="mb-4">
+                      <h4 className="text-lg font-medium text-white">
                         Current Status
                       </h4>
                     </div>
 
-                    <div
-                      className={`px-2 py-1 text-center rounded-xl border backdrop-blur-sm ${selectedProject.status === "in-progress"
-                        ? "bg-white/10 border-green-500/40 text-green-300"
-                        : selectedProject.status === "completed"
-                          ? "bg-white/10 border-blue-500/40 text-blue-300"
-                          : selectedProject.status === "pending"
-                            ? "bg-white/10 border-orange-500/40 text-orange-300"
-                            : "bg-white/10 border-yellow-500/40 text-yellow-300"
-                        }`}
-                    >
-                      <span className="font-medium monty text-sm uppercase">
+                    <div className="bg-white/5 rounded-lg p-3 border border-gray-700/30">
+                      <span className="font-medium text-sm uppercase text-gray-300">
                         {selectedProject.status}
                       </span>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="relative">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <h4 className="text-lg font-medium !bg-gradient-to-r from-orange-200 to-red-200 !bg-clip-text !text-transparent">
+                  <div>
+                    <div className="mb-4">
+                      <h4 className="text-lg font-medium text-white">
                         Available Actions
                       </h4>
                     </div>
@@ -1806,12 +1772,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               onClick={() =>
                                 onStatusUpdate(selectedProject._id, "in-progress")
                               }
-                              className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 text-white hover:text-green-100 cursor-pointer hover:shadow-green-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                              className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-green-600/20 text-gray-300 hover:text-green-400 cursor-pointer border border-gray-600/50 hover:border-green-500/50"
                             >
-                              <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover/action:from-green-500/30 group-hover/action:to-emerald-500/30">
-                                <FaCheckCircle className="text-sm text-green-400 group-hover/action:text-green-300 group-hover/action:scale-110" />
-                              </div>
-                              <span className="flex-1 font-medium monty text-base">
+                              <FaCheckCircle className="text-sm" />
+                              <span className="font-medium">
                                 Approve Project
                               </span>
                             </button>
@@ -1820,12 +1784,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               onClick={() =>
                                 onStatusUpdate(selectedProject._id, "rejected")
                               }
-                              className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                              className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
                             >
-                              <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
-                                <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
-                              </div>
-                              <span className="flex-1 font-medium monty text-base">
+                              <FaTimesCircle className="text-sm" />
+                              <span className="font-medium">
                                 Reject Project
                               </span>
                             </button>
@@ -1841,12 +1803,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               setProgressValue(100);
                               setShowProgressModal(true);
                             }}
-                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20 text-white hover:text-blue-100 cursor-pointer hover:shadow-blue-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-blue-600/20 text-gray-300 hover:text-blue-400 cursor-pointer border border-gray-600/50 hover:border-blue-500/50"
                           >
-                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 group-hover/action:from-blue-500/30 group-hover/action:to-indigo-500/30">
-                              <FaCheckCircle className="text-sm text-blue-400 group-hover/action:text-blue-300 group-hover/action:scale-110" />
-                            </div>
-                            <span className="flex-1 font-medium monty text-base">
+                            <FaCheckCircle className="text-sm" />
+                            <span className="font-medium">
                               Mark as Completed
                             </span>
                           </button>
@@ -1855,12 +1815,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             onClick={() =>
                               onStatusUpdate(selectedProject._id, "on_hold")
                             }
-                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-orange-500/10 to-yellow-500/10 hover:from-orange-500/20 hover:to-yellow-500/20 text-white hover:text-orange-100 cursor-pointer hover:shadow-orange-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-orange-600/20 text-gray-300 hover:text-orange-400 cursor-pointer border border-gray-600/50 hover:border-orange-500/50"
                           >
-                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 group-hover/action:from-orange-500/30 group-hover/action:to-yellow-500/30">
-                              <FaClock className="text-sm text-orange-400 group-hover/action:text-orange-300 group-hover/action:scale-110" />
-                            </div>
-                            <span className="flex-1 font-medium monty text-base">
+                            <FaClock className="text-sm" />
+                            <span className="font-medium">
                               Put On Hold
                             </span>
                           </button>
@@ -1869,12 +1827,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             onClick={() =>
                               onStatusUpdate(selectedProject._id, "cancelled")
                             }
-                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
                           >
-                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
-                              <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
-                            </div>
-                            <span className="flex-1 font-medium monty text-base">
+                            <FaTimesCircle className="text-sm" />
+                            <span className="font-medium">
                               Cancel Project
                             </span>
                           </button>
@@ -1889,12 +1845,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             onClick={() =>
                               onStatusUpdate(selectedProject._id, "in-progress")
                             }
-                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 text-white hover:text-green-100 cursor-pointer hover:shadow-green-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-green-600/20 text-gray-300 hover:text-green-400 cursor-pointer border border-gray-600/50 hover:border-green-500/50"
                           >
-                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-green-500/20 to-emerald-500/20 group-hover/action:from-green-500/30 group-hover/action:to-emerald-500/30">
-                              <FaPlay className="text-sm text-green-400 group-hover/action:text-green-300 group-hover/action:scale-110" />
-                            </div>
-                            <span className="flex-1 font-medium monty text-base">
+                            <FaPlay className="text-sm" />
+                            <span className="font-medium">
                               Resume Project
                             </span>
                           </button>
@@ -1903,12 +1857,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             onClick={() =>
                               onStatusUpdate(selectedProject._id, "cancelled")
                             }
-                            className="group/action w-full px-4 py-2 h-fit rounded-2xl transition-all duration-500 flex items-center justify-center space-x-4 bg-gradient-to-br from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 text-white hover:text-red-100 cursor-pointer hover:shadow-red-500/20 backdrop-blur-sm shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
                           >
-                            <div className="w-6 h-6 rounded-xl flex items-center justify-center transition-all duration-300 bg-gradient-to-r from-red-500/20 to-pink-500/20 group-hover/action:from-red-500/30 group-hover/action:to-pink-500/30">
-                              <FaTimesCircle className="text-sm text-red-400 group-hover/action:text-red-300 group-hover/action:scale-110" />
-                            </div>
-                            <span className="flex-1 font-medium monty text-base">
+                            <FaTimesCircle className="text-sm" />
+                            <span className="font-medium">
                               Cancel Project
                             </span>
                           </button>

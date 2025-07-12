@@ -157,8 +157,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         achievements: Array.isArray(data.achievements) ? data.achievements : [],
         notifications: Array.isArray(data.notifications) ? data.notifications : [],
         timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
-        status: data.status || "pending",
-        isAvailable: data.isAvailable || false,
+        status: profile.status || data.status || "pending",
+        isAvailable: profile.isAvailable ?? data.isAvailable ?? false,
+        createdAt: profile.createdAt?.toISOString() || new Date().toISOString(),
       };
 
       return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
@@ -168,6 +169,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     console.log('Fetching developer profiles from database...');
     const records = await db.collection('developerProfiles').find({}).toArray();
     console.log(`Found ${records.length} developer profiles`);
+    
+    // Debug: Log the first few records to see their structure
+    if (records.length > 0) {
+      console.log('Sample developer profile structure:', JSON.stringify(records[0], null, 2));
+    }
 
     const profiles: DeveloperProfile[] = records.map((profile) => {
       const data = profile.data || {};
@@ -218,8 +224,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         achievements: Array.isArray(data.achievements) ? data.achievements : [],
         notifications: Array.isArray(data.notifications) ? data.notifications : [],
         timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
-        status: profile.status || "pending",
-        isAvailable: profile.isAvailable || false,
+        status: profile.status || data.status || "pending",
+        isAvailable: profile.isAvailable ?? data.isAvailable ?? false,
+        createdAt: profile.createdAt?.toISOString() || new Date().toISOString(),
       };
     });
 
@@ -301,6 +308,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         notifications: profileData.notifications || [],
         timeEntries: profileData.timeEntries || [],
       },
+      status: profileData.status || "pending",
+      isAvailable: profileData.isAvailable || false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -321,6 +330,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       timeEntries: profileData.timeEntries || [],
       status: profileData.status || "pending",
       isAvailable: profileData.isAvailable || false,
+      createdAt: new Date().toISOString(),
     };
 
     return NextResponse.json(createdProfile, { status: 201, headers: corsHeaders });

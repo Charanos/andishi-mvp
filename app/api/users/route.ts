@@ -84,6 +84,87 @@ function deriveNames(user: any) {
   return user;
 }
 
+// Helper function to create developer profile automatically
+async function createDeveloperProfile(db: any, userId: ObjectId, user: any) {
+  const defaultDeveloperProfile = {
+    data: {
+      personalInfo: {
+        firstName: user.firstName || 'Developer',
+        lastName: user.lastName || 'User',
+        email: user.email,
+        phone: '',
+        location: 'Not specified',
+        timeZone: 'UTC',
+        linkedin: '',
+        github: '',
+        portfolio: '',
+        tagline: 'Full Stack Developer',
+        bio: 'Experienced developer ready to work on exciting projects.'
+      },
+      professionalInfo: {
+        title: 'Software Developer',
+        experienceLevel: 'Mid-level',
+        yearsOfExperience: 3,
+        availability: 'Full-time',
+        hourlyRate: 50,
+        bio: 'Passionate about creating quality software solutions.',
+        languages: ['English'],
+        certifications: [],
+        preferredWorkType: ['Remote'],
+        workingHours: '9 AM - 5 PM'
+      },
+      technicalSkills: {
+        primarySkills: [
+          { name: 'JavaScript', level: 80 },
+          { name: 'React', level: 75 },
+          { name: 'Node.js', level: 70 }
+        ],
+        frameworks: [
+          { name: 'Next.js', level: 70 },
+          { name: 'Express.js', level: 75 }
+        ],
+        databases: [
+          { name: 'MongoDB', level: 65 },
+          { name: 'PostgreSQL', level: 60 }
+        ],
+        tools: [
+          { name: 'Git', level: 85 },
+          { name: 'Docker', level: 60 }
+        ],
+        cloudPlatforms: ['AWS', 'Vercel'],
+        specializations: ['Web Development', 'API Development']
+      },
+      stats: {
+        totalProjects: 0,
+        completedProjects: 0,
+        totalEarnings: 0,
+        averageRating: 0,
+        totalCodeLines: 0,
+        activeDays: 0,
+        clientRetention: 0,
+        responseTime: '2 hours',
+        totalCommits: 0,
+        bugsFixed: 0,
+        codeReviewsGiven: 0,
+        mentoringSessions: 0
+      },
+      projects: [],
+      recentActivity: [],
+      achievements: [],
+      notifications: [],
+      timeEntries: []
+    },
+    userId: userId,
+    status: 'pending',
+    isAvailable: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  const result = await db.collection('developerProfiles').insertOne(defaultDeveloperProfile);
+  return result;
+}
+
 // GET - Fetch all users
 export async function GET() {
   try {
@@ -96,7 +177,7 @@ export async function GET() {
       .aggregate([
         {
           $lookup: {
-            from: 'developerprofiles',
+            from: 'developerProfiles',
             localField: '_id',
             foreignField: 'userId',
             as: 'developerProfile'
@@ -279,11 +360,22 @@ async function createNewUser(db: any, payload: CreateUserPayload) {
     delete returnUser.password;
     const userResp = deriveNames(returnUser);
 
+    // Auto-create developer profile if user role is 'developer'
+    if (payload.role === 'developer') {
+      try {
+        await createDeveloperProfile(db, result.insertedId, userResp);
+        console.log(`Auto-created developer profile for user: ${userResp.email}`);
+      } catch (error) {
+        console.error('Failed to auto-create developer profile:', error);
+        // Don't fail the user creation, just log the error
+      }
+    }
+
     return NextResponse.json({
       success: true,
       user: userResp,
       generatedPassword, // Only returned when password is generated
-      message: 'User created successfully with generated password'
+      message: `User created successfully with generated password${payload.role === 'developer' ? ' and developer profile' : ''}`
     }, { status: 201 });
   }
 
@@ -293,10 +385,21 @@ async function createNewUser(db: any, payload: CreateUserPayload) {
   delete returnUser.password;
   const userResp = deriveNames(returnUser);
 
+  // Auto-create developer profile if user role is 'developer'
+  if (payload.role === 'developer') {
+    try {
+      await createDeveloperProfile(db, result.insertedId, userResp);
+      console.log(`Auto-created developer profile for user: ${userResp.email}`);
+    } catch (error) {
+      console.error('Failed to auto-create developer profile:', error);
+      // Don't fail the user creation, just log the error
+    }
+  }
+
   return NextResponse.json({
     success: true,
     user: userResp,
-    message: 'User profile created successfully'
+    message: `User profile created successfully${payload.role === 'developer' ? ' with developer profile' : ''}`
   }, { status: 201 });
 }
 

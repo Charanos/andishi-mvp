@@ -157,4 +157,5 @@ export interface DeveloperProfile {
   timeEntries?: TimeEntry[];
   status: "pending" | "approved" | "rejected";
   isAvailable: boolean;
+  createdAt?: string;
 }

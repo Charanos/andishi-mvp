@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, ReactNode } from "react";
+import React, { useState, useEffect, ReactNode, useMemo } from "react";
 import { toast } from "react-toastify";
+import { FiTrendingUp, FiX } from "react-icons/fi";
+import { HiViewGrid, HiViewList } from "react-icons/hi";
 import {
   FaUser,
   FaProjectDiagram,
@@ -120,8 +122,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
   const [devProfiles, setDevProfiles] = useState<any[]>([]);
   const [projects, setProjects] = useState<ProjectData[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [projectsPerPage] = useState(10);
   const [users, setUsers] = useState<SystemUser[]>([]);
   const emptyAnalytics: EnhancedAnalyticsData = {
     totalUsers: 0,
@@ -146,6 +146,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const [analytics, setAnalytics] =
     useState<EnhancedAnalyticsData>(emptyAnalytics);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [fetchLoggedInUser, setFetchLoggedInUser] = useState(false);
 
   const [accountExists, setAccountExists] = useState(false);
@@ -153,7 +154,85 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [existingAccountData, setExistingAccountData] = useState<any>(null);
 
-  // Navigation items for developers tab
+  // Filter and search state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [projectsPerPage] = useState(9);
+
+  // Pagination calculations
+  const allFilteredProjects = useMemo(() => {
+    let filtered = [...projects];
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(project => project.status === statusFilter);
+    }
+
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter(project => project.priority === priorityFilter);
+    }
+
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        project =>
+          project.projectDetails?.title?.toLowerCase().includes(query) ||
+          project.projectDetails?.description?.toLowerCase().includes(query) ||
+          project.userInfo?.firstName?.toLowerCase().includes(query) ||
+          project.userInfo?.lastName?.toLowerCase().includes(query) ||
+          project.userInfo?.company?.toLowerCase().includes(query) ||
+          project.projectDetails?.techStack?.some(tech =>
+            tech.toLowerCase().includes(query)
+          )
+      );
+    }
+
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        case "oldest":
+          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+        case "name":
+          return (a.projectDetails?.title || "").localeCompare(b.projectDetails?.title || "");
+        case "budget":
+          const budgetA = calculateProjectBudget(a);
+          const budgetB = calculateProjectBudget(b);
+          return budgetB - budgetA;
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [projects, statusFilter, priorityFilter, searchTerm, sortBy]);
+
+  const totalPages = Math.ceil(allFilteredProjects.length / projectsPerPage);
+  const filteredAndSortedProjects = allFilteredProjects.slice(
+    (currentPage - 1) * projectsPerPage,
+    currentPage * projectsPerPage
+  );
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setSortBy("newest");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters =
+    searchTerm.trim() || statusFilter !== "all" || priorityFilter !== "all" || sortBy !== "newest";
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, priorityFilter, searchTerm, sortBy]);
+
   // Get logged-in user from session (example using /api/session)
   useEffect(() => {
     const fetchLoggedInUser = async () => {
@@ -227,9 +306,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
     loadDashboardData();
   }, []);
 
-  const [error, setError] = useState<string | null>(null);
-
-
 
   const [notifications, setNotifications] = useState<
     Array<{
@@ -276,15 +352,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const [isProjectDeleteModalOpen, setProjectDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
-  const [viewMode, setViewMode] = useState<"list" | "detail" | "edit">("list");
+  const [projectViewMode, setProjectViewMode] = useState<"list" | "detail" | "edit">("list");
   // Inline create project form
   const [showCreateProjectForm, setShowCreateProjectForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"date" | "priority" | "budget">("date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [showFilters, setShowFilters] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // User management states
   const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
@@ -315,13 +386,13 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   // viewMode projects details reset
   useEffect(() => {
-    setViewMode("list");
+    setProjectViewMode("list");
     setSelectedProject(null);
   }, [activeTab]);
 
   // viewMode users details reset
   useEffect(() => {
-    setViewMode("list");
+    setProjectViewMode("list");
     setSelectedUser(null);
   }, [activeTab]);
 
@@ -1340,6 +1411,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     </div>
   );
 
+
   const renderProjects = (): ReactNode => {
     if (showCreateProjectForm) {
       return (
@@ -1355,11 +1427,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
       );
     }
 
-    if (viewMode === "detail" && selectedProject) {
+    if (projectViewMode === "detail" && selectedProject) {
       return (
         <ProjectOverview
           selectedProject={selectedProject}
-          onBack={() => setViewMode("list")}
+          onBack={() => setProjectViewMode("list")}
           onStatusUpdate={updateProjectStatus}
           onProgressUpdate={async (projectId, progress) => {
             /* kept original stub structure */
@@ -1507,16 +1579,46 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 </select>
               </div>
             </div>
+
+            {/* Results Summary */}
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <FiTrendingUp className="w-4 h-4 text-purple-400" />
+                    <span className="text-gray-300">
+                      Showing{" "}
+                      <span className="text-white font-semibold">
+                        {filteredAndSortedProjects.length}
+                      </span>{" "}
+                      of{" "}
+                      <span className="text-white font-semibold">
+                        {allFilteredProjects.length}
+                      </span>{" "}
+                      projects
+                    </span>
+                  </div>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="flex items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-full text-xs text-purple-300 hover:bg-purple-500/30 transition-colors duration-200"
+                    >
+                      <FiX className="w-3 h-3" />
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Enhanced Projects Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {projects
-              .slice(
-                (currentPage - 1) * projectsPerPage,
-                currentPage * projectsPerPage
-              )
-              .map((project) => {
+          <div className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+          }>
+            {filteredAndSortedProjects.map((project) => {
                 const progress = project?.progress || 0;
                 const status = project?.status || "pending";
                 const priority = project?.priority || "low";
@@ -1524,35 +1626,25 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 return (
                   <div
                     key={project?._id}
-                    className="group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] p-6"
-                    style={{
-                      background: `linear-gradient(135deg, 
-                        rgba(59, 130, 246, 0.03) 0%, 
-                        rgba(147, 51, 234, 0.02) 50%, 
-                        rgba(236, 72, 153, 0.03) 100%)`,
-                      boxShadow: `
-                        0 8px 32px rgba(0, 0, 0, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.05)
-                      `,
-                    }}
+                    className="group relative overflow-hidden rounded-xl bg-black/10 border border-slate-700/50 hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
                   >
                     {/* Project Header */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
+                        <h3 className="text-lg font-semibold text-white group-hover:text-slate-300 transition-colors duration-300">
                           {project?.projectDetails?.title ?? "Untitled Project"}
                         </h3>
-                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">
+                        <p className="text-slate-400 text-sm mt-1 line-clamp-2">
                           {project?.projectDetails?.description ?? "No description"}
                         </p>
                         <div className="flex items-center gap-4 mt-2">
-                          <p className="text-sm text-gray-400 flex items-center gap-2">
-                            <FaUser className="text-blue-400" />
+                          <p className="text-sm text-slate-400 flex items-center gap-2">
+                            <FaUser className="text-slate-300" />
                             {project?.userInfo?.firstName ?? "Unknown"} {project?.userInfo?.lastName ?? ""}
                           </p>
                           {project?.userInfo?.company && (
-                            <p className="text-sm text-gray-400 flex items-center gap-2">
-                              <FaBuilding className="text-purple-400" />
+                            <p className="text-sm text-slate-400 flex items-center gap-2">
+                              <FaBuilding className="text-slate-300" />
                               {project?.userInfo?.company}
                             </p>
                           )}
@@ -1605,13 +1697,13 @@ export default function EnhancedAdminDashboard(): ReactNode {
                           {(project.projectDetails.techStack || []).slice(0, 3).map((tech: string, index: number) => (
                             <span
                               key={index}
-                              className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md"
+                              className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
                             >
                               {tech}
                             </span>
                           ))}
                           {(project.projectDetails.techStack || []).length > 3 && (
-                            <span className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md">
+                            <span className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30">
                               +{(project.projectDetails.techStack || []).length - 3} more
                             </span>
                           )}
@@ -1642,57 +1734,56 @@ export default function EnhancedAdminDashboard(): ReactNode {
                           <>
                             <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center space-x-2">
-                                <DollarSign className="w-4 h-4 text-green-400" />
-                                <span className="text-gray-400">Budget:</span>
+                                <DollarSign className="w-4 h-4 text-emerald-400" />
+                                <span className="text-slate-400">Budget:</span>
                               </div>
                               <span className="text-white font-medium">
                                 {statusInfo.budgetDisplay}
                               </span>
                             </div>
-                            
+
                             <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                                <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
+                                  <div className="w-2 h-2 rounded-full bg-sky-400"></div>
                                 </div>
-                                <span className="text-gray-400">Paid:</span>
+                                <span className="text-slate-400">Paid:</span>
                               </div>
-                              <span className="text-blue-400 font-medium">
+                              <span className="text-sky-400 font-medium">
                                 {statusInfo.paidDisplay}
                               </span>
                             </div>
-                            
+
                             <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                                <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
+                                  <div className="w-2 h-2 rounded-full bg-amber-400"></div>
                                 </div>
-                                <span className="text-gray-400">Remaining:</span>
+                                <span className="text-slate-400">Remaining:</span>
                               </div>
-                              <span className={`font-medium ${
-                                statusInfo.remaining > 0 ? "text-yellow-400" : "text-green-400"
-                              }`}>
+                              <span className={`font-medium ${statusInfo.remaining > 0 ? "text-amber-400" : "text-emerald-400"
+                                }`}>
                                 {statusInfo.remainingDisplay}
                               </span>
                             </div>
-                            
+
                             {/* Budget Progress Bar */}
                             <div className="mt-2">
                               <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs text-gray-500">Budget Progress</span>
-                                <span className="text-xs text-gray-400">
-                                  {statusInfo.totalBudget > 0 
+                                <span className="text-xs text-slate-500">Budget Progress</span>
+                                <span className="text-xs text-slate-400">
+                                  {statusInfo.totalBudget > 0
                                     ? Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100)
                                     : 0}%
                                 </span>
                               </div>
-                              <div className="w-full bg-gray-700 rounded-full h-1.5">
+                              <div className="w-full bg-slate-700 rounded-full h-1.5">
                                 <div
-                                  className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 rounded-full transition-all duration-500"
-                                  style={{ 
-                                    width: `${statusInfo.totalBudget > 0 
+                                  className="bg-gradient-to-r from-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
+                                  style={{
+                                    width: `${statusInfo.totalBudget > 0
                                       ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
-                                      : 0}%` 
+                                      : 0}%`
                                   }}
                                 ></div>
                               </div>
@@ -1705,12 +1796,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       {project?.pricing?.type === "milestone" && project?.milestones && (
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
-                              <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                            <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-violet-400"></div>
                             </div>
-                            <span className="text-gray-400">Milestones:</span>
+                            <span className="text-slate-400">Milestones:</span>
                           </div>
-                          <span className="text-purple-400 font-medium">
+                          <span className="text-violet-400 font-medium">
                             {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
                           </span>
                         </div>
@@ -1718,8 +1809,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
                       {project?.createdAt && (
                         <div className="flex items-center space-x-2 text-sm">
-                          <Calendar className="w-4 h-4 text-blue-400" />
-                          <span className="text-gray-400">
+                          <Calendar className="w-4 h-4 text-slate-300" />
+                          <span className="text-slate-400">
                             Created: {formatDate(project.createdAt)}
                           </span>
                         </div>
@@ -1727,15 +1818,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-white/10">
+                    <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-slate-700/30">
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedProject(project);
-                            setViewMode("detail");
+                            setProjectViewMode("detail");
                           }}
-                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-purple-500/20 text-purple-300 text-sm rounded-md hover:bg-purple-500/30 transition-colors"
+                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-slate-600/20 text-slate-300 text-sm rounded-md hover:bg-slate-600/30 transition-colors"
                         >
                           <Eye className="w-3 h-3" />
                           <span>View</span>
@@ -1749,7 +1840,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                               setProjectDeleteModalOpen(true);
                             }
                           }}
-                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-red-500/20 text-red-300 text-sm rounded-md hover:bg-red-500/30 transition-colors"
+                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/20 text-rose-300 text-sm rounded-md hover:bg-rose-500/30 transition-colors"
                         >
                           <Trash2 className="w-3 h-3" />
                           <span>Delete</span>
@@ -1759,36 +1850,36 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       <div className="flex flex-col items-end">
                         <div className="flex items-center space-x-2 mb-1">
                           {project?.updates && project.updates.length > 0 && (
-                            <div className="flex items-center space-x-1 text-xs text-blue-400">
+                            <div className="flex items-center space-x-1 text-xs text-sky-400">
                               <MessageSquare className="w-3 h-3" />
                               <span>{project.updates.length}</span>
                             </div>
                           )}
-                          
+
                           {project?.files && project.files.length > 0 && (
-                            <div className="flex items-center space-x-1 text-xs text-green-400">
-                              <div className="w-3 h-3 rounded bg-green-400 flex items-center justify-center">
-                                <span className="text-xs font-bold text-green-900">{project.files.length}</span>
+                            <div className="flex items-center space-x-1 text-xs text-emerald-400">
+                              <div className="w-3 h-3 rounded bg-emerald-400 flex items-center justify-center">
+                                <span className="text-xs font-bold text-emerald-900">{project.files.length}</span>
                               </div>
                               <span>Files</span>
                             </div>
                           )}
-                          
+
                           {project?.payments && project.payments.length > 0 && (
-                            <div className="flex items-center space-x-1 text-xs text-orange-400">
-                              <div className="w-3 h-3 rounded bg-orange-400 flex items-center justify-center">
-                                <span className="text-xs font-bold text-orange-900">{project.payments.length}</span>
+                            <div className="flex items-center space-x-1 text-xs text-amber-400">
+                              <div className="w-3 h-3 rounded bg-amber-400 flex items-center justify-center">
+                                <span className="text-xs font-bold text-amber-900">{project.payments.length}</span>
                               </div>
                               <span>Payments</span>
                             </div>
                           )}
                         </div>
-                        
-                        <div className="text-xs text-gray-500">
+
+                        <div className="text-xs text-slate-500">
                           Updated {project?.updatedAt ? formatDate(project.updatedAt) : 'N/A'}
                         </div>
                         {project?.pricing?.type === "milestone" && project?.milestones && (
-                          <div className="text-xs text-purple-400 mt-1">
+                          <div className="text-xs text-violet-400 mt-1">
                             Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
                           </div>
                         )}

@@ -214,25 +214,86 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
     setCreating(true);
     try {
-      console.log("Creating new developer profile...");
-      const res = await fetch("/api/developer-profiles", {
+      console.log("Creating new developer user and profile...");
+      
+      // Step 1: Create user with developer role (this will auto-create the developer profile)
+      const userPayload = {
+        email: profile.personalInfo.email,
+        firstName: profile.personalInfo.firstName,
+        lastName: profile.personalInfo.lastName,
+        role: "developer",
+        generatePassword: true, // Generate password automatically
+      };
+      
+      const userRes = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profile),
+        body: JSON.stringify(userPayload),
       });
 
-      if (!res.ok) {
-        throw new Error(`Creation failed: ${res.status} ${res.statusText}`);
+      if (!userRes.ok) {
+        const errorData = await userRes.json();
+        throw new Error(errorData.error || `User creation failed: ${userRes.status} ${userRes.statusText}`);
       }
 
-      const newProfile = await res.json();
-      console.log("Developer profile created successfully:", newProfile);
-      toast.success("Developer profile created successfully!");
+      const userData = await userRes.json();
+      console.log("User created successfully:", userData);
+      
+      // Step 2: Wait a moment for the developer profile to be created
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Step 3: Fetch the newly created developer profile
+      const profileRes = await fetch("/api/developer-profiles");
+      if (!profileRes.ok) {
+        throw new Error(`Failed to fetch profiles: ${profileRes.status}`);
+      }
+      
+      const profilesData = await profileRes.json();
+      const profiles = Array.isArray(profilesData) ? profilesData : profilesData.profiles || [];
+      
+      // Find the profile that matches the email we just created
+      const newProfile = profiles.find((p: DeveloperProfile) => 
+        p.personalInfo.email === profile.personalInfo.email
+      );
+      
+      if (!newProfile) {
+        throw new Error("Developer profile was not created automatically. Please try again.");
+      }
+      
+      // Step 4: Update the profile with the detailed information from the form
+      const updateRes = await fetch("/api/developer-profiles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...profile,
+          id: newProfile.id, // Use the ID from the newly created profile
+          personalInfo: {
+            ...profile.personalInfo,
+            // Keep the email from the created user
+            email: profile.personalInfo.email
+          }
+        }),
+      });
+      
+      if (!updateRes.ok) {
+        console.warn("Failed to update profile with detailed info, but profile was created");
+        // Don't fail completely, just warn
+      }
+      
+      const finalProfile = updateRes.ok ? await updateRes.json() : newProfile;
+      
+      console.log("Developer created successfully with user account:", finalProfile);
+      toast.success("Developer created successfully with login credentials!");
+      
+      // Show additional info about the generated password
+      if (userData.generatedPassword) {
+        toast.info(`Password generated: ${userData.generatedPassword}`);
+      }
 
-      onCreate(newProfile as DeveloperProfile);
+      onCreate(finalProfile as DeveloperProfile);
     } catch (err) {
-      console.error("Error creating profile:", err);
-      toast.error("Error creating developer profile");
+      console.error("Error creating developer:", err);
+      toast.error(err instanceof Error ? err.message : "Error creating developer");
     } finally {
       setCreating(false);
     }
@@ -939,8 +1000,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
             </h1>
           </div>
           <p className="text-gray-300">
-            Create a comprehensive profile for a new developer. Fill in all
-            required fields marked with *.
+            Create a new developer with user account and profile. This will generate login credentials and create a comprehensive developer profile.
           </p>
         </div>
 
@@ -991,12 +1051,12 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
               {creating ? (
                 <>
                   <FaSyncAlt className="animate-spin" />
-                  Creating...
+                  Creating Developer...
                 </>
               ) : (
                 <>
                   <FaSave />
-                  Create Profile
+                  Create Developer
                 </>
               )}
             </button>

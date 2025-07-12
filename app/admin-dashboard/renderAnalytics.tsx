@@ -59,14 +59,19 @@ interface UserRoleData {
 
 interface TopClient {
   name: string;
-  projects: number;
-  revenue: number;
+  projectCount: number;
+  totalSpent: number;
+  pendingAmount: number;
+  totalValue: number;
+  id: string;
 }
 
 interface TopDeveloper {
   name: string;
-  projects: number;
+  completedProjects: number;
   rating: number;
+  skills: string[];
+  id: string;
 }
 
 interface SkillDemand {
@@ -371,7 +376,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
     'DollarSign': DollarSign,
     'Target': Target
   };
-  
+
   const activities: Activity[] = (analyticsData?.activities || []).map(activity => ({
     ...activity,
     icon: iconMap[activity.icon as keyof typeof iconMap] || Briefcase
@@ -420,37 +425,37 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-1">
+        <div className="backdrop-blur-xl my-16 bg-white/5 border border-white/10 rounded-2xl p-1">
           <div className="flex space-x-1">
             <button
               onClick={() => setAnalyticsTab("overview")}
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "overview"
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+              className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "overview"
+                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
             >
               <Briefcase className="h-4 w-4" />
-              <span>Overview & Projects</span>
+              <span className="monty uppercase">Overview & Projects</span>
             </button>
             <button
               onClick={() => setAnalyticsTab("financial")}
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "financial"
-                  ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+              className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "financial"
+                ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
+                : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
             >
               <DollarSign className="h-4 w-4" />
-              <span>Financial Analytics</span>
+              <span className="monty uppercase">Financial Analytics</span>
             </button>
             <button
               onClick={() => setAnalyticsTab("performance")}
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "performance"
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+              className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${analyticsTab === "performance"
+                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
+                : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
             >
               <Target className="h-4 w-4" />
-              <span>Performance & Skills</span>
+              <span className="monty uppercase">Performance & Skills</span>
             </button>
           </div>
         </div>
@@ -615,21 +620,6 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
         {/* Financial Analytics Tab */}
         {analyticsTab === "financial" && (
           <div className="space-y-6">
-            {/* Financial Overview Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold text-white mb-2">
-                  💰 Financial Analytics
-                </h2>
-                <p className="text-gray-400">
-                  Comprehensive payment tracking and financial insights
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5 text-green-400" />
-                <span className="text-green-400 font-semibold">Live Data</span>
-              </div>
-            </div>
 
             {/* Payment Status Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -878,30 +868,15 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
           </div>
         )}
 
-      {/* Performance & Skills Tab */}
-      {analyticsTab === "performance" && (
-        <div className="space-y-6">
-          {/* Performance Overview Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-white mb-2">
-                🎯 Performance & Skills Analytics
-              </h2>
-              <p className="text-gray-400">
-                Developer performance metrics and skill demand insights
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Target className="h-5 w-5 text-purple-400" />
-              <span className="text-purple-400 font-semibold">Real-time</span>
-            </div>
-          </div>
+        {/* Performance & Skills Tab */}
+        {analyticsTab === "performance" && (
+          <div className="space-y-6">
 
-          {/* Performance Metrics Radar Chart */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-6">
-                Performance Metrics
+            {/* Performance Metrics Radar Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-white mb-6">
+                  Performance Metrics
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <RadarChart data={analyticsData?.performance?.metrics || []}>
@@ -982,66 +957,19 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top Clients */}
               <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">Top Clients</h3>
-                <Award className="h-5 w-5 text-yellow-400" />
-              </div>
-              <div className="space-y-4">
-                {(analyticsData?.overview?.topClients || []).slice(0, 5).map((client, index) => (
-                  <div
-                    key={client.name}
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center font-semibold text-white">
-                          {index + 1}
-                        </div>
-                        {index === 0 && (
-                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                            <Star className="h-3 w-3 text-yellow-900" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-white font-semibold">{client.name}</p>
-                        <p className="text-gray-400 text-sm">
-                          {client.projects} projects
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-green-400 font-semibold text-lg">
-                        {formatCurrency(client.revenue)}
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        {formatCurrency(client.projects > 0 ? client.revenue / client.projects : 0)}/project
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Top Developers */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">
-                  Top Developers
-                </h3>
-                <Zap className="h-5 w-5 text-purple-400" />
-              </div>
-              <div className="space-y-4">
-                {(analyticsData?.overview?.topDevelopers || [])
-                  .slice(0, 5)
-                  .map((developer, index) => (
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">Top Clients</h3>
+                  <Award className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="space-y-4">
+                  {(analyticsData?.overview?.topClients || []).slice(0, 5).map((client, index) => (
                     <div
-                      key={developer.name}
+                      key={client.id || `client-${index}`}
                       className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
                     >
                       <div className="flex items-center space-x-4">
                         <div className="relative">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center font-semibold text-white">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center font-semibold text-white">
                             {index + 1}
                           </div>
                           {index === 0 && (
@@ -1050,74 +978,124 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                             </div>
                           )}
                         </div>
-                        <div>
-                          <p className="text-white font-semibold">
-                            {developer.name}
+                          <div>
+                            <p className="text-white font-semibold">{client.name}</p>
+                            <p className="text-gray-400 text-sm">
+                              {client.projectCount} projects
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-green-400 font-semibold text-lg">
+                            {formatCurrency(client.totalSpent)}
                           </p>
-                          <p className="text-gray-400 text-sm">
-                            {developer.projects} projects completed
+                          <p className="text-yellow-400 text-sm">
+                            {formatCurrency(client.pendingAmount)} pending
                           </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="text-white font-semibold">
-                            {developer.rating}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-1 mt-1">
-                          <AnimatedProgressRing
-                            percentage={developer.rating * 20}
-                            size={40}
-                            strokeWidth={4}
-                            color="#FBBF24"
-                          />
-                        </div>
+                          <p className="text-gray-400 text-xs">
+                            {formatCurrency(client.totalValue)} total value
+                          </p>
                       </div>
                     </div>
                   ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Real-time Activity Feed */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">
-                Live Activity Feed
-              </h3>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-sm">Live</span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {activities.length > 0 ? (
-                activities.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
-                  >
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <activity.icon className="h-4 w-4 text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white text-sm">{activity.message}</p>
-                      <p className="text-gray-400 text-xs">{activity.time}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400">No recent activities</p>
                 </div>
-              )}
+              </div>
+
+              {/* Top Developers */}
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">
+                    Top Developers
+                  </h3>
+                  <Zap className="h-5 w-5 text-purple-400" />
+                </div>
+                <div className="space-y-4">
+                  {(analyticsData?.overview?.topDevelopers || [])
+                    .slice(0, 5)
+                    .map((developer, index) => (
+                      <div
+                        key={developer.id || `developer-${index}`}
+                        className="flex items-center justify-between p-4 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="relative">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center font-semibold text-white">
+                              {index + 1}
+                            </div>
+                            {index === 0 && (
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                                <Star className="h-3 w-3 text-yellow-900" />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-white font-semibold">
+                              {developer.name}
+                            </p>
+                            <p className="text-gray-400 text-sm">
+                              {developer.completedProjects} projects completed
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="text-white font-semibold">
+                              {developer.rating}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1 mt-1">
+                            <AnimatedProgressRing
+                              percentage={developer.rating * 20}
+                              size={40}
+                              strokeWidth={4}
+                              color="#FBBF24"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Real-time Activity Feed */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">
+                  Live Activity Feed
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 text-sm">Live</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {activities.length > 0 ? (
+                  activities.map((activity, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      <div className="p-2 bg-blue-500/20 rounded-lg">
+                        <activity.icon className="h-4 w-4 text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white text-sm">{activity.message}</p>
+                        <p className="text-gray-400 text-xs">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No recent activities</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
     </div>
   );
 };

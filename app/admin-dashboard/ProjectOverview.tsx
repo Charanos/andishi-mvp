@@ -257,7 +257,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     console.log('Admin Dashboard - Activity Data:', activityData);
     console.log('Admin Dashboard - Activity Error:', activityError);
     console.log('Admin Dashboard - Activity Loading:', activityLoading);
-    
+
     if (activityData) {
       console.log('Admin Dashboard - Activity Data Success:', activityData.success);
       console.log('Admin Dashboard - Activity Data Count:', activityData.count);
@@ -318,7 +318,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 status: m.status || 'pending'
               }));
             }
-            
+
             // If pricing has milestones, use them
             if (data.pricing?.milestones?.length) {
               return data.pricing.milestones.map((m) => ({
@@ -331,7 +331,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 status: m.status || 'pending'
               }));
             }
-            
+
             // If pricing type is milestone but no milestones exist, create default ones
             if (data.pricing?.type === 'milestone') {
               return [
@@ -370,7 +370,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 }
               ];
             }
-            
+
             return [];
           })(),
           updates: data.updates?.map((u) => ({
@@ -404,7 +404,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     if (projectData.pricing?.type === "fixed" && projectData.pricing.fixedBudget) {
       return parseFloat(projectData.pricing.fixedBudget) || 0;
     }
-    
+
     const milestones = projectData.milestones || projectData.pricing?.milestones || [];
     return milestones.reduce((sum, m) => {
       const budget = typeof m.budget === 'string' ? parseFloat(m.budget) : (m.budget || 0);
@@ -449,7 +449,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const renderContent = () => {
     switch (trackingView) {
       case "overview":
-return (
+        return (
           <div className="bg-gray-900 p-4 rounded-lg shadow-md">
             <div className="bg-blue-800 text-white p-4 rounded-t-lg">
               <h2 className="text-3xl font-semibold">Project Overview</h2>
@@ -607,16 +607,16 @@ return (
         );
       case "chat":
         if (!currentUser) {
-          return <div>Loading...</div>; // Or some other placeholder
+          return <div>Authenticating...</div>;
         }
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <ProjectChatComponent
+            <ProjectChat
               projectId={selectedProject._id}
               projectTitle={selectedProject.projectDetails.title}
-              currentUserId={currentUser.id}
-              currentUserRole={currentUser.role as "admin" | "client" | "developer"}
-              currentUserName={currentUser.name || currentUser.email}
+              currentUserId={currentUser!.id}
+              currentUserRole={currentUser!.role as "admin" | "client" | "developer"}
+              currentUserName={currentUser!.name || currentUser!.email || "Anonymous"}
             />
           </div>
         );
@@ -624,7 +624,7 @@ return (
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Recent Activity</h2>
-            
+
             <div className="space-y-4">
               {activityLoading ? (
                 <div className="flex items-center justify-center py-12">
@@ -896,9 +896,9 @@ return (
             ...(newFile.description && { description: newFile.description }),
           }),
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
           const file: ProjectFile = {
             id: result.file.id || Date.now().toString(),
@@ -936,7 +936,7 @@ return (
         },
         body: JSON.stringify(updatedFile),
       });
-      
+
       if (response.ok) {
         setProjectData((prevData) => ({
           ...prevData,
@@ -961,7 +961,7 @@ return (
           'Authorization': `Bearer ${token}`,
         },
       });
-      
+
       if (response.ok) {
         setProjectData((prevData) => ({
           ...prevData,
@@ -1091,7 +1091,7 @@ return (
           approvedAt: new Date().toISOString(),
         };
         handleUpdatePayment(paymentId, updatedStatus);
-        
+
         // Show success message
         console.log('Payment approved successfully');
       } else {
@@ -1129,7 +1129,7 @@ return (
           rejectionReason: reason,
         };
         handleUpdatePayment(paymentId, updatedStatus);
-        
+
         // Show success message
         console.log('Payment rejected successfully');
       } else {
@@ -1230,8 +1230,9 @@ return (
   return (
     <div className="bg-black/5 min-h-screen rounded-lg">
       {/* Header Section */}
-      <div className="backdrop-blur-xl bg-indigo-900/80 border-b border-white/10 rounded-lg">
-        <div className="p-6">
+      <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-2xl border border-purple-500/30 rounded-2xl p-8 mb-8 w-full relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-50"></div>
+        <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
@@ -1284,39 +1285,42 @@ return (
       </div>
 
       {/* Enhanced Project Tracking Navigation */}
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 my-8 rounded-2xl p-2 mb-8">
-        <div className="flex items-center space-x-1 overflow-x-auto">
-          {[
-            { id: "overview", label: "Overview", icon: Target },
-            { id: "timeline", label: "Timeline", icon: Calendar },
-            { id: "milestones", label: "Milestones", icon: CheckCircle },
-            { id: "budget", label: "Budget & Payments", icon: DollarSign },
-            { id: "files", label: "Files", icon: FileText },
-            { id: "updates", label: "Updates", icon: MessageSquare },
-            { id: "activity", label: "Activity", icon: Activity },
-            { id: "assignments", label: "Assignments", icon: FaUsers },
-            { id: "chat", label: "Chat", icon: FaComment },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setTrackingView(tab.id as TrackingView)}
-                className={`flex cursor-pointer items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${trackingView === tab.id
-                  ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-                  }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="font-medium">{tab.label}</span>
-              </button>
-            );
-          })}
+      <div className="bg-gradient-to-r from-slate-800/60 via-gray-800/40 to-slate-800/60 shadow-xl backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-4 mb-8 w-full relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-70"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-center space-x-2 overflow-x-auto md:overflow-x-visible py-2">
+            {[
+              { id: "overview", label: "Overview", icon: Target },
+              { id: "timeline", label: "Timeline", icon: Calendar },
+              { id: "milestones", label: "Milestones", icon: CheckCircle },
+              { id: "budget", label: "Budget & Payments", icon: DollarSign },
+              { id: "files", label: "Files", icon: FileText },
+              { id: "updates", label: "Updates", icon: MessageSquare },
+              { id: "activity", label: "Activity", icon: Activity },
+              { id: "assignments", label: "Assignments", icon: FaUsers },
+              { id: "chat", label: "Chat", icon: FaComment },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setTrackingView(tab.id as TrackingView)}
+                  className={`cursor-pointer flex items-center space-x-2 px-5 py-3 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${trackingView === tab.id
+                    ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25 scale-105"
+                    : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:scale-105"
+                    }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="font-medium text-sm">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-[1600px] mx-auto px-6 py-8">
         {trackingView === "overview" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Project Details */}
@@ -2555,30 +2559,28 @@ return (
                 <div className="flex space-x-1 bg-white/5 p-1 rounded-xl">
                   <button
                     onClick={() => setActivePaymentTab('pending')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                      activePaymentTab === 'pending'
-                        ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${activePaymentTab === 'pending'
+                      ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
                   >
                     Pending Approvals
                     {(projectData.payments || []).filter(
                       (p: Payment) => p.status === "pending" && p.submittedBy === "client"
                     ).length > 0 && (
-                      <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-yellow-500 text-black rounded-full">
-                        {(projectData.payments || []).filter(
-                          (p: Payment) => p.status === "pending" && p.submittedBy === "client"
-                        ).length}
-                      </span>
-                    )}
+                        <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-yellow-500 text-black rounded-full">
+                          {(projectData.payments || []).filter(
+                            (p: Payment) => p.status === "pending" && p.submittedBy === "client"
+                          ).length}
+                        </span>
+                      )}
                   </button>
                   <button
                     onClick={() => setActivePaymentTab('history')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                      activePaymentTab === 'history'
-                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${activePaymentTab === 'history'
+                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
                   >
                     Payment History
                     {(projectData.payments || []).length > 0 && (
@@ -2594,213 +2596,212 @@ return (
               <div className="min-h-[400px]">
                 {activePaymentTab === 'pending' && (
                   <div>
-                {(projectData.payments || []).filter(
-                  (p: Payment) => p.status === "pending" && p.submittedBy === "client"
-                ).length > 0 ? (
-                  <div className="space-y-4">
-                    {(projectData.payments || [])
-                      .filter(
-                        (p: Payment) =>
-                          p.status === "pending" && p.submittedBy === "client"
-                      )
-                      .map((payment: Payment) => (
-                        <div
-                          key={payment.id}
-                          className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-3 mb-2">
-                                <h3 className="text-lg font-semibold text-white">
-                                  {payment.description || "Client Payment"}
-                                </h3>
-                                <span className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
-                                  Pending Approval
-                                </span>
-                                <span className="text-xs text-gray-400">
-                                  by {payment.submittedBy}
-                                </span>
+                    {(projectData.payments || []).filter(
+                      (p: Payment) => p.status === "pending" && p.submittedBy === "client"
+                    ).length > 0 ? (
+                      <div className="space-y-4">
+                        {(projectData.payments || [])
+                          .filter(
+                            (p: Payment) =>
+                              p.status === "pending" && p.submittedBy === "client"
+                          )
+                          .map((payment: Payment) => (
+                            <div
+                              key={payment.id}
+                              className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-3 mb-2">
+                                    <h3 className="text-lg font-semibold text-white">
+                                      {payment.description || "Client Payment"}
+                                    </h3>
+                                    <span className="px-3 py-1 rounded-full text-xs font-medium border bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+                                      Pending Approval
+                                    </span>
+                                    <span className="text-xs text-gray-400">
+                                      by {payment.submittedBy}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                                    <div>
+                                      <span className="text-gray-400">Amount:</span>
+                                      <p className="text-white font-medium">
+                                        {formatCurrencyLocal(
+                                          payment.amount,
+                                          payment.currency || "USD"
+                                        )}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Date:</span>
+                                      <p className="text-white font-medium">
+                                        {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Method:</span>
+                                      <p className="text-white font-medium capitalize">
+                                        {payment.method}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">Submitted:</span>
+                                      <p className="text-white font-medium">
+                                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {payment.notes && (
+                                    <div className="mt-2">
+                                      <span className="text-gray-400 text-sm">
+                                        Notes:
+                                      </span>
+                                      <p className="text-gray-300 text-sm">
+                                        {payment.notes}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-2 ml-4">
+                                  <button
+                                    onClick={() => approvePayment(payment.id)}
+                                    className="flex items-center space-x-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm transition-colors"
+                                  >
+                                    <span>✓</span>
+                                    <span>Approve</span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const reason = prompt("Reason for rejection:");
+                                      if (reason) rejectPayment(payment.id, reason);
+                                    }}
+                                    className="flex items-center space-x-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm transition-colors"
+                                  >
+                                    <span>✗</span>
+                                    <span>Reject</span>
+                                  </button>
+                                </div>
                               </div>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
-                                <div>
-                                  <span className="text-gray-400">Amount:</span>
-                                  <p className="text-white font-medium">
-                                    {formatCurrencyLocal(
-                                      payment.amount,
-                                      payment.currency || "USD"
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-400">Date:</span>
-                                  <p className="text-white font-medium">
-                                    {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-400">Method:</span>
-                                  <p className="text-white font-medium capitalize">
-                                    {payment.method}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-400">Submitted:</span>
-                                  <p className="text-white font-medium">
-                                    {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
-                                  </p>
-                                </div>
-                              </div>
-                              {payment.notes && (
-                                <div className="mt-2">
-                                  <span className="text-gray-400 text-sm">
-                                    Notes:
-                                  </span>
-                                  <p className="text-gray-300 text-sm">
-                                    {payment.notes}
-                                  </p>
-                                </div>
-                              )}
                             </div>
-                            <div className="flex items-center space-x-2 ml-4">
-                              <button
-                                onClick={() => approvePayment(payment.id)}
-                                className="flex items-center space-x-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm transition-colors"
-                              >
-                                <span>✓</span>
-                                <span>Approve</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const reason = prompt("Reason for rejection:");
-                                  if (reason) rejectPayment(payment.id, reason);
-                                }}
-                                className="flex items-center space-x-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm transition-colors"
-                              >
-                                <span>✗</span>
-                                <span>Reject</span>
-                              </button>
-                            </div>
-                          </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <FaCreditCard className="w-8 h-8 text-gray-500" />
                         </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FaCreditCard className="w-8 h-8 text-gray-500" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">
-                      No Pending Approvals
-                    </h3>
-                    <p className="text-gray-400">
-                      All payments have been reviewed
-                    </p>
-                  </div>
-                )}
+                        <h3 className="text-lg font-semibold text-white mb-2">
+                          No Pending Approvals
+                        </h3>
+                        <p className="text-gray-400">
+                          All payments have been reviewed
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {activePaymentTab === 'history' && (
                   <div>
-                {(projectData.payments || []).length > 0 ? (
-                  <div className="space-y-4">
-                    {(projectData.payments || []).map((payment: Payment) => (
-                      <div
-                        key={payment.id}
-                        className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="text-lg font-semibold text-white">
-                                {payment.description || "Payment"}
-                              </h3>
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                                  payment.status === "approved"
-                                    ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                    : payment.status === "rejected"
-                                      ? "bg-red-500/20 text-red-300 border-red-500/30"
-                                      : payment.status === "pending"
-                                        ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-                                        : "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                                }`}
-                              >
-                                {payment.status || "pending"}
-                              </span>
-                              {payment.submittedBy && (
-                                <span className="text-xs text-gray-400">
-                                  by {payment.submittedBy}
-                                </span>
-                              )}
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
-                              <div>
-                                <span className="text-gray-400">Amount:</span>
-                                <p className="text-white font-medium">
-                                  {formatCurrencyLocal(
-                                    payment.amount,
-                                    payment.currency || "USD"
+                    {(projectData.payments || []).length > 0 ? (
+                      <div className="space-y-4">
+                        {(projectData.payments || []).map((payment: Payment) => (
+                          <div
+                            key={payment.id}
+                            className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <h3 className="text-lg font-semibold text-white">
+                                    {payment.description || "Payment"}
+                                  </h3>
+                                  <span
+                                    className={`px-3 py-1 rounded-full text-xs font-medium border ${payment.status === "approved"
+                                      ? "bg-green-500/20 text-green-300 border-green-500/30"
+                                      : payment.status === "rejected"
+                                        ? "bg-red-500/20 text-red-300 border-red-500/30"
+                                        : payment.status === "pending"
+                                          ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
+                                          : "bg-gray-500/20 text-gray-300 border-gray-500/30"
+                                      }`}
+                                  >
+                                    {payment.status || "pending"}
+                                  </span>
+                                  {payment.submittedBy && (
+                                    <span className="text-xs text-gray-400">
+                                      by {payment.submittedBy}
+                                    </span>
                                   )}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Date:</span>
-                                <p className="text-white font-medium">
-                                  {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Method:</span>
-                                <p className="text-white font-medium capitalize">
-                                  {payment.method}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Created:</span>
-                                <p className="text-white font-medium">
-                                  {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
-                                </p>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                                  <div>
+                                    <span className="text-gray-400">Amount:</span>
+                                    <p className="text-white font-medium">
+                                      {formatCurrencyLocal(
+                                        payment.amount,
+                                        payment.currency || "USD"
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Date:</span>
+                                    <p className="text-white font-medium">
+                                      {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Method:</span>
+                                    <p className="text-white font-medium capitalize">
+                                      {payment.method}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Created:</span>
+                                    <p className="text-white font-medium">
+                                      {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
+                                    </p>
+                                  </div>
+                                </div>
+                                {payment.rejectionReason && (
+                                  <div className="mt-2 p-3 bg-red-500/10 rounded-lg border border-red-500/30">
+                                    <span className="text-red-400 text-sm font-medium">
+                                      Rejection Reason:
+                                    </span>
+                                    <p className="text-red-300 text-sm mt-1">
+                                      {payment.rejectionReason}
+                                    </p>
+                                  </div>
+                                )}
+                                {payment.notes && (
+                                  <div className="mt-2 p-3 bg-gray-500/10 rounded-lg border border-gray-500/30">
+                                    <span className="text-gray-400 text-sm font-medium">
+                                      Notes:
+                                    </span>
+                                    <p className="text-gray-300 text-sm mt-1">
+                                      {payment.notes}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            {payment.rejectionReason && (
-                              <div className="mt-2 p-3 bg-red-500/10 rounded-lg border border-red-500/30">
-                                <span className="text-red-400 text-sm font-medium">
-                                  Rejection Reason:
-                                </span>
-                                <p className="text-red-300 text-sm mt-1">
-                                  {payment.rejectionReason}
-                                </p>
-                              </div>
-                            )}
-                            {payment.notes && (
-                              <div className="mt-2 p-3 bg-gray-500/10 rounded-lg border border-gray-500/30">
-                                <span className="text-gray-400 text-sm font-medium">
-                                  Notes:
-                                </span>
-                                <p className="text-gray-300 text-sm mt-1">
-                                  {payment.notes}
-                                </p>
-                              </div>
-                            )}
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FaCreditCard className="w-8 h-8 text-gray-500" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">
-                      No Payments Yet
-                    </h3>
-                    <p className="text-gray-400">
-                      Payment history will appear here once recorded
-                    </p>
-                  </div>
-                )}
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <FaCreditCard className="w-8 h-8 text-gray-500" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-white mb-2">
+                          No Payments Yet
+                        </h3>
+                        <p className="text-gray-400">
+                          Payment history will appear here once recorded
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -2820,13 +2821,13 @@ return (
           />
         )}
 
-        {trackingView === "chat" && (
+        {trackingView === "chat" && currentUser && (
           <ProjectChat
             projectId={selectedProject._id}
             projectTitle={selectedProject.projectDetails.title}
-            currentUserId="admin-1"
-            currentUserRole="admin"
-            currentUserName="Admin User"
+            currentUserId={currentUser.id}
+            currentUserRole={currentUser.role as "admin" | "client" | "developer"}
+            currentUserName={currentUser.name || currentUser.email || 'Anonymous'}
           />
         )}
       </div>
@@ -3476,3 +3477,13 @@ return (
 };
 
 export default ProjectOverview;
+
+
+
+
+
+
+// i need you to create an md file of some fixes i         
+//   want imlemented very concisely and comprehensively      
+//    in regard to the admin and client dashboards, so        
+//   be careful to know what to implement and where  

@@ -3162,7 +3162,7 @@ Generate new credentials to reset password.`;
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
+        <div className="w-[90vw] max-w-none mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
           {activeTab === "overview" && renderOverview()}
           {activeTab === "projects" && renderProjects()}
           {activeTab === "users" && (

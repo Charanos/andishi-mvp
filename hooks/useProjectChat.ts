@@ -85,7 +85,7 @@ export function useProjectChat(projectId: string) {
                 },
                 body: JSON.stringify({
                     senderId: user.id,
-                    senderName: user.name || user.email, // Use user's name or email
+                    senderName: user.name || user.email.split('@')[0], // Use user's name or extract from email
                     senderRole: user.role,
                     content: content.trim()
                 }),

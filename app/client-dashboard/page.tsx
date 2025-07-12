@@ -1,5 +1,5 @@
 "use client";
-
+import EnhancedProjectTracking from "./projectDetails";
 import React, { useState, useEffect } from "react";
 import type { JSX } from "react";
 import SearchFilterComponent from "./SearchFilter";
@@ -83,13 +83,13 @@ const transformProjectToData = (
       console.log('\n=== FRONTEND MILESTONE TRANSFORMATION ===');
       console.log('Project milestones:', project.milestones);
       console.log('Project pricing milestones:', project.pricing?.milestones);
-      
+
       const sourceMilestones = (project.milestones && project.milestones.length > 0)
         ? project.milestones
         : (project.pricing?.milestones || []); // Fallback to pricing milestones if project.milestones is empty
-      
+
       console.log('Source milestones selected:', sourceMilestones);
-      
+
       const transformedMilestones = sourceMilestones.map((m: any) => ({
         id: m.id || m._id?.toString(),
         title: m.title || "",
@@ -101,7 +101,7 @@ const transformProjectToData = (
         completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
         order: m.order || 0,
       }));
-      
+
       console.log('Transformed milestones:', transformedMilestones);
       return transformedMilestones;
     })(),
@@ -110,7 +110,6 @@ const transformProjectToData = (
     payments: project.payments,
   };
 };
-import EnhancedProjectTracking from "./projectDetails";
 
 type ActiveTab = "projects" | "analytics" | "create" | "settings";
 
@@ -134,9 +133,9 @@ const ClientDashboard: React.FC = () => {
     onHold: projList.filter((p) => p.status === "on_hold").length,
     averageProgress: projList.length
       ? Math.round(
-          projList.reduce((acc, p) => acc + (p.progress || 0), 0) /
-            projList.length
-        )
+        projList.reduce((acc, p) => acc + (p.progress || 0), 0) /
+        projList.length
+      )
       : 0,
   });
   const mapStatus = (
@@ -197,7 +196,7 @@ const ClientDashboard: React.FC = () => {
     isOpen: false,
     title: "",
     message: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
     variant: "info",
     loading: false,
   });
@@ -282,13 +281,13 @@ const ClientDashboard: React.FC = () => {
               : undefined,
             pricing: project.pricing
               ? {
-                  type: project.pricing.type || "fixed",
-                  currency: project.pricing.currency || "USD",
-                  fixedBudget: project.pricing.fixedBudget,
-                  hourlyRate: project.pricing.hourlyRate,
-                  estimatedHours: project.pricing.estimatedHours ? Number(project.pricing.estimatedHours) : undefined,
-                  totalPaid: project.pricing.totalPaid,
-                }
+                type: project.pricing.type || "fixed",
+                currency: project.pricing.currency || "USD",
+                fixedBudget: project.pricing.fixedBudget,
+                hourlyRate: project.pricing.hourlyRate,
+                estimatedHours: project.pricing.estimatedHours ? Number(project.pricing.estimatedHours) : undefined,
+                totalPaid: project.pricing.totalPaid,
+              }
               : undefined,
             milestones: (() => {
               const sourceMilestones = (project.milestones && project.milestones.length > 0)
@@ -510,7 +509,7 @@ const ClientDashboard: React.FC = () => {
   // Calculate total project budget based on pricing type
   const calculateProjectBudget = (project: any): number => {
     if (!project.pricing) return 0;
-    
+
     if (project.pricing.type === "fixed" && project.pricing.fixedBudget) {
       return parseFloat(project.pricing.fixedBudget);
     }
@@ -539,12 +538,12 @@ const ClientDashboard: React.FC = () => {
     if (project.status === "completed" && (!project.progress || project.progress === 0)) {
       return 100;
     }
-    
+
     // If manual progress is set, always use it (from admin dashboard updates)
     if (project.progress && project.progress > 0) {
       return project.progress;
     }
-    
+
     // For milestone-based projects, calculate based on milestone completion
     if (project.pricing?.type === "milestone" && project.milestones && project.milestones.length > 0) {
       const completedMilestones = project.milestones.filter(
@@ -552,7 +551,7 @@ const ClientDashboard: React.FC = () => {
       ).length;
       return Math.round((completedMilestones / project.milestones.length) * 100);
     }
-    
+
     // Default to 0 if nothing else applies
     return 0;
   };
@@ -568,7 +567,7 @@ const ClientDashboard: React.FC = () => {
       return sum;
     }, 0);
     const completion = calculateCompletionPercentage(project);
-    
+
     return {
       totalBudget,
       totalPaid,
@@ -584,7 +583,7 @@ const ClientDashboard: React.FC = () => {
   const handleDeleteProject = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
-    
+
     setConfirmationModal({
       isOpen: true,
       title: "Delete Project",
@@ -597,7 +596,7 @@ const ClientDashboard: React.FC = () => {
 
   const confirmDeleteProject = async (projectId: string) => {
     setConfirmationModal(prev => ({ ...prev, loading: true }));
-    
+
     try {
       const response = await fetch(`/api/client-projects/${projectId}`, {
         method: "DELETE",
@@ -615,11 +614,11 @@ const ClientDashboard: React.FC = () => {
       setProjects(updatedProjects);
       setFilteredProjects(updatedProjects);
       setStats(recomputeStats(updatedProjects));
-      
+
       // Close modal and show success toast
       setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
       toast.success("Project deleted", "The project has been successfully deleted.");
-      
+
     } catch (error: any) {
       console.error("Error deleting project:", error);
       setConfirmationModal(prev => ({ ...prev, loading: false }));
@@ -766,9 +765,9 @@ const ClientDashboard: React.FC = () => {
   const averageProgress =
     projects.length > 0
       ? Math.round(
-          projects.reduce((sum, p) => sum + (p.progress || 0), 0) /
-            (projects.length || 1)
-        )
+        projects.reduce((sum, p) => sum + (p.progress || 0), 0) /
+        (projects.length || 1)
+      )
       : 0;
 
   const totalMilestones = projects.reduce(
@@ -807,8 +806,8 @@ const ClientDashboard: React.FC = () => {
   const avgProjectDuration =
     inProgressProjects + completedProjects > 0
       ? Math.round(
-          activeProjectsDays / (inProgressProjects + completedProjects)
-        )
+        activeProjectsDays / (inProgressProjects + completedProjects)
+      )
       : 0;
 
   // Get recent updates across all projects
@@ -884,13 +883,13 @@ const ClientDashboard: React.FC = () => {
     const oldestProject =
       projects.length > 0
         ? projects.reduce((oldest, project) =>
-            project.createdAt &&
+          project.createdAt &&
             oldest.createdAt &&
             new Date(project.createdAt).getTime() <
-              new Date(oldest.createdAt).getTime()
-              ? project
-              : oldest
-          )
+            new Date(oldest.createdAt).getTime()
+            ? project
+            : oldest
+        )
         : null;
 
     const latestUpdate = projects
@@ -1207,7 +1206,7 @@ const ClientDashboard: React.FC = () => {
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-2xl font-semibold text-green-400">
                 {totalProjects > 0
                   ? Math.round((completedProjects / totalProjects) * 100)
                   : 0}
@@ -1216,7 +1215,7 @@ const ClientDashboard: React.FC = () => {
               <div className="text-gray-400 text-sm">Completion Rate</div>
             </div>
             <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-bold text-blue-400">
+              <div className="text-2xl font-semibold text-blue-400">
                 {projects.reduce(
                   (sum, p) => sum + (p.milestones?.length || 0),
                   0
@@ -1225,13 +1224,13 @@ const ClientDashboard: React.FC = () => {
               <div className="text-gray-400 text-sm">Total Milestones</div>
             </div>
             <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-400">
+              <div className="text-2xl font-semibold text-yellow-400">
                 {projects.reduce((sum, p) => sum + (p.files?.length || 0), 0)}
               </div>
               <div className="text-gray-400 text-sm">Files Managed</div>
             </div>
             <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-bold text-purple-400">
+              <div className="text-2xl font-semibold text-purple-400">
                 {
                   Array.from(new Set(projects.flatMap((p) => p.techStack)))
                     .length
@@ -1317,11 +1316,10 @@ const ClientDashboard: React.FC = () => {
                       <FaSortAmountDown className="text-red-400 mr-1" />
                     )}
                     <span
-                      className={`text-sm ${
-                        metric.trend === "up"
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
+                      className={`text-sm ${metric.trend === "up"
+                        ? "text-green-400"
+                        : "text-red-400"
+                        }`}
                     >
                       {metric.change}
                     </span>
@@ -1373,12 +1371,12 @@ const ClientDashboard: React.FC = () => {
                     percentage:
                       totalProjects > 0
                         ? Math.round(
-                            ((totalProjects -
-                              completedProjects -
-                              inProgressProjects) /
-                              totalProjects) *
-                              100
-                          )
+                          ((totalProjects -
+                            completedProjects -
+                            inProgressProjects) /
+                            totalProjects) *
+                          100
+                        )
                         : 0,
                   },
                   {
@@ -1818,9 +1816,8 @@ const ClientDashboard: React.FC = () => {
             <div key={project.id}>
               {/* Project Card */}
               <div
-                className={`group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] ${
-                  currentView === "list" ? "p-60" : "p-6"
-                }`}
+                className={`group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] ${currentView === "list" ? "p-60" : "p-6"
+                  }`}
                 style={{
                   background: `linear-gradient(135deg, 
                     rgba(59, 130, 246, 0.03) 0%, 
@@ -1832,235 +1829,234 @@ const ClientDashboard: React.FC = () => {
                   `,
                 }}
               >
-              {/* Project Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
-                    {project.title}
-                  </h3>
-                  <p className="text-gray-400 text-sm mt-1 line-clamp-2">
-                    {project.description}
-                  </p>
+                {/* Project Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
+                      {project.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm mt-1 line-clamp-2">
+                      {project.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button className="p-1 text-gray-400 hover:text-white transition-colors">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button className="p-1 text-gray-400 hover:text-white transition-colors">
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
 
-              {/* Status and Priority Badges */}
-              <div className="flex items-center space-x-2 mb-4">
-                <span
-                  className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(
-                    project.status || "pending"
-                  )}`}
-                >
-                  {getStatusIcon(project.status || "pending")}
-                  <span className="capitalize">
-                    {project.status?.replace("_", " ") || "pending"}
+                {/* Status and Priority Badges */}
+                <div className="flex items-center space-x-2 mb-4">
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(
+                      project.status || "pending"
+                    )}`}
+                  >
+                    {getStatusIcon(project.status || "pending")}
+                    <span className="capitalize">
+                      {project.status?.replace("_", " ") || "pending"}
+                    </span>
                   </span>
-                </span>
-                <span
-                  className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(
-                    project.priority || "low"
-                  )}`}
-                >
-                  {(project.priority || "low").toUpperCase()}
-                </span>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-400">Progress</span>
-                  <span className="text-sm font-medium text-white">
-                    {calculateCompletionPercentage(project)}%
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(
+                      project.priority || "low"
+                    )}`}
+                  >
+                    {(project.priority || "low").toUpperCase()}
                   </span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${calculateCompletionPercentage(project)}%` }}
-                  ></div>
-                </div>
-              </div>
 
-              {/* Tech Stack */}
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-1">
-                  {(project.techStack || []).slice(0, 3).map((tech, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md"
-                    >
-                      {tech}
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-400">Progress</span>
+                    <span className="text-sm font-medium text-white">
+                      {calculateCompletionPercentage(project)}%
                     </span>
-                  ))}
-                  {(project.techStack || []).length > 3 && (
-                    <span className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md">
-                      +{(project.techStack || []).length - 3} more
-                    </span>
-                  )}
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${calculateCompletionPercentage(project)}%` }}
+                    ></div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Project Info */}
-              <div className="space-y-2 mb-4">
-                {project.pricing && (() => {
-                  const statusInfo = getProjectStatusInfo(project);
-                  return (
-                    <>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-2">
-                          <DollarSign className="w-4 h-4 text-green-400" />
-                          <span className="text-gray-400">Budget:</span>
-                        </div>
-                        <span className="text-white font-medium">
-                          {statusInfo.budgetDisplay}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                {/* Tech Stack */}
+                <div className="mb-4">
+                  <div className="flex flex-wrap gap-1">
+                    {(project.techStack || []).slice(0, 3).map((tech, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                    {(project.techStack || []).length > 3 && (
+                      <span className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md">
+                        +{(project.techStack || []).length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Project Info */}
+                <div className="space-y-2 mb-4">
+                  {project.pricing && (() => {
+                    const statusInfo = getProjectStatusInfo(project);
+                    return (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="w-4 h-4 text-green-400" />
+                            <span className="text-gray-400">Budget:</span>
                           </div>
-                          <span className="text-gray-400">Paid:</span>
-                        </div>
-                        <span className="text-blue-400 font-medium">
-                          {statusInfo.paidDisplay}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                          </div>
-                          <span className="text-gray-400">Remaining:</span>
-                        </div>
-                        <span className={`font-medium ${
-                          statusInfo.remaining > 0 ? "text-yellow-400" : "text-green-400"
-                        }`}>
-                          {statusInfo.remainingDisplay}
-                        </span>
-                      </div>
-                      
-                      {/* Budget Progress Bar */}
-                      <div className="mt-2">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs text-gray-500">Budget Progress</span>
-                          <span className="text-xs text-gray-400">
-                            {statusInfo.totalBudget > 0 
-                              ? Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100)
-                              : 0}%
+                          <span className="text-white font-medium">
+                            {statusInfo.budgetDisplay}
                           </span>
                         </div>
-                        <div className="w-full bg-gray-700 rounded-full h-1.5">
-                          <div
-                            className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 rounded-full transition-all duration-500"
-                            style={{ 
-                              width: `${statusInfo.totalBudget > 0 
-                                ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
-                                : 0}%` 
-                            }}
-                          ></div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                            </div>
+                            <span className="text-gray-400">Paid:</span>
+                          </div>
+                          <span className="text-blue-400 font-medium">
+                            {statusInfo.paidDisplay}
+                          </span>
                         </div>
-                      </div>
-                    </>
-                  );
-                })()}
 
-                {/* Milestone Progress for milestone-based projects */}
-                {project.pricing?.type === "milestone" && project.milestones && (
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                      </div>
-                      <span className="text-gray-400">Milestones:</span>
-                    </div>
-                    <span className="text-purple-400 font-medium">
-                      {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
-                    </span>
-                  </div>
-                )}
-
-                {project.estimatedCompletionDate && (
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Calendar className="w-4 h-4 text-blue-400" />
-                    <span className="text-gray-400">
-                      Due:{" "}
-                      {project.estimatedCompletionDate.toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-white/10">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      setSelectedProject(project);
-                      setViewMode("detail");
-                    }}
-                    className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-purple-500/20 text-purple-300 text-sm rounded-md hover:bg-purple-500/30 transition-colors"
-                  >
-                    <Eye className="w-3 h-3" />
-                    <span>View</span>
-                  </button>
-
-
-                  <button
-                    onClick={() => handleDeleteProject(project.id)}
-                    className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-red-500/20 text-red-300 text-sm rounded-md hover:bg-red-500/30 transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-
-                <div className="flex flex-col items-end">
-                  <div className="flex items-center space-x-2 mb-1">
-                    {project.updates && project.updates.length > 0 && (
-                      <div className="flex items-center space-x-1 text-xs text-blue-400">
-                        <MessageSquare className="w-3 h-3" />
-                        <span>{project.updates.length}</span>
-                      </div>
-                    )}
-                    
-                    {project.files && project.files.length > 0 && (
-                      <div className="flex items-center space-x-1 text-xs text-green-400">
-                        <div className="w-3 h-3 rounded bg-green-400 flex items-center justify-center">
-                          <span className="text-xs font-bold text-green-900">{project.files.length}</span>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                            </div>
+                            <span className="text-gray-400">Remaining:</span>
+                          </div>
+                          <span className={`font-medium ${statusInfo.remaining > 0 ? "text-yellow-400" : "text-green-400"
+                            }`}>
+                            {statusInfo.remainingDisplay}
+                          </span>
                         </div>
-                        <span>Files</span>
-                      </div>
-                    )}
-                    
-                    {project.payments && project.payments.length > 0 && (
-                      <div className="flex items-center space-x-1 text-xs text-orange-400">
-                        <div className="w-3 h-3 rounded bg-orange-400 flex items-center justify-center">
-                          <span className="text-xs font-bold text-orange-900">{project.payments.length}</span>
+
+                        {/* Budget Progress Bar */}
+                        <div className="mt-2">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-gray-500">Budget Progress</span>
+                            <span className="text-xs text-gray-400">
+                              {statusInfo.totalBudget > 0
+                                ? Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100)
+                                : 0}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-700 rounded-full h-1.5">
+                            <div
+                              className="bg-gradient-to-r from-blue-500 to-green-500 h-1.5 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${statusInfo.totalBudget > 0
+                                  ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
+                                  : 0}%`
+                              }}
+                            ></div>
+                          </div>
                         </div>
-                        <span>Payments</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="text-xs text-gray-500">
-                    Updated {project.updatedAt?.toLocaleDateString()}
-                  </div>
+                      </>
+                    );
+                  })()}
+
+                  {/* Milestone Progress for milestone-based projects */}
                   {project.pricing?.type === "milestone" && project.milestones && (
-                    <div className="text-xs text-purple-400 mt-1">
-                      Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                        </div>
+                        <span className="text-gray-400">Milestones:</span>
+                      </div>
+                      <span className="text-purple-400 font-medium">
+                        {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
+                      </span>
+                    </div>
+                  )}
+
+                  {project.estimatedCompletionDate && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Calendar className="w-4 h-4 text-blue-400" />
+                      <span className="text-gray-400">
+                        Due:{" "}
+                        {project.estimatedCompletionDate.toLocaleDateString()}
+                      </span>
                     </div>
                   )}
                 </div>
+
+                {/* Action Buttons */}
+                <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-white/10">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        setSelectedProject(project);
+                        setViewMode("detail");
+                      }}
+                      className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-purple-500/20 text-purple-300 text-sm rounded-md hover:bg-purple-500/30 transition-colors"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>View</span>
+                    </button>
+
+
+                    <button
+                      onClick={() => handleDeleteProject(project.id)}
+                      className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-red-500/20 text-red-300 text-sm rounded-md hover:bg-red-500/30 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col items-end">
+                    <div className="flex items-center space-x-2 mb-1">
+                      {project.updates && project.updates.length > 0 && (
+                        <div className="flex items-center space-x-1 text-xs text-blue-400">
+                          <MessageSquare className="w-3 h-3" />
+                          <span>{project.updates.length}</span>
+                        </div>
+                      )}
+
+                      {project.files && project.files.length > 0 && (
+                        <div className="flex items-center space-x-1 text-xs text-green-400">
+                          <div className="w-3 h-3 rounded bg-green-400 flex items-center justify-center">
+                            <span className="text-xs font-semibold text-green-900">{project.files.length}</span>
+                          </div>
+                          <span>Files</span>
+                        </div>
+                      )}
+
+                      {project.payments && project.payments.length > 0 && (
+                        <div className="flex items-center space-x-1 text-xs text-orange-400">
+                          <div className="w-3 h-3 rounded bg-orange-400 flex items-center justify-center">
+                            <span className="text-xs font-semibold text-orange-900">{project.payments.length}</span>
+                          </div>
+                          <span>Payments</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      Updated {project.updatedAt?.toLocaleDateString()}
+                    </div>
+                    {project.pricing?.type === "milestone" && project.milestones && (
+                      <div className="text-xs text-purple-400 mt-1">
+                        Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
             </div>
           ))}
         </div>
@@ -2075,8 +2071,8 @@ const ClientDashboard: React.FC = () => {
             </h3>
             <p className="text-gray-400 mb-6 monty uppercase">
               {searchQuery ||
-              selectedStatus !== "all" ||
-              selectedPriority !== "all"
+                selectedStatus !== "all" ||
+                selectedPriority !== "all"
                 ? "Try adjusting your filters or search terms"
                 : "Click 'Start New Project' to create a new one"}
             </p>
@@ -2125,11 +2121,10 @@ const ClientDashboard: React.FC = () => {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as ActiveTab)}
-                        className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                          activeTab === tab.id
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-300 hover:bg-white/10 hover:text-white"
-                        }`}
+                        className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${activeTab === tab.id
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-white/10 hover:text-white"
+                          }`}
                       >
                         <tab.icon className="text-sm" />
                         <span>{tab.label}</span>
@@ -2166,11 +2161,10 @@ const ClientDashboard: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as ActiveTab)}
-                  className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-white/10 hover:text-white"
-                  }`}
+                  className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${activeTab === tab.id
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:bg-white/10 hover:text-white"
+                    }`}
                 >
                   <tab.icon className="text-lg" />
                   <span className="text-xs">{tab.label}</span>
@@ -2180,7 +2174,7 @@ const ClientDashboard: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
+          <div className="w-[90vw] max-w-none mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
             {activeTab === "projects" && renderProjects()}
             {activeTab === "analytics" && renderAnalytics(projects)}
             {activeTab === "create" && renderCreateNewProject()}
@@ -2200,7 +2194,7 @@ const ClientDashboard: React.FC = () => {
         )}
 
         {/* Toast Notifications */}
-        <ToastContainer 
+        <ToastContainer
           notifications={toastNotifications}
           onRemoveNotification={removeToastNotification}
           position="top-right"

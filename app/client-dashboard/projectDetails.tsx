@@ -61,20 +61,20 @@ interface FetcherError extends Error {
 // Function to calculate due date from timeline
 const calculateDueDate = (startDate: Date, timeline: string): Date | null => {
   if (!timeline || !startDate) return null;
-  
+
   // Clean the timeline string
   const cleanTimeline = timeline.toLowerCase().trim();
-  
+
   // Extract number and unit using regex
   const match = cleanTimeline.match(/(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months|year|years|d|w|m|y)/i);
-  
+
   if (!match) return null;
-  
+
   const timeValue = parseFloat(match[1]);
   const timeUnit = match[2].toLowerCase();
-  
+
   const resultDate = new Date(startDate);
-  
+
   switch (timeUnit) {
     case "day":
     case "days":
@@ -99,19 +99,19 @@ const calculateDueDate = (startDate: Date, timeline: string): Date | null => {
     default:
       return null;
   }
-  
+
   return resultDate;
 };
 
 // Function to calculate project completion date based on project type
 const calculateProjectCompletionDate = (projectData: ProjectData): Date | null => {
   const startDate = projectData.startDate ? new Date(projectData.startDate) : new Date();
-  
+
   // If already has estimated completion date, use it
   if (projectData.estimatedCompletionDate) {
     return new Date(projectData.estimatedCompletionDate);
   }
-  
+
   // Calculate based on project type
   switch (projectData.pricing?.type) {
     case "milestone":
@@ -127,7 +127,7 @@ const calculateProjectCompletionDate = (projectData: ProjectData): Date | null =
           }
           return total;
         }, 0);
-        
+
         if (totalDays > 0) {
           const completionDate = new Date(startDate);
           completionDate.setDate(completionDate.getDate() + totalDays);
@@ -135,7 +135,7 @@ const calculateProjectCompletionDate = (projectData: ProjectData): Date | null =
         }
       }
       break;
-      
+
     case "hourly":
       // For hourly projects, calculate based on estimated hours
       if (projectData.pricing.estimatedHours) {
@@ -143,13 +143,13 @@ const calculateProjectCompletionDate = (projectData: ProjectData): Date | null =
         // Assume 8 hours per day, 5 days per week
         const workDays = Math.ceil(hours / 8);
         const calendarDays = Math.ceil(workDays * 1.4); // Add weekends
-        
+
         const completionDate = new Date(startDate);
         completionDate.setDate(completionDate.getDate() + calendarDays);
         return completionDate;
       }
       break;
-      
+
     case "fixed":
     default:
       // For fixed projects, use project timeline if available
@@ -158,26 +158,26 @@ const calculateProjectCompletionDate = (projectData: ProjectData): Date | null =
       }
       break;
   }
-  
+
   return null;
 };
 
 // Function to calculate milestone due date considering project start and previous milestones
 const calculateMilestoneDueDate = (projectData: ProjectData, milestone: Milestone, milestoneIndex: number): Date | null => {
   const projectStart = projectData.startDate ? new Date(projectData.startDate) : new Date();
-  
+
   // If milestone already has a due date, use it
   if (milestone.dueDate) {
     return new Date(milestone.dueDate);
   }
-  
+
   // Calculate based on milestone timeline
   if (milestone.timeline) {
     // For the first milestone, calculate from project start
     if (milestoneIndex === 0) {
       return calculateDueDate(projectStart, milestone.timeline);
     }
-    
+
     // For subsequent milestones, calculate from previous milestone's due date
     const previousMilestone = projectData.milestones?.[milestoneIndex - 1];
     if (previousMilestone) {
@@ -187,7 +187,7 @@ const calculateMilestoneDueDate = (projectData: ProjectData, milestone: Mileston
       }
     }
   }
-  
+
   return null;
 };
 
@@ -477,7 +477,7 @@ export default function EnhancedProjectTracking({
   // Error and loading states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Confirmation modal state
   const [confirmationModal, setConfirmationModal] = useState<{
     isOpen: boolean;
@@ -490,7 +490,7 @@ export default function EnhancedProjectTracking({
     isOpen: false,
     title: "",
     message: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
     variant: "info",
     loading: false,
   });
@@ -568,11 +568,11 @@ export default function EnhancedProjectTracking({
       if (newFile.description) {
         formData.append('description', newFile.description);
       }
-      
+
       try {
         const token = localStorage.getItem('auth_token');
         const userEmail = localStorage.getItem('userEmail');
-        
+
         const response = await fetch(`/api/client-projects/${projectData._id}/files`, {
           method: 'POST',
           headers: {
@@ -581,9 +581,9 @@ export default function EnhancedProjectTracking({
           },
           body: formData,
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
           const file: ProjectFile = {
             id: result.file.id || Date.now().toString(),
@@ -595,7 +595,7 @@ export default function EnhancedProjectTracking({
             createdAt: new Date(),
             ...(newFile.description && { description: newFile.description }),
           };
-          
+
           setProjectData((prev) => ({
             ...prev,
             files: [...(prev.files || []), file],
@@ -724,7 +724,7 @@ export default function EnhancedProjectTracking({
   const handleDeleteMilestone = async (id: string) => {
     const milestone = projectData.milestones?.find(m => m.id === id);
     if (!milestone) return;
-    
+
     setConfirmationModal({
       isOpen: true,
       title: "Delete Milestone",
@@ -733,7 +733,7 @@ export default function EnhancedProjectTracking({
       loading: false,
       onConfirm: async () => {
         setConfirmationModal(prev => ({ ...prev, loading: true }));
-        
+
         const result = await deleteMilestone(projectData._id, id);
         if (result.success) {
           setProjectData((prev) => ({
@@ -744,12 +744,12 @@ export default function EnhancedProjectTracking({
         } else {
           toast.error("Failed to delete milestone", result.error || "Please try again.");
         }
-        
+
         setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
       },
     });
   };
-  
+
   const handleCloseConfirmationModal = () => {
     setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
   };
@@ -777,16 +777,16 @@ export default function EnhancedProjectTracking({
 
       const result = await createPayment(projectData._id, paymentData);
       console.log('Payment creation result:', result);
-      
+
       if (result.success) {
         const payment: Payment = {
           id: Date.now().toString(),
           ...paymentData,
           createdAt: new Date().toISOString(),
         };
-        
+
         console.log('Adding payment to local state:', payment);
-        
+
         setProjectData((prev) => ({
           ...prev,
           payments: [...(prev.payments || []), payment],
@@ -915,7 +915,7 @@ export default function EnhancedProjectTracking({
       case "overview":
         return (
           <div className="space-y-8">
-{/* Project Overview Dashboard */}
+            {/* Project Overview Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
               {/* Project Summary Card */}
               <div className="bg-gradient-to-br from-gray-800/10 to-gray-700/5 backdrop-blur-xl border border-gray-600/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-gray-500/10 transition-all duration-300">
@@ -1010,7 +1010,7 @@ export default function EnhancedProjectTracking({
                   <div className="p-3 bg-orange-500/20 rounded-xl">
                     <Calendar className="w-6 h-6 text-orange-300" />
                   </div>
-                  <span className="text-2xl font-bold text-white">
+                  <span className="text-2xl font-semibold text-white">
                     {daysPassed}
                   </span>
                 </div>
@@ -1050,7 +1050,9 @@ export default function EnhancedProjectTracking({
               </div>
             </div>
 
-{/* Recent Activity */}
+            {/* Activity and Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Recent Activity */}
             <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
@@ -1126,7 +1128,7 @@ export default function EnhancedProjectTracking({
                       {projectData.projectDetails.timeline}
                     </span>
                   </div>
-                  
+
                   <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
                     <label className="text-sm font-medium text-gray-400 mb-2 block">
                       Expected Completion
@@ -1137,7 +1139,7 @@ export default function EnhancedProjectTracking({
                         if (projectData.estimatedCompletionDate) {
                           return new Date(projectData.estimatedCompletionDate).toLocaleDateString();
                         }
-                        
+
                         // Calculate completion date
                         const calculatedDate = calculateProjectCompletionDate(projectData);
                         if (calculatedDate) {
@@ -1148,14 +1150,15 @@ export default function EnhancedProjectTracking({
                             </span>
                           );
                         }
-                        
+
                         return "TBD";
                       })()
-                    }
+                      }
                     </span>
                   </div>
                 </div>
               </div>
+            </div>
             </div>
 
             {/* Performance Insights */}
@@ -1299,7 +1302,7 @@ export default function EnhancedProjectTracking({
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Description *
@@ -1318,7 +1321,7 @@ export default function EnhancedProjectTracking({
                       required
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -1354,16 +1357,16 @@ export default function EnhancedProjectTracking({
                             if (newMilestone.timeline && !newMilestone.dueDate) {
                               const projectStart = projectData.startDate ? new Date(projectData.startDate) : new Date();
                               const lastMilestone = projectData.milestones?.[projectData.milestones.length - 1];
-                              const startDate = lastMilestone?.dueDate 
+                              const startDate = lastMilestone?.dueDate
                                 ? new Date(lastMilestone.dueDate)
                                 : projectStart;
-                              
+
                               const calculatedDate = calculateDueDate(startDate, newMilestone.timeline);
                               if (calculatedDate) {
                                 return calculatedDate.toISOString().split("T")[0];
                               }
                             }
-                            
+
                             return newMilestone.dueDate instanceof Date
                               ? newMilestone.dueDate.toISOString().split("T")[0]
                               : "";
@@ -1427,7 +1430,7 @@ export default function EnhancedProjectTracking({
                           required
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
                           Description *
@@ -1446,7 +1449,7 @@ export default function EnhancedProjectTracking({
                           required
                         />
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -1485,7 +1488,7 @@ export default function EnhancedProjectTracking({
                           />
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-3">
                         <button
                           onClick={handleSaveMilestone}
@@ -1548,7 +1551,7 @@ export default function EnhancedProjectTracking({
                                       : new Date(milestone.dueDate)
                                     ).toLocaleDateString();
                                   }
-                                  
+
                                   // If no due date, calculate from timeline
                                   if (milestone.timeline) {
                                     const milestoneIndex = projectData.milestones?.findIndex(m => m.id === milestone.id) || 0;
@@ -1562,7 +1565,7 @@ export default function EnhancedProjectTracking({
                                       );
                                     }
                                   }
-                                  
+
                                   return "N/A";
                                 })()}
                               </p>
@@ -1727,11 +1730,10 @@ export default function EnhancedProjectTracking({
               <div className="flex space-x-1 mb-6 bg-gray-800/50 rounded-xl p-1">
                 <button
                   onClick={() => setActivePaymentTab('pending')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                    activePaymentTab === 'pending'
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${activePaymentTab === 'pending'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                    }`}
                 >
                   <span>Pending Payments</span>
                   {pendingPayments.length > 0 && (
@@ -1742,11 +1744,10 @@ export default function EnhancedProjectTracking({
                 </button>
                 <button
                   onClick={() => setActivePaymentTab('history')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                    activePaymentTab === 'history'
-                      ? 'bg-green-500 text-white shadow-lg'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${activePaymentTab === 'history'
+                    ? 'bg-green-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                    }`}
                 >
                   <span>Payment History</span>
                   {historyPayments.length > 0 && (
@@ -2485,119 +2486,125 @@ export default function EnhancedProjectTracking({
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-[1600px] mx-auto px-6 py-8">
         {/* Header */}
-        <div className="backdrop-blur-xl bg-indigo-900/80 border border-white/10 rounded-2xl p-12 mb-8 w-full">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-4 mb-4">
-                <button
-                  className="flex cursor-pointer items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 hover:bg-white/5 px-3 py-2 rounded-lg"
-                  onClick={onBack}
-                >
-                  <FaArrowCircleLeft className="w-5 h-5" />
-                  <span>Back to Projects</span>
-                </button>
-                <div className="h-6 w-px bg-white/20"></div>
-                <div>
-                  <h1 className="text-3xl font-semibold text-white mb-2">
-                    {projectData.projectDetails?.title}
-                  </h1>
-                  <p className="text-gray-300 max-w-2xl">
-                    {projectData.projectDetails?.description}
-                  </p>
+        <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-2xl border border-purple-500/30 rounded-2xl p-8 mb-8 w-full relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-50"></div>
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center space-x-4 mb-4">
+                  <button
+                    className="flex cursor-pointer items-center space-x-2 text-gray-400 hover:text-white transition-all duration-300 hover:bg-white/10 px-3 py-2 rounded-lg"
+                    onClick={onBack}
+                  >
+                    <FaArrowCircleLeft className="w-5 h-5" />
+                    <span>Back to Projects</span>
+                  </button>
+                  <div className="h-6 w-px bg-white/20"></div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-semibold text-white mb-2">
+                      {projectData.projectDetails?.title}
+                    </h1>
+                    <p className="text-gray-300 max-w-2xl">
+                      {projectData.projectDetails?.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center space-x-6 mb-6">
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon(projectData.status)}
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                      projectData.status
+                <div className="flex flex-wrap items-center gap-4 mb-6">
+                  <div className="flex items-center space-x-2">
+                    {getStatusIcon(projectData.status)}
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+                        projectData.status
+                      )}`}
+                    >
+                      {projectData.status.replace("_", " ")}
+                    </span>
+                  </div>
+                  <div
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(
+                      projectData.projectDetails?.priority
                     )}`}
                   >
-                    {projectData.status.replace("_", " ")}
-                  </span>
+                    {projectData.projectDetails?.priority} priority
+                  </div>
+                  <div className="text-gray-300">
+                    <Code className="w-4 h-4 inline mr-2" />
+                    {projectData.projectDetails?.category}
+                  </div>
                 </div>
-                <div
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(
-                    projectData.projectDetails?.priority
-                  )}`}
-                >
-                  {projectData.projectDetails?.priority} priority
-                </div>
-                <div className="text-gray-300">
-                  <Code className="w-4 h-4 inline mr-2" />
-                  {projectData.projectDetails?.category}
+
+                {/* Tech Stack */}
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {projectData.projectDetails?.techStack.map((tech, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
+                    >
+                      {tech}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              {/* Tech Stack */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {projectData.projectDetails?.techStack.map((tech, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Project Stats */}
-            <div className="grid grid-cols-2 gap-4 ml-8">
-              <div className="text-center">
-                <div className="text-2xl font-semibold text-white">
-                  {projectData.progress}%
+              {/* Project Stats */}
+              <div className="grid grid-cols-2 gap-4 mt-4 sm:mt-0 ml-0 sm:ml-8">
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-white">
+                    {projectData.progress}%
+                  </div>
+                  <div className="text-gray-400 text-sm">Complete</div>
                 </div>
-                <div className="text-gray-400 text-sm">Complete</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-semibold text-white">
-                  {completedMilestones}/{totalMilestones}
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-white">
+                    {completedMilestones}/{totalMilestones}
+                  </div>
+                  <div className="text-gray-400 text-sm">Milestones</div>
                 </div>
-                <div className="text-gray-400 text-sm">Milestones</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-semibold text-white">
-                  {formatCurrency(
-                    totalBudget - spentBudget,
-                    projectData.pricing?.currency || "USD"
-                  )}
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-white">
+                    {formatCurrency(
+                      totalBudget - spentBudget,
+                      projectData.pricing?.currency || "USD"
+                    )}
+                  </div>
+                  <div className="text-gray-400 text-sm">Remaining</div>
                 </div>
-                <div className="text-gray-400 text-sm">Remaining</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-semibold text-white">
-                  {(projectData.files || []).length}
+                <div className="text-center">
+                  <div className="text-2xl font-semibold text-white">
+                    {(projectData.files || []).length}
+                  </div>
+                  <div className="text-gray-400 text-sm">Files</div>
                 </div>
-                <div className="text-gray-400 text-sm">Files</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Project Tracking Navigation */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mb-8 w-full">
-          <div className="flex items-center space-x-2 overflow-x-auto">
-            {trackingTabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setTrackingView(tab.id)}
-                  className={`flex cursor-pointer items-center space-x-3 px-6 py-4 rounded-xl transition-all duration-200 whitespace-nowrap flex-1 justify-center ${trackingView === tab.id
-                    ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                    }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="font-medium">{tab.label}</span>
-                </button>
-              );
-            })}
+        <div className="bg-gradient-to-r from-slate-800/60 via-gray-800/40 to-slate-800/60 shadow-xl backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-4 mb-8 w-full relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-70"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-center space-x-2 overflow-x-auto md:overflow-x-visible py-2">
+              {trackingTabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setTrackingView(tab.id)}
+                    className={`cursor-pointer flex items-center space-x-2 px-5 py-3 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${trackingView === tab.id
+                      ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25 scale-105"
+                      : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:scale-105"
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="font-medium text-sm">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -2606,11 +2613,11 @@ export default function EnhancedProjectTracking({
       </div>
 
       {/* Toast Container */}
-      <ToastContainer 
-        notifications={notifications} 
-        onRemoveNotification={removeNotification} 
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
       />
-      
+
       {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={confirmationModal.isOpen}

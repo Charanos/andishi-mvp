@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Save, X, DollarSign, Calendar, Clock } from "lucide-react";
-import { ProjectWithDetails } from "../../types";
+import { ProjectWithDetails, ProjectStatus } from "../../types";
 
 interface InlineProjectEditProps {
   project: ProjectWithDetails;
@@ -103,7 +103,7 @@ const InlineProjectEdit: React.FC<InlineProjectEditProps> = ({
             </label>
             <select
               value={formData.status}
-              onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as ProjectStatus }))}
               className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
             >
               <option value="pending">Pending</option>
@@ -121,7 +121,7 @@ const InlineProjectEdit: React.FC<InlineProjectEditProps> = ({
             </label>
             <select
               value={formData.priority}
-              onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as "low" | "medium" | "high" | "urgent" }))}
               className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
             >
               <option value="low">Low</option>
@@ -201,3 +201,6 @@ const InlineProjectEdit: React.FC<InlineProjectEditProps> = ({
 };
 
 export default InlineProjectEdit;
+
+
+

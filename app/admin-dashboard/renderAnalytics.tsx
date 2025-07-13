@@ -688,23 +688,30 @@ toast.error("Error fetching analytics data", error instanceof Error ? error.mess
                   Payment Methods
                 </h3>
                 <div className="space-y-4">
-                  {(analyticsData?.financial?.paymentMethods || []).map((method: any, index: number) => (
-                    <div key={method.method} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className="w-4 h-4 rounded"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        ></div>
-                        <span className="text-gray-300">{method.method}</span>
+                  {(analyticsData?.financial?.paymentMethods || []).length > 0 ? (
+                    (analyticsData?.financial?.paymentMethods || []).map((method: any, index: number) => (
+                      <div key={method.method} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className="w-4 h-4 rounded"
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          ></div>
+                          <span className="text-gray-300">{method.method}</span>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-white font-semibold">
+                            {formatCurrency(method.amount)}
+                          </p>
+                          <p className="text-gray-400 text-sm">{method.percentage}%</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-white font-semibold">
-                          {formatCurrency(method.amount)}
-                        </p>
-                        <p className="text-gray-400 text-sm">{method.percentage}%</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-gray-400 text-sm mb-2">No payment methods yet</div>
+                      <div className="text-gray-500 text-xs">Payment methods will appear here once payments are recorded</div>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="mt-6 pt-4 border-t border-white/10">
                   <div className="flex justify-between items-center">

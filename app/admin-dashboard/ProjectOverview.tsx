@@ -65,13 +65,13 @@ import {
 } from "~/types";
 import ProjectChat from "./ProjectChat";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  PAYMENT_METHODS, 
-  getEnabledPaymentMethods, 
-  getPaymentMethodsForCurrency, 
-  formatPaymentMethodLabel, 
+import {
+  PAYMENT_METHODS,
+  getEnabledPaymentMethods,
+  getPaymentMethodsForCurrency,
+  formatPaymentMethodLabel,
   DEFAULT_PAYMENT_METHOD,
-  PaymentMethodType 
+  PaymentMethodType
 } from "@/lib/paymentMethods";
 import ToastContainer from "../components/ToastContainer";
 import { ToastNotification } from "../components/ToastNotification";
@@ -83,7 +83,7 @@ interface FetcherError extends Error {
 
 export interface ActivityItem {
   id: string;
-  type: 'chat' | 'assignment' | 'milestone' | 'payment' | 'update' | 'system';
+  type: 'chat' | 'assignment' | 'milestone' | 'payment' | 'update' | 'system' | 'file';
   title: string;
   description: string;
   createdAt: Date | string;
@@ -147,7 +147,6 @@ interface ProjectOverviewProps {
 
 type TrackingView =
   | "overview"
-  | "timeline"
   | "milestones"
   | "budget"
   | "files"
@@ -253,6 +252,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [newUpdate, setNewUpdate] = useState<Partial<ProjectUpdate>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [paymentToReject, setPaymentToReject] = useState<string | null>(null);
 
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -786,12 +788,6 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     }
   };
 
-  const formatCurrencyLocal = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
 
   // Budget calculation functions
   const getTotalBudget = () => {
@@ -843,11 +839,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
   const handleProgressUpdate = async () => {
     try {
-toast.info("Updating project progress", `Progress: ${progressValue}%`);
+      toast.info("Updating project progress", `Progress: ${progressValue}%`);
       await onProgressUpdate(selectedProject._id, progressValue);
       setShowProgressModal(false);
     } catch (error) {
-toast.error("Failed to update progress", error instanceof Error ? error.message : "Unknown error");
+      toast.error("Failed to update progress", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -857,7 +853,7 @@ toast.error("Failed to update progress", error instanceof Error ? error.message 
       setUpdateForm({ title: "", description: "", type: "general" });
       setShowUpdateModal(false);
     } catch (error) {
-toast.error("Failed to add update", error instanceof Error ? error.message : "Unknown error");
+      toast.error("Failed to add update", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -949,10 +945,10 @@ toast.error("Failed to add update", error instanceof Error ? error.message : "Un
           setNewFile({});
           setShowAddFile(false);
         } else {
-toast.error("Failed to add file", result.error);
+          toast.error("Failed to add file", result.error);
         }
       } catch (error) {
-toast.error("Error adding file", error instanceof Error ? error.message : "Unknown error");
+        toast.error("Error adding file", error instanceof Error ? error.message : "Unknown error");
       }
     }
   };
@@ -977,10 +973,10 @@ toast.error("Error adding file", error instanceof Error ? error.message : "Unkno
           ) || [],
         }));
       } else {
-toast.error("Failed to update file");
+        toast.error("Failed to update file");
       }
     } catch (error) {
-toast.error("Error updating file", error instanceof Error ? error.message : "Unknown error");
+      toast.error("Error updating file", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -1000,10 +996,10 @@ toast.error("Error updating file", error instanceof Error ? error.message : "Unk
           files: prevData.files?.filter((file) => file.id !== id) || [],
         }));
       } else {
-toast.error("Failed to delete file");
+        toast.error("Failed to delete file");
       }
     } catch (error) {
-toast.error("Error deleting file", error instanceof Error ? error.message : "Unknown error");
+      toast.error("Error deleting file", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -1125,12 +1121,12 @@ toast.error("Error deleting file", error instanceof Error ? error.message : "Unk
         handleUpdatePayment(paymentId, updatedStatus);
 
         // Show success message
-toast.success("Payment approved successfully");
+        toast.success("Payment approved successfully");
       } else {
-toast.error("Failed to approve payment", result.error);
+        toast.error("Failed to approve payment", result.error);
       }
     } catch (error) {
-toast.error("Error approving payment", error instanceof Error ? error.message : "Unknown error");
+      toast.error("Error approving payment", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -1163,12 +1159,12 @@ toast.error("Error approving payment", error instanceof Error ? error.message : 
         handleUpdatePayment(paymentId, updatedStatus);
 
         // Show success message
-toast.success("Payment rejected successfully");
+        toast.success("Payment rejected successfully");
       } else {
-toast.error("Failed to reject payment", result.error);
+        toast.error("Failed to reject payment", result.error);
       }
     } catch (error) {
-toast.error("Error rejecting payment", error instanceof Error ? error.message : "Unknown error");
+      toast.error("Error rejecting payment", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -1233,18 +1229,107 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
       setReplyingTo(null);
     }
   };
-  // Fallback to static data if API fails
+  // Get project-specific activity data
   const recentActivity = activityData?.activities || [
-    ...(projectData.updates || []).map((u) => ({ ...u, activityType: "update" })),
+    // Project updates
+    ...(projectData.updates || []).map((u) => ({
+      id: u.id,
+      type: "update" as const,
+      title: u.title,
+      description: u.description,
+      createdAt: u.createdAt,
+      actor: {
+        id: "admin",
+        name: u.author || "Admin",
+        role: "admin"
+      },
+      activityType: "update"
+    })),
+    // Completed milestones
     ...(projectData.milestones || [])
       .filter((m) => m.completedAt)
       .map((m) => ({
         id: m.id,
-        title: `Milestone: ${m.title}`,
-        description: "Milestone completed",
+        type: "milestone" as const,
+        title: `Milestone Completed: ${m.title}`,
+        description: m.description || "Milestone completed successfully",
         createdAt: m.completedAt!,
-        activityType: "milestone",
+        actor: {
+          id: "system",
+          name: "System",
+          role: "system"
+        },
+        activityType: "milestone"
       })),
+    // Payment records
+    ...(projectData.payments || [])
+      .filter((p) => p.status === "approved" || p.status === "completed")
+      .map((p) => ({
+        id: p.id,
+        type: "payment" as const,
+        title: `Payment ${p.status === "completed" ? "Completed" : "Approved"}`,
+        description: `Payment of ${formatCurrencyLocal(p.amount, (p.currency || "USD") as "USD" | "KES")} via ${p.method}`,
+        createdAt: p.date || new Date().toISOString(),
+        actor: {
+          id: "admin",
+          name: "Admin",
+          role: "admin"
+        },
+        activityType: "payment"
+      })),
+    // Project status changes
+    // File uploads
+    ...(projectData.files || []).map((file) => ({
+      id: file.id,
+      type: "file" as const,
+      title: "File Uploaded",
+      description: `File "${file.fileName}" was uploaded to the project`,
+      createdAt: file.createdAt,
+      actor: {
+        id: "admin",
+        name: file.uploadedBy || "Admin",
+        role: "admin"
+      },
+      activityType: "file"
+    })),
+    // Chat messages (fetch from project chat data if available)
+    ...((projectData as any).chats || []).map((chat: any) => ({
+      id: chat.id,
+      type: "chat" as const,
+      title: "New Message in Chat",
+      description: chat.message,
+      createdAt: chat.createdAt,
+      actor: chat.sender,
+      activityType: "chat"
+    })),
+    // Assignment activities (if there are any developer assignments)
+    ...((projectData as any).assignments || []).map((assignment: any) => ({
+      id: assignment.id,
+      type: "assignment" as const,
+      title: "Developer Assigned",
+      description: `${assignment.developerName || 'Developer'} was assigned to the project`,
+      createdAt: assignment.assignedAt || assignment.createdAt,
+      actor: {
+        id: "admin",
+        name: "Admin",
+        role: "admin"
+      },
+      activityType: "assignment"
+    })),
+    // Project status changes
+    ...(selectedProject.status !== "pending" ? [{
+      id: `status-${selectedProject._id}`,
+      type: "system" as const,
+      title: `Project Status Updated`,
+      description: `Project status changed to ${selectedProject.status.replace("_", " ")}`,
+      createdAt: selectedProject.updatedAt || selectedProject.createdAt,
+      actor: {
+        id: "system",
+        name: "System",
+        role: "system"
+      },
+      activityType: "system"
+    }] : [])
   ]
     .sort(
       (a, b) =>
@@ -1257,7 +1342,7 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
           : a.createdAt
         ).getTime()
     )
-    .slice(0, 5);
+    .slice(0, 10); // Show more activities for better project tracking
 
   return (
     <div className="bg-black/5 min-h-screen rounded-lg">
@@ -1317,13 +1402,12 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
       </div>
 
       {/* Enhanced Project Tracking Navigation */}
-      <div className="bg-gradient-to-r from-slate-800/60 via-gray-800/40 to-slate-800/60 shadow-xl backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-4 mb-8 w-full relative overflow-hidden">
+      <div className="bg-white/10 shadow-xl backdrop-blur-xl border border-gray-500/20 rounded-2xl p-4 mb-8 w-full relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-70"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-center space-x-2 overflow-x-auto md:overflow-x-visible py-2">
             {[
               { id: "overview", label: "Overview", icon: Target },
-              { id: "timeline", label: "Timeline", icon: Calendar },
               { id: "milestones", label: "Milestones", icon: CheckCircle },
               { id: "budget", label: "Budget & Payments", icon: DollarSign },
               { id: "files", label: "Files", icon: FileText },
@@ -1343,7 +1427,7 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
                     }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="font-medium text-sm">{tab.label}</span>
+                  <span className="font-medium text-xs monty uppercase">{tab.label}</span>
                 </button>
               );
             })}
@@ -2287,86 +2371,15 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
           </div>
         )}
 
-        {trackingView === "timeline" && (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Project Timeline
-            </h2>
-            <div className="space-y-4">
-              <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                <label className="text-sm font-medium text-gray-400 mb-1 block">
-                  Created
-                </label>
-                <p className="text-white font-medium">
-                  {new Date(projectData.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-              {projectData.startDate && (
-                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <label className="text-sm font-medium text-gray-400 mb-1 block">
-                    Started
-                  </label>
-                  <p className="text-white font-medium">
-                    {(typeof projectData.startDate === "string"
-                      ? new Date(projectData.startDate)
-                      : projectData.startDate
-                    ).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              )}
-              {projectData.estimatedCompletionDate && (
-                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <label className="text-sm font-medium text-gray-400 mb-1 block">
-                    {projectData.actualCompletionDate
-                      ? "Estimated Completion"
-                      : "Expected Completion"}
-                  </label>
-                  <p className="text-white font-medium">
-                    {(typeof projectData.estimatedCompletionDate === "string"
-                      ? new Date(projectData.estimatedCompletionDate)
-                      : projectData.estimatedCompletionDate
-                    ).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              )}
-              {projectData.actualCompletionDate && (
-                <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                  <label className="text-sm font-medium text-green-400 mb-1 block">
-                    Completed
-                  </label>
-                  <p className="text-white font-medium">
-                    {(typeof projectData.actualCompletionDate === "string"
-                      ? new Date(projectData.actualCompletionDate)
-                      : projectData.actualCompletionDate
-                    ).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {trackingView === "activity" && (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">
               Recent Activity
             </h2>
+            <p className="text-gray-400 text-sm mb-6">
+              All project activities including updates, milestones, payments, file uploads, chat messages, and assignments.
+            </p>
 
             {/* Loading State */}
             {activityLoading && (
@@ -2418,6 +2431,18 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
                         <div className="p-2 bg-green-500/20 rounded-lg">
                           <DollarSign className="w-5 h-5 text-green-300" />
                         </div>
+                      ) : activity.type === "chat" ? (
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <MessageSquare className="w-5 h-5 text-purple-300" />
+                        </div>
+                      ) : activity.type === "file" ? (
+                        <div className="p-2 bg-indigo-500/20 rounded-lg">
+                          <FileText className="w-5 h-5 text-indigo-300" />
+                        </div>
+                      ) : activity.type === "assignment" ? (
+                        <div className="p-2 bg-orange-500/20 rounded-lg">
+                          <FaUsers className="w-5 h-5 text-orange-300" />
+                        </div>
                       ) : activity.type === "system" ? (
                         <div className="p-2 bg-purple-500/20 rounded-lg">
                           <Activity className="w-5 h-5 text-purple-300" />
@@ -2435,12 +2460,19 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
                       <p className="text-gray-300 text-sm mb-2">
                         {activity.description}
                       </p>
-                      <span className="text-xs text-gray-400">
-                        {(typeof activity.createdAt === "string"
-                          ? new Date(activity.createdAt)
-                          : activity.createdAt
-                        ).toLocaleDateString()}
-                      </span>
+                      <div className="flex items-center space-x-4 mt-2">
+                        <span className="text-xs text-gray-400">
+                          {(typeof activity.createdAt === "string"
+                            ? new Date(activity.createdAt)
+                            : activity.createdAt
+                          ).toLocaleDateString()}
+                        </span>
+                        {activity.actor && (
+                          <span className="text-xs text-gray-500">
+                            by {activity.actor.name}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -2657,10 +2689,10 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
                                   </button>
                                   <button
                                     onClick={() => {
-                                      const reason = prompt("Reason for rejection:");
-                                      if (reason) rejectPayment(payment.id, reason);
+                                      setPaymentToReject(payment.id);
+                                      setShowRejectModal(true);
                                     }}
-                                    className="flex items-center space-x-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm transition-colors"
+                                    className="flex items-center space-x-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm transition-colors cursor-pointer"
                                   >
                                     <span>✗</span>
                                     <span>Reject</span>
@@ -3437,6 +3469,66 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
       )}
 
 
+      {/* Payment Rejection Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-red-500/30 rounded-2xl p-8 w-full max-w-md mx-4">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mr-4">
+                <span className="text-red-400 text-xl">✗</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-white">Reject Payment</h2>
+                <p className="text-gray-400 text-sm">Please provide a reason for rejection</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Rejection Reason
+              </label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter reason for payment rejection..."
+                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 resize-none"
+                rows={4}
+              />
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectionReason("");
+                  setPaymentToReject(null);
+                }}
+                className="flex-1 px-6 py-3 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white rounded-xl border border-gray-600/50 hover:border-gray-500/50 transition-all duration-200 font-medium cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (rejectionReason.trim() && paymentToReject) {
+                    rejectPayment(paymentToReject, rejectionReason.trim());
+                    setShowRejectModal(false);
+                    setRejectionReason("");
+                    setPaymentToReject(null);
+                  }
+                }}
+                disabled={!rejectionReason.trim()}
+                className={`flex-1 px-6 py-3 rounded-xl transition-all duration-200 font-semibold cursor-pointer ${rejectionReason.trim()
+                    ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg"
+                    : "bg-gray-600/50 text-gray-400 cursor-not-allowed"
+                  }`}
+              >
+                Reject Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .slider::-webkit-slider-thumb {
           appearance: none;
@@ -3457,9 +3549,9 @@ toast.error("Error rejecting payment", error instanceof Error ? error.message : 
           border: 2px solid #1f2937;
         }
       `}</style>
-      <ToastContainer 
-        notifications={notifications} 
-        onRemoveNotification={removeNotification} 
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
       />
     </div>
   );

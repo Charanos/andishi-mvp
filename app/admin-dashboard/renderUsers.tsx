@@ -186,7 +186,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         }
       }
     } catch (error) {
-toast.error("Error checking existing account", error instanceof Error ? error.message : "Unknown error");
+      toast.error("Error checking existing account", error instanceof Error ? error.message : "Unknown error");
       setAccountExists(false);
     }
   };
@@ -273,7 +273,7 @@ toast.error("Error checking existing account", error instanceof Error ? error.me
         }, 1800);
       }
     } catch (err) {
-toast.error("Failed to copy to clipboard", err instanceof Error ? err.message : "Unknown error");
+      toast.error("Failed to copy to clipboard", err instanceof Error ? err.message : "Unknown error");
 
       // Error toast notification - glassmorphic
       if (typeof window !== "undefined") {
@@ -2294,28 +2294,28 @@ toast.error("Failed to copy to clipboard", err instanceof Error ? err.message : 
           </div>
           <div className="text-sm monty text-gray-400">Total Users</div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
           <div className="text-2xl font-semibold monty text-green-400">
             {users.filter((u) => u.status === "active").length}
           </div>
           <div className="text-sm text-gray-400 monty">Active Users</div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
           <div className="text-2xl font-semibold text-blue-400 monty">
             {users.filter((u) => u.role === "client").length}
           </div>
           <div className="text-sm text-gray-400 monty">Clients</div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
           <div className="text-2xl font-semibold text-purple-400 monty">
             {users.filter((u) => u.role === "developer").length}
           </div>
           <div className="text-sm text-gray-400 monty">Developers</div>
         </div>
       </div>
-      <ToastContainer 
-        notifications={notifications} 
-        onRemoveNotification={removeNotification} 
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
       />
     </div>
   );

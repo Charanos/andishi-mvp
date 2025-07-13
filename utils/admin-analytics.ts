@@ -21,14 +21,22 @@ export interface RevenueData {
   
   export interface TopClient {
     name: string;
-    projects: number;
-    revenue: number;
+    projects?: number; // Legacy support
+    revenue?: number; // Legacy support
+    projectCount: number; // New API format
+    totalSpent: number; // New API format
+    pendingAmount: number; // New API format
+    totalValue: number; // New API format
+    id: string; // New API format
   }
   
   export interface TopDeveloper {
     name: string;
-    projects: number;
+    projects?: number; // Legacy support
     rating: number;
+    completedProjects: number; // New API format
+    skills: string[]; // New API format
+    id: string; // New API format
   }
   
   export interface SkillDemand {
@@ -394,17 +402,29 @@ export const calculateProjectBudget = (project: ProjectData): number => {
     }, {});
   
     const topClients: TopClient[] = Object.entries(clientStats)
-      .map(([name, stats]) => ({ name, ...stats }))
+      .map(([name, stats], index) => ({ 
+        name, 
+        projects: stats.projects, // Legacy support
+        revenue: stats.revenue, // Legacy support
+        projectCount: stats.projects, // New API format
+        totalSpent: stats.revenue, // New API format
+        pendingAmount: 0, // New API format
+        totalValue: stats.revenue, // New API format
+        id: `client-${index}`, // New API format
+      }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
   
     // Calculate top developers
     const developers = usersData.filter(user => user.role === "developer" && user.firstName && user.lastName);
     const topDevelopers: TopDeveloper[] = developers
-      .map((dev) => ({
+      .map((dev, index) => ({
         name: `${dev.firstName} ${dev.lastName}`,
-        projects: dev.projectsCount || Math.floor(Math.random() * 50) + 10,
-        rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10
+        projects: dev.projectsCount || Math.floor(Math.random() * 50) + 10, // Legacy support
+        rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10,
+        completedProjects: dev.projectsCount || Math.floor(Math.random() * 50) + 10, // New API format
+        skills: [], // New API format - empty for mock data
+        id: `dev-${index}`, // New API format
       }))
       .sort((a, b) => b.projects - a.projects)
       .slice(0, 10);

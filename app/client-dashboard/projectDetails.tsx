@@ -37,6 +37,14 @@ import { SystemUser } from "~/types";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../components/ToastContainer";
 import ConfirmationModal from "../components/ConfirmationModal";
+import { 
+  PAYMENT_METHODS, 
+  getEnabledPaymentMethods, 
+  getPaymentMethodsForCurrency, 
+  formatPaymentMethodLabel, 
+  DEFAULT_PAYMENT_METHOD,
+  PaymentMethodType 
+} from "@/lib/paymentMethods";
 
 export interface ActivityItem {
   id: string;
@@ -1801,7 +1809,7 @@ export default function EnhancedProjectTracking({
                       className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                     />
                     <select
-                      value={newPayment.method || "credit_card"}
+                      value={newPayment.method || DEFAULT_PAYMENT_METHOD}
                       onChange={(e) =>
                         setNewPayment({
                           ...newPayment,
@@ -1810,9 +1818,11 @@ export default function EnhancedProjectTracking({
                       }
                       className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                     >
-                      <option value="credit_card">Credit Card</option>
-                      <option value="bank_transfer">Bank Transfer</option>
-                      <option value="paypal">PayPal</option>
+                      {getPaymentMethodsForCurrency(projectData.pricing?.currency || "USD").map((method) => (
+                        <option key={method.value} value={method.value}>
+                          {method.icon} {method.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="flex items-center space-x-3 mt-4">
@@ -1883,7 +1893,7 @@ export default function EnhancedProjectTracking({
                                 <div>
                                   <span className="text-gray-400">Method:</span>
                                   <p className="text-white font-medium capitalize">
-                                    {payment.method}
+                                    {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
                                   </p>
                                 </div>
                                 <div>
@@ -1997,7 +2007,7 @@ export default function EnhancedProjectTracking({
                                 <div>
                                   <span className="text-gray-400">Method:</span>
                                   <p className="text-white font-medium capitalize">
-                                    {payment.method}
+                                    {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
                                   </p>
                                 </div>
                                 <div>
@@ -2328,7 +2338,7 @@ export default function EnhancedProjectTracking({
                       {payment.description || "Payment"}
                     </h3>
                     <p className="text-sm text-gray-400">
-                      Method: {payment.method}
+                      Method: {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
                     </p>
                     <div className="text-xs text-gray-500 mt-2">
                       Date: {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}

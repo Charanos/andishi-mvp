@@ -73,7 +73,7 @@ interface AnalyticsOverview {
 
 interface AnalyticsFinancial {
     paymentStatus: Array<{ status: string; count: number; amount: number; color: string }>;
-    monthlyTrends: Array<{ month: string; pending: number; approved: number; paid: number; rejected: number }>;
+    monthlyTrends: Array<{ month: string; pending: number; approved: number; completed: number; rejected: number; outstanding: number }>;
     paymentMethods: Array<{ method: string; amount: number; percentage: number }>;
     kpis: {
         avgPaymentValue: number;
@@ -88,14 +88,25 @@ interface AnalyticsPerformance {
     metrics: Array<{ metric: string; value: number; target: number }>;
 }
 
-interface AnalyticsResponse {
-    overview: AnalyticsOverview;
-    financial: AnalyticsFinancial;
-    performance: AnalyticsPerformance;
-    activities: Array<{ type: string; message: string; time: string; icon: string }>;
-}
+interface AnalyticsResponse {    version: string;    timestamp: string;    overview: AnalyticsOverview;    financial: AnalyticsFinancial;    performance: AnalyticsPerformance;    activities: Array<{ type: string; message: string; time: string; icon: string }>;}
 
 // Helper functions
+// Exchange rates (should match the main dashboard)
+const EXCHANGE_RATES: Record<"USD" | "KES", number> = {
+    USD: 1,
+    KES: 0.0077, // updated rate for 130 KES ≈ 1 USD
+};
+
+/**
+ * Converts an amount to USD based on the currency provided.
+ */
+const toUSD = (amount: number, currency: "USD" | "KES" = "USD") => {
+    const rate = EXCHANGE_RATES[currency] ?? 1;
+    const converted = amount * rate;
+    console.log(`Currency conversion: ${amount} ${currency} × ${rate} = ${converted} USD`);
+    return converted;
+};
+
 function getTimeAgo(timestamp: Date): string {
     const now = new Date();
     const diffMs = now.getTime() - timestamp.getTime();
@@ -151,17 +162,39 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
         console.log(`Analytics: Found ${allPayments.length} payments across all projects`);
         console.log('Sample payments:', allPayments.slice(0, 3));
 
-        // Calculate real revenues from project payments (include approved, paid, completed)
+        // Calculate real revenues from project payments (include approved, completed)
         const revenues = allPayments
-            .filter(payment => payment.status === 'paid' || payment.status === 'completed' || payment.status === 'approved')
+            .filter(payment => payment.status === 'completed' || payment.status === 'approved')
             .reduce((sum, payment) => {
                 const amount = Number(payment.amount) || 0;
-                console.log(`Payment: ${payment.status}, Amount: ${amount}`);
-                return sum + amount;
+                const currency = payment.currency || 'USD';
+                const amountInUSD = toUSD(amount, currency);
+                console.log(`Payment: ${payment.status}, Amount: ${amount} ${currency} = ${amountInUSD} USD`);
+                return sum + amountInUSD;
             }, 0);
         
         console.log(`Total revenues calculated: ${revenues}`);
-        console.log(`Paid payments count: ${allPayments.filter(p => p.status === 'paid' || p.status === 'completed').length}`);
+        console.log(`All payments:`, allPayments.map(p => ({ status: p.status, amount: p.amount, currency: p.currency })));
+        console.log(`Payment status breakdown:`, allPayments.reduce((acc, p) => {
+            acc[p.status || 'unknown'] = (acc[p.status || 'unknown'] || 0) + 1;
+            return acc;
+        }, {}));
+        
+        console.log('Detailed payment analysis:');
+        allPayments.forEach((payment, index) => {
+            console.log(`Payment ${index + 1}:`, {
+                status: payment.status,
+                amount: payment.amount,
+                currency: payment.currency,
+                method: payment.method,
+                submittedBy: payment.submittedBy,
+                createdAt: payment.createdAt,
+                date: payment.date
+            });
+        });
+        
+        console.log(`Total revenues calculated: ${revenues}`);
+        console.log(`Completed payments count: ${allPayments.filter(p => p.status === 'completed' || p.status === 'approved').length}`);
         console.log(`All payment statuses:`, allPayments.map(p => p.status));
 
         // Real project statuses
@@ -204,15 +237,15 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
                 const clientData = clientSpending.get(key)!;
                 clientData.projects += 1;
                 
-                // Calculate TOTAL payments (approved + paid + completed) and pending
+                // Calculate TOTAL payments (approved + completed) and pending
                 if (project.payments && Array.isArray(project.payments)) {
                     const paidTotal = project.payments
-                        .filter(p => p.status === 'paid' || p.status === 'completed' || p.status === 'approved')
-                        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                        .filter(p => p.status === 'completed' || p.status === 'approved')
+                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
                     
                     const pendingTotal = project.payments
                         .filter(p => p.status === 'pending')
-                        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
                     
                     clientData.total += paidTotal;
                     clientData.pending += pendingTotal;
@@ -221,13 +254,15 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
                 // Also include project budget if no payments but project has pricing
                 if ((!project.payments || project.payments.length === 0) && project.pricing) {
                     let projectBudget = 0;
+                    const currency = project.pricing.currency || 'USD';
+                    
                     if (project.pricing.type === 'fixed' && project.pricing.fixedBudget) {
-                        projectBudget = Number(project.pricing.fixedBudget) || 0;
+                        projectBudget = toUSD(Number(project.pricing.fixedBudget) || 0, currency);
                     } else if (project.pricing.type === 'milestone' && project.pricing.milestones) {
                         projectBudget = project.pricing.milestones.reduce((sum: number, m: any) => 
-                            sum + (Number(m.budget) || 0), 0);
+                            sum + toUSD(Number(m.budget) || 0, currency), 0);
                     } else if (project.pricing.type === 'hourly') {
-                        projectBudget = (Number(project.pricing.hourlyRate) || 0) * (Number(project.pricing.estimatedHours) || 0);
+                        projectBudget = toUSD((Number(project.pricing.hourlyRate) || 0) * (Number(project.pricing.estimatedHours) || 0), currency);
                     }
                     
                     // If project is not completed, consider budget as pending
@@ -296,7 +331,7 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
                     paymentDate.getMonth() === month.getMonth();
             });
             
-            const monthRevenue = monthPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+            const monthRevenue = monthPayments.reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
             
             monthlyPaymentTrends[monthKey] = [
                 monthPayments.length,
@@ -378,11 +413,13 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
             .slice(0, 2);
         
         recentPayments.forEach(payment => {
-            activityFeed.push({
-                timestamp: new Date(payment.createdAt || payment.date),
-                description: `Payment of $${payment.amount || 0} was received`,
-                type: 'payment_received'
-            });
+            if(payment.status !== 'paid') {
+                activityFeed.push({
+                    timestamp: new Date(payment.createdAt || payment.date),
+                    description: `Payment of $${payment.amount || 0} was received`,
+                    type: 'payment_received'
+                });
+            }
         });
         
         // Add recent user registrations
@@ -421,47 +458,129 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
             
             const statusBreakdown = monthPayments.reduce((acc, p) => {
                 const status = p.status || 'pending';
-                acc[status] = (acc[status] || 0) + (Number(p.amount) || 0);
+                const currency = p.currency || 'USD';
+            acc[status] = (acc[status] || 0) + (status === 'rejected' && currency === 'KES' ? Number(p.amount) : toUSD(Number(p.amount) || 0, currency));
                 return acc;
             }, {} as Record<string, number>);
+            
+            // Calculate outstanding amount for this month (projects that were pending/incomplete)
+            const monthProjects = projects.filter(p => {
+                const projectDate = p.createdAt ? new Date(p.createdAt) : null;
+                return projectDate && projectDate >= monthStart && projectDate <= monthEnd;
+            });
+            
+            const monthOutstanding = monthProjects.reduce((sum, project) => {
+                if (project.status !== 'completed' && project.pricing) {
+                    const currency = project.pricing.currency || 'USD';
+                    let budget = 0;
+                    
+                    if (project.pricing.type === 'fixed' && project.pricing.fixedBudget) {
+                        budget = toUSD(Number(project.pricing.fixedBudget) || 0, currency);
+                    } else if (project.pricing.type === 'milestone' && project.pricing.milestones) {
+                        budget = project.pricing.milestones.reduce((sum: number, m: any) => 
+                            sum + toUSD(Number(m.budget) || 0, currency), 0);
+                    } else if (project.pricing.type === 'hourly') {
+                        budget = toUSD((Number(project.pricing.hourlyRate) || 0) * (Number(project.pricing.estimatedHours) || 0), currency);
+                    }
+                    
+                    return sum + budget;
+                }
+                return sum;
+            }, 0);
             
             return {
                 month,
                 pending: statusBreakdown.pending || 0,
                 approved: statusBreakdown.approved || 0,
-                paid: (statusBreakdown.paid || 0) + (statusBreakdown.completed || 0),
-                rejected: (statusBreakdown.rejected || 0) + (statusBreakdown.failed || 0)
+                completed: statusBreakdown.completed || 0,
+                rejected: (statusBreakdown.rejected || 0) + (statusBreakdown.failed || 0),
+                outstanding: monthOutstanding
             };
         });
 
-        // Calculate REAL amounts for each payment status
+        const successfulPayments = allPayments.filter((p: any) => p.status === 'completed' || p.status === 'approved');
+        
+        // Calculate TOTAL outstanding amount (pending payments + project budgets for incomplete projects)
+        const pendingPayments = allPayments.filter((p: any) => p.status === 'pending').reduce((sum: number, p: any) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
+        const totalPendingFromClients = Array.from(clientSpending.values()).reduce((sum, client) => sum + client.pending, 0);
+        const totalOutstanding = Math.max(pendingPayments, totalPendingFromClients);
+
+        // Calculate REAL amounts for each payment status with proper currency conversion
         const paymentStatusData = Object.entries(paymentStatusBreakdown).map(([status, count]) => {
-            const realAmount = allPayments
-                .filter(p => p.status === status)
-                .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+            const statusPayments = allPayments.filter(p => p.status === status);
+            
+            console.log(`Processing ${status} payments:`, statusPayments.map(p => ({
+                amount: p.amount,
+                currency: p.currency,
+                converted: toUSD(Number(p.amount) || 0, p.currency || 'USD')
+            })));
+            
+            const realAmount = statusPayments.reduce((sum, p) => {
+                const amount = Number(p.amount) || 0;
+                const currency = p.currency || 'USD';
+                const convertedAmount = toUSD(amount, currency);
+                
+                console.log(`Converting ${amount} ${currency} to ${convertedAmount} USD`);
+                
+                return sum + convertedAmount;
+            }, 0);
             
             let color = '#6B7280';
             switch(status) {
-                case 'pending': color = '#F59E0B'; break;
+                case 'pending': color = '#F59E0B'; break;        // Amber - warning
                 case 'completed': 
-                case 'paid': 
-                case 'approved': color = '#10B981'; break;
+                case 'approved': color = '#3B82F6'; break;       // Blue - primary
                 case 'failed': 
-                case 'rejected': color = '#EF4444'; break;
-                default: color = '#6B7280';
+                case 'rejected': color = '#EF4444'; break;       // Red - danger
+                default: color = '#6B7280';                      // Gray - neutral
             }
             return { status, count: Number(count), amount: realAmount, color };
         });
+        
+        // Add outstanding payments to the chart if there are any
+        if (totalOutstanding > 0) {
+            const outstandingIndex = paymentStatusData.findIndex(p => p.status === 'outstanding');
+            if (outstandingIndex >= 0) {
+                paymentStatusData[outstandingIndex].amount = totalOutstanding;
+            } else {
+                paymentStatusData.push({ 
+                    status: 'outstanding', 
+                    count: Math.ceil(totalOutstanding / 1000), // Approximate count
+                    amount: totalOutstanding, 
+                    color: '#8B5CF6'  // Purple - info
+                });
+            }
+        }
+
+        // Ensure we have at least basic payment statuses even if no payments exist
+        const expectedStatuses = ['pending', 'approved', 'completed', 'rejected', 'outstanding'];
+        expectedStatuses.forEach(status => {
+            if (!paymentStatusData.find(p => p.status === status)) {
+                let color = '#6B7280';
+                switch(status) {
+                    case 'pending': color = '#F59E0B'; break;        // Amber - warning
+                    case 'approved': 
+                    case 'completed': color = '#3B82F6'; break;      // Blue - primary
+                    case 'rejected': color = '#EF4444'; break;       // Red - danger
+                    case 'outstanding': color = '#8B5CF6'; break;    // Purple - info
+                    default: color = '#6B7280';                      // Gray - neutral
+                }
+                paymentStatusData.push({ status, count: 0, amount: status === 'outstanding' ? totalOutstanding : 0, color });
+            }
+        });
+        
+        console.log('Final payment status data:', paymentStatusData);
+        console.log('Monthly payment trends array:', monthlyPaymentTrendsArray);
 
         // Calculate real payment methods from actual payment data
         const paymentMethodCounts = allPayments.reduce((acc: any, payment) => {
-            const method = payment.method || 'Bank Transfer';
+            const method = payment.method || 'bank_transfer';
             const amount = Number(payment.amount) || 0;
             if (!acc[method]) {
                 acc[method] = { count: 0, total: 0 };
             }
             acc[method].count++;
-            acc[method].total += amount;
+            acc[method].total += toUSD(amount, payment.currency || 'USD');
             return acc;
         }, {});
         
@@ -483,12 +602,6 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
                 { method: 'PayPal', amount: revenues * 0.15, percentage: 15 }
             );
         }
-
-        const successfulPayments = allPayments.filter((p: any) => p.status === 'completed' || p.status === 'paid' || p.status === 'approved');
-        
-        // Calculate TOTAL outstanding amount (pending payments + project budgets for incomplete projects)
-        const pendingPayments = allPayments.filter((p: any) => p.status === 'pending').reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0);
-        const totalPendingFromClients = Array.from(clientSpending.values()).reduce((sum, client) => sum + client.pending, 0);
         
         // Calculate real average processing time from payment dates
         const realAvgProcessingTime = allPayments.length > 0 ? 
@@ -501,11 +614,16 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
                 return sum + 3; // default 3 days if no dates
             }, 0) / allPayments.length : 3;
 
+        // Calculate success rate as approved payments vs outstanding payments
+        const approvedPayments = allPayments.filter((p: any) => p.status === 'approved');
+        const approvedAmount = approvedPayments.reduce((sum: number, p: any) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
+        const successRate = totalOutstanding > 0 ? (approvedAmount / totalOutstanding) * 100 : 0;
+
         const kpis = {
             avgPaymentValue: successfulPayments.length > 0 ? revenues / successfulPayments.length : 0,
-            successRate: allPayments.length > 0 ? (successfulPayments.length / allPayments.length) * 100 : 0,
+            successRate: successRate,
             avgProcessingTime: realAvgProcessingTime,
-            outstandingAmount: Math.max(pendingPayments, totalPendingFromClients)
+            outstandingAmount: totalOutstanding
         };
 
         // Calculate real revenue growth from last two months
@@ -560,6 +678,8 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
         }));
 
         return {
+            version: '2.0.0',
+            timestamp: new Date().toISOString(),
             overview: {
                 totalUsers: users.length,
                 totalProjects: projects.length,
@@ -620,53 +740,15 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
             revenues,
             topClientsCount: topClients.length,
             topDevelopersCount: topDevelopers.length,
-            activitiesCount: finalActivityFeed.length
+            activitiesCount: finalActivityFeed.length,
+            paymentStatusData: paymentStatusData
         });
-
-        return {
-            overview: {
-                totalUsers: users.length,
-                totalProjects: projects.length,
-                totalRevenue: revenues,
-                monthlyGrowth: Math.random() * 10 + 5, // Mock growth
-                projectsByStatus: {
-                    completed: completedProjects,
-                    'in-progress': projectStatuses['in-progress'] || projectStatuses['active'] || 0,
-                    pending: projectStatuses.pending || 0
-                },
-                usersByRole: {
-                    client: userRoles.client || 0,
-                    developer: userRoles.developer || 0,
-                    admin: userRoles.admin || 0
-                },
-                revenueByMonth: Object.entries(monthlyPaymentTrends).map(([month, data]) => ({
-                    month,
-                    revenue: data[1]
-                })),
-                topClients,
-                topDevelopers
-            },
-            financial: {
-                paymentStatus: paymentStatusData,
-                monthlyTrends: monthlyPaymentTrendsArray,
-                paymentMethods,
-                kpis
-            },
-            performance: {
-                skills: skillsFormatted,
-                metrics: performanceMetricsFormatted
-            },
-            activities: finalActivityFeed.map(activity => ({
-                type: activity.type,
-                message: activity.description,
-                time: getTimeAgo(activity.timestamp),
-                icon: getIconForActivityType(activity.type)
-            }))
-        };
 
     } catch (error) {
         console.error('Error fetching analytics data:', error);
         return {
+            version: '2.0.0',
+            timestamp: new Date().toISOString(),
             overview: {
                 totalUsers: 0,
                 totalProjects: 0,

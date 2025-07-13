@@ -18,7 +18,9 @@ import {
   FaInfoCircle,
 } from "react-icons/fa";
 
-import type { DeveloperProfile, ToastNotification } from "../../lib/types";
+import type { DeveloperProfile } from "../../lib/types";
+import ToastContainer from "../components/ToastContainer";
+import { ToastNotification } from "../components/ToastNotification";
 
 interface Props {
   profileId?: string;
@@ -46,28 +48,13 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   const [rejecting, setRejecting] = useState(false);
 
   // Custom toast notification functions
-  const addNotification = (
-    type: "success" | "error" | "info",
-    message: string
-  ) => {
+  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
     const id = Date.now().toString();
-    const notification: ToastNotification = { id, type, message };
-    setNotifications((prev) => [...prev, notification]);
-
-    // Auto remove after 4 seconds
-    setTimeout(() => {
-      removeNotification(id);
-    }, 4000);
+    setNotifications(prev => [...prev, { ...notification, id }]);
   };
 
   const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  const toast = {
-    success: (message: string) => addNotification("success", message),
-    error: (message: string) => addNotification("error", message),
-    info: (message: string) => addNotification("info", message),
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
   };
 
   // Load initial or fetch existing profile
@@ -84,7 +71,6 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       }
 
       try {
-        console.log(`Fetching profile for ID: ${profileId}...`);
         const res = await fetch(`/api/developer-profiles?id=${profileId}`);
         if (!res.ok) {
           if (res.status === 404) {
@@ -101,7 +87,6 @@ const DeveloperProfileEditor: React.FC<Props> = ({
           );
         }
         const profileData = await res.json();
-        console.log("Received profile data:", profileData);
 
         // Initialize missing nested objects with default structures
         const initializedProfile: DeveloperProfile = {
@@ -146,8 +131,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
 
         setProfile(initializedProfile);
       } catch (err) {
-        console.error("Error fetching profile:", err);
-        addNotification("error", "Error loading developer profile");
+        addNotification({ type: "error", title: "Load Error", message: "Error loading developer profile" });
       } finally {
         setLoading(false);
       }
@@ -225,7 +209,6 @@ const DeveloperProfileEditor: React.FC<Props> = ({
     if (!profile || !profileId) return;
     setSaving(true);
     try {
-      console.log(`Saving profile to /api/developer-profiles/${profileId}...`);
       const res = await fetch(`/api/developer-profiles/${profileId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -235,14 +218,12 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         throw new Error(`Save failed: ${res.status} ${res.statusText}`);
       }
       const data = await res.json();
-      console.log("Profile saved successfully:", data);
-      addNotification("success", "Profile updated successfully");
+      addNotification({ type: "success", title: "Profile Updated", message: "Profile updated successfully" });
       if (onSaveSuccess) {
         onSaveSuccess(data as DeveloperProfile);
       }
     } catch (err) {
-      console.error("Error saving profile:", err);
-      addNotification("error", "Error saving profile");
+      addNotification({ type: "error", title: "Save Error", message: "Error saving profile" });
     } finally {
       setSaving(false);
     }
@@ -260,18 +241,19 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         body: JSON.stringify({ profileId, action }),
       });
       if (!res.ok) throw new Error("Failed to update developer status");
-      addNotification(
-        "success",
-        action === "approve"
+      addNotification({ 
+        type: "success", 
+        title: action === "approve" ? "Developer Approved" : "Developer Rejected",
+        message: action === "approve"
           ? "Developer approved and now available for assignment."
           : "Developer rejected."
-      );
+      });
       // Optionally refetch profile or update UI
       setProfile((prev) =>
         prev ? { ...prev, status: action === "approve" ? "approved" : "rejected", isAvailable: action === "approve" } : prev
       );
     } catch (err) {
-      addNotification("error", "Failed to update developer status");
+      addNotification({ type: "error", title: "Update Error", message: "Failed to update developer status" });
     } finally {
       setApproving(false);
       setRejecting(false);
@@ -281,43 +263,13 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   if (loading) {
     return (
       <>
-        {/* Custom Toast Notifications */}
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-              notification.type === "success"
-                ? "bg-green-500/20 border-green-500/30 text-green-400"
-                : notification.type === "error"
-                ? "bg-red-500/20 border-red-500/30 text-red-400"
-                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-            }`}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-2">
-                {notification.type === "success" && <FaCheck />}
-                {notification.type === "error" && <FaTimes />}
-                {notification.type === "info" && <FaInfoCircle />}
-                <span className="font-medium">{notification.message}</span>
-              </div>
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          </div>
-        ))}
         <div className="flex items-center justify-center min-h-screen bg-white/5 backdrop-blur-none">
           <div className="text-center">
             <FaSyncAlt className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
             <p className="text-gray-400">Loading developer profile...</p>
           </div>
         </div>
+        <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
       </>
     );
   }
@@ -325,42 +277,12 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   if (!profile) {
     return (
       <>
-        {/* Custom Toast Notifications */}
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-              notification.type === "success"
-                ? "bg-green-500/20 border-green-500/30 text-green-400"
-                : notification.type === "error"
-                ? "bg-red-500/20 border-red-500/30 text-red-400"
-                : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-            }`}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
-          >
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-2">
-                {notification.type === "success" && <FaCheck />}
-                {notification.type === "error" && <FaTimes />}
-                {notification.type === "info" && <FaInfoCircle />}
-                <span className="font-medium">{notification.message}</span>
-              </div>
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="min-h-screen bg-white/5 backdrop-blur-none">
-          <div className="text-center py-12">
-            <p className="text-red-400 text-lg">No developer profile found.</p>
+        <div className="flex items-center justify-center min-h-screen bg-white/5 backdrop-blur-none">
+          <div className="text-center">
+            <p className="text-gray-400">Profile not found</p>
           </div>
         </div>
+        <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
       </>
     );
   }
@@ -947,37 +869,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
 
   return (
     <div className="min-h-screen ">
-      {/* Custom Toast Notifications */}
-      {notifications.map((notification) => (
-        <div
-          key={notification.id}
-          className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${
-            notification.type === "success"
-              ? "bg-green-500/20 border-green-500/30 text-green-400"
-              : notification.type === "error"
-              ? "bg-red-500/20 border-red-500/30 text-red-400"
-              : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-          }`}
-          style={{
-            animation: "slideInRight 0.3s ease-out",
-          }}
-        >
-          <div className="flex items-center justify-between space-x-4">
-            <div className="flex items-center space-x-2">
-              {notification.type === "success" && <FaCheck />}
-              {notification.type === "error" && <FaTimes />}
-              {notification.type === "info" && <FaInfoCircle />}
-              <span className="font-medium">{notification.message}</span>
-            </div>
-            <button
-              onClick={() => removeNotification(notification.id)}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <FaTimes />
-            </button>
-          </div>
-        </div>
-      ))}
+      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
@@ -985,7 +877,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
           <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg mb-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">
+                <h1 className="text-3xl font-semibold text-white mb-2">
                   Developer Profile Editor
                 </h1>
                 <p className="text-gray-300">
@@ -1021,11 +913,10 @@ const DeveloperProfileEditor: React.FC<Props> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                      activeTab === tab.id
+                    className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === tab.id
                         ? "bg-blue-600 text-white"
                         : "text-gray-300 hover:bg-white/10"
-                    }`}
+                      }`}
                   >
                     <IconComponent />
                     {tab.label}
@@ -1043,7 +934,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
             {activeTab === "stats" && renderStats()}
           </div>
 
-          
+
 
           {/* Footer */}
           <div className="mt-12 text-center">
@@ -1059,19 +950,6 @@ const DeveloperProfileEditor: React.FC<Props> = ({
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes slideInRight {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   );
 };

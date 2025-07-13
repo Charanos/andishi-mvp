@@ -20,14 +20,10 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 
-interface Notification {
-  id: string;
-  type: "success" | "error" | "info";
-  message: string;
-}
-
 import type { DeveloperProfile } from "../../lib/types";
 import { IoMdArrowBack, IoMdArrowDropleftCircle } from "react-icons/io";
+import { useToast } from "../../hooks/useToast";
+import ToastContainer from "../components/ToastContainer";
 
 interface Props {
   onCreate: (newProfile: DeveloperProfile) => void;
@@ -79,32 +75,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
   const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  // Custom toast notification functions
-  const addNotification = (
-    type: "success" | "error" | "info",
-    message: string
-  ) => {
-    const id = Date.now().toString();
-    const notification: Notification = { id, type, message };
-    setNotifications((prev) => [...prev, notification]);
-
-    // Auto remove after 4 seconds
-    setTimeout(() => {
-      removeNotification(id);
-    }, 4000);
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  const toast = {
-    success: (message: string) => addNotification("success", message),
-    error: (message: string) => addNotification("error", message),
-    info: (message: string) => addNotification("info", message),
-  };
+  const { toast, notifications, removeNotification } = useToast();
 
   const handleChange = (section: string, field: string, value: any) => {
     setProfile((prev) => {
@@ -214,7 +185,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
     setCreating(true);
     try {
-      console.log("Creating new developer user and profile...");
+      toast.info("Creating new developer user and profile...");
       
       // Step 1: Create user with developer role (this will auto-create the developer profile)
       const userPayload = {
@@ -237,7 +208,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
       }
 
       const userData = await userRes.json();
-      console.log("User created successfully:", userData);
+      toast.success("User created successfully!");
       
       // Step 2: Wait a moment for the developer profile to be created
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -276,14 +247,13 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
       });
       
       if (!updateRes.ok) {
-        console.warn("Failed to update profile with detailed info, but profile was created");
+        toast.warning("Failed to update profile with detailed info, but profile was created");
         // Don't fail completely, just warn
       }
       
       const finalProfile = updateRes.ok ? await updateRes.json() : newProfile;
       
-      console.log("Developer created successfully with user account:", finalProfile);
-      toast.success("Developer created successfully with login credentials!");
+      toast.success("Developer created successfully with user account!");
       
       // Show additional info about the generated password
       if (userData.generatedPassword) {
@@ -292,7 +262,6 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
       onCreate(finalProfile as DeveloperProfile);
     } catch (err) {
-      console.error("Error creating developer:", err);
       toast.error(err instanceof Error ? err.message : "Error creating developer");
     } finally {
       setCreating(false);
@@ -474,7 +443,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                   onClick={() =>
                     removeArrayItem("professionalInfo", "languages", index)
                   }
-                  className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
+                  className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors cursor-pointer"
                 >
                   <FaTrash />
                 </button>
@@ -482,7 +451,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
             ))}
             <button
               onClick={() => addArrayItem("professionalInfo", "languages", "")}
-              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
+              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors cursor-pointer"
             >
               <FaPlus /> Add Language
             </button>
@@ -517,7 +486,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                         index
                       )
                     }
-                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
+                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors cursor-pointer"
                   >
                     <FaTrash />
                   </button>
@@ -528,7 +497,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
               onClick={() =>
                 addArrayItem("professionalInfo", "certifications", "")
               }
-              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
+              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors cursor-pointer"
             >
               <FaPlus /> Add Certification
             </button>
@@ -570,7 +539,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                         index
                       )
                     }
-                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors"
+                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors cursor-pointer"
                   >
                     <FaTrash />
                   </button>
@@ -581,7 +550,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
               onClick={() =>
                 addArrayItem("professionalInfo", "preferredWorkType", "")
               }
-              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors"
+              className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors cursor-pointer"
             >
               <FaPlus /> Add Work Type
             </button>
@@ -949,38 +918,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
   return (
     <div className="min-h-screen ">
-      {/* Toast Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 max-w-sm animate-slide-in ${
-              notification.type === "success"
-                ? "bg-green-900/90 border-green-400 text-green-100"
-                : notification.type === "error"
-                ? "bg-red-900/90 border-red-400 text-red-100"
-                : "bg-blue-900/90 border-blue-400 text-blue-100"
-            }`}
-          >
-            {notification.type === "success" && (
-              <FaCheck className="text-green-400" />
-            )}
-            {notification.type === "error" && (
-              <FaTimes className="text-red-400" />
-            )}
-            {notification.type === "info" && (
-              <FaInfoCircle className="text-blue-400" />
-            )}
-            <span className="text-sm font-medium">{notification.message}</span>
-            <button
-              onClick={() => removeNotification(notification.id)}
-              className="ml-auto text-gray-400 hover:text-white"
-            >
-              <FaTimes size={12} />
-            </button>
-          </div>
-        ))}
-      </div>
+      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
 
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -1063,22 +1001,6 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 };

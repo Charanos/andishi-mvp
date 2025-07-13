@@ -27,15 +27,12 @@ import {
   FaPhone,
 } from "react-icons/fa";
 import { useProjectAssignments } from "@/hooks/useProjectAssignments";
+import ToastContainer from "../components/ToastContainer";
+import useToast from "../../hooks/useToast";
 
 import type { Assignment } from "@/types/project";
 import { SystemUser } from "~/types";
 
-interface ToastNotification {
-  id: string;
-  type: "success" | "error" | "info";
-  message: string;
-}
 
 interface ProjectAssignmentsProps {
   projectId: string;
@@ -55,9 +52,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   readOnly = false,
 }) => {
   const { assignments, loading: loadingAssignments, refetch, assignDevelopers, updateAssignment, removeAssignment } = useProjectAssignments(projectId);
+  const { notifications, removeNotification, toast } = useToast();
 
   const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
-  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAvailable, setFilterAvailable] = useState(true);
   const [sortBy, setSortBy] = useState<
@@ -69,20 +66,6 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [unassigning, setUnassigning] = useState<string | null>(null);
 
-  // Custom toast notification functions
-  const addNotification = (
-    type: "success" | "error" | "info",
-    message: string
-  ) => {
-    const id = Date.now().toString();
-    const notification: ToastNotification = { id, type, message };
-    setNotifications((prev) => [...prev, notification]);
-    setTimeout(() => removeNotification(id), 5000);
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
 
   // Fetch developer profiles to get detailed information
   useEffect(() => {
@@ -95,7 +78,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           setDeveloperProfiles(profiles);
         }
       } catch (error) {
-        console.error('Error fetching developer profiles:', error);
+toast.error("Error fetching developer profiles", error instanceof Error ? error.message : "Unknown error");
       } finally {
         setLoadingProfiles(false);
       }
@@ -216,21 +199,17 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   // Assign developers to project
   const handleAssignDevelopers = async () => {
     if (selectedDevelopers.length === 0) {
-      addNotification("error", "Please select at least one developer");
+      toast.error("Please select at least one developer");
       return;
     }
     setAssigning(true);
     try {
       await assignDevelopers(selectedDevelopers);
-      addNotification(
-        "success",
-        `Successfully assigned ${selectedDevelopers.length} developer(s) to ${projectTitle}`
-      );
+      toast.success(`Successfully assigned ${selectedDevelopers.length} developer(s) to ${projectTitle}`);
       setSelectedDevelopers([]);
       refetch();
     } catch (error) {
-      console.error("Error assigning developers:", error);
-      addNotification("error", "Failed to assign developers");
+toast.error("Failed to assign developers", error instanceof Error ? error.message : "Unknown error");
     } finally {
       setAssigning(false);
     }
@@ -245,14 +224,10 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     setUnassigning(developerId);
     try {
       await removeAssignment(developerId);
-      addNotification(
-        "success",
-        `Successfully unassigned ${developerName} from ${projectTitle}`
-      );
+      toast.success(`Successfully unassigned ${developerName} from ${projectTitle}`);
       refetch();
     } catch (error) {
-      console.error('Error unassigning developer:', error);
-      addNotification("error", "Failed to unassign developer");
+toast.error("Failed to unassign developer", error instanceof Error ? error.message : "Unknown error");
     } finally {
       setUnassigning(null);
     }
@@ -292,52 +267,10 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Enhanced Toast Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`transform transition-all duration-300 ease-in-out p-4 rounded-xl border backdrop-blur-md shadow-2xl ${notification.type === "success"
-              ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30"
-              : notification.type === "error"
-                ? "bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/30"
-                : "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/30"
-              } hover:scale-105`}
-          >
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-3">
-                <div
-                  className={`p-1 rounded-full ${notification.type === "success"
-                    ? "bg-green-500"
-                    : notification.type === "error"
-                      ? "bg-red-500"
-                      : "bg-blue-500"
-                    }`}
-                >
-                  {notification.type === "success" && (
-                    <FaCheckCircle className="w-4 h-4 text-white" />
-                  )}
-                  {notification.type === "error" && (
-                    <FaExclamationCircle className="w-4 h-4 text-white" />
-                  )}
-                  {notification.type === "info" && (
-                    <FaInfoCircle className="w-4 h-4 text-white" />
-                  )}
-                </div>
-                <span className="font-medium text-white">
-                  {notification.message}
-                </span>
-              </div>
-              <button
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
-              >
-                <FaTimes className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+      />
 
       {/* Enhanced Header */}
       <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50">

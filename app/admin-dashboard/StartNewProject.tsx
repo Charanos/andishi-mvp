@@ -20,9 +20,9 @@ import {
   FaArrowCircleLeft,
 } from "react-icons/fa";
 import { startProjectFormSchema } from "@/lib/formSchema";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import ToastContainer from "../components/ToastContainer";
+import { ToastNotification } from "../components/ToastNotification";
 
 interface UserInfo {
   firstName: string;
@@ -80,6 +80,16 @@ export default function StartProjectForm({
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
+    const id = Date.now().toString();
+    setNotifications(prev => [...prev, { ...notification, id }]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
   const [formData, setFormData] = useState<FormData>({
     userInfo: {
       firstName: "",
@@ -274,7 +284,7 @@ export default function StartProjectForm({
   const handleSubmit = async () => {
     // Check if terms are accepted
     if (!termsAccepted) {
-      toast.error("Please accept the terms and conditions before submitting.");
+      addNotification({ type: "error", title: "Terms Required", message: "Please accept the terms and conditions before submitting." });
       return;
     }
 
@@ -282,13 +292,13 @@ export default function StartProjectForm({
       const result = await startProjectFormSchema.safeParse(formData);
       if (!result.success) {
         result.error.issues.forEach((issue) => {
-          toast.error(issue.message);
+          addNotification({ type: "error", title: "Validation Error", message: issue.message });
         });
         return;
       }
 
       setSubmitStatus("loading");
-      toast.info("Submitting your project...");
+      addNotification({ type: "info", title: "Submitting", message: "Submitting your project..." });
 
       try {
         const res = await fetch("/api/start-project", {
@@ -300,7 +310,7 @@ export default function StartProjectForm({
 
         if (result.success) {
           setSubmitStatus("success");
-          toast.success("Project submitted successfully!");
+          addNotification({ type: "success", title: "Success", message: "Project submitted successfully!" });
 
           if (dashboardMode) {
             // notify parent and stay within dashboard
@@ -313,15 +323,14 @@ export default function StartProjectForm({
           }
         } else {
           setSubmitStatus("error");
-          toast.error(result.message || "Submission failed. Please try again.");
+          addNotification({ type: "error", title: "Submission Failed", message: result.message || "Submission failed. Please try again." });
         }
       } catch (error) {
         setSubmitStatus("error");
-        toast.error("An error occurred while submitting. Please try again.");
+        addNotification({ type: "error", title: "Submission Error", message: "An error occurred while submitting. Please try again." });
       }
     } catch (error) {
-      console.error(error);
-      toast.error("An unexpected error occurred. Please try again.");
+      addNotification({ type: "error", title: "Unexpected Error", message: "An unexpected error occurred. Please try again." });
     }
   };
 
@@ -351,18 +360,7 @@ export default function StartProjectForm({
 
   return (
     <>
-      <ToastContainer
-        position="top-center"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-      />
+      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
       <section className="min-h-screen py-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10 my-4">
           {/* Header */}

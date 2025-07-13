@@ -90,13 +90,13 @@ export interface Payment {
   id: string;
   amount: number;
   date?: string;
-  method: string;
+  method: string; // Will be updated to PaymentMethodType when ready
   notes?: string;
   // Added based on usage
   currency?: "USD" | "KES";
   dueDate?: Date | string;
   paidDate?: Date | string;
-  status?: "pending" | "approved" | "rejected" | "paid" | "overdue" | "partial";
+  status?: "pending" | "approved" | "completed" | "rejected" | "outstanding" | "paid" | "overdue" | "partial";
   description?: string;
   invoiceUrl?: string;
   // Payment approval workflow

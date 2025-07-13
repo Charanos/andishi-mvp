@@ -43,6 +43,7 @@ import {
   FaExternalLinkAlt,
 } from "react-icons/fa";
 import { useProjectChat } from "../../hooks/useProjectChat";
+import { useProjectDetails } from "../../hooks/useProjectDetails";
 
 interface ProjectChatProps {
   projectId: string;
@@ -112,81 +113,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
   const [activeTab, setActiveTab] = useState<"overview" | "resources" | "milestones" | "participants">("overview");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock data for demonstration - in real app, this would come from props or API
-  const [projectDetails] = useState<ProjectDetail>({
-    id: projectId,
-    title: projectTitle,
-    description: "Advanced web application development project with modern technologies and user-centric design approach.",
-    status: "active",
-    startDate: new Date("2024-01-15"),
-    endDate: new Date("2024-06-30"),
-    priority: "high",
-    budget: 25000,
-    progress: 67,
-    tags: ["React", "TypeScript", "Node.js", "PostgreSQL", "AWS"],
-    milestones: [
-      {
-        id: "1",
-        title: "UI/UX Design Completion",
-        description: "Complete all design mockups and prototypes",
-        dueDate: new Date("2024-02-28"),
-        status: "completed",
-        assignedTo: ["designer-1", "ux-lead"],
-        priority: "high"
-      },
-      {
-        id: "2",
-        title: "Backend API Development",
-        description: "Develop core API endpoints and database schema",
-        dueDate: new Date("2024-04-15"),
-        status: "in-progress",
-        assignedTo: ["dev-1", "dev-2"],
-        priority: "high"
-      },
-      {
-        id: "3",
-        title: "Frontend Implementation",
-        description: "Build responsive user interface components",
-        dueDate: new Date("2024-05-30"),
-        status: "pending",
-        assignedTo: ["frontend-dev"],
-        priority: "medium"
-      }
-    ],
-    resources: [
-      {
-        id: "1",
-        name: "Project Requirements.pdf",
-        type: "document",
-        url: "/files/requirements.pdf",
-        uploadedBy: "Client Manager",
-        uploadedAt: new Date("2024-01-16"),
-        size: "2.4 MB",
-        description: "Detailed project requirements and specifications"
-      },
-      {
-        id: "2",
-        name: "Design Mockups",
-        type: "image",
-        url: "/files/mockups.zip",
-        uploadedBy: "UI Designer",
-        uploadedAt: new Date("2024-02-10"),
-        size: "15.7 MB",
-        description: "High-fidelity design mockups for all screens"
-      },
-      {
-        id: "3",
-        name: "API Documentation",
-        type: "link",
-        url: "https://api-docs.example.com",
-        uploadedBy: "Backend Developer",
-        uploadedAt: new Date("2024-03-05"),
-        description: "Interactive API documentation with examples"
-      }
-    ],
-    notes: "Regular check-ins scheduled for Tuesdays and Fridays. Client prefers morning meetings.",
-    lastActivity: new Date()
-  });
+const { projectDetails, loading: projectLoading, error: projectError } = useProjectDetails(projectId);
 
   const permissions = {
     canRead: true,
@@ -318,7 +245,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     setShowDetails(!showDetails);
   };
 
-  if (loading) {
+  if (loading || projectLoading) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
@@ -329,7 +256,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     );
   }
 
-  if (error || !permissions.canRead) {
+  if (error || projectError || !permissions.canRead) {
     return (
       <div className="text-center py-12 text-gray-400">
         <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
@@ -340,6 +267,24 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
       </div>
     );
   }
+
+  // Fallback project details if not loaded yet
+  const displayProjectDetails = projectDetails || {
+    id: projectId,
+    title: projectTitle,
+    description: "Loading project details...",
+    status: "active",
+    startDate: new Date(),
+    endDate: undefined,
+    priority: "medium",
+    budget: undefined,
+    progress: 0,
+    tags: [],
+    milestones: [],
+    resources: [],
+    notes: "Loading project information...",
+    lastActivity: new Date()
+  };
 
   const renderOverviewTab = () => (
     <div className="space-y-6">
@@ -352,24 +297,24 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Status</span>
-            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(projectDetails.status)}`}>
-              {projectDetails.status}
+            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(displayProjectDetails.status)}`}>
+              {displayProjectDetails.status}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Priority</span>
-            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(projectDetails.priority)}`}>
-              {projectDetails.priority}
+            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(displayProjectDetails.priority)}`}>
+              {displayProjectDetails.priority}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Progress</span>
-            <span className="text-xs text-white font-medium">{projectDetails.progress}%</span>
+            <span className="text-xs text-white font-medium">{displayProjectDetails.progress}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2">
             <div
               className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${projectDetails.progress}%` }}
+              style={{ width: `${displayProjectDetails.progress}%` }}
             ></div>
           </div>
         </div>
@@ -384,17 +329,17 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Start Date</span>
-            <span className="text-xs text-white">{formatDate(projectDetails.startDate)}</span>
+            <span className="text-xs text-white">{formatDate(displayProjectDetails.startDate)}</span>
           </div>
-          {projectDetails.endDate && (
+          {displayProjectDetails.endDate && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-400">End Date</span>
-              <span className="text-xs text-white">{formatDate(projectDetails.endDate)}</span>
+              <span className="text-xs text-white">{formatDate(displayProjectDetails.endDate)}</span>
             </div>
           )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Last Activity</span>
-            <span className="text-xs text-white">{formatTime(projectDetails.lastActivity)}</span>
+            <span className="text-xs text-white">{formatTime(displayProjectDetails.lastActivity)}</span>
           </div>
         </div>
       </div>
@@ -406,25 +351,29 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
           Technologies
         </h3>
         <div className="flex flex-wrap gap-2">
-          {projectDetails.tags.map((tag, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded-full text-xs font-medium"
-            >
-              {tag}
-            </span>
-          ))}
+          {displayProjectDetails.tags.length === 0 ? (
+            <span className="text-xs text-gray-500 italic">No technologies specified</span>
+          ) : (
+            displayProjectDetails.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="px-2 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded-full text-xs font-medium"
+              >
+                {tag}
+              </span>
+            ))
+          )}
         </div>
       </div>
 
       {/* Notes */}
-      {projectDetails.notes && (
+      {displayProjectDetails.notes && (
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
           <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
             <FaInfoCircle className="mr-2" />
             Notes
           </h3>
-          <p className="text-xs text-gray-400 leading-relaxed">{projectDetails.notes}</p>
+          <p className="text-xs text-gray-400 leading-relaxed">{displayProjectDetails.notes}</p>
         </div>
       )}
     </div>
@@ -441,8 +390,14 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         )}
       </div>
 
-      {projectDetails.resources.map((resource) => (
-        <div key={resource.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-gray-600/50 transition-all">
+      {displayProjectDetails.resources.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <FaFolder className="mx-auto mb-3 text-2xl" />
+          <p className="text-sm">No resources available</p>
+        </div>
+      ) : (
+        displayProjectDetails.resources.map((resource) => (
+          <div key={resource.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-gray-600/50 transition-all">
           <div className="flex items-start space-x-3">
             <div className="w-10 h-10 bg-gray-700/50 rounded-lg flex items-center justify-center">
               {getFileIcon(resource.type)}
@@ -475,7 +430,8 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
             </div>
           </div>
         </div>
-      ))}
+        ))
+      )}
     </div>
   );
 
@@ -490,8 +446,14 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         )}
       </div>
 
-      {projectDetails.milestones.map((milestone) => (
-        <div key={milestone.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+      {displayProjectDetails.milestones.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <FaTasks className="mx-auto mb-3 text-2xl" />
+          <p className="text-sm">No milestones available</p>
+        </div>
+      ) : (
+        displayProjectDetails.milestones.map((milestone) => (
+          <div key={milestone.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
               <h4 className="text-sm font-medium text-white">{milestone.title}</h4>
@@ -512,7 +474,8 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
             <span>{milestone.assignedTo.length} assigned</span>
           </div>
         </div>
-      ))}
+        ))
+      )}
     </div>
   );
 
@@ -803,7 +766,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-white">Project Details</h3>
-                <p className="text-sm text-gray-400">{projectDetails.description}</p>
+                <p className="text-sm text-gray-400">{displayProjectDetails.description}</p>
               </div>
               <button
                 onClick={toggleDetails}
@@ -866,7 +829,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
               </div>
               <div className="flex items-center space-x-2 text-xs text-gray-500">
                 <FaProjectDiagram className="text-xs" />
-                <span>ID: {projectId.slice(0, 8)}</span>
+                <span>ID: {displayProjectDetails.id.slice(0, 8)}</span>
               </div>
             </div>
           </div>

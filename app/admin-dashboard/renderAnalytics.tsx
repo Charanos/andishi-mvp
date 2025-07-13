@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import ToastContainer from "../components/ToastContainer";
+import useToast from "../../hooks/useToast";
 import { EnhancedAnalyticsData } from "@/utils/admin-analytics";
 import {
   LineChart,
@@ -155,8 +157,9 @@ interface MonthlyPaymentData {
   month: string;
   pending: number;
   approved: number;
-  paid: number;
+  completed: number;
   rejected: number;
+  outstanding: number;
 }
 
 interface PaymentMethodData {
@@ -186,13 +189,23 @@ interface AnalyticsDataResponse {
   activities: (Omit<Activity, 'icon'> & { icon: string })[];
 }
 
+// Harmonized color scheme for analytics
+const ANALYTICS_COLORS = {
+  primary: "#3B82F6",      // Blue - for approved/completed
+  success: "#10B981",      // Green - for paid/successful
+  warning: "#F59E0B",      // Amber - for pending
+  danger: "#EF4444",       // Red - for rejected/failed
+  info: "#8B5CF6",         // Purple - for outstanding
+  neutral: "#6B7280",      // Gray - for inactive/neutral
+};
+
 const COLORS = [
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#8B5CF6",
-  "#06B6D4",
+  ANALYTICS_COLORS.primary,
+  ANALYTICS_COLORS.success,
+  ANALYTICS_COLORS.warning,
+  ANALYTICS_COLORS.danger,
+  ANALYTICS_COLORS.info,
+  ANALYTICS_COLORS.neutral,
 ];
 
 const formatCurrency = (amount: number): string => {
@@ -329,6 +342,7 @@ const AnimatedProgressRing: React.FC<AnimatedProgressRingProps> = ({
 const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
   analytics,
 }) => {
+  const { notifications, removeNotification, toast } = useToast();
   const [analyticsTab, setAnalyticsTab] = useState<"overview" | "financial" | "performance">("overview");
   const [timeRange, setTimeRange] = useState<TimeRange>("12M");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -348,10 +362,10 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
           const data = await response.json();
           setAnalyticsData(data);
         } else {
-          console.error('Failed to fetch analytics data');
+toast.error("Failed to fetch analytics data");
         }
       } catch (error) {
-        console.error('Error fetching analytics data:', error);
+toast.error("Error fetching analytics data", error instanceof Error ? error.message : "Unknown error");
       } finally {
         setLoadingAnalytics(false);
         setIsLoading(false);
@@ -502,7 +516,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Revenue Trend - Enhanced */}
-              <div className="lg:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="lg:col-span-2 backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-white">
                     Revenue Analytics
@@ -561,7 +575,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Project Status Distribution */}
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Project Status
                 </h3>
@@ -628,7 +642,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                 Array.from({ length: 5 }).map((_, index) => (
                   <div
                     key={index}
-                    className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 animate-pulse"
+                    className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-xl p-4 animate-pulse"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
@@ -644,7 +658,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                 (analyticsData?.financial?.paymentStatus || []).map((status: any, index: number) => (
                   <div
                     key={status.status}
-                    className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300"
+                    className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-xl p-4 hover:bg-black/20 transition-all duration-300"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div
@@ -668,8 +682,127 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
 
             {/* Financial Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Payment Methods */}
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-white mb-6">
+                  Payment Methods
+                </h3>
+                <div className="space-y-4">
+                  {(analyticsData?.financial?.paymentMethods || []).map((method: any, index: number) => (
+                    <div key={method.method} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className="w-4 h-4 rounded"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        ></div>
+                        <span className="text-gray-300">{method.method}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-semibold">
+                          {formatCurrency(method.amount)}
+                        </p>
+                        <p className="text-gray-400 text-sm">{method.percentage}%</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Total Revenue</span>
+                    <span className="text-white font-semibold">
+                      {formatCurrency(
+                        (analyticsData?.financial?.paymentMethods || []).reduce(
+                          (sum: number, method: any) => sum + method.amount, 0
+                        )
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Payment Trends */}
+              <div className="lg:col-span-2 backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">
+                    Monthly Payment Trends
+                  </h3>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#F59E0B' }}></div>
+                      <span className="text-gray-400">Pending</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3B82F6' }}></div>
+                      <span className="text-gray-400">Approved</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10B981' }}></div>
+                      <span className="text-gray-400">Completed</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#EF4444' }}></div>
+                      <span className="text-gray-400">Rejected</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#8B5CF6' }}></div>
+                      <span className="text-gray-400">Outstanding</span>
+                    </div>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart
+                    data={analyticsData?.financial?.monthlyTrends || []}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis
+                      dataKey="month"
+                      stroke="#9CA3AF"
+                      fontSize={12}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      stroke="#9CA3AF"
+                      fontSize={12}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(value: number) => `$${(value / 1000).toFixed(0)}K`}
+                    />
+                    <Tooltip
+                      formatter={(value: number, name: string) => [
+                        formatCurrency(value),
+                        name.charAt(0).toUpperCase() + name.slice(1)
+                      ]}
+                      labelFormatter={(month: string) => `Month: ${month}`}
+                      contentStyle={{
+                        backgroundColor: "rgba(17, 24, 39, 0.95)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "12px",
+                        backdropFilter: "blur(16px)",
+                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                      }}
+                      cursor={{ fill: "rgba(255, 255, 255, 0.1)" }}
+                    />
+                    <Legend
+                      wrapperStyle={{ paddingTop: "20px" }}
+                      iconType="circle"
+                      formatter={(value: string) => <span style={{ color: "#9CA3AF" }}>{value.charAt(0).toUpperCase() + value.slice(1)}</span>}
+                    />
+                    <Bar dataKey="pending" fill="#F59E0B" radius={[2, 2, 0, 0]} className="cursor-pointer" />
+                    <Bar dataKey="approved" fill="#3B82F6" radius={[2, 2, 0, 0]} className="cursor-pointer" />
+                    <Bar dataKey="completed" fill="#10B981" radius={[2, 2, 0, 0]} className="cursor-pointer" />
+                    <Bar dataKey="rejected" fill="#EF4444" radius={[2, 2, 0, 0]} className="cursor-pointer" />
+                    <Bar dataKey="outstanding" fill="#8B5CF6" radius={[2, 2, 0, 0]} className="cursor-pointer" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Payment Methods & Financial KPIs */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Payment Status Distribution */}
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-white">
                     Payment Status Distribution
@@ -718,99 +851,8 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                 </div>
               </div>
 
-              {/* Monthly Payment Trends */}
-              <div className="lg:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-white">
-                    Monthly Payment Trends
-                  </h3>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <span className="text-gray-400">Pending</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-gray-400">Approved</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-400">Paid</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span className="text-gray-400">Rejected</span>
-                    </div>
-                  </div>
-                </div>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={analyticsData?.financial?.monthlyTrends || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis dataKey="month" stroke="#9CA3AF" />
-                    <YAxis
-                      stroke="#9CA3AF"
-                      tickFormatter={(value: number) => `$${value / 1000}K`}
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [formatCurrency(value), ""]}
-                      contentStyle={{
-                        backgroundColor: "rgba(17, 24, 39, 0.8)",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
-                        borderRadius: "8px",
-                        backdropFilter: "blur(10px)",
-                      }}
-                    />
-                    <Bar dataKey="pending" stackId="a" fill="#F59E0B" />
-                    <Bar dataKey="approved" stackId="a" fill="#10B981" />
-                    <Bar dataKey="paid" stackId="a" fill="#3B82F6" />
-                    <Bar dataKey="rejected" stackId="a" fill="#EF4444" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Payment Methods & Financial KPIs */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Payment Methods Breakdown */}
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">
-                  Payment Methods
-                </h3>
-                <div className="space-y-4">
-                  {(analyticsData?.financial?.paymentMethods || []).map((method: any, index: number) => (
-                    <div key={method.method} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className="w-4 h-4 rounded"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        ></div>
-                        <span className="text-gray-300">{method.method}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-white font-semibold">
-                          {formatCurrency(method.amount)}
-                        </p>
-                        <p className="text-gray-400 text-sm">{method.percentage}%</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 pt-4 border-t border-white/10">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Total Revenue</span>
-                    <span className="text-white font-semibold text-lg">
-                      {formatCurrency(
-                        (analyticsData?.financial?.paymentMethods || []).reduce(
-                          (sum: number, method: any) => sum + method.amount, 0
-                        )
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
               {/* Financial KPIs */}
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Financial KPIs
                 </h3>
@@ -862,6 +904,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                       <Calendar className="h-6 w-6 text-orange-400" />
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -874,7 +917,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
 
             {/* Performance Metrics Radar Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Performance Metrics
                 </h3>
@@ -918,7 +961,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Skills Demand Chart */}
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Skills in Demand
                 </h3>
@@ -956,7 +999,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             {/* Top Performers Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top Clients */}
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-white">Top Clients</h3>
                   <Award className="h-5 w-5 text-yellow-400" />
@@ -978,23 +1021,23 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                             </div>
                           )}
                         </div>
-                          <div>
-                            <p className="text-white font-semibold">{client.name}</p>
-                            <p className="text-gray-400 text-sm">
-                              {client.projectCount} projects
-                            </p>
-                          </div>
+                        <div>
+                          <p className="text-white font-semibold">{client.name}</p>
+                          <p className="text-gray-400 text-sm">
+                            {client.projectCount} projects
+                          </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-green-400 font-semibold text-lg">
-                            {formatCurrency(client.totalSpent)}
-                          </p>
-                          <p className="text-yellow-400 text-sm">
-                            {formatCurrency(client.pendingAmount)} pending
-                          </p>
-                          <p className="text-gray-400 text-xs">
-                            {formatCurrency(client.totalValue)} total value
-                          </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-green-400 font-semibold text-lg">
+                          {formatCurrency(client.totalSpent)}
+                        </p>
+                        <p className="text-yellow-400 text-sm">
+                          {formatCurrency(client.pendingAmount)} pending
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          {formatCurrency(client.totalValue)} total value
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -1002,7 +1045,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Top Developers */}
-              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-white">
                     Top Developers
@@ -1060,7 +1103,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             </div>
 
             {/* Real-time Activity Feed */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-white">
                   Live Activity Feed
@@ -1075,7 +1118,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                   activities.map((activity, index) => (
                     <div
                       key={index}
-                      className="flex items-center space-x-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                      className="flex items-center space-x-4 p-3 bg-black/10 rounded-lg hover:bg-black/20 transition-colors"
                     >
                       <div className="p-2 bg-blue-500/20 rounded-lg">
                         <activity.icon className="h-4 w-4 text-blue-400" />
@@ -1096,6 +1139,10 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
           </div>
         )}
       </div>
+      <ToastContainer 
+        notifications={notifications} 
+        onRemoveNotification={removeNotification} 
+      />
     </div>
   );
 };

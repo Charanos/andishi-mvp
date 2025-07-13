@@ -13,6 +13,8 @@ import {
   CheckCircle,
   MessageSquare,
 } from "lucide-react";
+import ToastContainer from "../components/ToastContainer";
+import { ToastNotification } from "../components/ToastNotification";
 
 interface ProjectDetailProps {
   project: ProjectAssignment;
@@ -51,6 +53,16 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
   const [developers, setDevelopers] = useState<SystemUser[]>([]);
   const [loadingDevelopers, setLoadingDevelopers] = useState(false);
   const { user } = useAuth();
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
+    const id = Date.now().toString();
+    setNotifications(prev => [...prev, { ...notification, id }]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
 
   const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
     project ? `/api/project-activity/${project.id}` : null,
@@ -73,7 +85,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
           setDevelopers(data.filter((user: any) => user.role === 'developer'));
         }
       } catch (error) {
-        console.error('Error fetching developers:', error);
+        addNotification({ 
+          type: "error", 
+          title: "Failed to Load Developers", 
+          message: "Could not fetch developer list. Please try again."
+        });
       } finally {
         setLoadingDevelopers(false);
       }
@@ -321,6 +337,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
         {/* Content */}
         {renderContent()}
       </div>
+      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
     </div>
   );
 };

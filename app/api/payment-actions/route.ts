@@ -53,9 +53,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!['approve', 'reject'].includes(action)) {
+    if (!['approve', 'reject', 'paid'].includes(action)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid action. Must be "approve" or "reject"' },
+        { success: false, error: 'Invalid action. Must be "approve", "reject", or "paid"' },
         { status: 400, headers: corsHeaders }
       );
     }
@@ -102,6 +102,11 @@ export async function POST(req: NextRequest) {
       updateFields['payments.$.status'] = 'approved';
       updateFields['payments.$.approvedBy'] = session.user.id;
       updateFields['payments.$.approvedAt'] = currentTime;
+      updateFields['payments.$.updatedAt'] = currentTime;
+    } else if (action === 'paid') {
+      updateFields['payments.$.status'] = 'paid';
+      updateFields['payments.$.paidBy'] = session.user.id;
+      updateFields['payments.$.paidAt'] = currentTime;
       updateFields['payments.$.updatedAt'] = currentTime;
     } else {
       updateFields['payments.$.status'] = 'rejected';

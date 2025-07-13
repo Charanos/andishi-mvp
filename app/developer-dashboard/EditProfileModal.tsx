@@ -1,8 +1,9 @@
 "use client";
 
-import { DeveloperProfile } from "./page";
+import { DeveloperProfile } from "@/lib/types";
 import { FaTimes } from "react-icons/fa";
 import React, { useState, useEffect } from "react";
+import { useToast } from "@/hooks/useToast";
 
 interface EditProfileModalProps {
   profile: DeveloperProfile;
@@ -18,6 +19,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onSave,
 }) => {
   const [formData, setFormData] = useState<DeveloperProfile>(profile);
+  const { toast } = useToast();
 
   // Reset formData when modal opens/closes or profile changes
   useEffect(() => {
@@ -29,19 +31,37 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     field: string,
     value: string
   ) => {
-    setFormData((prev: DeveloperProfile) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      } as (typeof prev)[typeof section],
-    }));
+    setFormData((prev: DeveloperProfile) => {
+      const sectionValue = prev[section];
+      let updatedSection;
+
+      if (typeof sectionValue === 'object' && sectionValue !== null) {
+        // Handle nested objects
+        updatedSection = {
+          ...(sectionValue as object),
+          [field]: value,
+        };
+      } else {
+        // Handle primitive values directly
+        updatedSection = value;
+      }
+
+      return {
+        ...prev,
+        [section]: updatedSection,
+      };
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    try {
+      onSave(formData);
+      toast.success("Profile updated successfully!");
+      onClose();
+    } catch (error) {
+      toast.error("Failed to update profile");
+    }
   };
 
   if (!isOpen) return null;
@@ -53,7 +73,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           <h2 className="text-white text-2xl font-semibold">Edit Profile</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition"
+            className="text-gray-400 hover:text-white transition cursor-pointer"
           >
             <FaTimes />
           </button>

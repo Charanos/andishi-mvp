@@ -108,7 +108,7 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({
           {notification.action && (
             <button
               onClick={notification.action.onClick}
-              className="mt-2 text-xs text-blue-400 hover:text-blue-300 underline"
+              className="mt-2 text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer"
             >
               {notification.action.label}
             </button>
@@ -118,7 +118,7 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
+          className="text-gray-400 hover:text-white transition-colors flex-shrink-0 cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>

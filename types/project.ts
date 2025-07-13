@@ -131,7 +131,7 @@ export interface Payment {
   amount: number;
   date: string;
   method: string;
-  status: "pending" | "paid" | "overdue" | "partial";
+  status: "pending" | "approved" | "completed" | "rejected" | "outstanding" | "paid" | "overdue" | "partial";
   currency?: "USD" | "KES";
   description?: string;
   notes?: string;

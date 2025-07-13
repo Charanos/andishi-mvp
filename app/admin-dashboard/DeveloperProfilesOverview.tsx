@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { JSX, useEffect, useState } from "react";
 import DeveloperProfileEditor from "./DeveloperProfileEditor";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 import {
   FaEdit,
@@ -21,6 +22,7 @@ import {
   FaExclamationTriangle,
   FaArrowLeft,
   FaUser,
+  FaTimesCircle,
   FaChartLine,
   FaArrowCircleLeft,
   FaUserPlus,
@@ -39,9 +41,13 @@ import {
   FaCertificate,
   FaCheckCircle,
   FaComment,
+  FaCheck,
+  FaTimes,
+  FaInfoCircle,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
 import AddNewDeveloper from "./AddNewDeveloper";
+import ToastContainer from "../components/ToastContainer";
+import { ToastNotification } from "../components/ToastNotification";
 
 import type { DeveloperProfile } from "../../lib/types";
 
@@ -75,6 +81,31 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
     useState<AvailabilityStatus>("all");
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  // Custom toast notification functions
+  const addNotification = (
+    type: "success" | "error" | "info" | "warning",
+    title: string,
+    message?: string
+  ) => {
+    const id = Date.now().toString();
+    const notification: ToastNotification = { id, type, title, message };
+    setNotifications((prev) => [...prev, notification]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const toast = {
+    success: (title: string, message?: string) => addNotification("success", title, message),
+    error: (title: string, message?: string) => addNotification("error", title, message),
+    info: (title: string, message?: string) => addNotification("info", title, message),
+    warning: (title: string, message?: string) => addNotification("warning", title, message),
+  };
 
   // Fetch developer profiles
   const fetchProfiles = async (): Promise<void> => {
@@ -114,8 +145,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
         onRefresh();
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Error loading developer profiles");
+      toast.error("Error loading developer profiles", "Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -124,7 +154,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
   // Manual refresh function
   const handleRefresh = async () => {
     await fetchProfiles();
-    toast.success("Developer profiles refreshed!");
+    toast.success("Developer profiles refreshed!", "All profiles have been updated.");
   };
 
   useEffect(() => {
@@ -270,13 +300,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
     setProfiles((prev) => [newProfile, ...prev]);
     setFilteredProfiles((prev) => [newProfile, ...prev]);
     setViewMode("list");
-    
+
     // Force refresh to ensure we have the latest data from the database
     setTimeout(() => {
       fetchProfiles();
     }, 1000);
-    
-    toast.success("Developer created successfully with login credentials!");
+
+    toast.success("Developer created successfully!", "Login credentials have been generated.");
   };
 
   const handleUpdateSuccess = (updatedProfile: DeveloperProfile) => {
@@ -287,38 +317,33 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
     setFilteredProfiles(updatedProfiles);
     setViewMode("list");
     setSelectedProfile(null);
-    toast.success("Profile updated successfully");
+    toast.success("Profile updated successfully", "Changes have been saved.");
   };
 
-  const handleDelete = async (
-    profileId: string,
-    developerName: string
-  ): Promise<void> => {
-    if (
-      !confirm(
-        `Are you sure you want to delete ${developerName}'s profile? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
+  const handleDelete = (profileId: string, developerName: string) => {
+    setProfileToDelete({ id: profileId, name: developerName });
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!profileToDelete) return;
 
     try {
-      const res = await fetch(`/api/developer-profiles/${profileId}`, {
+const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
         const errorPayload = await res.text();
-        console.error(
-          `Failed to delete profile. Status: ${res.status}. Body: ${errorPayload}`
-        );
         throw new Error(`Failed to delete profile: ${res.statusText}`);
       }
-      setProfiles((prev) => prev.filter((p) => p.id !== profileId));
-      setFilteredProfiles((prev) => prev.filter((p) => p.id !== profileId));
-      toast.success(`${developerName}'s profile has been deleted`);
+      setProfiles((prev) => prev.filter((p) => p.id !== profileToDelete.id));
+      setFilteredProfiles((prev) => prev.filter((p) => p.id !== profileToDelete.id));
+      toast.success(`${profileToDelete.name}'s profile has been deleted`, "Profile removed successfully.");
     } catch (err) {
-      console.error(err);
-      toast.error("Error deleting profile");
+      toast.error("Error deleting profile", "Please try again later.");
+    } finally {
+      setDeleteModalOpen(false);
+      setProfileToDelete(null);
     }
   };
 
@@ -336,13 +361,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ profileId, action: actionStatus === 'approved' ? 'approve' : 'reject' })
         });
-      toast.success(`Developer ${actionStatus} successfully`);
+      toast.success(`Developer ${actionStatus} successfully`, `Profile status updated to ${actionStatus}.`);
       refreshUsers(); // Call refreshUsers after successful update
 
       // Also refresh the profiles to ensure consistency
       await fetchProfiles();
     } catch (err) {
-      toast.error('Failed to update approval status');
+      toast.error('Failed to update approval status', 'Please try again later.');
       // Revert optimistic update on error
       await fetchProfiles();
     }
@@ -470,7 +495,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
               </div>
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-white font-medium mb-2">
+                  <h4 className="!text-indigo-400 font-medium mb-2">
                     Professional Summary
                   </h4>
                   <p className="text-gray-300 leading-relaxed">
@@ -618,7 +643,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                         (skill) => (
                           <span
                             key={skill.name}
-                            className="bg-white/10 text-gray-300 px-3 py-1 rounded-full text-sm"
+                            className="bg-indigo-600/10 text-gray-300 px-3 py-1 rounded-full text-sm"
                           >
                             {skill.name} ({skill.level}/10)
                           </span>
@@ -637,7 +662,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                         (skill) => (
                           <span
                             key={skill.name}
-                            className="bg-white/10 text-gray-300 px-3 py-1 rounded-full text-sm"
+                            className="bg-purple-600/10 text-gray-300 px-3 py-1 rounded-full text-sm"
                           >
                             {skill.name} ({skill.level}/10)
                           </span>
@@ -657,7 +682,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                       {selectedProfile.technicalSkills.tools.map((skill) => (
                         <span
                           key={skill.name}
-                          className="bg-white/10 text-gray-300 px-3 py-1 rounded-full text-sm"
+                          className="bg-teal-600/10 text-gray-300 px-3 py-1 rounded-full text-sm"
                         >
                           {skill.name} ({skill.level}/10)
                         </span>
@@ -891,12 +916,12 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                           </h4>
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${project.status === "completed"
-                                ? "bg-green-500/20 text-green-400"
-                                : project.status === "in-progress"
-                                  ? "bg-blue-500/20 text-blue-400"
-                                  : project.status === "review"
-                                    ? "bg-yellow-500/20 text-yellow-400"
-                                    : "bg-gray-500/20 text-gray-400"
+                              ? "bg-green-500/20 text-green-400"
+                              : project.status === "in-progress"
+                                ? "bg-blue-500/20 text-blue-400"
+                                : project.status === "review"
+                                  ? "bg-yellow-500/20 text-yellow-400"
+                                  : "bg-gray-500/20 text-gray-400"
                               }`}
                           >
                             {project.status}
@@ -979,10 +1004,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                           <div className="flex items-start space-x-3">
                             <div
                               className={`w-10 h-10 rounded-full flex items-center justify-center ${achievement.rarity === "legendary"
-                                  ? "bg-yellow-500/20"
-                                  : achievement.rarity === "epic"
-                                    ? "bg-purple-500/20"
-                                    : "bg-blue-500/20"
+                                ? "bg-yellow-500/20"
+                                : achievement.rarity === "epic"
+                                  ? "bg-purple-500/20"
+                                  : "bg-blue-500/20"
                                 }`}
                             >
                               <span className="text-lg">
@@ -999,10 +1024,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                               <div className="flex items-center justify-between mt-2">
                                 <span
                                   className={`px-2 py-1 rounded-full text-xs font-medium ${achievement.rarity === "legendary"
-                                      ? "bg-yellow-500/20 text-yellow-400"
-                                      : achievement.rarity === "epic"
-                                        ? "bg-purple-500/20 text-purple-400"
-                                        : "bg-blue-500/20 text-blue-400"
+                                    ? "bg-yellow-500/20 text-yellow-400"
+                                    : achievement.rarity === "epic"
+                                      ? "bg-purple-500/20 text-purple-400"
+                                      : "bg-blue-500/20 text-blue-400"
                                     }`}
                                 >
                                   {achievement.rarity}
@@ -1271,12 +1296,12 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                         >
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center text-xs ${activity.type === "task"
-                                ? "bg-blue-500/20 text-blue-400"
-                                : activity.type === "feedback"
-                                  ? "bg-green-500/20 text-green-400"
-                                  : activity.type === "code"
-                                    ? "bg-purple-500/20 text-purple-400"
-                                    : "bg-yellow-500/20 text-yellow-400"
+                              ? "bg-blue-500/20 text-blue-400"
+                              : activity.type === "feedback"
+                                ? "bg-green-500/20 text-green-400"
+                                : activity.type === "code"
+                                  ? "bg-purple-500/20 text-purple-400"
+                                  : "bg-yellow-500/20 text-yellow-400"
                               }`}
                           >
                             {activity.type === "task" ? (
@@ -1510,8 +1535,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                 <button
                   onClick={() => setShowFilters(!showFilters)}
                   className={`cursor-pointer flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors ${showFilters
-                      ? "bg-blue-600 text-white"
-                      : "bg-white/10 text-gray-300 hover:bg-black/20"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white/10 text-gray-300 hover:bg-black/20"
                     }`}
                 >
                   <FaFilter />
@@ -1584,7 +1609,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
 
           {/* Profiles Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-          {filteredProfiles.slice(0, 9).map((profile) => {
+            {filteredProfiles.slice(0, 9).map((profile) => {
               // Check if profile is new (created within last hour)
               const isNew = profile.createdAt && (Date.now() - new Date(profile.createdAt).getTime()) < (60 * 60 * 1000);
 
@@ -1720,17 +1745,17 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                     <button
                       onClick={() => handleToggleApproval(profile.id, "approved")}
                       disabled={profile.status === 'approved'}
-                      className={`cursor-pointer px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'approved' ? 'bg-green-600/20 text-green-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-green-600/20 hover:text-green-400'}`}
+                      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'approved' ? '  bg-green-600/20 text-green-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-green-600/20 hover:text-green-400 cursor-pointer '}`}
                     >
-                      ✓
+                      <FaCheckCircle />
                     </button>
 
                     <button
                       onClick={() => handleToggleApproval(profile.id, "rejected")}
                       disabled={profile.status === 'rejected'}
-                      className={`cursor-pointer px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'rejected' ? 'bg-red-600/20 text-red-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-red-600/20 hover:text-red-400'}`}
+                      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'rejected' ? 'bg-red-600/20 text-red-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-red-600/20 hover:text-red-400 cursor-pointer '}`}
                     >
-                      ✕
+                      <FaTimesCircle />
                     </button>
 
                     <button
@@ -1849,7 +1874,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
           )}
 
           {/* Stats Summary */}
-          <div className="mt-8 bg-white/5 rounded-xl p-6">
+          <div className="mt-8 bg-black/20 border border-grey-900/5 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Summary Statistics
             </h3>
@@ -1922,7 +1947,32 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
     );
   }
 
-  return renderListView();
+  return (
+    <>
+      {renderListView()}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Developer Profile"
+        message={`Are you sure you want to delete ${profileToDelete?.name}'s profile? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setProfileToDelete(null);
+        }}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        loading={false}
+      />
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+        position="top-right"
+      />
+    </>
+  );
 };
 
 export default DeveloperProfilesOverview;
+
+

@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, ReactNode, useMemo } from "react";
-import { toast } from "react-toastify";
+import ToastContainer from "../components/ToastContainer";
+import useToast from "../../hooks/useToast";
+import { useDeveloperProfiles } from "@/hooks/useDeveloperProfiles";
 import { FiTrendingUp, FiX } from "react-icons/fi";
 import { HiViewGrid, HiViewList } from "react-icons/hi";
 import {
@@ -79,6 +81,7 @@ import {
   Payment,
   ProjectStatus,
 } from "@/types";
+import SearchFilter from "./SearchFilter";
 
 // Types
 interface SystemUser {
@@ -118,9 +121,12 @@ type ActiveTab =
   | "settings";
 
 export default function EnhancedAdminDashboard(): ReactNode {
+  // Toast notifications
+  const { notifications: toastNotifications, removeNotification: removeToastNotification, toast } = useToast();
+  
   // State Management
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
-  const [devProfiles, setDevProfiles] = useState<any[]>([]);
+  const { profiles: devProfiles, loading: devProfilesLoading, updateProfile: updateDevProfile } = useDeveloperProfiles();
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [users, setUsers] = useState<SystemUser[]>([]);
   const emptyAnalytics: EnhancedAnalyticsData = {
@@ -225,8 +231,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
     setCurrentPage(1);
   };
 
-  const hasActiveFilters =
-    searchTerm.trim() || statusFilter !== "all" || priorityFilter !== "all" || sortBy !== "newest";
+  const hasActiveFilters = Boolean(
+    searchTerm.trim() || statusFilter !== "all" || priorityFilter !== "all" || sortBy !== "newest"
+  );
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -257,9 +264,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
       setLoading(true);
       try {
         // Fetch all required data in parallel via service / API endpoints
-        const [projectsData, devProfilesData, usersData] = await Promise.all([
+        const [projectsData, usersData] = await Promise.all([
           listProjects(),
-          fetch("/api/developer-profiles").then((r) => r.json()),
           fetch("/api/users").then((r) => r.json()),
         ]);
 
@@ -276,14 +282,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
         );
         setProjects(transformedProjects);
 
-        // Developer profiles may come in various envelope shapes
-        const profilesArray = Array.isArray(devProfilesData)
-          ? devProfilesData
-          : Array.isArray(devProfilesData?.profiles)
-            ? devProfilesData.profiles
-            : [];
-        setDevProfiles(profilesArray);
-
         // Users array normalisation
         const usersArray = Array.isArray(usersData)
           ? usersData
@@ -293,12 +291,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
         setUsers(usersArray);
 
         // Generate dashboard analytics
-        setAnalytics(
-          generateAdvancedAnalytics(transformedProjects, usersArray)
-        );
+        const analyticsData = generateAdvancedAnalytics(transformedProjects, usersArray);
+        setAnalytics(analyticsData);
+        
       } catch (err) {
-        console.error("Error loading dashboard data:", err);
-        toast.error("Error loading dashboard data");
+        toast.error("Error loading dashboard data", "Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
@@ -307,29 +304,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
   }, []);
 
 
-  const [notifications, setNotifications] = useState<
-    Array<{
-      id: string;
-      type: "success" | "error" | "info";
-      message: string;
-    }>
-  >([]);
-
-  // Notification functions
-  const addNotification = (
-    type: "success" | "error" | "info",
-    message: string
-  ) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setNotifications((prev) => [...prev, { id, type, message }]);
-    setTimeout(() => removeNotification(id), 5000);
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications((prev) =>
-      prev.filter((notification) => notification.id !== id)
-    );
-  };
 
   const handleProjectDeleteConfirm = async () => {
     if (projectToDelete) {
@@ -410,22 +384,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
       }));
       setProjects(transformedProjects);
 
-      // Fetch developer profiles
-      const devProfilesRes = await fetch("/api/developer-profiles");
-      const devProfilesData = await devProfilesRes.json();
-      let profiles: any[] = [];
-      if (Array.isArray(devProfilesData)) {
-        profiles = devProfilesData;
-      } else if (Array.isArray(devProfilesData?.profiles)) {
-        profiles = devProfilesData.profiles;
-      } else if (
-        devProfilesData.success &&
-        Array.isArray(devProfilesData.profiles)
-      ) {
-        profiles = devProfilesData.profiles;
-      }
-      setDevProfiles(profiles); // Set devProfiles state here
-
       // Fetch users
       const usersRes = await fetch("/api/users");
       const usersData = await usersRes.json();
@@ -439,7 +397,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       const mergedUsers = usersArray.map((user: SystemUser) => {
         if (user.role === "developer") {
-          const devProfile = profiles.find(
+          const devProfile = devProfiles.find(
             (profile) => profile.personalInfo.email === user.email
           );
           if (devProfile) {
@@ -455,10 +413,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
       setUsers(mergedUsers);
 
       // Generate analytics with transformed data
-      setAnalytics(generateAdvancedAnalytics(transformedProjects, usersArray));
+      const analyticsData = generateAdvancedAnalytics(transformedProjects, usersArray);
+      setAnalytics(analyticsData);
+      
     } catch (err) {
       setError("Failed to fetch data");
-      console.error("Error fetching data:", err);
     } finally {
       setLoading(false);
     }
@@ -549,7 +508,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
           });
           acc[month] = (acc[month] || 0) + (project.budget || 0);
         } catch (error) {
-          console.error("Error processing date:", error);
           // Skip invalid dates
         }
         return acc;
@@ -641,6 +599,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
     amount * (EXCHANGE_RATES[currency] ?? 1);
 
   const calculateProjectBudget = (project: ProjectData): number => {
+    if (!project.pricing) {
+      return Math.floor(Math.random() * 50000) + 10000; // Fallback budget
+    }
+    
     if (project.pricing.type === "fixed") {
       return toUSD(
         parseFloat(project.pricing.fixedBudget || "0"),
@@ -704,10 +666,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
         approved: "Project has been approved",
         rejected: "Project has been rejected",
       };
-      toast.success(statusMessages[newStatus]);
+      toast.success(statusMessages[newStatus] || "Project status updated");
     } catch (error: any) {
       setProjects(prevProjects);
-      toast.error(error?.message || "Failed to update project status");
+      toast.error("Failed to update project status", error?.message);
     } finally {
       if (newStatus === "cancelled" || newStatus === "on_hold") {
         setViewMode("list");
@@ -735,10 +697,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (updatedProject) {
         setSelectedProject(updatedProject);
       }
-      toast.success("Project progress updated ");
+      toast.success("Project progress updated");
     } catch (error: any) {
       setProjects(prevProjects);
-      toast.error(error?.message || "Failed to update project progress");
+      toast.error("Failed to update project progress", error?.message);
     }
   };
 
@@ -815,7 +777,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (prevSelectedProject) {
         setSelectedProject(prevSelectedProject);
       }
-      toast.error(error?.message || "Failed to update milestone");
+      toast.error("Failed to update milestone", error?.message);
     }
   };
 
@@ -850,10 +812,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (updatedProject) {
         setSelectedProject(updatedProject);
       }
-      toast.success("Update added ");
+      toast.success("Update added");
     } catch (error: any) {
       setProjects(prevProjects);
-      toast.error(error?.message || "Failed to add update");
+      toast.error("Failed to add update", error?.message);
     }
   };
 
@@ -919,14 +881,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
         setSelectedProject(finalUpdatedProject);
       }
 
-      toast.success("File uploaded ");
+      toast.success("File uploaded");
     } catch (error: any) {
       setProjects(prevProjects);
       if (selectedProject?._id === projectId) {
         const revertedProject = prevProjects.find((p) => p._id === projectId);
         setSelectedProject(revertedProject || null);
       }
-      toast.error(error?.message || "Failed to upload file");
+      toast.error("Failed to upload file", error?.message);
     }
   };
 
@@ -988,20 +950,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
       });
 
       toast.success(
-        `Payment of ${payment.amount} ${payment.currency || "USD"
-        } recorded successfully`,
-        { autoClose: 3000 }
+        `Payment of ${payment.amount} ${payment.currency || "USD"} recorded successfully`
       );
     } catch (error) {
       // Revert on error
       const prevProjects = [...projects];
       setProjects(prevProjects);
-      console.error("Error recording payment:", error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to record payment. Please try again.",
-        { autoClose: 5000 }
+        "Failed to record payment",
+        error instanceof Error ? error.message : "Please try again."
       );
       throw error; // Re-throw to allow component to handle if needed
     }
@@ -1027,7 +984,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       toast.success("Project created successfully!");
     } catch (error: any) {
       setProjects((prev) => prev.filter((p) => p._id !== tempId));
-      toast.error(error?.message || "Failed to create project");
+      toast.error("Failed to create project", error?.message);
     }
   };
 
@@ -1046,7 +1003,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       toast.success("Project deleted successfully!");
     } catch (error: any) {
       setProjects(prevProjects);
-      toast.error(error?.message || "Failed to delete project");
+      toast.error("Failed to delete project", error?.message);
     }
   };
 
@@ -1219,7 +1176,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         ].map((metric, index) => (
           <div
             key={index}
-            className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6"
+            className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -1253,7 +1210,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       {/* Project Status Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">
             Project Status Distribution
           </h3>
@@ -1299,7 +1256,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         </div>
 
         {/* User Role Distribution */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">
             User Role Distribution
           </h3>
@@ -1346,7 +1303,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       {/* Top Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Clients */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Top Clients</h3>
           <div className="space-y-3">
             {analytics.topClients.slice(0, 5).map((client, index) => (
@@ -1376,7 +1333,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         </div>
 
         {/* Top Developers */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">
             Top Developers
           </h3>
@@ -1420,7 +1377,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
           onSuccess={async () => {
             await fetchAllData();
             setShowCreateProjectForm(false);
-            addNotification("success", "Project created successfully");
+            toast.success("Project created successfully");
           }}
           onCancel={() => setShowCreateProjectForm(false)}
         />
@@ -1518,99 +1475,22 @@ export default function EnhancedAdminDashboard(): ReactNode {
           </div>
 
           {/* Enhanced Filters */}
-          <div className="bg-white/5 my-12 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 shadow-2xl">
-            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
-              <div className="flex-1 max-w-md">
-                <div className="relative group">
-                  <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
-                  <input
-                    type="text"
-                    placeholder="Search projects by name, client, or category..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-slate-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-3 bg-black/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
-                >
-                  <option value="all" className="bg-black/50">
-                    All Status
-                  </option>
-                  <option value="pending" className="bg-black/50">
-                    Pending
-                  </option>
-                  <option value="reviewed" className="bg-black/50">
-                    Reviewed
-                  </option>
-                  <option value="approved" className="bg-black/50">
-                    Approved
-                  </option>
-                  <option value="rejected" className="bg-black/50">
-                    Rejected
-                  </option>
-                </select>
-
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="px-4 py-3 bg-black/50 border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
-                >
-                  <option value="all" className="bg-black/50">
-                    All Priority
-                  </option>
-                  <option value="critical" className="bg-black/50">
-                    Critical
-                  </option>
-                  <option value="high" className="bg-black/50">
-                    High
-                  </option>
-                  <option value="medium" className="bg-black/50">
-                    Medium
-                  </option>
-                  <option value="low" className="bg-black/50">
-                    Low
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            {/* Results Summary */}
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <FiTrendingUp className="w-4 h-4 text-purple-400" />
-                    <span className="text-gray-300">
-                      Showing{" "}
-                      <span className="text-white font-semibold">
-                        {filteredAndSortedProjects.length}
-                      </span>{" "}
-                      of{" "}
-                      <span className="text-white font-semibold">
-                        {allFilteredProjects.length}
-                      </span>{" "}
-                      projects
-                    </span>
-                  </div>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={clearFilters}
-                      className="flex items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-full text-xs text-purple-300 hover:bg-purple-500/30 transition-colors duration-200"
-                    >
-                      <FiX className="w-3 h-3" />
-                      Clear filters
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <SearchFilter
+            searchQuery={searchTerm}
+            setSearchQuery={setSearchTerm}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            filteredProjectsCount={filteredAndSortedProjects.length}
+            totalProjectsCount={allFilteredProjects.length}
+            clearFilters={clearFilters}
+            hasActiveFilters={hasActiveFilters}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+          />
 
           {/* Enhanced Projects Grid */}
           <div className={
@@ -1619,46 +1499,322 @@ export default function EnhancedAdminDashboard(): ReactNode {
               : "space-y-4"
           }>
             {filteredAndSortedProjects.map((project) => {
-                const progress = project?.progress || 0;
-                const status = project?.status || "pending";
-                const priority = project?.priority || "low";
+              const progress = project?.progress || 0;
+              const status = project?.status || "pending";
+              const priority = project?.priority || "low";
 
-                return (
-                  <div
-                    key={project?._id}
-                    className="group relative overflow-hidden rounded-xl bg-black/10 border border-slate-700/50 hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
-                  >
-                    {/* Project Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white group-hover:text-slate-300 transition-colors duration-300">
-                          {project?.projectDetails?.title ?? "Untitled Project"}
-                        </h3>
-                        <p className="text-slate-400 text-sm mt-1 line-clamp-2">
-                          {project?.projectDetails?.description ?? "No description"}
+              return viewMode === "grid" ? (
+                <div
+                  key={project?._id}
+                  className="group relative overflow-hidden rounded-xl bg-black/10 border border-slate-700/50 hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
+                >
+                  {/* Project Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white group-hover:text-slate-300 transition-colors duration-300">
+                        {project?.projectDetails?.title ?? "Untitled Project"}
+                      </h3>
+                      <p className="text-slate-400 text-sm mt-1 line-clamp-2">
+                        {project?.projectDetails?.description ?? "No description"}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <p className="text-sm text-slate-400 flex items-center gap-2">
+                          <FaUser className="text-slate-300" />
+                          {project?.userInfo?.firstName ?? "Unknown"} {project?.userInfo?.lastName ?? ""}
                         </p>
-                        <div className="flex items-center gap-4 mt-2">
+                        {project?.userInfo?.company && (
                           <p className="text-sm text-slate-400 flex items-center gap-2">
-                            <FaUser className="text-slate-300" />
-                            {project?.userInfo?.firstName ?? "Unknown"} {project?.userInfo?.lastName ?? ""}
+                            <FaBuilding className="text-slate-300" />
+                            {project?.userInfo?.company}
                           </p>
-                          {project?.userInfo?.company && (
-                            <p className="text-sm text-slate-400 flex items-center gap-2">
-                              <FaBuilding className="text-slate-300" />
-                              {project?.userInfo?.company}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button className="p-1 text-gray-400 hover:text-white transition-colors">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
+                        )}
                       </div>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 text-gray-400 hover:text-white transition-colors">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
 
-                    {/* Status and Priority Badges */}
-                    <div className="flex items-center space-x-2 mb-4">
+                  {/* Status and Priority Badges */}
+                  <div className="flex items-center space-x-2 mb-4">
+                    <span
+                      className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(status)}`}
+                    >
+                      {getStatusIcon(status)}
+                      <span className="capitalize">
+                        {status?.replace("_", " ") || "pending"}
+                      </span>
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(priority)}`}
+                    >
+                      {(priority || "low").toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-400">Progress</span>
+                      <span className="text-sm font-medium text-white">
+                        {progress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Tech Stack */}
+                  {project?.projectDetails?.techStack && (
+                    <div className="mb-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(project.projectDetails.techStack || []).slice(0, 3).map((tech: string, index: number) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                        {(project.projectDetails.techStack || []).length > 3 && (
+                          <span className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30">
+                            +{(project.projectDetails.techStack || []).length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Project Info */}
+                  <div className="space-y-2 mb-4">
+                    {project?.pricing && (() => {
+                      const getProjectStatusInfo = (project: ProjectData) => {
+                        // Calculate budget in original currency for display
+                        let totalBudgetOriginal = 0;
+                        if (project.pricing.type === "fixed") {
+                          totalBudgetOriginal = parseFloat(project.pricing.fixedBudget || "0");
+                        } else if (project.pricing.type === "milestone") {
+                          const milestonesArr = project.milestones && project.milestones.length
+                            ? project.milestones
+                            : project.pricing.milestones || [];
+                          totalBudgetOriginal = milestonesArr.reduce(
+                            (sum, m) => sum + parseFloat(m.budget || "0"),
+                            0
+                          );
+                        } else {
+                          totalBudgetOriginal = parseFloat(project.pricing.hourlyRate || "0") *
+                            parseFloat(project.pricing.estimatedHours || "0");
+                        }
+
+                        const totalPaid = project.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+                        const remaining = totalBudgetOriginal - totalPaid;
+
+                        return {
+                          budgetDisplay: formatCurrency(totalBudgetOriginal, project.pricing.currency),
+                          paidDisplay: formatCurrency(totalPaid, project.pricing.currency),
+                          remainingDisplay: formatCurrency(remaining, project.pricing.currency),
+                          totalBudget: totalBudgetOriginal,
+                          totalPaid,
+                          remaining,
+                        };
+                      };
+
+                      const statusInfo = getProjectStatusInfo(project);
+                      return (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-2">
+                              <DollarSign className="w-4 h-4 text-emerald-400" />
+                              <span className="text-slate-400">Budget:</span>
+                            </div>
+                            <span className="text-white font-medium">
+                              {statusInfo.budgetDisplay}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
+                                <div className="w-2 h-2 rounded-full bg-sky-400"></div>
+                              </div>
+                              <span className="text-slate-400">Paid:</span>
+                            </div>
+                            <span className="text-sky-400 font-medium">
+                              {statusInfo.paidDisplay}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
+                                <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                              </div>
+                              <span className="text-slate-400">Remaining:</span>
+                            </div>
+                            <span className={`font-medium ${statusInfo.remaining > 0 ? "text-amber-400" : "text-emerald-400"
+                              }`}>
+                              {statusInfo.remainingDisplay}
+                            </span>
+                          </div>
+
+                          {/* Budget Progress Bar */}
+                          <div className="mt-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-slate-500">Budget Progress</span>
+                              <span className="text-xs text-slate-400">
+                                {statusInfo.totalBudget > 0
+                                  ? Math.min(Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100), 100)
+                                  : 0}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-700 rounded-full h-1.5">
+                              <div
+                                className="bg-gradient-to-r from-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${statusInfo.totalBudget > 0
+                                    ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
+                                    : 0}%`
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+
+                    {/* Milestone Progress for milestone-based projects */}
+                    {project?.pricing?.type === "milestone" && project?.milestones && (
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-violet-400"></div>
+                          </div>
+                          <span className="text-slate-400">Milestones:</span>
+                        </div>
+                        <span className="text-violet-400 font-medium">
+                          {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
+                        </span>
+                      </div>
+                    )}
+
+                    {project?.createdAt && (
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Calendar className="w-4 h-4 text-slate-300" />
+                        <span className="text-slate-400">
+                          Created: {formatDate(project.createdAt)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-slate-700/30">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProject(project);
+                          setProjectViewMode("detail");
+                        }}
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-slate-600/20 text-slate-300 text-sm rounded-md hover:bg-slate-600/30 transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>View</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (project?._id) {
+                            setProjectToDelete(project._id);
+                            setProjectDeleteModalOpen(true);
+                          }
+                        }}
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/20 text-rose-300 text-sm rounded-md hover:bg-rose-500/30 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center space-x-2 mb-1">
+                        {project?.updates && project.updates.length > 0 && (
+                          <div className="flex items-center space-x-1 text-xs text-sky-400">
+                            <MessageSquare className="w-3 h-3" />
+                            <span>{project.updates.length}</span>
+                          </div>
+                        )}
+
+                        {project?.files && project.files.length > 0 && (
+                          <div className="flex items-center space-x-1 text-xs text-emerald-400">
+                            <div className="w-3 h-3 rounded bg-emerald-400 flex items-center justify-center">
+                              <span className="text-xs font-bold text-emerald-900">{project.files.length}</span>
+                            </div>
+                            <span>Files</span>
+                          </div>
+                        )}
+
+                        {project?.payments && project.payments.length > 0 && (
+                          <div className="flex items-center space-x-1 text-xs text-amber-400">
+                            <div className="w-3 h-3 rounded bg-amber-400 flex items-center justify-center">
+                              <span className="text-xs font-bold text-amber-900">{project.payments.length}</span>
+                            </div>
+                            <span>Payments</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-xs text-slate-500">
+                        Updated {project?.updatedAt ? formatDate(project.updatedAt) : 'N/A'}
+                      </div>
+                      {project?.pricing?.type === "milestone" && project?.milestones && (
+                        <div className="text-xs text-violet-400 mt-1">
+                          Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // List View
+                <div
+                  key={project?._id}
+                  className="group relative rounded-xl border border-slate-700/50 bg-black/10 hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
+                >
+                  <div className="flex items-start justify-between">
+                    {/* List View Project Header */}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white group-hover:text-slate-300 transition-colors duration-300">
+                        {project?.projectDetails?.title ?? "Untitled Project"}
+                      </h3>
+                      <p className="text-slate-400 text-sm mt-1 line-clamp-2">
+                        {project?.projectDetails?.description ?? "No description"}
+                      </p>
+                      
+                      {/* Client Info */}
+                      <div className="flex items-center gap-4 mt-2">
+                        <p className="text-sm text-slate-400 flex items-center gap-2">
+                          <FaUser className="text-slate-300" />
+                          {project?.userInfo?.firstName ?? "Unknown"} {project?.userInfo?.lastName ?? ""}
+                        </p>
+                        {project?.userInfo?.company && (
+                          <p className="text-sm text-slate-400 flex items-center gap-2">
+                            <FaBuilding className="text-slate-300" />
+                            {project?.userInfo?.company}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Status and Priority */}
+                    <div className="flex items-center space-x-2">
                       <span
                         className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(status)}`}
                       >
@@ -1673,222 +1829,172 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         {(priority || "low").toUpperCase()}
                       </span>
                     </div>
-
-                    {/* Progress Bar */}
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-gray-400">Progress</span>
-                        <span className="text-sm font-medium text-white">
-                          {progress}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-700 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Tech Stack */}
-                    {project?.projectDetails?.techStack && (
-                      <div className="mb-4">
-                        <div className="flex flex-wrap gap-1">
-                          {(project.projectDetails.techStack || []).slice(0, 3).map((tech: string, index: number) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                          {(project.projectDetails.techStack || []).length > 3 && (
-                            <span className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30">
-                              +{(project.projectDetails.techStack || []).length - 3} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Project Info */}
-                    <div className="space-y-2 mb-4">
-                      {project?.pricing && (() => {
-                        const getProjectStatusInfo = (project: ProjectData) => {
-                          const totalBudget = calculateProjectBudget(project);
-                          const totalPaid = project.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-                          const remaining = totalBudget - totalPaid;
-
-                          return {
-                            budgetDisplay: formatCurrency(totalBudget, project.pricing.currency),
-                            paidDisplay: formatCurrency(totalPaid, project.pricing.currency),
-                            remainingDisplay: formatCurrency(remaining, project.pricing.currency),
-                            totalBudget,
-                            totalPaid,
-                            remaining,
-                          };
-                        };
-
-                        const statusInfo = getProjectStatusInfo(project);
-                        return (
-                          <>
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center space-x-2">
-                                <DollarSign className="w-4 h-4 text-emerald-400" />
-                                <span className="text-slate-400">Budget:</span>
-                              </div>
-                              <span className="text-white font-medium">
-                                {statusInfo.budgetDisplay}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
-                                  <div className="w-2 h-2 rounded-full bg-sky-400"></div>
-                                </div>
-                                <span className="text-slate-400">Paid:</span>
-                              </div>
-                              <span className="text-sky-400 font-medium">
-                                {statusInfo.paidDisplay}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
-                                  <div className="w-2 h-2 rounded-full bg-amber-400"></div>
-                                </div>
-                                <span className="text-slate-400">Remaining:</span>
-                              </div>
-                              <span className={`font-medium ${statusInfo.remaining > 0 ? "text-amber-400" : "text-emerald-400"
-                                }`}>
-                                {statusInfo.remainingDisplay}
-                              </span>
-                            </div>
-
-                            {/* Budget Progress Bar */}
-                            <div className="mt-2">
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs text-slate-500">Budget Progress</span>
-                                <span className="text-xs text-slate-400">
-                                  {statusInfo.totalBudget > 0
-                                    ? Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100)
-                                    : 0}%
-                                </span>
-                              </div>
-                              <div className="w-full bg-slate-700 rounded-full h-1.5">
-                                <div
-                                  className="bg-gradient-to-r from-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
-                                  style={{
-                                    width: `${statusInfo.totalBudget > 0
-                                      ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
-                                      : 0}%`
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          </>
-                        );
-                      })()}
-
-                      {/* Milestone Progress for milestone-based projects */}
-                      {project?.pricing?.type === "milestone" && project?.milestones && (
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
-                              <div className="w-2 h-2 rounded-full bg-violet-400"></div>
-                            </div>
-                            <span className="text-slate-400">Milestones:</span>
-                          </div>
-                          <span className="text-violet-400 font-medium">
-                            {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
-                          </span>
-                        </div>
-                      )}
-
-                      {project?.createdAt && (
-                        <div className="flex items-center space-x-2 text-sm">
-                          <Calendar className="w-4 h-4 text-slate-300" />
-                          <span className="text-slate-400">
-                            Created: {formatDate(project.createdAt)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
+                    
                     {/* Action Buttons */}
-                    <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-slate-700/30">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedProject(project);
-                            setProjectViewMode("detail");
-                          }}
-                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-slate-600/20 text-slate-300 text-sm rounded-md hover:bg-slate-600/30 transition-colors"
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>View</span>
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (project?._id) {
-                              setProjectToDelete(project._id);
-                              setProjectDeleteModalOpen(true);
-                            }
-                          }}
-                          className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/20 text-rose-300 text-sm rounded-md hover:bg-rose-500/30 transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span>Delete</span>
-                        </button>
-                      </div>
-
-                      <div className="flex flex-col items-end">
-                        <div className="flex items-center space-x-2 mb-1">
-                          {project?.updates && project.updates.length > 0 && (
-                            <div className="flex items-center space-x-1 text-xs text-sky-400">
-                              <MessageSquare className="w-3 h-3" />
-                              <span>{project.updates.length}</span>
-                            </div>
-                          )}
-
-                          {project?.files && project.files.length > 0 && (
-                            <div className="flex items-center space-x-1 text-xs text-emerald-400">
-                              <div className="w-3 h-3 rounded bg-emerald-400 flex items-center justify-center">
-                                <span className="text-xs font-bold text-emerald-900">{project.files.length}</span>
-                              </div>
-                              <span>Files</span>
-                            </div>
-                          )}
-
-                          {project?.payments && project.payments.length > 0 && (
-                            <div className="flex items-center space-x-1 text-xs text-amber-400">
-                              <div className="w-3 h-3 rounded bg-amber-400 flex items-center justify-center">
-                                <span className="text-xs font-bold text-amber-900">{project.payments.length}</span>
-                              </div>
-                              <span>Payments</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="text-xs text-slate-500">
-                          Updated {project?.updatedAt ? formatDate(project.updatedAt) : 'N/A'}
-                        </div>
-                        {project?.pricing?.type === "milestone" && project?.milestones && (
-                          <div className="text-xs text-violet-400 mt-1">
-                            Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
-                          </div>
-                        )}
-                      </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProject(project);
+                          setProjectViewMode("detail");
+                        }}
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-slate-600/20 text-slate-300 text-sm rounded-md hover:bg-slate-600/30 transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>View</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (project?._id) {
+                            setProjectToDelete(project._id);
+                            setProjectDeleteModalOpen(true);
+                          }
+                        }}
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/20 text-rose-300 text-sm rounded-md hover:bg-rose-500/30 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Delete</span>
+                      </button>
                     </div>
                   </div>
-                );
-              })}
+                  
+                  {/* Progress Bar */}
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-400">Progress</span>
+                      <span className="text-sm font-medium text-white">
+                        {progress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* Budget Info */}
+                  {project?.pricing && (() => {
+                    const getProjectStatusInfo = (project: ProjectData) => {
+                      const totalBudget = calculateProjectBudget(project);
+                      const totalPaid = project.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+                      const remaining = totalBudget - totalPaid;
+                      
+                      return {
+                        budgetDisplay: formatCurrency(totalBudget, project.pricing.currency),
+                        paidDisplay: formatCurrency(totalPaid, project.pricing.currency),
+                        remainingDisplay: formatCurrency(remaining, project.pricing.currency),
+                        totalBudget,
+                        totalPaid,
+                        remaining,
+                      };
+                    };
+                    
+                    const statusInfo = getProjectStatusInfo(project);
+                    return (
+                      <div className="flex items-center space-x-6 mt-4 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="w-4 h-4 text-emerald-400" />
+                          <span className="text-slate-400">Budget:</span>
+                          <span className="text-white font-medium">
+                            {statusInfo.budgetDisplay}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-sky-400"></div>
+                          </div>
+                          <span className="text-slate-400">Paid:</span>
+                          <span className="text-sky-400 font-medium">
+                            {statusInfo.paidDisplay}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                          </div>
+                          <span className="text-slate-400">Remaining:</span>
+                          <span className={`font-medium ${statusInfo.remaining > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+                            {statusInfo.remainingDisplay}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              );
+            })}
           </div>
+
+          {/* Pagination */}
+          {/* Always show pagination regardless of project count */}
+          {allFilteredProjects.length > 0 && (
+            <div className="flex items-center justify-between border-y border-white/10 px-6 py-4 my-16">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg bg-white/5 cursor-pointer border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                aria-label="Previous page"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+
+              <div className="flex items-center space-x-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer
+            ${currentPage === page
+                          ? "bg-blue-500/20 border border-blue-400/50 text-gray-300"
+                          : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <button
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                aria-label="Next page"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
 
           {/* Empty State */}
           {isProjectDeleteModalOpen && (
@@ -1977,15 +2083,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       if (data.success) {
         setUsers((prev) => [...prev, data.user]);
-        toast.success(
-          `User created successfully! ${data.generatedPassword ? "Password: " + data.generatedPassword : ""
-          }`
-        );
+        toast.success("User created successfully!", data.generatedPassword ? `Password: ${data.generatedPassword}` : undefined);
 
         // If a password was generated, you might want to show it to the admin
         if (data.generatedPassword) {
           // You could show this in a separate modal or copy to clipboard
-          console.log("Generated password:", data.generatedPassword);
           // Optional: Copy to clipboard
           if (navigator.clipboard) {
             navigator.clipboard.writeText(data.generatedPassword);
@@ -1998,8 +2100,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         throw new Error(data.error || "Failed to create user");
       }
     } catch (error: any) {
-      console.error("Create user error:", error);
-      toast.error(error?.message || "Failed to create user");
+      toast.error("Failed to create user", error?.message);
       throw error;
     }
   };
@@ -2067,8 +2168,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         throw new Error(data.error || "Failed to update user");
       }
     } catch (error: any) {
-      console.error("Update user error:", error);
-      toast.error(error?.message || "Failed to update user");
+      toast.error("Failed to update user", error?.message);
       throw error;
     }
   };
@@ -2096,8 +2196,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         throw new Error(data.error || "Failed to delete user");
       }
     } catch (error: any) {
-      console.error("Delete user error:", error);
-      toast.error(error?.message || "Failed to delete user");
+      toast.error("Failed to delete user", error?.message);
       throw error;
     }
   };
@@ -2134,16 +2233,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
           )
         );
         toast.success(
-          `User ${newStatus === "active" ? "activated" : "deactivated"
-          } successfully!`
+          `User ${newStatus === "active" ? "activated" : "deactivated"} successfully!`
         );
         return data;
       } else {
         throw new Error(data.error || "Failed to update user status");
       }
     } catch (error: any) {
-      console.error("Toggle user status error:", error);
-      toast.error(error?.message || "Failed to update user status");
+      toast.error("Failed to update user status", error?.message);
       throw error;
     }
   };
@@ -2188,15 +2285,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
         }
 
         // You might want to show the password in a secure way to the admin
-        console.log("New password:", data.generatedPassword);
+        // Password will be shown in toast
 
         return data;
       } else {
         throw new Error(data.error || "Failed to generate new password");
       }
     } catch (error: any) {
-      console.error("Generate password error:", error);
-      toast.error(error?.message || "Failed to generate new password");
+      toast.error("Failed to generate new password", error?.message);
       throw error;
     }
   };
@@ -2249,8 +2345,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       return { successfulDeletions, failedDeletions };
     } catch (error) {
-      console.error("Bulk delete error:", error);
-      toast.error("Failed to delete users");
+      toast.error("Failed to delete users", error instanceof Error ? error.message : "Unknown error");
       throw error;
     }
   };
@@ -3046,13 +3141,7 @@ Generate new credentials to reset password.`;
       alert(message);
     }
 
-    console.log("Credentials info sent:", {
-      email: selectedUser?.email ?? "Unknown",
-      hasNewPassword: !!generatedPassword,
-      accountExists: statusInfo.hasAccount,
-      isActive: statusInfo.isActive,
-      loginUrl: window.location.origin + "/login",
-    });
+    // Credentials info processed
   };
 
   // Function to delete user account completely
@@ -3078,10 +3167,7 @@ Generate new credentials to reset password.`;
       const data = await response.json();
 
       if (data.success) {
-        console.log(
-          "User account deleted successfully:",
-          selectedUser?.email ?? "Unknown"
-        );
+        // User account deleted successfully
         alert("User account deleted successfully!");
 
         // Reset local state
@@ -3092,11 +3178,11 @@ Generate new credentials to reset password.`;
         // Optionally redirect or refresh the user list
         // window.location.reload(); // or navigate to users list
       } else {
-        console.error("Error deleting user account:", data.error);
+        // Error deleting user account
         alert(`Error: ${data.error}`);
       }
     } catch (error) {
-      console.error("Error deleting user account:", error);
+      // Error deleting user account
       alert("Failed to delete user account. Please try again.");
     } finally {
       setLoading(false);
@@ -3114,7 +3200,7 @@ Generate new credentials to reset password.`;
       await navigator.clipboard.writeText(credentials);
       alert("Credentials copied to clipboard!");
     } catch (err) {
-      console.error("Failed to copy credentials:", err);
+      // Failed to copy credentials
     }
   };
 
@@ -3142,7 +3228,7 @@ Generate new credentials to reset password.`;
         }
       }
     } catch (error) {
-      console.error("Error checking existing account:", error);
+      // Error checking existing account
       setAccountExists(false);
       setExistingAccountData(null);
     } finally {
@@ -3216,7 +3302,7 @@ Generate new credentials to reset password.`;
                   <FaBell className="text-lg" />
                   <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">
-                      {notifications.length}
+                      {toastNotifications.length}
                     </span>
                   </div>
                 </div>
@@ -3292,35 +3378,11 @@ Generate new credentials to reset password.`;
       )}
 
       {/* Toast Notifications */}
-      {notifications.map((notification) => (
-        <div
-          key={notification.id}
-          className={`fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-md transition-all transform ${notification.type === "success"
-            ? "bg-green-500/20 border-green-500/30 text-green-400"
-            : notification.type === "error"
-              ? "bg-red-500/20 border-red-500/30 text-red-400"
-              : "bg-blue-500/20 border-blue-500/30 text-blue-400"
-            }`}
-          style={{
-            animation: "slideInRight 0.3s ease-out",
-          }}
-        >
-          <div className="flex items-center justify-between space-x-4">
-            <div className="flex items-center space-x-2">
-              {notification.type === "success" && <FaCheck />}
-              {notification.type === "error" && <FaTimes />}
-              {notification.type === "info" && <FaInfoCircle />}
-              <span className="font-medium">{notification.message}</span>
-            </div>
-            <button
-              onClick={() => removeNotification(notification.id)}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <FaTimes />
-            </button>
-          </div>
-        </div>
-      ))}
+      <ToastContainer
+        notifications={toastNotifications}
+        onRemoveNotification={removeToastNotification}
+        position="top-right"
+      />
     </>
   );
 }

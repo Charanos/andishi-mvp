@@ -65,6 +65,16 @@ import {
 } from "~/types";
 import ProjectChat from "./ProjectChat";
 import { useAuth } from "@/hooks/useAuth";
+import { 
+  PAYMENT_METHODS, 
+  getEnabledPaymentMethods, 
+  getPaymentMethodsForCurrency, 
+  formatPaymentMethodLabel, 
+  DEFAULT_PAYMENT_METHOD,
+  PaymentMethodType 
+} from "@/lib/paymentMethods";
+import ToastContainer from "../components/ToastContainer";
+import { ToastNotification } from "../components/ToastNotification";
 
 interface FetcherError extends Error {
   info?: any;
@@ -153,7 +163,7 @@ type MilestoneStatus =
   | "in-progress"
   | "completed"
   | "cancelled";
-type PaymentStatus = "pending" | "paid" | "overdue" | "partial";
+type PaymentStatus = "pending" | "approved" | "completed" | "rejected" | "outstanding" | "paid" | "overdue" | "partial";
 type FileType = "document" | "image" | "video" | "other";
 type UpdateType =
   | "general"
@@ -163,11 +173,25 @@ type UpdateType =
   | "admin_response";
 
 // Utility functions
+const EXCHANGE_RATES: Record<"USD" | "KES", number> = {
+  USD: 1,
+  KES: 1 / 130, // approximate: 130 KES ≈ 1 USD
+};
+
+const toUSD = (amount: number, currency: "USD" | "KES" = "USD") => {
+  return amount * (EXCHANGE_RATES[currency] ?? 1);
+};
+
 const formatCurrency = (amount: number, currency: "USD" | "KES") => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,
   }).format(amount);
+};
+
+const formatCurrencyLocal = (amount: number, currency: "USD" | "KES") => {
+  const currencySymbol = currency === "USD" ? "$" : "KES ";
+  return `${currencySymbol}${amount.toLocaleString()}`;
 };
 
 const getStatusColor = (status: string) => {
@@ -236,6 +260,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [activePaymentTab, setActivePaymentTab] = useState<'pending' | 'history'>('pending');
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
   const [progressValue, setProgressValue] = useState(
     selectedProject?.progress || 0
@@ -243,27 +268,34 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
   const { user: currentUser } = useAuth();
 
+  // Custom toast notification functions
+  const addNotification = (
+    type: "success" | "error" | "info" | "warning",
+    title: string,
+    message?: string
+  ) => {
+    const id = Date.now().toString();
+    const notification: ToastNotification = { id, type, title, message };
+    setNotifications((prev) => [...prev, notification]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const toast = {
+    success: (title: string, message?: string) => addNotification("success", title, message),
+    error: (title: string, message?: string) => addNotification("error", title, message),
+    info: (title: string, message?: string) => addNotification("info", title, message),
+    warning: (title: string, message?: string) => addNotification("warning", title, message),
+  };
+
   // Fetch activity data using SWR
   const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
     selectedProject ? `/api/project-activity/${selectedProject._id}` : null,
     fetcher
   );
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Admin Dashboard - Project Data:', projectData);
-    console.log('Admin Dashboard - Milestones:', projectData.milestones);
-    console.log('Admin Dashboard - Pricing:', projectData.pricing);
-    console.log('Admin Dashboard - Activity Data:', activityData);
-    console.log('Admin Dashboard - Activity Error:', activityError);
-    console.log('Admin Dashboard - Activity Loading:', activityLoading);
-
-    if (activityData) {
-      console.log('Admin Dashboard - Activity Data Success:', activityData.success);
-      console.log('Admin Dashboard - Activity Data Count:', activityData.count);
-      console.log('Admin Dashboard - Activity Data Items:', activityData.data);
-    }
-  }, [projectData, activityData, activityError, activityLoading]);
 
   const [updateForm, setUpdateForm] = useState({
     title: "",
@@ -273,13 +305,13 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [paymentForm, setPaymentForm] = useState<{
     amount: number;
     date: string;
-    method: string;
+    method: PaymentMethodType;
     status: string;
     notes: string;
   }>({
     amount: 0,
     date: new Date().toISOString().split("T")[0],
-    method: "card",
+    method: DEFAULT_PAYMENT_METHOD,
     status: "completed",
     notes: "",
   });
@@ -412,7 +444,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     }, 0);
   })();
 
-  const spentBudget = (projectData.payments || []).reduce((sum, p) => sum + p.amount, 0);
+  const spentBudget = (projectData.payments || [])
+    .filter(p => p.status === 'approved' || p.status === 'completed')
+    .reduce((sum, p) => sum + p.amount, 0);
   const budgetProgress =
     totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
 
@@ -556,7 +590,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {payment.description || "Payment"}
                     </h3>
                     <p className="text-sm text-gray-400">
-                      Method: {payment.method}
+                      Method: {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
                     </p>
                     <div className="text-xs text-gray-500 mt-2">
                       Date: {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
@@ -777,7 +811,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
   const getTotalPaid = () => {
     return (projectData.payments || []).reduce((total, payment) => {
-      if (payment.status === 'approved' || payment.status === 'paid') {
+      if (payment.status === 'approved' || payment.status === 'completed' || payment.status === 'paid') {
         return total + payment.amount;
       }
       return total;
@@ -809,13 +843,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
   const handleProgressUpdate = async () => {
     try {
-      console.log(
-        `Updating progress for project: ${selectedProject._id}, value: ${progressValue}`
-      );
+toast.info("Updating project progress", `Progress: ${progressValue}%`);
       await onProgressUpdate(selectedProject._id, progressValue);
       setShowProgressModal(false);
     } catch (error) {
-      console.error("Error updating progress:", error);
+toast.error("Failed to update progress", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -825,7 +857,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       setUpdateForm({ title: "", description: "", type: "general" });
       setShowUpdateModal(false);
     } catch (error) {
-      console.error("Error adding update:", error);
+toast.error("Failed to add update", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -870,7 +902,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     setPaymentForm({
       amount: 0,
       date: new Date().toISOString().split("T")[0],
-      method: "card",
+      method: DEFAULT_PAYMENT_METHOD,
       status: "completed",
       notes: "",
     });
@@ -917,10 +949,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           setNewFile({});
           setShowAddFile(false);
         } else {
-          console.error('Failed to add file:', result.error);
+toast.error("Failed to add file", result.error);
         }
       } catch (error) {
-        console.error('Error adding file:', error);
+toast.error("Error adding file", error instanceof Error ? error.message : "Unknown error");
       }
     }
   };
@@ -945,10 +977,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           ) || [],
         }));
       } else {
-        console.error('Failed to update file');
+toast.error("Failed to update file");
       }
     } catch (error) {
-      console.error('Error updating file:', error);
+toast.error("Error updating file", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -968,10 +1000,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           files: prevData.files?.filter((file) => file.id !== id) || [],
         }));
       } else {
-        console.error('Failed to delete file');
+toast.error("Failed to delete file");
       }
     } catch (error) {
-      console.error('Error deleting file:', error);
+toast.error("Error deleting file", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -1093,12 +1125,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         handleUpdatePayment(paymentId, updatedStatus);
 
         // Show success message
-        console.log('Payment approved successfully');
+toast.success("Payment approved successfully");
       } else {
-        console.error('Failed to approve payment:', result.error);
+toast.error("Failed to approve payment", result.error);
       }
     } catch (error) {
-      console.error('Error approving payment:', error);
+toast.error("Error approving payment", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -1131,12 +1163,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         handleUpdatePayment(paymentId, updatedStatus);
 
         // Show success message
-        console.log('Payment rejected successfully');
+toast.success("Payment rejected successfully");
       } else {
-        console.error('Failed to reject payment:', result.error);
+toast.error("Failed to reject payment", result.error);
       }
     } catch (error) {
-      console.error('Error rejecting payment:', error);
+toast.error("Error rejecting payment", error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -2818,14 +2850,15 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <select
                   value={paymentForm.method}
                   onChange={(e) =>
-                    setPaymentForm({ ...paymentForm, method: e.target.value })
+                    setPaymentForm({ ...paymentForm, method: e.target.value as PaymentMethodType })
                   }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="card">Card</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="paypal">PayPal</option>
-                  <option value="other">Other</option>
+                  {getPaymentMethodsForCurrency(selectedProject?.pricing?.currency || "USD").map((method) => (
+                    <option key={method.value} value={method.value}>
+                      {method.icon} {method.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex justify-end space-x-4 mt-6">
@@ -3424,6 +3457,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           border: 2px solid #1f2937;
         }
       `}</style>
+      <ToastContainer 
+        notifications={notifications} 
+        onRemoveNotification={removeNotification} 
+      />
     </div>
   );
 };

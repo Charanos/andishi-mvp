@@ -25,6 +25,9 @@ import {
 } from "react-icons/fa";
 import { UserRole } from "@/types/auth";
 import ScrollToTop from "../components/ScrollToTop";
+import ToastContainer from "../components/ToastContainer";
+import useToast from "../../hooks/useToast";
+import { useDeveloperProfiles } from "@/hooks/useDeveloperProfiles";
 
 // Type definitions
 interface SystemUser {
@@ -113,6 +116,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
   userStatusFilter,
   setUserStatusFilter,
 }) => {
+  const { notifications, removeNotification, toast } = useToast();
   // State management
   const [viewMode, setViewMode] = useState<
     "list" | "create" | "edit" | "detail"
@@ -182,7 +186,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         }
       }
     } catch (error) {
-      console.error("Error checking existing account:", error);
+toast.error("Error checking existing account", error instanceof Error ? error.message : "Unknown error");
       setAccountExists(false);
     }
   };
@@ -269,7 +273,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         }, 1800);
       }
     } catch (err) {
-      console.error("Failed to copy to clipboard:", err);
+toast.error("Failed to copy to clipboard", err instanceof Error ? err.message : "Unknown error");
 
       // Error toast notification - glassmorphic
       if (typeof window !== "undefined") {
@@ -1399,14 +1403,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         <div className="flex items-center space-x-2">
                           <div
                             className={`w-2 h-2 rounded-full ${getAccountStatusInfo().isActive
-                                ? "bg-green-400"
-                                : "bg-red-400"
+                              ? "bg-green-400"
+                              : "bg-red-400"
                               }`}
                           ></div>
                           <span
                             className={`text-xs  monty uppercase ${getAccountStatusInfo().isActive
-                                ? "text-green-400"
-                                : "text-red-400"
+                              ? "text-green-400"
+                              : "text-red-400"
                               }`}
                           >
                             {getAccountStatusInfo().isActive
@@ -1501,12 +1505,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   {/* Enhanced Account Status Alert */}
                   <div
                     className={`${generatedPassword
-                        ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
-                        : accountExists
-                          ? getAccountStatusInfo().isActive
-                            ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20"
-                            : "bg-gradient-to-r from-red-500/10 to-rose-500/10 border-red-500/20"
-                          : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
+                      ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
+                      : accountExists
+                        ? getAccountStatusInfo().isActive
+                          ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20"
+                          : "bg-gradient-to-r from-red-500/10 to-rose-500/10 border-red-500/20"
+                        : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
                       } border rounded-xl p-6`}
                   >
                     <div className="flex items-start space-x-3">
@@ -1524,12 +1528,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       <div>
                         <h4
                           className={`${generatedPassword
-                              ? "text-green-300"
-                              : accountExists
-                                ? getAccountStatusInfo().isActive
-                                  ? "text-blue-300"
-                                  : "text-red-300"
-                                : "text-amber-300"
+                            ? "text-green-300"
+                            : accountExists
+                              ? getAccountStatusInfo().isActive
+                                ? "text-blue-300"
+                                : "text-red-300"
+                              : "text-amber-300"
                             } font-semibold mb-2`}
                         >
                           {generatedPassword
@@ -1544,12 +1548,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         </h4>
                         <div
                           className={`space-y-2 text-sm ${generatedPassword
-                              ? "text-green-200"
-                              : accountExists
-                                ? getAccountStatusInfo().isActive
-                                  ? "text-blue-200"
-                                  : "text-red-200"
-                                : "text-amber-200"
+                            ? "text-green-200"
+                            : accountExists
+                              ? getAccountStatusInfo().isActive
+                                ? "text-blue-200"
+                                : "text-red-200"
+                              : "text-amber-200"
                             }`}
                         >
                           {generatedPassword ? (
@@ -1688,8 +1692,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             : restoreAccess
                         }
                         className={`px-4 py-3 bg-gradient-to-r ${getAccountStatusInfo().isActive
-                            ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
-                            : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600"
+                          ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
+                          : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600"
                           } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
                       >
                         {getAccountStatusInfo().isActive ? (
@@ -1927,7 +1931,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       </div>
 
       {/* Users Table */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+      <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl overflow-hidden">
         {paginatedUsers.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-400 monty uppercase">No users found</p>
@@ -1988,8 +1992,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         <button
                           onClick={() => toggleUserStatus(user._id, user.status)}
                           className={`cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors ${user.status === "active"
-                              ? "text-yellow-400/70 hover:text-yellow-300/70"
-                              : "text-lime-400/70 hover:text-lime-300/80"
+                            ? "text-yellow-400/70 hover:text-yellow-300/70"
+                            : "text-lime-400/70 hover:text-lime-300/80"
                             }`}
                           title={
                             user.status === "active"
@@ -2189,8 +2193,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           <button
                             onClick={() => toggleUserStatus(user._id, user.status)}
                             className={`cursor-pointer p-1 rounded hover:bg-white/10 transition-colors ${user.status === "active"
-                                ? "text-yellow-400/70 hover:text-yellow-300/70"
-                                : "text-lime-400/70 hover:text-lime-300/80"
+                              ? "text-yellow-400/70 hover:text-yellow-300/70"
+                              : "text-lime-400/70 hover:text-lime-300/80"
                               }`}
                             title={
                               user.status === "active"
@@ -2230,8 +2234,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
               className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${currentPage === 1
-                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
-                  : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+                ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
+                : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
                 }`}
             >
               Previous
@@ -2245,8 +2249,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
               }
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${currentPage === totalPages
-                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
-                  : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+                ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
+                : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
                 }`}
             >
               Next
@@ -2309,6 +2313,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
           <div className="text-sm text-gray-400 monty">Developers</div>
         </div>
       </div>
+      <ToastContainer 
+        notifications={notifications} 
+        onRemoveNotification={removeNotification} 
+      />
     </div>
   );
 };

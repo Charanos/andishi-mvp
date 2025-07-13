@@ -21,6 +21,8 @@ import DevAchievements from "./DevAchievements";
 import DevSkills from "./devSkills";
 import DevProjects from "./DevProjects";
 import EnhancedDeveloperOverview from "./DevOverview";
+import ToastContainer from "../components/ToastContainer";
+import { ToastNotification } from "../components/ToastNotification";
 
 // Enhanced interfaces
 interface Achievement {
@@ -135,6 +137,16 @@ export default function EnhancedDeveloperDashboard() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">(
     "30d"
   );
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
+    const id = Date.now().toString();
+    setNotifications(prev => [...prev, { ...notification, id }]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
 
   useEffect(() => {
     if (!user) return; // wait until user is loaded
@@ -200,8 +212,11 @@ export default function EnhancedDeveloperDashboard() {
           },
         });
       } catch (err) {
-        console.error("Error fetching profile:", err);
-        // You might want to show an error message to the user here
+        addNotification({ 
+          type: "error", 
+          title: "Profile Load Error", 
+          message: "Failed to load your developer profile. Please try again."
+        });
       } finally {
         setLoading(false);
       }
@@ -489,6 +504,7 @@ export default function EnhancedDeveloperDashboard() {
           <DevAchievements achievements={profile.achievements} />
         )}
       </div>
+      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
     </div>
   );
 }

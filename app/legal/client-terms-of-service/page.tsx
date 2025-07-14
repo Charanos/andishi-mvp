@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import React from "react";
+import ScrollToTop from "../../components/ScrollToTop";
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -26,45 +27,90 @@ const TermsOfServicePage = () => {
           },
         },
       }}
-      className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"
+      className="w-full min-h-screen px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"
     >
       <motion.header
         variants={sectionVariants}
         className="text-center mb-10 sm:mb-12 lg:mb-16"
       >
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
+        <h1 className="text-4xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-white">
           Client Terms of Service
         </h1>
-        <p className="mt-3 sm:mt-4 text-base sm:text-lg lg:text-xl text-gray-300">
+        <p className="mt-3 sm:mt-4 text-sm lg:text-md text-gray-300">
           Last updated: July 14, 2025
         </p>
       </motion.header>
 
       <div className="max-w-4xl mx-auto space-y-8">
-        <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
-            1. Agreement to Terms
+        <motion.section variants={sectionVariants} className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
+          <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
+            <span className="bg-gradient-to-r from-primary to-purple text-transparent bg-clip-text">1.</span>
+            <span className="ml-3">Agreement to Terms</span>
           </h2>
-          <p className="text-gray-300 leading-relaxed">
-            By engaging Andishi MVP for services, you agree to these Terms.
-            These Terms supplement and form the foundation of any
-            project-specific Statement of Work (SOW) or signed agreement.
-          </p>
+          <div className="space-y-4 text-gray-300 leading-relaxed">
+            <p>
+              By engaging Andishi MVP for services, you agree to these Terms.
+              These Terms supplement and form the foundation of any
+              project-specific Statement of Work (SOW) or signed agreement.
+            </p>
+            <div className="bg-green-900/20 p-4 rounded-lg border-l-4 border-green-400">
+              <h3 className="font-semibold text-green-400 mb-2">Professional Services</h3>
+              <p className="text-sm">
+                Our services are designed for businesses seeking high-quality software development,
+                staff augmentation, and technology consulting solutions.
+              </p>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section variants={sectionVariants} className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
+          <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
+            <span className="bg-gradient-to-r from-primary to-purple text-transparent bg-clip-text">2.</span>
+            <span className="ml-3">Scope of Work</span>
+          </h2>
+          <div className="space-y-6 text-gray-300 leading-relaxed">
+            <p>
+              Our services may include software development, staff augmentation,
+              or other technology services as outlined in your signed project
+              documents.
+            </p>
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-400 mb-2">Software Development</h3>
+                <ul className="text-xs space-y-1">
+                  <li>• Web applications</li>
+                  <li>• Mobile applications</li>
+                  <li>• API development</li>
+                  <li>• Database design</li>
+                </ul>
+              </div>
+              
+              <div className="bg-gradient-to-br from-green-900/30 to-teal-900/30 p-4 rounded-lg">
+                <h3 className="font-semibold text-green-400 mb-2">Staff Augmentation</h3>
+                <ul className="text-xs space-y-1">
+                  <li>• Skilled developers</li>
+                  <li>• Project managers</li>
+                  <li>• Technical architects</li>
+                  <li>• Quality assurance</li>
+                </ul>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-4 rounded-lg">
+                <h3 className="font-semibold text-purple-400 mb-2">Consulting</h3>
+                <ul className="text-xs space-y-1">
+                  <li>• Technology strategy</li>
+                  <li>• Code reviews</li>
+                  <li>• Architecture planning</li>
+                  <li>• Performance optimization</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
-            2. Scope of Work
-          </h2>
-          <p className="text-gray-300 leading-relaxed">
-            Our services may include software development, staff augmentation,
-            or other technology services as outlined in your signed project
-            documents.
-          </p>
-        </motion.section>
-
-        <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             3. Client Obligations
           </h2>
           <p className="text-gray-300 leading-relaxed">
@@ -76,7 +122,7 @@ const TermsOfServicePage = () => {
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             4. Payments & Fees
           </h2>
           <p className="text-gray-300 leading-relaxed">
@@ -87,7 +133,7 @@ const TermsOfServicePage = () => {
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             5. Ownership & IP
           </h2>
           <p className="text-gray-300 leading-relaxed">
@@ -99,7 +145,7 @@ const TermsOfServicePage = () => {
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             6. Confidentiality
           </h2>
           <p className="text-gray-300 leading-relaxed">
@@ -111,7 +157,7 @@ const TermsOfServicePage = () => {
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             7. Limitation of Liability
           </h2>
           <p className="text-gray-300 leading-relaxed">
@@ -122,7 +168,7 @@ const TermsOfServicePage = () => {
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             8. Termination
           </h2>
           <p className="text-gray-300 leading-relaxed">
@@ -134,7 +180,7 @@ const TermsOfServicePage = () => {
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             9. Governing Law
           </h2>
           <p className="text-gray-300 leading-relaxed">
@@ -145,22 +191,23 @@ const TermsOfServicePage = () => {
         </motion.section>
 
         <motion.section variants={sectionVariants}>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
+          <h2 className="text-lg font-medium text-white mb-4">
             10. Contact Information
           </h2>
           <p className="text-gray-300 leading-relaxed">
             Email:{" "}
             <a
               href="mailto:legal@andishi.dev"
-              className="text-primary-400 hover:underline"
+              className="text-primary-400 hover:underline cursor-pointer"
             >
-              legal@andishi.dev
+              info@andishi.dev
             </a>
             <br />
             Address: Ruiru, Kiambu, Kenya
           </p>
         </motion.section>
       </div>
+      <ScrollToTop />
     </motion.div>
   );
 };

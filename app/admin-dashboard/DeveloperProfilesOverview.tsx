@@ -206,11 +206,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
         profile.professionalInfo.experienceLevel === selectedExperience;
 
       const enhancedAvailability = getEnhancedAvailabilityInfo(profile);
-      const matchesAvailability =
-        selectedAvailability === "all" ||
-        (selectedAvailability === "available" && enhancedAvailability.status === "available") ||
-        (selectedAvailability === "unavailable" && !profile.isAvailable && enhancedAvailability.status === "busy") ||
-        (selectedAvailability === "busy" && (enhancedAvailability.status === "busy" || enhancedAvailability.status === "busy_until_date"));
+      const matchesAvailability = (() => {
+        if (selectedAvailability === "all") return true;
+        if (selectedAvailability === "available") return enhancedAvailability.status === "available";
+        if (selectedAvailability === "busy") return enhancedAvailability.status === "busy" || enhancedAvailability.status === "busy_until_date";
+        if (selectedAvailability === "unavailable") return enhancedAvailability.status !== "available";
+        return true;
+      })();
 
       return matchesSearch && matchesExperience && matchesAvailability;
     });

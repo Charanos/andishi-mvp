@@ -359,25 +359,43 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
 
   const handleToggleApproval = async (profileId: string, actionStatus: "approved" | "rejected") => {
     const isAvailable = actionStatus === "approved";
+    const action = actionStatus === 'approved' ? 'approve' : 'reject';
+
+    console.log(`Attempting to ${action} developer profile ${profileId}`);
 
     try {
       // Optimistically update UI
       setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
       setFilteredProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
-      // Send PATCH/PUT to backend
-      await fetch(`/api/developer-profiles/approve`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profileId, action: actionStatus === 'approved' ? 'approve' : 'reject' })
-        });
-      toast.success(`Developer ${actionStatus} successfully`, `Profile status updated to ${actionStatus}.`);
-      refreshUsers(); // Call refreshUsers after successful update
+      
+      // Send PATCH to backend
+      const response = await fetch(`/api/developer-profiles/approve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileId, action })
+      });
 
-      // Also refresh the profiles to ensure consistency
-      await fetchProfiles();
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || `Failed to ${action} developer`);
+      }
+
+      console.log(`Successfully ${action}d developer:`, result);
+      toast.success(`Developer ${actionStatus} successfully`, `Profile status updated to ${actionStatus}.`);
+      
+      // Refresh both data sources to ensure consistency
+      refreshUsers();
+      
+      // Force refresh profiles with a delay to ensure backend processing is complete
+      setTimeout(async () => {
+        await fetchProfiles();
+      }, 500);
+      
     } catch (err) {
-      toast.error('Failed to update approval status', 'Please try again later.');
+      console.error(`Error ${action}ing developer:`, err);
+      toast.error('Failed to update approval status', err instanceof Error ? err.message : 'Please try again later.');
+      
       // Revert optimistic update on error
       await fetchProfiles();
     }

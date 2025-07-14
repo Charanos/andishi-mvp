@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import prisma from "@/lib/prisma";
 
 const allowedOrigins = [
   'https://andishi-mvp.vercel.app',
@@ -24,37 +23,75 @@ export async function PATCH(req: NextRequest) {
     try {
         const { profileId, action } = await req.json();
         if (!profileId || !["approve", "reject"].includes(action)) {
-            return new NextResponse(JSON.stringify({ success: false, message: "Missing or invalid parameters" }), { status: 400, headers: corsHeaders });
+            return new NextResponse(JSON.stringify({ 
+                success: false, 
+                message: "Missing or invalid parameters" 
+            }), { status: 400, headers: corsHeaders });
         }
-        const client = await clientPromise;
-        const db = client.db();
-        const profilesCol = db.collection("developerProfiles");
-        const update =
-            action === "approve"
-                ? { status: "approved", isAvailable: true }
-                : { status: "rejected", isAvailable: false };
-        const result = await profilesCol.updateOne(
-            { _id: new ObjectId(profileId) },
-            { $set: update }
-        );
 
-        if (result.matchedCount === 1) {
-            // After updating developer profile, find the associated user and update their status
-            const updatedProfile = await profilesCol.findOne({ _id: new ObjectId(profileId) });
-            if (updatedProfile && updatedProfile.userId) {
-                const usersCol = db.collection("users");
-                const userUpdate = action === "approve" ? { status: "active" } : { status: "inactive" };
-                await usersCol.updateOne(
-                    { _id: new ObjectId(updatedProfile.userId) },
-                    { $set: userUpdate }
-                );
-            }
-            return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
-        } else {
-            return new NextResponse(JSON.stringify({ success: false, message: "Profile not found" }), { status: 404, headers: corsHeaders });
+        console.log(`Processing ${action} for profile ${profileId}`);
+
+        // First, get the developer profile to find the associated user
+        const developerProfile = await prisma.developerProfile.findUnique({
+            where: { id: profileId },
+            include: { user: true }
+        });
+
+        if (!developerProfile) {
+            return new NextResponse(JSON.stringify({ 
+                success: false, 
+                message: "Developer profile not found" 
+            }), { status: 404, headers: corsHeaders });
         }
+
+        // Update developer profile status and availability
+        const profileUpdate = action === "approve"
+            ? { status: "approved", isAvailable: true }
+            : { status: "rejected", isAvailable: false };
+
+        await prisma.developerProfile.update({
+            where: { id: profileId },
+            data: profileUpdate
+        });
+
+        console.log(`Updated developer profile ${profileId} with status: ${profileUpdate.status}`);
+
+        // Update associated user status and developerProfileStatus
+        if (developerProfile.userId) {
+            const userUpdate = action === "approve" 
+                ? { 
+                    status: "active", 
+                    developerProfileStatus: "approved" as const
+                  } 
+                : { 
+                    status: "inactive", 
+                    developerProfileStatus: "rejected" as const
+                  };
+
+            await prisma.user.update({
+                where: { id: developerProfile.userId },
+                data: userUpdate
+            });
+
+            console.log(`Updated user ${developerProfile.userId} with status: ${userUpdate.status}`);
+        } else {
+            console.warn(`No associated user found for developer profile ${profileId}`);
+        }
+
+        return new NextResponse(JSON.stringify({ 
+            success: true,
+            message: `Developer ${action}d successfully`,
+            profileId,
+            status: profileUpdate.status,
+            isAvailable: profileUpdate.isAvailable
+        }), { status: 200, headers: corsHeaders });
+
     } catch (error) {
         console.error("Error updating developer profile status:", error);
-        return new NextResponse(JSON.stringify({ success: false, message: "Failed to update profile", error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
+        return new NextResponse(JSON.stringify({ 
+            success: false, 
+            message: "Failed to update profile", 
+            error: error instanceof Error ? error.message : "Unknown error" 
+        }), { status: 500, headers: corsHeaders });
     }
 }

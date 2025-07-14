@@ -27,8 +27,7 @@ import { UserRole } from "@/types/auth";
 import ScrollToTop from "../components/ScrollToTop";
 import ToastContainer from "../components/ToastContainer";
 import useToast from "../../hooks/useToast";
-import { useDeveloperProfiles } from "@/hooks/useDeveloperProfiles";
-import { getCurrentAvailabilityStatus, getComprehensiveAvailabilityStatus } from "@/services/developerAvailabilityService";
+import { getComprehensiveAvailabilityStatus } from "@/services/developerAvailabilityService";
 
 // Type definitions
 interface SystemUser {
@@ -56,7 +55,7 @@ interface SystemUser {
   developerProfileStatus?: "pending" | "approved" | "rejected"; // Status from joined developer profile
   developerProfileId?: string; // ID of the joined developer profile
   isAvailable?: boolean; // Developer availability status
-  busyUntilDate?: Date; // Date until which developer is busy
+  busyUntilDate?: Date | null; // Date until which developer is busy (can be null)
 }
 
 interface CreateUserData {
@@ -516,11 +515,11 @@ const UserManagement: React.FC<UserManagementProps> = ({
       setLoading(true);
       const newStatus = currentStatus === "active" ? "inactive" : "active";
 
-      const response = await fetch("/api/users", {
+      const response = await fetch("/api/users-with-profiles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: userId,
+          userId: userId,
           action: "update_status",
           status: newStatus,
           isActive: newStatus === "active",
@@ -568,17 +567,20 @@ const UserManagement: React.FC<UserManagementProps> = ({
       if (user.role === "developer") {
         return {
           ...user,
-          // Assuming these fields are now directly available on the user object if they are a developer
-          // and the API has joined the developer profile data.
-          // You might need to adjust these based on the actual structure returned by your API.
-          // For now, we'll assume the API returns these if a dev profile exists.
-          skills: user.skills || [], // Assuming skills are directly on user or joined
-          hourlyRate: user.hourlyRate || 0, // Assuming hourlyRate is directly on user or joined
-          completedProjects: user.completedProjects || 0, // Assuming completedProjects is directly on user or joined
-          activeProjects: user.activeProjects || 0, // Assuming activeProjects is directly on user or joined
-          totalEarnings: user.totalEarnings || 0, // Assuming totalEarnings is directly on user or joined
-          developerProfileStatus: user.developerProfileStatus, // Use the joined status
-        };
+          skills: user.skills || [],
+          hourlyRate: user.hourlyRate || 0,
+          completedProjects: user.completedProjects || 0,
+          activeProjects: user.activeProjects || 0,
+          totalEarnings: user.totalEarnings || 0,
+          developerProfileStatus: user.developerProfileStatus,
+          // Ensure busyUntilDate is available to decide availability
+          busyUntilDate: user.busyUntilDate ? new Date(user.busyUntilDate) : null,
+          isAvailable: getComprehensiveAvailabilityStatus(
+                        user.isAvailable ?? false,
+                        user.busyUntilDate ? new Date(user.busyUntilDate) : null,
+                        user.developerProfileStatus
+                      ).isAvailable,
+        } as SystemUser;
       }
       return user;
     });

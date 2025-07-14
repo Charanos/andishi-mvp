@@ -429,9 +429,38 @@ export default function EnhancedAdminDashboard(): ReactNode {
     setSelectedUser(null);
   }, [activeTab]);
 
+  // Add data synchronization function
+  const syncDeveloperData = async () => {
+    try {
+      console.log("Starting developer data synchronization...");
+      const syncResponse = await fetch("/api/admin/sync-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      
+      const syncResult = await syncResponse.json();
+      if (syncResult.success) {
+        toast.success("Data synchronized successfully", `Updated ${syncResult.stats.profilesUpdated} profiles and ${syncResult.stats.usersUpdated} users`);
+        return true;
+      } else {
+        console.error("Data sync failed:", syncResult.message);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error during data sync:", error);
+      toast.error("Data sync failed", "Please try again later");
+      return false;
+    }
+  };
+
   const fetchAllData = async () => {
     setLoading(true);
     setError(null);
+    
+    // First, try to sync data to ensure consistency
+    await syncDeveloperData();
     try {
       // Fetch projects via service wrapper to ensure consistent response shape
       const projectsArray = await listProjects();
@@ -443,33 +472,28 @@ export default function EnhancedAdminDashboard(): ReactNode {
       }));
       setProjects(transformedProjects);
 
-      // Fetch users
-      const usersRes = await fetch("/api/users");
+      // Fetch users with developer profiles using new API
+      const usersRes = await fetch("/api/users-with-profiles");
       const usersData = await usersRes.json();
       let usersArray: SystemUser[] = [];
+      
       if (usersData.success && Array.isArray(usersData.users)) {
         usersArray = usersData.users;
-      } else if (Array.isArray(usersData)) {
-        // Fallback if usersData itself is the array (e.g., from a different API response structure)
-        usersArray = usersData;
+        console.log(`Loaded ${usersArray.length} users with proper profile data`);
+      } else {
+        console.warn("Failed to load users with profiles, falling back to basic users API");
+        // Fallback to basic users API
+        try {
+          const fallbackRes = await fetch("/api/users");
+          const fallbackData = await fallbackRes.json();
+          usersArray = Array.isArray(fallbackData.users) ? fallbackData.users : [];
+        } catch (error) {
+          console.error("Fallback users API also failed:", error);
+          usersArray = [];
+        }
       }
 
-      const mergedUsers = usersArray.map((user: SystemUser) => {
-        if (user.role === "developer") {
-          const devProfile = devProfiles.find(
-            (profile) => profile.personalInfo.email === user.email
-          );
-          if (devProfile) {
-            return {
-              ...user,
-              developerProfileStatus: devProfile.status,
-              developerProfileId: devProfile.id,
-            };
-          }
-        }
-        return user;
-      });
-      setUsers(mergedUsers);
+      setUsers(usersArray);
 
       // Fetch real analytics from comprehensive API
       try {

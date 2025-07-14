@@ -64,6 +64,7 @@ export async function POST(
       return NextResponse.json({ error: 'This developer is already assigned to this project' }, { status: 409 });
     }
 
+    // Create the assignment
     const newAssignment = await prisma.projectAssignment.create({
       data: {
         projectId,
@@ -73,10 +74,16 @@ export async function POST(
       },
     });
 
+    // Update developer availability and clear any busyUntilDate
     await prisma.developerProfile.update({
       where: { id: developerId },
-      data: { isAvailable: false },
+      data: { 
+        isAvailable: false,
+        busyUntilDate: null // Clear any existing busyUntilDate when assigning to new project
+      },
     });
+
+    console.log(`Developer ${developerId} assigned to project ${projectId} and marked as unavailable`);
 
     return NextResponse.json(newAssignment, { status: 201 });
   } catch (error) {
@@ -121,19 +128,50 @@ export async function PATCH(
 
     // If assignment is completed, check if developer should be made available
     if (updates.status === 'completed') {
+      console.log(`Assignment completed for developer ${developerId}, checking availability...`);
+      
       const otherActiveAssignments = await prisma.projectAssignment.count({
         where: {
           developerId,
-          status: { not: 'completed' },
+          status: { notIn: ['completed', 'cancelled'] },
           id: { not: updatedAssignment.id } // Exclude the current assignment
         }
       });
 
+      console.log(`Developer ${developerId} has ${otherActiveAssignments} other active assignments`);
+
       if (otherActiveAssignments === 0) {
+        // Get project info for busyUntilDate logic
+        const project = await prisma.project.findUnique({
+          where: { id: projectId },
+          select: { estimatedCompletionDate: true }
+        });
+
+        const now = new Date();
+        let updateData: any = {};
+
+        if (project?.estimatedCompletionDate && project.estimatedCompletionDate > now) {
+          // Project completed before estimated completion date
+          updateData = {
+            isAvailable: false,
+            busyUntilDate: project.estimatedCompletionDate,
+          };
+          console.log(`Developer ${developerId} will be busy until ${project.estimatedCompletionDate}`);
+        } else {
+          // Project completed on or after estimated completion date
+          updateData = {
+            isAvailable: true,
+            busyUntilDate: null,
+          };
+          console.log(`Developer ${developerId} is now available`);
+        }
+
         await prisma.developerProfile.update({
           where: { id: developerId },
-          data: { isAvailable: true },
+          data: updateData,
         });
+      } else {
+        console.log(`Developer ${developerId} remains busy due to other active assignments`);
       }
     }
 

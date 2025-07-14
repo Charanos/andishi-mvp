@@ -94,7 +94,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     try {
       const client = await clientPromise;
       const db = client.db();
-      
+
       // Logic to synchronize data between Developer Profiles and Users collections
       const usersCollection = db.collection('users');
       const profilesCollection = db.collection('developerProfiles');
@@ -156,18 +156,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       // Ensure every user with role 'developer' has a corresponding developer profile
       // But only if they don't have a rejected status (to avoid recreating deleted profiles)
-      const users = await usersCollection.find({ 
+      const users = await usersCollection.find({
         role: 'developer',
         developerProfileStatus: { $ne: 'rejected' } // Don't recreate profiles for rejected users
       }).toArray();
       let profilesCreated = 0;
-      
+
       for (const user of users) {
         const profileExists = await profilesCollection.findOne({ userId: user._id });
         if (!profileExists && user.developerProfileStatus !== 'rejected') {
           // Insert a default developer profile for the user
-          await profilesCollection.insertOne({ 
-            userId: user._id, 
+          await profilesCollection.insertOne({
+            userId: user._id,
             ...defaultProfileData,
             data: {
               ...defaultProfileData.data,
@@ -183,12 +183,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         }
       }
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         message: `Synchronization complete. Created ${profilesCreated} new profiles.`,
         profilesCreated,
         totalUsers: users.length
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Synchronization error:', error);
       return NextResponse.json({ error: 'Synchronization failed', details: error.message }, { status: 500 });
     }
@@ -276,7 +276,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     console.log('Fetching developer profiles from database...');
     const records = await db.collection('developerProfiles').find({}).toArray();
     console.log(`Found ${records.length} developer profiles`);
-    
+
     // Debug: Log the first few records to see their structure
     if (records.length > 0) {
       console.log('Sample developer profile structure:', JSON.stringify(records[0], null, 2));
@@ -599,7 +599,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
 
     // First, get the profile to find the associated user
     const profileToDelete = await profilesCollection.findOne({ _id: objectId });
-    
+
     if (!profileToDelete) {
       return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
     }
@@ -615,11 +615,11 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     if (profileToDelete.userId) {
       await usersCollection.updateOne(
         { _id: profileToDelete.userId },
-        { 
-          $set: { 
+        {
+          $set: {
             developerProfileStatus: "rejected",
             status: "inactive"
-          } 
+          }
         }
       );
       console.log(`Marked user ${profileToDelete.userId} as rejected to prevent profile recreation`);

@@ -1680,6 +1680,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             await recordProjectPayment(projectId, payment);
           }}
           developers={users.filter(user => user.role === "developer" && user.developerProfileStatus === "approved")}
+          refreshDevelopers={refreshAllData}
         />
       );
     }
@@ -3618,6 +3619,10 @@ Generate new credentials to reset password.`;
               setUserRoleFilter={setUserRoleFilter}
               userStatusFilter={userStatusFilter}
               setUserStatusFilter={setUserStatusFilter}
+              refreshUsers={refreshAllData}
+              onDeleteUser={handleDeleteUser}
+              onUpdateUser={updateUserFromHook}
+              onCreateUser={createUserFromHook}
             />
           )}
           {activeTab === "analytics" && (

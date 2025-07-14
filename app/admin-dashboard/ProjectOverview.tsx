@@ -143,6 +143,7 @@ interface ProjectOverviewProps {
     payment: { amount: number; method: string; notes?: string }
   ) => Promise<void>;
   developers: SystemUser[];
+  refreshDevelopers?: () => void;
 }
 
 type TrackingView =
@@ -233,6 +234,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   onFileUpload,
   onPaymentRecord,
   developers,
+  refreshDevelopers,
 }) => {
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
   const [projectData, setProjectData] = useState<ProjectData>(selectedProject || {} as ProjectData);
@@ -638,6 +640,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               projectTechStack={selectedProject.projectDetails.techStack || []}
               projectExperienceLevel={"Mid-level"}
               developers={developers}
+              refreshDevelopers={refreshDevelopers}
             />
           </div>
         );

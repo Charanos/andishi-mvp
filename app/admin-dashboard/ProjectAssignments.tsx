@@ -41,6 +41,7 @@ interface ProjectAssignmentsProps {
   projectExperienceLevel?: string;
   developers: SystemUser[];
   readOnly?: boolean;
+  refreshDevelopers?: () => void;
 }
 
 const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
@@ -50,6 +51,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   projectExperienceLevel = "Mid-level",
   developers,
   readOnly = false,
+  refreshDevelopers,
 }) => {
   const { assignments, loading: loadingAssignments, refetch, assignDevelopers, updateAssignment, removeAssignment } = useProjectAssignments(projectId);
   const { notifications, removeNotification, toast } = useToast();
@@ -68,24 +70,31 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
 
   // Fetch developer profiles to get detailed information
-  useEffect(() => {
-    const fetchDeveloperProfiles = async () => {
-      setLoadingProfiles(true);
-      try {
-        const response = await fetch('/api/developer-profiles');
-        if (response.ok) {
-          const profiles = await response.json();
-          setDeveloperProfiles(profiles);
-        }
-      } catch (error) {
-        toast.error("Error fetching developer profiles", error instanceof Error ? error.message : "Unknown error");
-      } finally {
-        setLoadingProfiles(false);
+  const fetchDeveloperProfiles = async () => {
+    setLoadingProfiles(true);
+    try {
+      const response = await fetch('/api/developer-profiles');
+      if (response.ok) {
+        const profiles = await response.json();
+        setDeveloperProfiles(profiles);
       }
-    };
+    } catch (error) {
+      toast.error("Error fetching developer profiles", error instanceof Error ? error.message : "Unknown error");
+    } finally {
+      setLoadingProfiles(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDeveloperProfiles();
   }, []);
+
+  // Refresh developer profiles when refreshDevelopers is called
+  useEffect(() => {
+    if (refreshDevelopers) {
+      fetchDeveloperProfiles();
+    }
+  }, [refreshDevelopers]);
 
   // Get enhanced developer data by merging SystemUser with DeveloperProfile
   const getEnhancedDeveloper = (developer: SystemUser) => {

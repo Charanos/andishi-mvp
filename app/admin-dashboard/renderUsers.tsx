@@ -82,6 +82,10 @@ interface UserManagementProps {
   setUserRoleFilter: React.Dispatch<React.SetStateAction<string>>;
   userStatusFilter: string;
   setUserStatusFilter: React.Dispatch<React.SetStateAction<string>>;
+  refreshUsers?: () => Promise<void>;
+  onDeleteUser?: (userId: string) => Promise<void>;
+  onUpdateUser?: (userId: string, updates: Partial<SystemUser>) => Promise<void>;
+  onCreateUser?: (userData: any) => Promise<void>;
 }
 
 interface EditingUserForm {
@@ -118,6 +122,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
   setUserRoleFilter,
   userStatusFilter,
   setUserStatusFilter,
+  refreshUsers,
+  onDeleteUser,
+  onUpdateUser,
+  onCreateUser,
 }) => {
   const { notifications, removeNotification, toast } = useToast();
   // State management
@@ -395,37 +403,48 @@ const UserManagement: React.FC<UserManagementProps> = ({
       return;
     try {
       setLoading(true);
-      const password = userData.generatePassword
-        ? generateRandomPassword()
-        : undefined;
-
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...userData,
-          password,
-          isActive: true,
-          accountCreated: true,
-          passwordGenerated: !!password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create user");
-      }
-
-      if (data.success) {
-        setUsers((prev) => [data.user, ...prev]);
-        if (password) {
-          setGeneratedPassword(password);
-          setAccountExists(true);
+      
+      // Use the new hook function if available
+      if (onCreateUser) {
+        await onCreateUser(userData);
+        if (refreshUsers) {
+          await refreshUsers();
         }
-        setViewMode("list");
-        setError(null);
+      } else {
+        // Fallback to original implementation
+        const password = userData.generatePassword
+          ? generateRandomPassword()
+          : undefined;
+
+        const response = await fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...userData,
+            password,
+            isActive: true,
+            accountCreated: true,
+            passwordGenerated: !!password,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to create user");
+        }
+
+        if (data.success) {
+          setUsers((prev) => [data.user, ...prev]);
+          if (password) {
+            setGeneratedPassword(password);
+            setAccountExists(true);
+          }
+        }
       }
+      
+      setViewMode("list");
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -440,26 +459,37 @@ const UserManagement: React.FC<UserManagementProps> = ({
     if (!userId) return;
     try {
       setLoading(true);
-      const response = await fetch("/api/users", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          _id: userId,
-          ...userData,
-        }),
-      });
+      
+      // Use the new hook function if available
+      if (onUpdateUser) {
+        await onUpdateUser(userId, userData);
+        if (refreshUsers) {
+          await refreshUsers();
+        }
+      } else {
+        // Fallback to original implementation
+        const response = await fetch("/api/users", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            _id: userId,
+            ...userData,
+          }),
+        });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update user");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to update user");
+        }
+
+        // Update local state with the updated user
+        setUsers(
+          users.map((user) =>
+            user._id === userId ? { ...user, ...userData } : user
+          )
+        );
       }
-
-      // Update local state with the updated user
-      setUsers(
-        users.map((user) =>
-          user._id === userId ? { ...user, ...userData } : user
-        )
-      );
+      
       setSelectedUser(null);
       setViewMode("list");
       setError(null);
@@ -474,16 +504,27 @@ const UserManagement: React.FC<UserManagementProps> = ({
     if (!userId) return;
     try {
       setLoading(true);
-      const response = await fetch(`/api/users?id=${userId}`, {
-        method: "DELETE",
-      });
+      
+      // Use the new hook function if available
+      if (onDeleteUser) {
+        await onDeleteUser(userId);
+        if (refreshUsers) {
+          await refreshUsers();
+        }
+      } else {
+        // Fallback to original implementation
+        const response = await fetch(`/api/users?id=${userId}`, {
+          method: "DELETE",
+        });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete user");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to delete user");
+        }
+
+        setUsers(users.filter((user) => user._id !== userId));
       }
-
-      setUsers(users.filter((user) => user._id !== userId));
+      
       setSelectedUser(null);
       setViewMode("list");
       setError(null);

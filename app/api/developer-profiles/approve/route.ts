@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { ObjectId } from "mongodb";
+import clientPromise from "@/lib/mongodb";
 
 const allowedOrigins = [
   'https://andishi-mvp.vercel.app',
@@ -31,11 +32,24 @@ export async function PATCH(req: NextRequest) {
 
         console.log(`Processing ${action} for profile ${profileId}`);
 
+        const client = await clientPromise;
+        const db = client.db();
+        const profilesCollection = db.collection('developerProfiles');
+        const usersCollection = db.collection('users');
+
+        // Convert profileId to ObjectId
+        let objectId: ObjectId;
+        try {
+            objectId = new ObjectId(profileId);
+        } catch (error) {
+            return new NextResponse(JSON.stringify({ 
+                success: false, 
+                message: "Invalid profile ID format" 
+            }), { status: 400, headers: corsHeaders });
+        }
+
         // First, get the developer profile to find the associated user
-        const developerProfile = await prisma.developerProfile.findUnique({
-            where: { id: profileId },
-            include: { user: true }
-        });
+        const developerProfile = await profilesCollection.findOne({ _id: objectId });
 
         if (!developerProfile) {
             return new NextResponse(JSON.stringify({ 
@@ -49,29 +63,29 @@ export async function PATCH(req: NextRequest) {
             ? { status: "approved", isAvailable: true }
             : { status: "rejected", isAvailable: false };
 
-        await prisma.developerProfile.update({
-            where: { id: profileId },
-            data: profileUpdate
-        });
+        await profilesCollection.updateOne(
+            { _id: objectId },
+            { $set: profileUpdate }
+        );
 
         console.log(`Updated developer profile ${profileId} with status: ${profileUpdate.status}`);
 
-        // Update associated user status and developerProfileStatus
+        // Update associated user status
         if (developerProfile.userId) {
             const userUpdate = action === "approve" 
                 ? { 
                     status: "active", 
-                    developerProfileStatus: "approved" as const
+                    developerProfileStatus: "approved"
                   } 
                 : { 
                     status: "inactive", 
-                    developerProfileStatus: "rejected" as const
+                    developerProfileStatus: "rejected"
                   };
 
-            await prisma.user.update({
-                where: { id: developerProfile.userId },
-                data: userUpdate
-            });
+            await usersCollection.updateOne(
+                { _id: developerProfile.userId },
+                { $set: userUpdate }
+            );
 
             console.log(`Updated user ${developerProfile.userId} with status: ${userUpdate.status}`);
         } else {

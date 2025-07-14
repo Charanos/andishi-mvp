@@ -16,6 +16,7 @@ import {
   FaRedo,
   FaCopy,
   FaCheckCircle,
+  FaTimesCircle,
   FaBan,
   FaExclamationTriangle,
   FaPaperPlane,
@@ -515,11 +516,11 @@ const UserManagement: React.FC<UserManagementProps> = ({
       setLoading(true);
       const newStatus = currentStatus === "active" ? "inactive" : "active";
 
-      const response = await fetch("/api/users-with-profiles", {
+      const response = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: userId,
+          _id: userId,
           action: "update_status",
           status: newStatus,
           isActive: newStatus === "active",
@@ -576,10 +577,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
           // Ensure busyUntilDate is available to decide availability
           busyUntilDate: user.busyUntilDate ? new Date(user.busyUntilDate) : null,
           isAvailable: getComprehensiveAvailabilityStatus(
-                        user.isAvailable ?? false,
-                        user.busyUntilDate ? new Date(user.busyUntilDate) : null,
-                        user.developerProfileStatus
-                      ).isAvailable,
+            user.isAvailable ?? false,
+            user.busyUntilDate ? new Date(user.busyUntilDate) : null,
+            user.developerProfileStatus
+          ).isAvailable,
         } as SystemUser;
       }
       return user;
@@ -2049,7 +2050,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           {user.developerProfileStatus === "approved" ? (
                             <div className="flex items-center space-x-1">
                               <FaCheckCircle className="text-green-500 w-3 h-3" />
-                              <span className="text-xs text-green-400">Yes</span>
+                              <span className="text-xs text-green-400">Approved</span>
+                            </div>
+                          ) : user.developerProfileStatus === "rejected" ? (
+                            <div className="flex items-center space-x-1">
+                              <FaTimesCircle className="text-red-500 w-3 h-3" />
+                              <span className="text-xs text-red-400">Rejected</span>
                             </div>
                           ) : (
                             <div className="flex items-center space-x-1">
@@ -2144,7 +2150,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           user.developerProfileStatus === "approved" ? (
                             <div className="flex items-center space-x-2">
                               <FaCheckCircle className="text-green-500" />
-                              <span className="text-xs text-green-400 monty uppercase">Yes</span>
+                              <span className="text-xs text-green-400 monty uppercase">Approved</span>
+                            </div>
+                          ) : user.developerProfileStatus === "rejected" ? (
+                            <div className="flex items-center space-x-2">
+                              <FaTimesCircle className="text-red-500" />
+                              <span className="text-xs text-red-400 monty uppercase">Rejected</span>
                             </div>
                           ) : (
                             <div className="flex items-center space-x-2">
@@ -2166,24 +2177,22 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             );
                             return (
                               <div className="flex items-center space-x-2">
-                                <div className={`w-2 h-2 rounded-full ${
-                                  availabilityStatus.status === 'available' 
-                                    ? 'bg-green-400' 
-                                    : availabilityStatus.status === 'busy_until_date'
+                                <div className={`w-2 h-2 rounded-full ${availabilityStatus.status === 'available'
+                                  ? 'bg-green-400'
+                                  : availabilityStatus.status === 'busy_until_date'
                                     ? 'bg-orange-400'
                                     : availabilityStatus.status === 'pending_approval'
-                                    ? 'bg-yellow-400'
-                                    : 'bg-red-400'
-                                }`}></div>
-                                <span className={`text-xs monty uppercase ${
-                                  availabilityStatus.status === 'available' 
-                                    ? 'text-green-400' 
-                                    : availabilityStatus.status === 'busy_until_date'
+                                      ? 'bg-yellow-400'
+                                      : 'bg-red-400'
+                                  }`}></div>
+                                <span className={`text-xs monty uppercase ${availabilityStatus.status === 'available'
+                                  ? 'text-green-400'
+                                  : availabilityStatus.status === 'busy_until_date'
                                     ? 'text-orange-400'
                                     : availabilityStatus.status === 'pending_approval'
-                                    ? 'text-yellow-400'
-                                    : 'text-red-400'
-                                }`}>
+                                      ? 'text-yellow-400'
+                                      : 'text-red-400'
+                                  }`}>
                                   {availabilityStatus.displayText}
                                 </span>
                               </div>

@@ -433,19 +433,23 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const syncDeveloperData = async () => {
     try {
       console.log("Starting developer data synchronization...");
-      const syncResponse = await fetch("/api/admin/sync-data", {
-        method: "POST",
+      const syncResponse = await fetch("/api/developer-profiles?action=sync", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json"
         }
       });
       
+      if (!syncResponse.ok) {
+        throw new Error(`Sync request failed with status: ${syncResponse.status}`);
+      }
+      
       const syncResult = await syncResponse.json();
-      if (syncResult.success) {
-        toast.success("Data synchronized successfully", `Updated ${syncResult.stats.profilesUpdated} profiles and ${syncResult.stats.usersUpdated} users`);
+      if (syncResult.message) {
+        toast.success("Data synchronized successfully", syncResult.message);
         return true;
       } else {
-        console.error("Data sync failed:", syncResult.message);
+        console.error("Data sync failed:", syncResult);
         return false;
       }
     } catch (error) {
@@ -472,25 +476,17 @@ export default function EnhancedAdminDashboard(): ReactNode {
       }));
       setProjects(transformedProjects);
 
-      // Fetch users with developer profiles using new API
-      const usersRes = await fetch("/api/users-with-profiles");
+      // Fetch users with enhanced developer profile data
+      const usersRes = await fetch("/api/users");
       const usersData = await usersRes.json();
       let usersArray: SystemUser[] = [];
       
       if (usersData.success && Array.isArray(usersData.users)) {
         usersArray = usersData.users;
-        console.log(`Loaded ${usersArray.length} users with proper profile data`);
-      } else {
-        console.warn("Failed to load users with profiles, falling back to basic users API");
-        // Fallback to basic users API
-        try {
-          const fallbackRes = await fetch("/api/users");
-          const fallbackData = await fallbackRes.json();
-          usersArray = Array.isArray(fallbackData.users) ? fallbackData.users : [];
-        } catch (error) {
-          console.error("Fallback users API also failed:", error);
-          usersArray = [];
-        }
+        console.log(`Loaded ${usersArray.length} users with enhanced profile data`);
+      } else if (Array.isArray(usersData)) {
+        // Fallback if usersData itself is the array
+        usersArray = usersData;
       }
 
       setUsers(usersArray);

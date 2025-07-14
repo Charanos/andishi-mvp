@@ -203,7 +203,20 @@ export async function GET() {
             updatedAt: 1,
             lastLogin: 1,
             developerProfileStatus: '$developerProfile.status',
-            developerProfileId: '$developerProfile._id'
+            developerProfileId: '$developerProfile._id',
+            isAvailable: '$developerProfile.isAvailable',
+            busyUntilDate: '$developerProfile.busyUntilDate',
+            // Extract professional info from developer profile
+            hourlyRate: '$developerProfile.data.professionalInfo.hourlyRate',
+            title: '$developerProfile.data.professionalInfo.title',
+            experienceLevel: '$developerProfile.data.professionalInfo.experienceLevel',
+            // Extract skills from developer profile
+            primarySkills: '$developerProfile.data.technicalSkills.primarySkills',
+            // Extract stats from developer profile  
+            totalProjects: '$developerProfile.data.stats.totalProjects',
+            completedProjects: '$developerProfile.data.stats.completedProjects',
+            totalEarnings: '$developerProfile.data.stats.totalEarnings',
+            averageRating: '$developerProfile.data.stats.averageRating'
           }
         },
         {
@@ -225,13 +238,53 @@ export async function GET() {
       })
     );
 
-    // Merge project counts with user data
+    // Merge project counts with user data and enhance developer info
     users = users.map(user => {
       const projectCount = projectCounts.find(pc => pc.userId.toString() === user._id.toString());
-      return {
+      const baseUser = {
         ...deriveNames(user),
         projectsCount: projectCount?.count || 0
       };
+      
+      // For developers, transform the profile data and calculate availability
+      if (user.role === 'developer' && user.developerProfileStatus) {
+        const now = new Date();
+        const busyUntilExpired = !user.busyUntilDate || new Date(user.busyUntilDate) <= now;
+        const isApproved = user.developerProfileStatus === 'approved';
+        
+        // Calculate proper availability status
+        let availabilityDisplayText = 'Unavailable';
+        let isReallyAvailable = false;
+        
+        if (!isApproved) {
+          availabilityDisplayText = user.developerProfileStatus === 'pending' ? 'Pending Approval' : 'Rejected';
+        } else if (user.isAvailable && busyUntilExpired) {
+          availabilityDisplayText = 'Available';
+          isReallyAvailable = true;
+        } else if (user.busyUntilDate && !busyUntilExpired) {
+          availabilityDisplayText = `Busy until ${new Date(user.busyUntilDate).toLocaleDateString()}`;
+        } else {
+          availabilityDisplayText = 'Busy';
+        }
+        
+        return {
+          ...baseUser,
+          // Enhanced developer fields
+          isAvailable: isReallyAvailable,
+          availabilityDisplayText,
+          busyUntilDate: user.busyUntilDate,
+          hourlyRate: user.hourlyRate || 0,
+          title: user.title || 'Developer',
+          experienceLevel: user.experienceLevel || 'Not specified',
+          skills: user.primarySkills ? user.primarySkills.map((skill: any) => skill.name || skill) : [],
+          totalProjects: user.totalProjects || 0,
+          completedProjects: user.completedProjects || 0,
+          totalEarnings: user.totalEarnings || 0,
+          averageRating: user.averageRating || 0
+        };
+      }
+      
+      return baseUser;
     });
 
     return NextResponse.json({ 

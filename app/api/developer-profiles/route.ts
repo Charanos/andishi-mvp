@@ -82,10 +82,117 @@ function constructTechnicalSkills(data: any): TechnicalSkills {
 /**
  * GET /api/developer-profiles
  * Fetch all developer profiles or a single profile by ID
+ * Special endpoint: ?action=sync to synchronize data
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
+  const action = searchParams.get('action');
+
+  // Handle synchronization action
+  if (action === 'sync') {
+    try {
+      const client = await clientPromise;
+      const db = client.db();
+      
+      // Logic to synchronize data between Developer Profiles and Users collections
+      const usersCollection = db.collection('users');
+      const profilesCollection = db.collection('developerProfiles');
+
+      // Default profile data for new profiles
+      const defaultProfileData = {
+        status: 'pending',
+        isAvailable: false,
+        createdAt: new Date(),
+        data: {
+          personalInfo: {
+            firstName: 'Unknown',
+            lastName: 'Developer',
+            email: '',
+            location: 'Unknown',
+            tagline: 'Full Stack Developer'
+          },
+          professionalInfo: {
+            title: 'Developer',
+            experienceLevel: 'Mid-level',
+            availability: 'Full-time',
+            hourlyRate: 50,
+            languages: [],
+            certifications: [],
+            preferredWorkType: []
+          },
+          technicalSkills: {
+            primarySkills: [
+              { name: 'JavaScript', level: 0 },
+              { name: 'React', level: 0 },
+              { name: 'Node.js', level: 0 }
+            ],
+            frameworks: [],
+            databases: [],
+            tools: [],
+            cloudPlatforms: [],
+            specializations: []
+          },
+          stats: {
+            totalProjects: 0,
+            completedProjects: 0,
+            totalEarnings: 0,
+            averageRating: 0,
+            totalCodeLines: 0,
+            activeDays: 0,
+            clientRetention: 0,
+            totalCommits: 0,
+            bugsFixed: 0,
+            codeReviewsGiven: 0,
+            mentoringSessions: 0
+          },
+          projects: [],
+          recentActivity: [],
+          achievements: [],
+          notifications: [],
+          timeEntries: []
+        }
+      };
+
+      // Ensure every user with role 'developer' has a corresponding developer profile
+      // But only if they don't have a rejected status (to avoid recreating deleted profiles)
+      const users = await usersCollection.find({ 
+        role: 'developer',
+        developerProfileStatus: { $ne: 'rejected' } // Don't recreate profiles for rejected users
+      }).toArray();
+      let profilesCreated = 0;
+      
+      for (const user of users) {
+        const profileExists = await profilesCollection.findOne({ userId: user._id });
+        if (!profileExists && user.developerProfileStatus !== 'rejected') {
+          // Insert a default developer profile for the user
+          await profilesCollection.insertOne({ 
+            userId: user._id, 
+            ...defaultProfileData,
+            data: {
+              ...defaultProfileData.data,
+              personalInfo: {
+                ...defaultProfileData.data.personalInfo,
+                firstName: user.firstName || 'Unknown',
+                lastName: user.lastName || 'Developer',
+                email: user.email || ''
+              }
+            }
+          });
+          profilesCreated++;
+        }
+      }
+
+      return NextResponse.json({ 
+        message: `Synchronization complete. Created ${profilesCreated} new profiles.`,
+        profilesCreated,
+        totalUsers: users.length
+      });
+    } catch (error) {
+      console.error('Synchronization error:', error);
+      return NextResponse.json({ error: 'Synchronization failed', details: error.message }, { status: 500 });
+    }
+  }
 
   try {
     const client = await clientPromise;
@@ -480,6 +587,8 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
   try {
     const client = await clientPromise;
     const db = client.db();
+    const profilesCollection = db.collection("developerProfiles");
+    const usersCollection = db.collection("users");
 
     let objectId: ObjectId;
     try {
@@ -488,10 +597,32 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
     }
 
-    const deleteResult = await db.collection("developerProfiles").deleteOne({ _id: objectId });
+    // First, get the profile to find the associated user
+    const profileToDelete = await profilesCollection.findOne({ _id: objectId });
+    
+    if (!profileToDelete) {
+      return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
+    }
+
+    // Delete the profile
+    const deleteResult = await profilesCollection.deleteOne({ _id: objectId });
 
     if (deleteResult.deletedCount === 0) {
       return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
+    }
+
+    // Mark the associated user as rejected to prevent profile recreation
+    if (profileToDelete.userId) {
+      await usersCollection.updateOne(
+        { _id: profileToDelete.userId },
+        { 
+          $set: { 
+            developerProfileStatus: "rejected",
+            status: "inactive"
+          } 
+        }
+      );
+      console.log(`Marked user ${profileToDelete.userId} as rejected to prevent profile recreation`);
     }
 
     return new NextResponse(null, { status: 204, headers: corsHeaders }); // Success - No Content

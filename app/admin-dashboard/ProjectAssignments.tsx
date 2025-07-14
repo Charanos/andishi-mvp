@@ -374,7 +374,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       />
 
       {/* Enhanced Header */}
-      <div className="bg-black/10 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50">
+      <>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div>
             <h3 className="text-2xl font-semibold text-white flex items-center">
@@ -412,12 +412,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
             </div>
           )}
           {readOnly && (
-            <div className="px-3 py-1 bg-gray-500/20 rounded-full text-gray-400 text-sm font-medium">
+            <div className="px-3 py-1 bg-black/20 rounded-full text-gray-400 text-sm font-medium">
               View Only
             </div>
           )}
         </div>
-      </div>
+      </>
 
       {/* Enhanced Assigned Developers Section */}
       {getAssignedDevelopers().length > 0 && (
@@ -577,7 +577,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
       {/* Enhanced Search and Filters */}
       {!readOnly && (
-        <div className="bg-gray-800/30 rounded-2xl p-6 border border-gray-700/50">
+        <div className="bg-white/10 rounded-2xl p-6 border border-gray-700/50">
           <div className="flex gap-3 flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex-1 relative">
               <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -586,14 +586,14 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                 placeholder="Search developers by name, email, or company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 transition-all duration-200"
+                className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600/50 rounded-xl focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 transition-all duration-200"
               />
             </div>
 
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl hover:bg-gray-600/50 transition-colors text-white"
+                className="flex items-center space-x-2 px-4 py-3 bg-black/50 border border-gray-600/50 rounded-xl hover:bg-gray-600/50 transition-colors text-white"
               >
                 <FaFilter />
                 <FaChevronDown
@@ -624,10 +624,10 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     onChange={(e) => setSortBy(e.target.value as any)}
                     className="bg-transparent text-white focus:outline-none"
                   >
-                    <option value="compatibility">Sort by Compatibility</option>
-                    <option value="rating">Sort by Rating</option>
-                    <option value="projects">Sort by Projects</option>
-                    <option value="rate">Sort by Rate</option>
+                    <option value="compatibility" className="bg-black/50">Sort by Compatibility</option>
+                    <option value="rating" className="bg-black/50">Sort by Rating</option>
+                    <option value="projects" className="bg-black/50">Sort by Projects</option>
+                    <option value="rate" className="bg-black/50">Sort by Rate</option>
                   </select>
                 </div>
 
@@ -668,7 +668,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                 {getFilteredDevelopers().map((developer) => {
                   const enhancedDev = getEnhancedDeveloper(developer);
                   const compatibilityScore = calculateCompatibilityScore(enhancedDev);
@@ -681,11 +681,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                   return (
                     <div
                       key={developer._id}
-                      className={`group relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${isSelected
-                        ? "border-blue-500 bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-lg"
+                      className={`group w-full relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${isSelected
+                        ? "border-blue-500 bg-black/30 shadow-lg"
                         : isAssigned
                           ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
-                          : "border-gray-700 hover:border-gray-600 bg-gradient-to-br from-gray-800/50 to-gray-900/50"
+                          : "border-gray-700 hover:border-gray-600 bg-black/50"
                         }`}
                     >
                       {/* Compatibility Score Badge */}
@@ -702,7 +702,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex items-start space-x-4">
+                      <div className="flex items-center w-full space-x-4">
                         {!isAssigned && (
                           <div className="mt-1">
                             <input

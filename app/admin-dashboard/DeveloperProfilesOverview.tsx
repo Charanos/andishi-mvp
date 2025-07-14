@@ -339,7 +339,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
     if (!profileToDelete) return;
 
     try {
-const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
+      const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -367,7 +367,7 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
       // Optimistically update UI
       setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
       setFilteredProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
-      
+
       // Send PATCH to backend
       const response = await fetch(`/api/developer-profiles/approve`, {
         method: 'PATCH',
@@ -376,26 +376,26 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
       });
 
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.message || `Failed to ${action} developer`);
       }
 
       console.log(`Successfully ${action}d developer:`, result);
       toast.success(`Developer ${actionStatus} successfully`, `Profile status updated to ${actionStatus}.`);
-      
+
       // Refresh both data sources to ensure consistency
       refreshUsers();
-      
+
       // Force refresh profiles with a delay to ensure backend processing is complete
       setTimeout(async () => {
         await fetchProfiles();
       }, 500);
-      
+
     } catch (err) {
       console.error(`Error ${action}ing developer:`, err);
       toast.error('Failed to update approval status', err instanceof Error ? err.message : 'Please try again later.');
-      
+
       // Revert optimistic update on error
       await fetchProfiles();
     }
@@ -443,16 +443,16 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
       profile.busyUntilDate ? new Date(profile.busyUntilDate) : null,
       profile.status
     );
-    
+
     return {
       ...availabilityStatus,
-      colorClass: availabilityStatus.status === 'available' 
-        ? 'text-green-400' 
+      colorClass: availabilityStatus.status === 'available'
+        ? 'text-green-400'
         : availabilityStatus.status === 'busy_until_date'
-        ? 'text-orange-400'
-        : availabilityStatus.status === 'pending_approval'
-        ? 'text-yellow-400'
-        : 'text-red-400'
+          ? 'text-orange-400'
+          : availabilityStatus.status === 'pending_approval'
+            ? 'text-yellow-400'
+            : 'text-red-400'
     };
   };
 
@@ -1178,25 +1178,25 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
                     </div>
                   </div>
 
-                    <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                      <FaClock className="text-gray-400" />
-                      <div>
-                        <p className="text-gray-400 text-sm">Availability</p>
-                        <p className={`font-medium ${getEnhancedAvailabilityInfo(selectedProfile).colorClass}`}>
-                          {getEnhancedAvailabilityInfo(selectedProfile).displayText}
+                  <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
+                    <FaClock className="text-gray-400" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Availability</p>
+                      <p className={`font-medium ${getEnhancedAvailabilityInfo(selectedProfile).colorClass}`}>
+                        {getEnhancedAvailabilityInfo(selectedProfile).displayText}
+                      </p>
+                      {selectedProfile.professionalInfo.workingHours && (
+                        <p className="text-gray-500 text-xs">
+                          {selectedProfile.professionalInfo.workingHours}
                         </p>
-                        {selectedProfile.professionalInfo.workingHours && (
-                          <p className="text-gray-500 text-xs">
-                            {selectedProfile.professionalInfo.workingHours}
-                          </p>
-                        )}
-                        {selectedProfile.busyUntilDate && (
-                          <p className="text-orange-400 text-xs">
-                            Busy until {new Date(selectedProfile.busyUntilDate).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
+                      )}
+                      {selectedProfile.busyUntilDate && (
+                        <p className="text-orange-400 text-xs">
+                          Busy until {new Date(selectedProfile.busyUntilDate).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
+                  </div>
                 </div>
 
                 {/* Social Links */}
@@ -1556,7 +1556,7 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
                     placeholder="Search developers..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1566,18 +1566,18 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="cursor-pointer appearance-none bg-white/10 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                    className="cursor-pointer appearance-none bg-blacl/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                   >
-                    <option value="name" className="bg-gray-800">
+                    <option value="name" className="bg-black/50">
                       Name
                     </option>
-                    <option value="rating" className="bg-gray-800">
+                    <option value="rating" className="bg-black/50">
                       Rating
                     </option>
-                    <option value="projects" className="bg-gray-800">
+                    <option value="projects" className="bg-black/50">
                       Projects
                     </option>
-                    <option value="earnings" className="bg-gray-800">
+                    <option value="earnings" className="bg-black/50">
                       Earnings
                     </option>
                   </select>
@@ -1924,7 +1924,7 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
           )}
 
           {/* Stats Summary */}
-          <div className="mt-8 bg-black/20 border border-grey-900/5 rounded-xl p-6">
+          <div className="mt-8 bg-black/20 border border-gray-600/20 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Summary Statistics
             </h3>

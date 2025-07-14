@@ -75,6 +75,31 @@ export async function PATCH(
         satisfaction: 3 as const
       };
       
+      // Update developer profile availability directly
+      try {
+        await prisma.developerProfile.update({
+          where: { id: developerId },
+          data: {
+            isAvailable: false,
+            busyUntilDate: null
+          }
+        });
+        
+        // Also update user status to reflect busy state
+        await prisma.user.updateMany({
+          where: { 
+            developerProfile: {
+              id: developerId
+            }
+          },
+          data: {
+            status: "busy"
+          }
+        });
+      } catch (error) {
+        console.error('Error updating developer profile availability:', error);
+      }
+      
       // Update developer profile with new project
       const profileUpdateSuccess = await updateDeveloperProfile(developerId, {
         addProject: newProject,
@@ -148,6 +173,18 @@ export async function PATCH(
         await prisma.developerProfile.update({
           where: { id: developerId },
           data: developerUpdateData,
+        });
+        
+        // Update user status to reflect availability
+        await prisma.user.updateMany({
+          where: { 
+            developerProfile: {
+              id: developerId
+            }
+          },
+          data: {
+            status: developerUpdateData.isAvailable ? "active" : "busy"
+          }
         });
 
         // Also update through the legacy API for backwards compatibility
@@ -232,6 +269,18 @@ export async function PATCH(
         await prisma.developerProfile.update({
           where: { id: developerId },
           data: developerUpdateData,
+        });
+        
+        // Update user status to reflect availability
+        await prisma.user.updateMany({
+          where: { 
+            developerProfile: {
+              id: developerId
+            }
+          },
+          data: {
+            status: developerUpdateData.isAvailable ? "active" : "busy"
+          }
         });
 
         // Mark the assignment as completed

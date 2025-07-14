@@ -281,6 +281,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
       setSelectedDevelopers([]);
       refetch();
+      
+      // Refresh the developer data to reflect availability changes
+      if (refreshDevelopers) {
+        refreshDevelopers();
+      }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -336,6 +341,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       await updateDeveloperUponUnassignment();
       toast.success(`Successfully unassigned ${developerName} from ${projectTitle}`);
       refetch();
+      
+      // Refresh the developer data to reflect availability changes
+      if (refreshDevelopers) {
+        refreshDevelopers();
+      }
     } catch (error) {
       toast.error("Failed to unassign developer", error instanceof Error ? error.message : "Unknown error");
     } finally {

@@ -28,7 +28,7 @@ import ScrollToTop from "../components/ScrollToTop";
 import ToastContainer from "../components/ToastContainer";
 import useToast from "../../hooks/useToast";
 import { useDeveloperProfiles } from "@/hooks/useDeveloperProfiles";
-import { getCurrentAvailabilityStatus } from "@/services/developerAvailabilityService";
+import { getCurrentAvailabilityStatus, getComprehensiveAvailabilityStatus } from "@/services/developerAvailabilityService";
 
 // Type definitions
 interface SystemUser {
@@ -2157,9 +2157,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         {user.role === "developer" ? (
                           (() => {
-                            const availabilityStatus = getCurrentAvailabilityStatus(
+                            const availabilityStatus = getComprehensiveAvailabilityStatus(
                               user.isAvailable || false,
-                              user.busyUntilDate
+                              user.busyUntilDate,
+                              user.developerProfileStatus
                             );
                             return (
                               <div className="flex items-center space-x-2">
@@ -2168,6 +2169,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                     ? 'bg-green-400' 
                                     : availabilityStatus.status === 'busy_until_date'
                                     ? 'bg-orange-400'
+                                    : availabilityStatus.status === 'pending_approval'
+                                    ? 'bg-yellow-400'
                                     : 'bg-red-400'
                                 }`}></div>
                                 <span className={`text-xs monty uppercase ${
@@ -2175,6 +2178,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                     ? 'text-green-400' 
                                     : availabilityStatus.status === 'busy_until_date'
                                     ? 'text-orange-400'
+                                    : availabilityStatus.status === 'pending_approval'
+                                    ? 'text-yellow-400'
                                     : 'text-red-400'
                                 }`}>
                                   {availabilityStatus.displayText}

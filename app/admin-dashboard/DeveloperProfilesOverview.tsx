@@ -50,7 +50,7 @@ import ToastContainer from "../components/ToastContainer";
 import { ToastNotification } from "../components/ToastNotification";
 
 import type { DeveloperProfile } from "../../lib/types";
-import { getCurrentAvailabilityStatus } from "../../services/developerAvailabilityService";
+import { getCurrentAvailabilityStatus, getComprehensiveAvailabilityStatus } from "../../services/developerAvailabilityService";
 
 interface Props {
   onViewProfile?: (profileId: string) => void;
@@ -208,9 +208,15 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
       const enhancedAvailability = getEnhancedAvailabilityInfo(profile);
       const matchesAvailability = (() => {
         if (selectedAvailability === "all") return true;
-        if (selectedAvailability === "available") return enhancedAvailability.status === "available";
-        if (selectedAvailability === "busy") return enhancedAvailability.status === "busy" || enhancedAvailability.status === "busy_until_date";
-        if (selectedAvailability === "unavailable") return enhancedAvailability.status !== "available";
+        if (selectedAvailability === "available") {
+          return profile.status === "approved" && enhancedAvailability.status === "available";
+        }
+        if (selectedAvailability === "busy") {
+          return profile.status === "approved" && (enhancedAvailability.status === "busy" || enhancedAvailability.status === "busy_until_date");
+        }
+        if (selectedAvailability === "unavailable") {
+          return profile.status !== "approved" || enhancedAvailability.status !== "available";
+        }
         return true;
       })();
 
@@ -413,9 +419,11 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
 
   // Enhanced availability display with busyUntilDate support
   const getEnhancedAvailabilityInfo = (profile: DeveloperProfile) => {
-    const availabilityStatus = getCurrentAvailabilityStatus(
+    // Use comprehensive availability status that considers both approval and availability
+    const availabilityStatus = getComprehensiveAvailabilityStatus(
       profile.isAvailable,
-      profile.busyUntilDate ? new Date(profile.busyUntilDate) : null
+      profile.busyUntilDate ? new Date(profile.busyUntilDate) : null,
+      profile.status
     );
     
     return {
@@ -424,6 +432,8 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
         ? 'text-green-400' 
         : availabilityStatus.status === 'busy_until_date'
         ? 'text-orange-400'
+        : availabilityStatus.status === 'pending_approval'
+        ? 'text-yellow-400'
         : 'text-red-400'
     };
   };

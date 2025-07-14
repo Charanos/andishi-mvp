@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 export interface DeveloperAvailabilityStatus {
   isAvailable: boolean;
   busyUntilDate?: Date;
-  status: 'available' | 'busy' | 'busy_until_date';
+  status: 'available' | 'busy' | 'busy_until_date' | 'pending_approval';
   displayText: string;
 }
 
@@ -107,6 +107,28 @@ export function getCurrentAvailabilityStatus(isAvailable: boolean, busyUntilDate
     status: 'busy',
     displayText: 'Busy'
   };
+}
+
+/**
+ * Get comprehensive availability status including approval status
+ */
+export function getComprehensiveAvailabilityStatus(
+  isAvailable: boolean, 
+  busyUntilDate?: Date | null, 
+  profileStatus?: 'pending' | 'approved' | 'rejected'
+): DeveloperAvailabilityStatus {
+  // If profile is not approved, show approval status instead of availability
+  if (profileStatus !== 'approved') {
+    return {
+      isAvailable: false,
+      status: 'pending_approval',
+      displayText: profileStatus === 'pending' ? 'Pending Approval' : 
+                   profileStatus === 'rejected' ? 'Rejected' : 'Unapproved'
+    };
+  }
+  
+  // For approved developers, show actual availability
+  return getCurrentAvailabilityStatus(isAvailable, busyUntilDate);
 }
 
 /**

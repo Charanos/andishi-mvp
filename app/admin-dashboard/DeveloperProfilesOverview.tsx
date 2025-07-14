@@ -59,6 +59,7 @@ interface Props {
   onApproveProfile?: (profileId: string) => Promise<void>;
   onRejectProfile?: (profileId: string) => Promise<void>;
   onDeleteProfile?: (profileId: string) => Promise<void>;
+  refreshTrigger?: number; // Add refresh trigger prop
 }
 
 type ViewMode = "list" | "detail" | "edit" | "create";
@@ -72,7 +73,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
   onRefresh, 
   onApproveProfile, 
   onRejectProfile, 
-  onDeleteProfile 
+  onDeleteProfile,
+  refreshTrigger
 }) => {
   const [profiles, setProfiles] = useState<DeveloperProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<DeveloperProfile[]>(
@@ -194,6 +196,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
     return () => clearInterval(intervalId);
   }, [loading]);
+
+  // Refresh profiles when refreshTrigger changes (e.g., after assignment changes)
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchProfiles();
+    }
+  }, [refreshTrigger]);
 
   // Filter and search profiles
   useEffect(() => {

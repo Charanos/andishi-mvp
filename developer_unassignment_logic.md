@@ -44,6 +44,8 @@ This document outlines the current functionality, missing features, and **IMPLEM
 29. ✅ **Real-time Availability Updates**: Developers now immediately show as busy/available in all admin dashboard components after assignment changes
 30. ✅ **Enhanced Unassignment Logic**: Improved unassignment to check for other active projects and set availability accordingly
 31. ✅ **Project Completion Availability**: Added proper availability updates when projects are marked as completed
+32. ✅ **Database Relation Fix**: Fixed TypeScript errors and corrected user status updates by properly querying developer profile userId
+33. ✅ **Availability Display Synchronization**: Ensured user availability display in admin dashboard reflects actual assignment status
 
 ## 6. Detailed Synchronization Fixes Implementation
 
@@ -53,14 +55,48 @@ This document outlines the current functionality, missing features, and **IMPLEM
 - `app/api/developer-profiles/approve/route.ts` - Enhanced approval/rejection logic
 - `app/api/users/route.ts` - Added refresh functionality and enhanced delete operations
 - `app/api/developer-profiles/route.ts` - Updated delete operations for better synchronization
+- `app/api/developer/[developerId]/update/route.ts` - Fixed user status updates during assignment/unassignment
 
-**Key Changes:**
-- **Enhanced Approval Process**: Updated approval/rejection to include comprehensive data validation and verification
-- **Bidirectional Updates**: Ensured both `users` and `developerProfiles` collections are updated atomically
-- **Refresh Mechanism**: Added `?refresh=true` parameter to `/api/users` endpoint for forced data consistency checks
-- **Delete Synchronization**: Updated delete operations to properly clean up associated records
+### 6.2. Database Relation and User Status Fix
 
-### 6.2. Frontend Hook System
+**Problem**: Developer assignment was not properly updating user status, causing availability display issues in admin dashboard.
+
+**Root Cause**: 
+- TypeScript errors due to incorrect field names in Prisma queries
+- User status updates were using non-existent `developerProfileId` field
+- Prisma relation queries were malformed
+
+**Solution**:
+```typescript
+// Before (incorrect)
+await prisma.user.updateMany({
+  where: { 
+    developerProfileId: developerId // This field doesn't exist
+  },
+  data: { status: "busy" }
+});
+
+// After (correct)
+const developerProfile = await prisma.developerProfile.findUnique({
+  where: { id: developerId },
+  select: { userId: true }
+});
+
+if (developerProfile?.userId) {
+  await prisma.user.update({
+    where: { id: developerProfile.userId },
+    data: { status: "busy" }
+  });
+}
+```
+
+**Impact**: 
+- Fixed TypeScript compilation errors
+- Developers now properly show as "BUSY" in Users tab when assigned
+- Availability status updates correctly across all admin dashboard components
+- User status synchronizes with developer profile availability
+
+### 6.3. Frontend Hook System
 
 **Files Created/Modified:**
 - `hooks/useUserManagement.ts` - New hook for centralized user operations

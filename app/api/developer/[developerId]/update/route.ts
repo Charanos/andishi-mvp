@@ -86,16 +86,18 @@ export async function PATCH(
         });
         
         // Also update user status to reflect busy state
-        await prisma.user.updateMany({
-          where: { 
-            developerProfile: {
-              id: developerId
-            }
-          },
-          data: {
-            status: "busy"
-          }
+        // Find the user associated with this developer profile
+        const developerProfile = await prisma.developerProfile.findUnique({
+          where: { id: developerId },
+          select: { userId: true }
         });
+        
+        if (developerProfile?.userId) {
+          await prisma.user.update({
+            where: { id: developerProfile.userId },
+            data: { status: "busy" }
+          });
+        }
       } catch (error) {
         console.error('Error updating developer profile availability:', error);
       }
@@ -176,16 +178,18 @@ export async function PATCH(
         });
         
         // Update user status to reflect availability
-        await prisma.user.updateMany({
-          where: { 
-            developerProfile: {
-              id: developerId
-            }
-          },
-          data: {
-            status: developerUpdateData.isAvailable ? "active" : "busy"
-          }
+        // Find the user associated with this developer profile
+        const developerProfile = await prisma.developerProfile.findUnique({
+          where: { id: developerId },
+          select: { userId: true }
         });
+        
+        if (developerProfile?.userId) {
+          await prisma.user.update({
+            where: { id: developerProfile.userId },
+            data: { status: developerUpdateData.isAvailable ? "active" : "busy" }
+          });
+        }
 
         // Also update through the legacy API for backwards compatibility
         const profileUpdateSuccess = await updateDeveloperProfile(developerId, {
@@ -272,16 +276,18 @@ export async function PATCH(
         });
         
         // Update user status to reflect availability
-        await prisma.user.updateMany({
-          where: { 
-            developerProfile: {
-              id: developerId
-            }
-          },
-          data: {
-            status: developerUpdateData.isAvailable ? "active" : "busy"
-          }
+        // Find the user associated with this developer profile
+        const developerProfile = await prisma.developerProfile.findUnique({
+          where: { id: developerId },
+          select: { userId: true }
         });
+        
+        if (developerProfile?.userId) {
+          await prisma.user.update({
+            where: { id: developerProfile.userId },
+            data: { status: developerUpdateData.isAvailable ? "active" : "busy" }
+          });
+        }
 
         // Mark the assignment as completed
         await prisma.projectAssignment.updateMany({

@@ -416,6 +416,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState<string>("all");
   const [userStatusFilter, setUserStatusFilter] = useState<string>("all");
+  const [profileRefreshTrigger, setProfileRefreshTrigger] = useState<number>(0);
 
   const [formData, setFormData] = useState({
     firstName: selectedUser?.firstName || "",
@@ -488,6 +489,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
         refetchProfiles(),
         syncDeveloperData()
       ]);
+      
+      // Trigger developer profile refresh
+      setProfileRefreshTrigger(Date.now());
       
       console.log("All data refreshed successfully");
     } catch (error) {
@@ -3634,6 +3638,7 @@ Generate new credentials to reset password.`;
               onApproveProfile={handleApproveProfile}
               onRejectProfile={handleRejectProfile}
               onDeleteProfile={handleDeleteProfile}
+              refreshTrigger={profileRefreshTrigger}
             />
           )}
 

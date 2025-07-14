@@ -46,6 +46,9 @@ This document outlines the current functionality, missing features, and **IMPLEM
 31. ✅ **Project Completion Availability**: Added proper availability updates when projects are marked as completed
 32. ✅ **Database Relation Fix**: Fixed TypeScript errors and corrected user status updates by properly querying developer profile userId
 33. ✅ **Availability Display Synchronization**: Ensured user availability display in admin dashboard reflects actual assignment status
+34. ✅ **Comprehensive Assignment API Fix**: Fixed project assignment API to update both developer profile `isAvailable` and user `status` fields atomically
+35. ✅ **Complete Unassignment Flow**: Fixed unassignment and completion APIs to properly restore user status to "active" when appropriate
+36. ✅ **Transaction-based Updates**: Ensured all assignment operations use database transactions for data consistency
 
 ## 6. Detailed Synchronization Fixes Implementation
 
@@ -56,6 +59,8 @@ This document outlines the current functionality, missing features, and **IMPLEM
 - `app/api/users/route.ts` - Added refresh functionality and enhanced delete operations
 - `app/api/developer-profiles/route.ts` - Updated delete operations for better synchronization
 - `app/api/developer/[developerId]/update/route.ts` - Fixed user status updates during assignment/unassignment
+- `app/api/project-assignments/route.ts` - Fixed assignment creation to update both developer profile and user status
+- `app/api/project-assignments/[projectId]/route.ts` - Fixed assignment updates and deletion to properly sync user status
 
 ### 6.2. Database Relation and User Status Fix
 
@@ -95,6 +100,55 @@ if (developerProfile?.userId) {
 - Developers now properly show as "BUSY" in Users tab when assigned
 - Availability status updates correctly across all admin dashboard components
 - User status synchronizes with developer profile availability
+
+### 6.4. Comprehensive Assignment API Fix
+
+**Problem**: The core assignment API was only updating developer profile `isAvailable` but not user `status`, causing inconsistent availability display.
+
+**Root Cause**:
+- Assignment creation API (`/api/project-assignments`) only updated developer profile
+- Assignment deletion API didn't update user status back to "active"
+- Assignment completion API didn't sync user status properly
+- No transaction-based updates ensuring data consistency
+
+**Solution**:
+```typescript
+// Fixed assignment creation to update both developer profile and user status
+const createdAssignments = await prisma.$transaction(async (tx) => {
+  // Create assignments
+  await tx.projectAssignment.createMany({ data: assignmentsToActuallyCreate });
+  
+  // Update developer profiles
+  await tx.developerProfile.updateMany({
+    where: { id: { in: developerIds } },
+    data: { isAvailable: false }
+  });
+  
+  // Update user status
+  const developerProfiles = await tx.developerProfile.findMany({
+    where: { id: { in: developerIds } },
+    select: { userId: true }
+  });
+  
+  const userIds = developerProfiles.filter(p => p.userId).map(p => p.userId!);
+  
+  await tx.user.updateMany({
+    where: { id: { in: userIds } },
+    data: { status: "busy" }
+  });
+});
+```
+
+**Files Fixed**:
+- `app/api/project-assignments/route.ts` - Assignment creation now updates both developer profile and user status
+- `app/api/project-assignments/[projectId]/route.ts` - Assignment deletion and completion now properly sync user status
+
+**Results**:
+- Developers immediately show as "BUSY" in Users tab when assigned
+- Developers show as "AVAILABLE" in Users tab when unassigned (if no other active projects)
+- Developer profile cards update correctly in Dev Profiles tab
+- All assignment operations are atomic using database transactions
+- Status synchronization works across all admin dashboard components
 
 ### 6.3. Frontend Hook System
 

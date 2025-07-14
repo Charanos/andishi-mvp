@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
           data: assignmentsToActuallyCreate,
         });
 
+        // Update developer profiles to mark as unavailable
         await tx.developerProfile.updateMany({
           where: {
             id: { in: assignmentsToActuallyCreate.map(a => a.developerId) },
@@ -71,6 +72,32 @@ export async function POST(req: NextRequest) {
             isAvailable: false,
           },
         });
+        
+        // Update user status to busy for all assigned developers
+        const developerProfiles = await tx.developerProfile.findMany({
+          where: {
+            id: { in: assignmentsToActuallyCreate.map(a => a.developerId) },
+          },
+          select: {
+            id: true,
+            userId: true,
+          },
+        });
+        
+        const userIds = developerProfiles
+          .filter(profile => profile.userId)
+          .map(profile => profile.userId!);
+        
+        if (userIds.length > 0) {
+          await tx.user.updateMany({
+            where: {
+              id: { in: userIds },
+            },
+            data: {
+              status: "busy",
+            },
+          });
+        }
       }
 
       // Fetch the created assignments to return them (including any that already existed but were not re-created)

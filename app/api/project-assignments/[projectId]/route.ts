@@ -170,6 +170,19 @@ export async function PATCH(
           where: { id: developerId },
           data: updateData,
         });
+        
+        // Update user status accordingly
+        const developerProfile = await prisma.developerProfile.findUnique({
+          where: { id: developerId },
+          select: { userId: true },
+        });
+        
+        if (developerProfile?.userId) {
+          await prisma.user.update({
+            where: { id: developerProfile.userId },
+            data: { status: updateData.isAvailable ? "active" : "busy" },
+          });
+        }
       } else {
         console.log(`Developer ${developerId} remains busy due to other active assignments`);
       }
@@ -219,10 +232,24 @@ export async function DELETE(
     });
 
     if (otherAssignments === 0) {
+      // Update developer profile to available
       await prisma.developerProfile.update({
         where: { id: developerId },
         data: { isAvailable: true },
       });
+      
+      // Update user status to active
+      const developerProfile = await prisma.developerProfile.findUnique({
+        where: { id: developerId },
+        select: { userId: true },
+      });
+      
+      if (developerProfile?.userId) {
+        await prisma.user.update({
+          where: { id: developerProfile.userId },
+          data: { status: "active" },
+        });
+      }
     }
 
     return new NextResponse(null, { status: 204 });

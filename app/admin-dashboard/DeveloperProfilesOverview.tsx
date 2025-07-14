@@ -56,6 +56,9 @@ interface Props {
   onViewProfile?: (profileId: string) => void;
   refreshUsers: () => void;
   onRefresh?: () => void; // Add callback to notify parent of refresh
+  onApproveProfile?: (profileId: string) => Promise<void>;
+  onRejectProfile?: (profileId: string) => Promise<void>;
+  onDeleteProfile?: (profileId: string) => Promise<void>;
 }
 
 type ViewMode = "list" | "detail" | "edit" | "create";
@@ -63,7 +66,14 @@ type SortOption = "name" | "rating" | "projects" | "earnings";
 type ExperienceLevel = "all" | "junior" | "mid" | "senior" | "lead";
 type AvailabilityStatus = "all" | "available" | "busy" | "unavailable";
 
-const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUsers, onRefresh }) => {
+const DeveloperProfilesOverview: React.FC<Props> = ({ 
+  onViewProfile, 
+  refreshUsers, 
+  onRefresh, 
+  onApproveProfile, 
+  onRejectProfile, 
+  onDeleteProfile 
+}) => {
   const [profiles, setProfiles] = useState<DeveloperProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<DeveloperProfile[]>(
     []
@@ -339,16 +349,29 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
     if (!profileToDelete) return;
 
     try {
-      const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const errorPayload = await res.text();
-        throw new Error(`Failed to delete profile: ${res.statusText}`);
+      // Use the new parent delete function if available, otherwise fallback to original logic
+      if (onDeleteProfile) {
+        await onDeleteProfile(profileToDelete.id);
+      } else {
+        // Fallback to original logic if parent function is not available
+        const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const errorPayload = await res.text();
+          throw new Error(`Failed to delete profile: ${res.statusText}`);
+        }
+        refreshUsers();
       }
+      
+      // Update local state
       setProfiles((prev) => prev.filter((p) => p.id !== profileToDelete.id));
       setFilteredProfiles((prev) => prev.filter((p) => p.id !== profileToDelete.id));
+      
       toast.success(`${profileToDelete.name}'s profile has been deleted`, "Profile removed successfully.");
+      
+      // Refresh local data after successful deletion
+      await fetchProfiles();
     } catch (err) {
       toast.error("Error deleting profile", "Please try again later.");
     } finally {
@@ -368,29 +391,40 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
       setProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
       setFilteredProfiles((prev) => prev.map((p) => p.id === profileId ? { ...p, status: actionStatus, isAvailable } : p));
 
-      // Send PATCH to backend
-      const response = await fetch(`/api/developer-profiles/approve`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profileId, action })
-      });
+      // Use the new functions from parent if available, otherwise fallback to original logic
+      if (actionStatus === 'approved' && onApproveProfile) {
+        await onApproveProfile(profileId);
+      } else if (actionStatus === 'rejected' && onRejectProfile) {
+        await onRejectProfile(profileId);
+      } else {
+        // Fallback to original logic if parent functions are not available
+        const response = await fetch(`/api/developer-profiles/approve`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profileId, action })
+        });
 
-      const result = await response.json();
+        const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || `Failed to ${action} developer`);
+        if (!response.ok) {
+          throw new Error(result.message || `Failed to ${action} developer`);
+        }
+
+        console.log(`Successfully ${action}d developer:`, result);
+        
+        // Refresh both data sources to ensure consistency
+        refreshUsers();
+
+        // Force refresh profiles with a delay to ensure backend processing is complete
+        setTimeout(async () => {
+          await fetchProfiles();
+        }, 500);
       }
 
-      console.log(`Successfully ${action}d developer:`, result);
       toast.success(`Developer ${actionStatus} successfully`, `Profile status updated to ${actionStatus}.`);
 
-      // Refresh both data sources to ensure consistency
-      refreshUsers();
-
-      // Force refresh profiles with a delay to ensure backend processing is complete
-      setTimeout(async () => {
-        await fetchProfiles();
-      }, 500);
+      // Refresh local data after successful action
+      await fetchProfiles();
 
     } catch (err) {
       console.error(`Error ${action}ing developer:`, err);
@@ -1795,7 +1829,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                     <button
                       onClick={() => handleToggleApproval(profile.id, "approved")}
                       disabled={profile.status === 'approved'}
-                      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'approved' ? '  bg-green-600/20 text-green-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-green-600/20 hover:text-green-400 cursor-pointer '}`}
+                      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'approved' ? '  bg-green-600/20 text-green-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-green-600/20 hover:text-green-400 cursor-pointer'}`}
                     >
                       <FaCheckCircle />
                     </button>
@@ -1803,7 +1837,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
                     <button
                       onClick={() => handleToggleApproval(profile.id, "rejected")}
                       disabled={profile.status === 'rejected'}
-                      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'rejected' ? 'bg-red-600/20 text-red-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-red-600/20 hover:text-red-400 cursor-pointer '}`}
+                      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${profile.status === 'rejected' ? 'bg-red-600/20 text-red-400 cursor-not-allowed' : 'bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-red-600/20 hover:text-red-400 cursor-pointer'}`}
                     >
                       <FaTimesCircle />
                     </button>

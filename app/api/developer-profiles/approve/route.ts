@@ -60,44 +60,74 @@ export async function PATCH(req: NextRequest) {
 
         // Update developer profile status and availability
         const profileUpdate = action === "approve"
-            ? { status: "approved", isAvailable: true }
-            : { status: "rejected", isAvailable: false };
+            ? { 
+                status: "approved", 
+                isAvailable: true,
+                updatedAt: new Date()
+              }
+            : { 
+                status: "rejected", 
+                isAvailable: false,
+                updatedAt: new Date()
+              };
 
-        await profilesCollection.updateOne(
+        const profileUpdateResult = await profilesCollection.updateOne(
             { _id: objectId },
             { $set: profileUpdate }
         );
 
+        if (profileUpdateResult.modifiedCount === 0) {
+            return new NextResponse(JSON.stringify({ 
+                success: false, 
+                message: "Failed to update developer profile" 
+            }), { status: 500, headers: corsHeaders });
+        }
+
         console.log(`Updated developer profile ${profileId} with status: ${profileUpdate.status}`);
 
-        // Update associated user status
+        // Update associated user status with comprehensive data
         if (developerProfile.userId) {
             const userUpdate = action === "approve" 
                 ? { 
                     status: "active", 
-                    developerProfileStatus: "approved"
+                    isActive: true,
+                    developerProfileStatus: "approved",
+                    updatedAt: new Date()
                   } 
                 : { 
                     status: "inactive", 
-                    developerProfileStatus: "rejected"
+                    isActive: false,
+                    developerProfileStatus: "rejected",
+                    updatedAt: new Date()
                   };
 
-            await usersCollection.updateOne(
+            const userUpdateResult = await usersCollection.updateOne(
                 { _id: developerProfile.userId },
                 { $set: userUpdate }
             );
 
-            console.log(`Updated user ${developerProfile.userId} with status: ${userUpdate.status}`);
+            if (userUpdateResult.modifiedCount === 0) {
+                console.warn(`No user found or updated for developer profile ${profileId}`);
+            } else {
+                console.log(`Updated user ${developerProfile.userId} with status: ${userUpdate.status}`);
+            }
         } else {
             console.warn(`No associated user found for developer profile ${profileId}`);
         }
+
+        // Verify the update by fetching the updated profile
+        const updatedProfile = await profilesCollection.findOne({ _id: objectId });
+        const updatedUser = developerProfile.userId ? 
+            await usersCollection.findOne({ _id: developerProfile.userId }) : null;
 
         return new NextResponse(JSON.stringify({ 
             success: true,
             message: `Developer ${action}d successfully`,
             profileId,
             status: profileUpdate.status,
-            isAvailable: profileUpdate.isAvailable
+            isAvailable: profileUpdate.isAvailable,
+            profile: updatedProfile,
+            user: updatedUser
         }), { status: 200, headers: corsHeaders });
 
     } catch (error) {

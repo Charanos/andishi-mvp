@@ -166,10 +166,86 @@ async function createDeveloperProfile(db: any, userId: ObjectId, user: any) {
 }
 
 // GET - Fetch all users
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const url = new URL(request.url);
+    const refresh = url.searchParams.get('refresh') === 'true';
+    
     const client = await clientPromise;
     const db = client.db();
+
+    // If refresh is requested, ensure data consistency
+    if (refresh) {
+      console.log('Refreshing user data and ensuring consistency...');
+      
+      // Ensure all developers have profiles
+      const developersWithoutProfiles = await db.collection('users').find({
+        role: 'developer',
+        developerProfileStatus: { $in: ['approved', 'pending'] }
+      }).toArray();
+      
+      for (const developer of developersWithoutProfiles) {
+        const profileExists = await db.collection('developerProfiles').findOne({ userId: developer._id });
+        if (!profileExists) {
+          console.log(`Creating missing profile for developer ${developer._id}`);
+          // Create a basic profile
+          await db.collection('developerProfiles').insertOne({
+            userId: developer._id,
+            status: 'pending',
+            isAvailable: false,
+            createdAt: new Date(),
+            data: {
+              personalInfo: {
+                firstName: developer.firstName || 'Unknown',
+                lastName: developer.lastName || 'Developer',
+                email: developer.email || '',
+                location: 'Unknown',
+                tagline: 'Full Stack Developer'
+              },
+              professionalInfo: {
+                title: 'Developer',
+                experienceLevel: 'Mid-level',
+                availability: 'Full-time',
+                hourlyRate: 50,
+                languages: [],
+                certifications: [],
+                preferredWorkType: []
+              },
+              technicalSkills: {
+                primarySkills: [
+                  { name: 'JavaScript', level: 0 },
+                  { name: 'React', level: 0 },
+                  { name: 'Node.js', level: 0 }
+                ],
+                frameworks: [],
+                databases: [],
+                tools: [],
+                cloudPlatforms: [],
+                specializations: []
+              },
+              stats: {
+                totalProjects: 0,
+                completedProjects: 0,
+                totalEarnings: 0,
+                averageRating: 0,
+                totalCodeLines: 0,
+                activeDays: 0,
+                clientRetention: 0,
+                totalCommits: 0,
+                bugsFixed: 0,
+                codeReviewsGiven: 0,
+                mentoringSessions: 0
+              },
+              projects: [],
+              recentActivity: [],
+              achievements: [],
+              notifications: [],
+              timeEntries: []
+            }
+          });
+        }
+      }
+    }
 
     // Exclude sensitive fields like password
     let users = await db
@@ -653,6 +729,14 @@ export async function DELETE(request: Request) {
       );
     }
 
+    // Delete associated developer profile first if exists
+    let deletedProfileCount = 0;
+    if (existingUser.role === 'developer') {
+      const deleteProfileResult = await db.collection('developerProfiles').deleteOne({ userId: existingUser._id });
+      deletedProfileCount = deleteProfileResult.deletedCount;
+      console.log(`Deleted associated developer profile: ${deletedProfileCount}`);
+    }
+
     const result = await db.collection('users').deleteOne({ _id: objectId });
 
     if (result.deletedCount === 0) {
@@ -664,7 +748,8 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ 
       success: true,
-      message: 'User deleted successfully'
+      message: `User deleted successfully${deletedProfileCount > 0 ? ' along with associated developer profile' : ''}`,
+      deletedProfileCount
     });
     
   } catch (err) {

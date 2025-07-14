@@ -618,7 +618,9 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
         {
           $set: {
             developerProfileStatus: "rejected",
-            status: "inactive"
+            status: "inactive",
+            isActive: false,
+            updatedAt: new Date()
           }
         }
       );

@@ -4,6 +4,7 @@ import React, { useState, useEffect, ReactNode, useMemo } from "react";
 import ToastContainer from "../components/ToastContainer";
 import useToast from "../../hooks/useToast";
 import { useDeveloperProfiles } from "@/hooks/useDeveloperProfiles";
+import { useUserManagement } from "@/hooks/useUserManagement";
 import { FiTrendingUp, FiX } from "react-icons/fi";
 import { HiViewGrid, HiViewList } from "react-icons/hi";
 import {
@@ -126,9 +127,25 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   // State Management
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
-  const { profiles: devProfiles, loading: devProfilesLoading, updateProfile: updateDevProfile } = useDeveloperProfiles();
+  const { 
+    profiles: devProfiles, 
+    loading: devProfilesLoading, 
+    updateProfile: updateDevProfile,
+    approveProfile,
+    rejectProfile,
+    deleteProfile: deleteDevProfile,
+    refetch: refetchProfiles
+  } = useDeveloperProfiles();
+  const {
+    users,
+    loading: usersLoading,
+    refreshUsers,
+    deleteUser: deleteUserFromHook,
+    updateUser: updateUserFromHook,
+    createUser: createUserFromHook,
+    setUsers
+  } = useUserManagement();
   const [projects, setProjects] = useState<ProjectData[]>([]);
-  const [users, setUsers] = useState<SystemUser[]>([]);
   const emptyAnalytics: EnhancedAnalyticsData = {
     totalUsers: 0,
     totalProjects: 0,
@@ -456,6 +473,76 @@ export default function EnhancedAdminDashboard(): ReactNode {
       console.error("Error during data sync:", error);
       toast.error("Data sync failed", "Please try again later");
       return false;
+    }
+  };
+
+  // Comprehensive refresh function for all data
+  const refreshAllData = async () => {
+    try {
+      setLoading(true);
+      console.log("Refreshing all data...");
+      
+      // Refresh both users and developer profiles
+      await Promise.all([
+        refreshUsers(),
+        refetchProfiles(),
+        syncDeveloperData()
+      ]);
+      
+      console.log("All data refreshed successfully");
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      toast.error("Failed to refresh data", "Please try again");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Enhanced approval function with proper synchronization
+  const handleApproveProfile = async (profileId: string) => {
+    try {
+      await approveProfile(profileId);
+      await refreshAllData();
+      toast.success("Profile approved successfully", "Developer is now active");
+    } catch (error) {
+      console.error("Error approving profile:", error);
+      toast.error("Failed to approve profile", "Please try again");
+    }
+  };
+
+  // Enhanced rejection function with proper synchronization
+  const handleRejectProfile = async (profileId: string) => {
+    try {
+      await rejectProfile(profileId);
+      await refreshAllData();
+      toast.success("Profile rejected successfully", "Developer has been deactivated");
+    } catch (error) {
+      console.error("Error rejecting profile:", error);
+      toast.error("Failed to reject profile", "Please try again");
+    }
+  };
+
+  // Enhanced delete function with proper synchronization
+  const handleDeleteProfile = async (profileId: string) => {
+    try {
+      await deleteDevProfile(profileId);
+      await refreshAllData();
+      toast.success("Profile deleted successfully", "Developer profile has been removed");
+    } catch (error) {
+      console.error("Error deleting profile:", error);
+      toast.error("Failed to delete profile", "Please try again");
+    }
+  };
+
+  // Enhanced user delete function with proper synchronization
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await deleteUserFromHook(userId);
+      await refreshAllData();
+      toast.success("User deleted successfully", "User and associated profiles have been removed");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user", "Please try again");
     }
   };
 
@@ -2241,7 +2328,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     error?: string;
   }
 
-  const createUser = async (
+  const createUserLocal = async (
     userData: Omit<CreateUserPayload, "generatePassword">
   ): Promise<CreateUserResponse> => {
     try {
@@ -2301,7 +2388,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     error?: string;
   }
 
-  const updateUser = async (
+  const updateUserLocal = async (
     userId: string,
     userData: UpdateUserPayload
   ): Promise<UpdateUserResponse> => {
@@ -2356,7 +2443,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     error?: string;
   }
 
-  const deleteUser = async (userId: string): Promise<DeleteUserResponse> => {
+  const deleteUserLocal = async (userId: string): Promise<DeleteUserResponse> => {
     try {
       // Fixed: Use query parameter instead of body for DELETE request
       const res: Response = await fetch(`/api/users?id=${userId}`, {
@@ -3537,7 +3624,12 @@ Generate new credentials to reset password.`;
             <AdvancedAnalyticsDashboard analytics={analytics} />
           )}
           {activeTab === "dev profiles" && (
-            <DeveloperProfilesOverview refreshUsers={fetchAllData} />
+            <DeveloperProfilesOverview 
+              refreshUsers={refreshAllData}
+              onApproveProfile={handleApproveProfile}
+              onRejectProfile={handleRejectProfile}
+              onDeleteProfile={handleDeleteProfile}
+            />
           )}
 
           {activeTab === "settings" && renderSettings()}

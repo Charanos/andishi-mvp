@@ -31,6 +31,83 @@ export const useDeveloperProfiles = () => {
     }
   }, []);
 
+  const approveProfile = useCallback(async (profileId: string) => {
+    try {
+      const response = await fetch('/api/developer-profiles/approve', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ profileId, action: 'approve' })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to approve profile');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refresh the profiles list to get updated data
+        await fetchProfiles();
+        return result;
+      } else {
+        throw new Error(result.message || 'Failed to approve profile');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve profile');
+      throw err;
+    }
+  }, [fetchProfiles]);
+
+  const rejectProfile = useCallback(async (profileId: string) => {
+    try {
+      const response = await fetch('/api/developer-profiles/approve', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ profileId, action: 'reject' })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to reject profile');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refresh the profiles list to get updated data
+        await fetchProfiles();
+        return result;
+      } else {
+        throw new Error(result.message || 'Failed to reject profile');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject profile');
+      throw err;
+    }
+  }, [fetchProfiles]);
+
+  const deleteProfile = useCallback(async (profileId: string) => {
+    try {
+      const response = await fetch(`/api/developer-profiles?id=${profileId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete profile');
+      }
+      
+      // Refresh the profiles list to get updated data
+      await fetchProfiles();
+      return { success: true };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete profile');
+      throw err;
+    }
+  }, [fetchProfiles]);
+
   useEffect(() => {
     fetchProfiles();
   }, [fetchProfiles]);
@@ -41,5 +118,8 @@ export const useDeveloperProfiles = () => {
     error,
     refetch: fetchProfiles,
     updateProfile,
+    approveProfile,
+    rejectProfile,
+    deleteProfile,
   };
 };

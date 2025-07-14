@@ -316,8 +316,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
             skillsInDemand: analyticsResponse.performance?.skills || [],
             performanceMetrics: analyticsResponse.performance?.metrics || [],
             recentActivities: analyticsResponse.activities || [],
-            avgProjectValue: analyticsResponse.overview.totalProjects > 0 
-              ? analyticsResponse.overview.totalRevenue / analyticsResponse.overview.totalProjects 
+            avgProjectValue: analyticsResponse.overview.totalProjects > 0
+              ? analyticsResponse.overview.totalRevenue / analyticsResponse.overview.totalProjects
               : 0,
             clientRetentionRate: 85, // Default or calculate from data
             avgDeliveryTime: 25, // Default or calculate from data
@@ -500,8 +500,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
               skillsInDemand: analyticsData.performance?.skills || [],
               performanceMetrics: analyticsData.performance?.metrics || [],
               recentActivities: analyticsData.activities || [],
-              avgProjectValue: analyticsData.overview.totalProjects > 0 
-                ? analyticsData.overview.totalRevenue / analyticsData.overview.totalProjects 
+              avgProjectValue: analyticsData.overview.totalProjects > 0
+                ? analyticsData.overview.totalRevenue / analyticsData.overview.totalProjects
                 : 0,
               clientRetentionRate: 85, // Default or calculate from data
               avgDeliveryTime: 25, // Default or calculate from data
@@ -749,7 +749,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
   };
 
   // Project functions
-  
+
   // Helper function to update developers when project is completed
   const updateDevelopersOnProjectCompletion = async (projectId: string, project: ProjectData) => {
     try {
@@ -758,7 +758,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (response.ok) {
         const assignmentsData = await response.json();
         const assignments = assignmentsData.assignments || [];
-        
+
         // Update each assigned developer's profile
         const updatePromises = assignments.map(async (assignment: any) => {
           try {
@@ -776,7 +776,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             console.error(`Failed to update developer ${assignment.developerId} on project completion:`, error);
           }
         });
-        
+
         await Promise.all(updatePromises);
         console.log(`Updated ${assignments.length} developers for completed project ${projectId}`);
       }
@@ -808,12 +808,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (updatedProject) {
         setSelectedProject(updatedProject);
       }
-      
+
       // If project is completed, update all assigned developers' profiles
       if (newStatus === "completed" && updatedProject) {
         await updateDevelopersOnProjectCompletion(projectId, updatedProject);
       }
-      
+
       const statusMessages: { [key in ProjectStatus]?: string } = {
         "in-progress": "Project marked as in progress ",
         completed: "Project marked as completed ",
@@ -1467,7 +1467,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             {analytics.topClients.slice(0, 5).map((client, index) => (
               <div
                 key={`client-${index}-${client.name}`}
-                className="flex items-center justify-between p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all duration-300"
+                className="flex items-center justify-between p-3 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5 backdrop-blur-md"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
@@ -1499,7 +1499,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             {analytics.topDevelopers.slice(0, 5).map((dev, index) => (
               <div
                 key={`developer-${index}-${dev.name}`}
-                className="flex items-center justify-between p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all duration-300"
+                className="flex items-center justify-between p-3 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5 backdrop-blur-md"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">

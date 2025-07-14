@@ -59,10 +59,11 @@ export async function GET(
       timeEntries: profile.data.timeEntries || [],
       status: profile.status || "pending",
       isAvailable: profile.isAvailable || false,
+      busyUntilDate: profile.busyUntilDate || null,
       createdAt: profile.createdAt?.toISOString() || new Date().toISOString(),
     };
     
-    return new NextResponse(JSON.stringify(responseData), { status: 200, headers: corsHeaders });
+    return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
   } catch (err) {
     console.error("GET /api/developer-profiles/[developerId]", err);
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
@@ -100,6 +101,8 @@ export async function PUT(
 
     // Extract the id from payload and store the rest as data
     const { id, ...profileData } = payload;
+    
+    console.log('Updating profile with data:', JSON.stringify(profileData, null, 2));
 
     const result = await db.collection('developerProfiles').findOneAndUpdate(
       { _id: objectId },
@@ -108,6 +111,7 @@ export async function PUT(
           data: profileData,
           status: payload.status || existingProfile.status,
           isAvailable: payload.isAvailable !== undefined ? payload.isAvailable : existingProfile.isAvailable,
+          busyUntilDate: payload.busyUntilDate !== undefined ? payload.busyUntilDate : existingProfile.busyUntilDate,
           updatedAt: new Date() 
         } 
       },
@@ -116,8 +120,11 @@ export async function PUT(
 
     const updatedProfile = result?.value;
     if (!updatedProfile) {
+      console.error('Failed to update profile - result.value is null');
       return new NextResponse("Failed to update profile", { status: 500, headers: corsHeaders });
     }
+    
+    console.log('Profile updated successfully:', updatedProfile._id.toString());
 
     // Return properly formatted response matching DeveloperProfile structure
     const responseData = {
@@ -133,10 +140,11 @@ export async function PUT(
       timeEntries: updatedProfile.data.timeEntries || [],
       status: updatedProfile.status || "pending",
       isAvailable: updatedProfile.isAvailable || false,
+      busyUntilDate: updatedProfile.busyUntilDate || null,
       createdAt: updatedProfile.createdAt?.toISOString() || new Date().toISOString(),
     };
 
-    return new NextResponse(JSON.stringify(responseData), { status: 200, headers: corsHeaders });
+    return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
   } catch (err) {
     console.error("PUT /api/developer-profiles/[developerId]", err);
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });

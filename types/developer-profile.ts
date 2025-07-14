@@ -46,4 +46,5 @@ export interface DeveloperProfile {
   timeEntries: any[];
   status: "pending" | "approved" | "rejected";
   isAvailable: boolean;
+  busyUntilDate?: Date;
 }

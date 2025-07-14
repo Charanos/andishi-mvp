@@ -31,6 +31,7 @@ import {
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Link from "next/link";
 
 interface PersonalInfo {
   firstName: string;
@@ -541,11 +542,10 @@ export default function DeveloperRegistrationForm() {
             {steps.map((step) => (
               <div key={step.number} className="relative z-10">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    currentStep >= step.number
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.number
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
                       : "bg-gray-700 text-gray-400"
-                  }`}
+                    }`}
                 >
                   <step.icon className="text-lg" />
                 </div>
@@ -871,11 +871,10 @@ export default function DeveloperRegistrationForm() {
                               "workType"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.professionalInfo.workType.includes(type)
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.professionalInfo.workType.includes(type)
                               ? "bg-blue-500/20 border-blue-400 text-blue-300"
                               : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
+                            }`}
                         >
                           {type}
                         </button>
@@ -900,11 +899,10 @@ export default function DeveloperRegistrationForm() {
                               "languages"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.professionalInfo.languages.includes(lang)
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.professionalInfo.languages.includes(lang)
                               ? "bg-blue-500/20 border-blue-400 text-blue-300"
                               : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
+                            }`}
                         >
                           {lang}
                         </button>
@@ -953,13 +951,12 @@ export default function DeveloperRegistrationForm() {
                               "primarySkills"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.technicalSkills.primarySkills.includes(
-                              skill
-                            )
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.primarySkills.includes(
+                            skill
+                          )
                               ? "bg-blue-500/20 border-blue-400 text-blue-300"
                               : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
+                            }`}
                         >
                           {skill}
                         </button>
@@ -982,13 +979,12 @@ export default function DeveloperRegistrationForm() {
                               "frameworks"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.technicalSkills.frameworks.includes(
-                              framework
-                            )
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.frameworks.includes(
+                            framework
+                          )
                               ? "bg-purple-500/20 border-purple-400 text-purple-300"
                               : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
+                            }`}
                         >
                           {framework}
                         </button>
@@ -1011,11 +1007,10 @@ export default function DeveloperRegistrationForm() {
                               "databases"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.technicalSkills.databases.includes(db)
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.databases.includes(db)
                               ? "bg-green-500/20 border-green-400 text-green-300"
                               : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
+                            }`}
                         >
                           {db}
                         </button>
@@ -1038,11 +1033,10 @@ export default function DeveloperRegistrationForm() {
                               "tools"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.technicalSkills.tools.includes(tool)
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.tools.includes(tool)
                               ? "bg-orange-500/20 border-orange-400 text-orange-300"
                               : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
+                            }`}
                         >
                           {tool}
                         </button>
@@ -1506,19 +1500,23 @@ export default function DeveloperRegistrationForm() {
                     />
                     <label htmlFor="terms" className="text-sm text-gray-300">
                       I agree to the{" "}
-                      <a
-                        href="#"
+                      <Link
+                        href="/legal/terms-of-service"
                         className="text-blue-400 hover:text-blue-300 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         Terms of Service
-                      </a>{" "}
+                      </Link>{" "}
                       and{" "}
-                      <a
-                        href="#"
+                      <Link
+                        href="/legal/privacy-policy"
                         className="text-blue-400 hover:text-blue-300 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         Privacy Policy
-                      </a>
+                      </Link>
                       . I understand that my information will be shared with
                       potential clients for project matching purposes.
                     </label>
@@ -1533,11 +1531,10 @@ export default function DeveloperRegistrationForm() {
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
-                  currentStep === 1
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${currentStep === 1
                     ? "text-gray-500 cursor-not-allowed"
                     : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
-                }`}
+                  }`}
               >
                 <FaArrowLeft className="text-[15.5px" />
                 <span>Previous</span>
@@ -1552,11 +1549,10 @@ export default function DeveloperRegistrationForm() {
                   type="button"
                   onClick={nextStep}
                   disabled={!isStepValid()}
-                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${
-                    isStepValid()
+                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${isStepValid()
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
                       : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   Next
                   <FaArrowRight className="ml-2" />
@@ -1566,11 +1562,10 @@ export default function DeveloperRegistrationForm() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={!isStepValid() || submitStatus === "loading"}
-                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${
-                    isStepValid() && submitStatus !== "loading"
+                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${isStepValid() && submitStatus !== "loading"
                       ? "bg-green-500/20 text-green-300 hover:bg-green-500/30"
                       : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   {submitStatus === "loading" ? (
                     "Submitting..."

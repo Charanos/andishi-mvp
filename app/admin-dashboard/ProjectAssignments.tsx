@@ -196,16 +196,27 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     );
   };
 
-  // Assign developers to project
+  // Assign developers to project with graceful error handling
   const handleAssignDevelopers = async () => {
     if (selectedDevelopers.length === 0) {
       toast.error("Please select at least one developer");
       return;
     }
+    
     setAssigning(true);
+    const assignmentResults = {
+      successful: [] as string[],
+      failed: [] as { developerId: string; error: string }[]
+    };
+    
     try {
-      // Update developer profiles to include new project assignment
-      const updateDeveloperAssignments = async (developerId: string) => {
+      // Step 1: First, create the project assignments
+      console.log('Creating project assignments...');
+      await assignDevelopers(selectedDevelopers);
+      
+      // Step 2: Then update developer profiles sequentially with proper error handling
+      console.log('Updating developer profiles...');
+      for (const developerId of selectedDevelopers) {
         try {
           const response = await fetch(`/api/developer/${developerId}/update`, {
             method: 'PATCH',
@@ -221,22 +232,62 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
               }
             }),
           });
+          
           if (!response.ok) {
-            throw new Error('Failed to update developer profile.');
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
           }
+          
+          const result = await response.json();
+          if (!result.success) {
+            throw new Error(result.message || 'Update failed');
+          }
+          
+          assignmentResults.successful.push(developerId);
+          console.log(`Successfully updated developer ${developerId}`);
         } catch (error) {
-          console.error(`Error updating developer ${developerId}:`, error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`Error updating developer ${developerId}:`, errorMessage);
+          assignmentResults.failed.push({ developerId, error: errorMessage });
         }
-      };
-
-      // Assign and Update developer information
-      await assignDevelopers(selectedDevelopers);
-      await Promise.all(selectedDevelopers.map(id => updateDeveloperAssignments(id)));
-      toast.success(`Successfully assigned ${selectedDevelopers.length} developer(s) to ${projectTitle}`);
+      }
+      
+      // Step 3: Show results and handle partial failures
+      if (assignmentResults.successful.length > 0) {
+        toast.success(
+          `Successfully assigned ${assignmentResults.successful.length} developer(s) to ${projectTitle}`,
+          assignmentResults.failed.length > 0 
+            ? `${assignmentResults.failed.length} developer(s) had profile update issues but were still assigned.`
+            : undefined
+        );
+      }
+      
+      if (assignmentResults.failed.length > 0) {
+        toast.warning(
+          `${assignmentResults.failed.length} developer(s) had profile update issues`,
+          "They are still assigned to the project, but their profiles may not reflect the assignment."
+        );
+        console.warn('Failed developer updates:', assignmentResults.failed);
+      }
+      
       setSelectedDevelopers([]);
       refetch();
+      
     } catch (error) {
-      toast.error("Failed to assign developers", error instanceof Error ? error.message : "Unknown error");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error('Assignment error:', error);
+      
+      // If the main assignment failed, try to clean up any partial assignments
+      if (assignmentResults.successful.length > 0) {
+        toast.error(
+          "Assignment partially failed",
+          `Some developers may have been assigned. Please refresh and check the current assignments.`
+        );
+      } else {
+        toast.error("Failed to assign developers", errorMessage);
+      }
+      
+      refetch(); // Refresh to show current state
     } finally {
       setAssigning(false);
     }

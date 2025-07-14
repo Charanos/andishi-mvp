@@ -38,6 +38,7 @@ model DeveloperProfile {
   user            User?    @relation("UserProfile", fields: [userId], references: [id])
   status          String   @default("pending") // pending, approved, rejected
   isAvailable     Boolean  @default(false)
+  busyUntilDate   DateTime? // Date until which developer is considered busy even after project completion
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   assignments     ProjectAssignment[]
@@ -65,23 +66,24 @@ type Pricing {
 }
 
 model Project {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  title           String
-  description     String?
-  status          String   @default("pending")
-  priority        String   @default("medium")
-  budget          Float    @default(0)
-  timeline        String?
-  techStack       String[]
-  requiredSkills  String[]
-  experienceLevel String   @default("Mid-level")
-  maxTeamSize     Int      @default(1)
-  clientId        String?  @db.ObjectId
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  assignments     ProjectAssignment[]
-  milestones      Milestone[]
-  pricing         Pricing?
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  title                  String
+  description            String?
+  status                 String   @default("pending")
+  priority               String   @default("medium")
+  budget                 Float    @default(0)
+  timeline               String?
+  techStack              String[]
+  requiredSkills         String[]
+  experienceLevel        String   @default("Mid-level")
+  maxTeamSize            Int      @default(1)
+  clientId               String?  @db.ObjectId
+  estimatedCompletionDate DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  assignments            ProjectAssignment[]
+  milestones             Milestone[]
+  pricing                Pricing?
 }
 
 model ProjectAssignment {

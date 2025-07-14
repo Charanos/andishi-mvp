@@ -68,7 +68,8 @@ interface FormData {
 export default function StartProjectForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [clientTermsAccepted, setClientTermsAccepted] = useState(false);
+  const [clientPrivacyAccepted, setClientPrivacyAccepted] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     userInfo: {
       firstName: "",
@@ -262,8 +263,8 @@ export default function StartProjectForm() {
 
   const handleSubmit = async () => {
     // Check if terms are accepted
-    if (!termsAccepted) {
-      toast.error("Please accept the terms and conditions before submitting.");
+    if (!clientTermsAccepted || !clientPrivacyAccepted) {
+      toast.error("Please accept both the Terms of Service and Privacy Policy before submitting.");
       return;
     }
 
@@ -329,7 +330,7 @@ export default function StartProjectForm() {
         }
         return true;
       case 4:
-        return termsAccepted;
+        return clientTermsAccepted && clientPrivacyAccepted;
       default:
         return true;
     }
@@ -1164,26 +1165,59 @@ export default function StartProjectForm() {
                     </div>
                   </div>
 
-                  {/* Terms Agreement */}
-                  <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/20 rounded-lg">
+                  {/* Client Terms and Privacy Policy */}
+                  <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/20 rounded-lg space-y-4">
                     <div className="flex items-start space-x-3">
                       <input
-                        id="terms"
+                        id="clientTerms"
                         type="checkbox"
-                        checked={termsAccepted}
-                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        checked={clientTermsAccepted}
+                        onChange={(e) => setClientTermsAccepted(e.target.checked)}
                         className="mt-1 w-4 h-4 text-blue-400 bg-transparent border-2 border-blue-400 rounded focus:ring-blue-400 focus:ring-2"
                       />
                       <label
-                        htmlFor="terms"
+                        htmlFor="clientTerms"
                         className="text-[15.5px] text-gray-300 leading-relaxed"
                       >
-                        I agree to Andishi's terms of service and privacy
-                        policy. I understand that this is a project inquiry and
-                        final pricing will be confirmed after initial
-                        consultation.
+                        I agree to the{" "}
+                        <a
+                          href="/legal/client-terms-of-service"
+                          className="text-blue-400 hover:text-blue-300 underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Client Terms of Service
+                        </a>
+                        .
                       </label>
                     </div>
+                    <div className="flex items-start space-x-3">
+                      <input
+                        id="clientPrivacy"
+                        type="checkbox"
+                        checked={clientPrivacyAccepted}
+                        onChange={(e) => setClientPrivacyAccepted(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-blue-400 bg-transparent border-2 border-blue-400 rounded focus:ring-blue-400 focus:ring-2"
+                      />
+                      <label
+                        htmlFor="clientPrivacy"
+                        className="text-[15.5px] text-gray-300 leading-relaxed"
+                      >
+                        I agree to the{" "}
+                        <a
+                          href="/legal/client-privacy-policy"
+                          className="text-blue-400 hover:text-blue-300 underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Client Privacy Policy
+                        </a>
+                        .
+                      </label>
+                    </div>
+                    <p className="text-[15.5px] text-gray-400 leading-relaxed mt-4">
+                      I understand that this is a project inquiry and final pricing will be confirmed after initial consultation.
+                    </p>
                   </div>
                 </div>
               </div>

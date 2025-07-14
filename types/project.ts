@@ -197,5 +197,6 @@ export interface Project {
   clientId: string;
   techStack: string[];
   experienceLevel: string;
+  estimatedCompletionDate?: Date;
   // ...other fields
 }

@@ -27,17 +27,17 @@ export default function Footer() {
       { name: "Careers", href: "#careers" },
       { name: "Contact", href: "#contact" },
     ],
-    services: [
-      { name: "Web Development", href: "#web-dev" },
-      { name: "Mobile Development", href: "#mobile-dev" },
-      { name: "AI/ML Solutions", href: "#ai-ml" },
-      { name: "Blockchain/Web3", href: "#blockchain" },
-    ],
     resources: [
       { name: "Blog", href: "/feaured-blog" },
       { name: "Case Studies", href: "#case-studies" },
       { name: "Developer Guide", href: "#guide" },
       { name: "API Documentation", href: "#docs" },
+    ],
+    legal: [
+      { name: "Developer Terms of Service", href: "/legal/terms-of-service" },
+      { name: "Developer Privacy Policy", href: "/legal/privacy-policy" },
+      { name: "Client Terms of Service", href: "/legal/client-terms-of-service" },
+      { name: "Client Privacy Policy", href: "/legal/client-privacy-policy" },
     ],
   };
 

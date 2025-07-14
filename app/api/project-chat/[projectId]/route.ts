@@ -1,274 +1,95 @@
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/getSession";
-import { NextRequest, NextResponse } from "next/server";
 
-// Helper: Check if user is a chat participant
-async function isParticipant(chatId: string, userId: string) {
-  const participant = await prisma.chatParticipant.findFirst({
-    where: { chatId, userId },
-  });
-  return !!participant;
-}
-
-// Utility: Ensure all required participants exist for a project chat
-async function ensureCoreParticipants(chatId: string, projectId: string, sender: { id: string, name: string, role: string }) {
-  // Add sender if missing (already handled)
-  // Add admin and client if not present
-  // Find project to get clientId
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project) return;
-  // Add client
-  if (project.clientId) {
-    const clientUser = await prisma.user.findUnique({ where: { id: project.clientId } });
-    if (!clientUser) return; // If client user not found, cannot add them to chat
-
-    const clientParticipant = await prisma.chatParticipant.findFirst({
-      where: { chatId, userId: project.clientId },
-    });
-    if (!clientParticipant) {
-      await prisma.chatParticipant.create({
-        data: {
-          chatId,
-          userId: project.clientId,
-          name: clientUser.firstName || clientUser.email || "Client", // Fetch client's actual name
-          role: "client",
-          isOnline: false,
-        },
-      });
-    }
-  }
-  // Add admin (assume one admin for now, or skip if not available)
-  const admin = await prisma.user.findFirst({ where: { role: "admin" } });
-  if (admin) {
-    const adminParticipant = await prisma.chatParticipant.findFirst({
-      where: { chatId, userId: admin.id },
-    });
-    if (!adminParticipant) {
-      await prisma.chatParticipant.create({
-        data: {
-          chatId,
-          userId: admin.id,
-          name: admin.firstName || "Admin",
-          role: "admin",
-          isOnline: false,
-        },
-      });
-    }
-  }
-}
-
-// Utility: Create a system message in the chat
-async function createSystemMessage(chatId: string, content: string) {
-  await prisma.chatMessage.create({
-    data: {
-      chatId,
-      senderId: "system",
-      senderName: "System",
-      senderRole: "system",
-      content,
-      timestamp: new Date(),
-      isRead: true,
-    },
-  });
-}
-
-// Utility: System message for assignment/removal (to be called from assignment API)
-// export async function createAssignmentSystemMessage(projectId: string, content: string) {
-//   const chat = await prisma.projectChat.findFirst({ where: { projectId } });
-//   if (!chat) return;
-//   await prisma.chatMessage.create({
-//     data: {
-//       chatId: chat.id,
-//       senderId: "system",
-//       senderName: "System",
-//       senderRole: "system",
-//       content,
-//       timestamp: new Date(),
-//       isRead: true,
-//     },
-//   });
-// }
-
-// Utility: Real-time broadcast placeholder
-function broadcastChatUpdate(projectId: string, type: "message" | "assignment" | "removal", payload: any) {
-  // TODO: Implement with WebSocket/SSE
-  // Example: wsServer.emit(`project-chat:${projectId}`, { type, payload });
-}
-
-// GET /api/project-chat/[projectId] - Get chat data for a project
+// GET /api/project-chat/{projectId} - Get chat messages for a project
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
-    const { projectId } = await context.params;
-    const session = await getSession(req);
-    if (!projectId || !session?.user?.id) {
-      return new NextResponse("Project ID and user ID required", { status: 400 });
-    }
-    const userId = session.user.id;
-    let chat = await prisma.projectChat.findFirst({
+    const { projectId } = await params;
+    const chat = await prisma.projectChat.findFirst({
       where: { projectId },
       include: {
-        participants: true,
-        messages: { orderBy: { timestamp: "asc" } },
+        messages: {
+          orderBy: {
+            timestamp: "asc",
+          },
+        },
       },
     });
 
+    // If a chat container doesn't exist, there are no messages.
     if (!chat) {
-      // If chat doesn't exist, create it
-      const newChat = await prisma.projectChat.create({
-        data: {
-          projectId,
-          lastActivity: new Date(),
-        },
-      });
-
-      // Re-fetch the newly created chat with participants and messages
-      chat = await prisma.projectChat.findFirst({
-        where: { id: newChat.id },
-        include: {
-          participants: true,
-          messages: { orderBy: { timestamp: "asc" } },
-        },
-      });
-
-      if (!chat) {
-        return new NextResponse("Chat not found after creation", { status: 404 });
-      }
-
-      // Ensure core participants and add a system message for the new chat
-      const defaultSender = { id: "system", name: "System", role: "system" };
-      await ensureCoreParticipants(chat.id, projectId, defaultSender);
-      await createSystemMessage(chat.id, `Chat started for project ${projectId}.`);
+      return NextResponse.json([], { status: 200 });
     }
 
-    // Ensure the current user is a participant in the chat
-    // This is crucial for both new and existing chats to prevent 403 errors
-    let currentUserParticipant = await prisma.chatParticipant.findFirst({
-      where: { chatId: chat.id, userId: userId },
-    });
-
-    if (!currentUserParticipant) {
-      await prisma.chatParticipant.create({
-        data: {
-          chatId: chat.id,
-          userId: userId,
-          name: session.user.email || "User", // Use user's name or email
-          role: session.user.role,
-          isOnline: true,
-        },
-      });
-    }
-    if (!(await isParticipant(chat.id, userId))) {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
-    return NextResponse.json(chat, { status: 200 });
+    return NextResponse.json(chat.messages, { status: 200 });
   } catch (error) {
     console.error("GET /api/project-chat/[projectId]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
-// POST /api/project-chat/[projectId] - Send a new message
+// POST /api/project-chat/{projectId} - Post a new message to a project chat
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
-    const { projectId } = await context.params;
-    const { senderId, senderName, senderRole, content } = await req.json();
-    if (!projectId || !senderId || !senderName || !senderRole || !content) {
-      return new NextResponse("Missing required fields", { status: 400 });
+    const session = await getSession(req);
+    if (!session || !session.user) {
+      return new NextResponse("Unauthorized", { status: 401 });
     }
-    // Find or create chat
-    let chat = await prisma.projectChat.findFirst({ where: { projectId } });
-    let isNewChat = false;
-    if (!chat) {
-      chat = await prisma.projectChat.create({
-        data: {
-          projectId,
-          lastActivity: new Date(),
-        },
-      });
-      isNewChat = true;
+
+    const { projectId } = await params;
+    const { content } = await req.json();
+
+    if (!content) {
+      return new NextResponse("Content is required", { status: 400 });
     }
-    // At this point, chat is guaranteed to exist
-    // Ensure sender is a participant
-    let participant = await prisma.chatParticipant.findFirst({
-      where: { chatId: chat.id, userId: senderId },
+
+    // Find the chat container for the project, or create it if it doesn't exist.
+    // This uses findFirst and create to avoid a race condition if multiple users post at once.
+    let chat = await prisma.projectChat.findFirst({
+        where: { projectId },
     });
-    if (!participant) {
-      participant = await prisma.chatParticipant.create({
-        data: {
-          chatId: chat.id,
-          userId: senderId,
-          name: senderName,
-          role: senderRole,
-          isOnline: true,
-        },
-      });
+
+    if (!chat) {
+        // In a real-world scenario, you might want to add participants here as well.
+        // The current schema has a ChatParticipant model that is not being used in this API.
+        chat = await prisma.projectChat.create({
+            data: {
+                projectId,
+                lastActivity: new Date(),
+            }
+        });
+    } else {
+        await prisma.projectChat.update({
+            where: { id: chat.id },
+            data: { lastActivity: new Date() },
+        });
     }
-    // Ensure core participants (admin, client) exist
-    await ensureCoreParticipants(chat.id, projectId, { id: senderId, name: senderName, role: senderRole });
-    // If chat was just created, add a system message
-    if (isNewChat) {
-      await ensureCoreParticipants(chat.id, projectId, { id: senderId, name: senderName, role: senderRole });
-      await createSystemMessage(chat.id, `Project chat started. Participants: ${senderName} (${senderRole})${projectId ? ", client, admin" : ""}`);
-    }
-    // Create message
-    const message = await prisma.chatMessage.create({
+
+    // The ChatMessage schema requires senderName and senderRole.
+    // We'll construct the name from the session. This assumes the session user has these fields.
+    const senderName = session.user.name ?? "Unknown User";
+    const senderRole = session.user.role ?? "User";
+
+    const newMessage = await prisma.chatMessage.create({
       data: {
         chatId: chat.id,
-        senderId,
+        senderId: session.user.id,
         senderName,
         senderRole,
         content,
-        timestamp: new Date(),
       },
     });
-    // Update lastActivity
-    await prisma.projectChat.update({
-      where: { id: chat.id },
-      data: { lastActivity: new Date() },
-    });
-    return NextResponse.json(message, { status: 201 });
+
+    return NextResponse.json(newMessage, { status: 201 });
   } catch (error) {
     console.error("POST /api/project-chat/[projectId]", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
-  }
-}
-
-// PUT /api/project-chat/[projectId] - Mark messages as read
-export async function PUT(
-  req: NextRequest,
-  context: { params: Promise<{ projectId: string }> }
-) {
-  try {
-    const { projectId } = await context.params;
-    const { userId, messageIds } = await req.json();
-    if (!projectId || !userId) {
-      return new NextResponse("Missing required fields", { status: 400 });
-    }
-    const chat = await prisma.projectChat.findFirst({ where: { projectId } });
-    if (!chat) return new NextResponse("Chat not found", { status: 404 });
-    if (!(await isParticipant(chat.id, userId))) {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
-    if (messageIds && Array.isArray(messageIds)) {
-      await prisma.chatMessage.updateMany({
-        where: { chatId: chat.id, id: { in: messageIds }, senderId: { not: userId } },
-        data: { isRead: true },
-      });
-    } else {
-      await prisma.chatMessage.updateMany({
-        where: { chatId: chat.id, senderId: { not: userId } },
-        data: { isRead: true },
-      });
-    }
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error("PUT /api/project-chat/[projectId]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

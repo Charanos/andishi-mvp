@@ -28,6 +28,7 @@ import ScrollToTop from "../components/ScrollToTop";
 import ToastContainer from "../components/ToastContainer";
 import useToast from "../../hooks/useToast";
 import { useDeveloperProfiles } from "@/hooks/useDeveloperProfiles";
+import { getCurrentAvailabilityStatus } from "@/services/developerAvailabilityService";
 
 // Type definitions
 interface SystemUser {
@@ -54,6 +55,8 @@ interface SystemUser {
   totalEarnings?: number;
   developerProfileStatus?: "pending" | "approved" | "rejected"; // Status from joined developer profile
   developerProfileId?: string; // ID of the joined developer profile
+  isAvailable?: boolean; // Developer availability status
+  busyUntilDate?: Date; // Date until which developer is busy
 }
 
 interface CreateUserData {
@@ -2086,7 +2089,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       Approved
                     </th>
                     <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
-                      Company
+                      Availability
                     </th>
                     <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
                       Joined
@@ -2151,8 +2154,37 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           <span className="text-gray-500">N/A</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                        {user.company || "-"}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {user.role === "developer" ? (
+                          (() => {
+                            const availabilityStatus = getCurrentAvailabilityStatus(
+                              user.isAvailable || false,
+                              user.busyUntilDate
+                            );
+                            return (
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  availabilityStatus.status === 'available' 
+                                    ? 'bg-green-400' 
+                                    : availabilityStatus.status === 'busy_until_date'
+                                    ? 'bg-orange-400'
+                                    : 'bg-red-400'
+                                }`}></div>
+                                <span className={`text-xs monty uppercase ${
+                                  availabilityStatus.status === 'available' 
+                                    ? 'text-green-400' 
+                                    : availabilityStatus.status === 'busy_until_date'
+                                    ? 'text-orange-400'
+                                    : 'text-red-400'
+                                }`}>
+                                  {availabilityStatus.displayText}
+                                </span>
+                              </div>
+                            );
+                          })()
+                        ) : (
+                          <span className="text-gray-500">N/A</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         {formatDate(user.createdAt)}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 interface RequestBody {
   assignedProject?: {
@@ -98,59 +99,184 @@ export async function PATCH(
     }
 
     if (body.unassign) {
-      // Handle unassignment
+      // Handle unassignment with busyUntilDate logic
       console.log(`Unassigning developer ${developerId} from project:`, body.projectId);
       
-      // Update developer profile upon unassignment
-      const profileUpdateSuccess = await updateDeveloperProfile(developerId, {
-        removeProject: body.projectId,
-        updateAvailability: 'available',
-        updateActiveProjects: -1
-      });
-      
-      if (!profileUpdateSuccess) {
-        console.warn('Failed to update developer profile, but unassignment will continue');
+      try {
+        // Check if developer has other active assignments
+        const otherActiveAssignments = await prisma.projectAssignment.count({
+          where: {
+            developerId,
+            projectId: { not: body.projectId },
+            status: { notIn: ["completed", "cancelled"] },
+          },
+        });
+
+        let developerUpdateData: any = {};
+        
+        if (otherActiveAssignments === 0) {
+          // No other active assignments, check if we need to set busyUntilDate
+          const currentProject = await prisma.project.findUnique({
+            where: { id: body.projectId },
+            select: { estimatedCompletionDate: true }
+          });
+
+          const now = new Date();
+          if (currentProject?.estimatedCompletionDate && 
+              currentProject.estimatedCompletionDate > now) {
+            // Project unassigned before estimated completion date
+            developerUpdateData = {
+              isAvailable: false,
+              busyUntilDate: currentProject.estimatedCompletionDate,
+            };
+          } else {
+            // Project unassigned on or after estimated completion date
+            developerUpdateData = {
+              isAvailable: true,
+              busyUntilDate: null,
+            };
+          }
+        } else {
+          // Developer has other active assignments, keep them busy
+          developerUpdateData = {
+            isAvailable: false,
+            busyUntilDate: null,
+          };
+        }
+
+        // Update the developer profile directly
+        await prisma.developerProfile.update({
+          where: { id: developerId },
+          data: developerUpdateData,
+        });
+
+        // Also update through the legacy API for backwards compatibility
+        const profileUpdateSuccess = await updateDeveloperProfile(developerId, {
+          removeProject: body.projectId,
+          updateAvailability: developerUpdateData.isAvailable ? 'available' : 'busy',
+          updateActiveProjects: -1
+        });
+        
+        if (!profileUpdateSuccess) {
+          console.warn('Failed to update developer profile via legacy API, but unassignment will continue');
+        }
+        
+        return NextResponse.json({
+          success: true,
+          message: "Developer successfully unassigned from project",
+          data: {
+            developerId,
+            unassignedProjectId: body.projectId,
+            profileUpdated: true,
+            availabilityStatus: developerUpdateData,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      } catch (error) {
+        console.error('Error during unassignment:', error);
+        return NextResponse.json({
+          success: false,
+          message: "Failed to unassign developer",
+          error: error instanceof Error ? error.message : "Unknown error",
+        }, { status: 500 });
       }
-      
-      return NextResponse.json({
-        success: true,
-        message: "Developer successfully unassigned from project",
-        data: {
-          developerId,
-          unassignedProjectId: body.projectId,
-          profileUpdated: profileUpdateSuccess,
-          timestamp: new Date().toISOString(),
-        },
-      });
     }
 
     if (body.projectComplete) {
-      // Handle project completion
+      // Handle project completion with busyUntilDate logic
       console.log(`Marking project ${body.projectId} as complete for developer ${developerId}`);
       
-      // Update developer profile when project is completed
-      const profileUpdateSuccess = await updateDeveloperProfile(developerId, {
-        completeProject: body.projectId,
-        updateAvailability: 'available',
-        updateActiveProjects: -1,
-        updateCompletedProjects: 1,
-        updateStats: true
-      });
-      
-      if (!profileUpdateSuccess) {
-        console.warn('Failed to update developer profile, but project completion will continue');
+      try {
+        // Check if developer has other active assignments
+        const otherActiveAssignments = await prisma.projectAssignment.count({
+          where: {
+            developerId,
+            projectId: { not: body.projectId },
+            status: { notIn: ["completed", "cancelled"] },
+          },
+        });
+
+        let developerUpdateData: any = {};
+        
+        if (otherActiveAssignments === 0) {
+          // No other active assignments, check if we need to set busyUntilDate
+          const completedProject = await prisma.project.findUnique({
+            where: { id: body.projectId },
+            select: { estimatedCompletionDate: true }
+          });
+
+          const now = new Date();
+          if (completedProject?.estimatedCompletionDate && 
+              completedProject.estimatedCompletionDate > now) {
+            // Project completed before estimated completion date
+            developerUpdateData = {
+              isAvailable: false,
+              busyUntilDate: completedProject.estimatedCompletionDate,
+            };
+          } else {
+            // Project completed on or after estimated completion date
+            developerUpdateData = {
+              isAvailable: true,
+              busyUntilDate: null,
+            };
+          }
+        } else {
+          // Developer has other active assignments, keep them busy
+          developerUpdateData = {
+            isAvailable: false,
+            busyUntilDate: null,
+          };
+        }
+
+        // Update the developer profile directly
+        await prisma.developerProfile.update({
+          where: { id: developerId },
+          data: developerUpdateData,
+        });
+
+        // Mark the assignment as completed
+        await prisma.projectAssignment.updateMany({
+          where: {
+            developerId,
+            projectId: body.projectId,
+          },
+          data: {
+            status: "completed",
+          },
+        });
+
+        // Also update through the legacy API for backwards compatibility
+        const profileUpdateSuccess = await updateDeveloperProfile(developerId, {
+          completeProject: body.projectId,
+          updateAvailability: developerUpdateData.isAvailable ? 'available' : 'busy',
+          updateActiveProjects: -1,
+          updateCompletedProjects: 1,
+          updateStats: true
+        });
+        
+        if (!profileUpdateSuccess) {
+          console.warn('Failed to update developer profile via legacy API, but project completion will continue');
+        }
+        
+        return NextResponse.json({
+          success: true,
+          message: "Project marked as complete for developer",
+          data: {
+            developerId,
+            completedProjectId: body.projectId,
+            profileUpdated: true,
+            availabilityStatus: developerUpdateData,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      } catch (error) {
+        console.error('Error during project completion:', error);
+        return NextResponse.json({
+          success: false,
+          message: "Failed to mark project as complete",
+          error: error instanceof Error ? error.message : "Unknown error",
+        }, { status: 500 });
       }
-      
-      return NextResponse.json({
-        success: true,
-        message: "Project marked as complete for developer",
-        data: {
-          developerId,
-          completedProjectId: body.projectId,
-          profileUpdated: profileUpdateSuccess,
-          timestamp: new Date().toISOString(),
-        },
-      });
     }
 
     return NextResponse.json({

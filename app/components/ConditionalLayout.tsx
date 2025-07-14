@@ -37,8 +37,10 @@ const ROUTE_CONFIG = {
     "/join-talent-pool",
     "/thank-you-start-project",
     "/thank-you-join-talent-pool",
-    "/privacy-policy",
-    "/terms-of-service",
+    "/legal/privacy-policy",
+    "/legal/terms-of-service",
+    "/legal/client-terms-of-service",
+    "/legal/client-privacy-policy",
     "/blogs",
   ],
   DASHBOARD_ROUTES: [

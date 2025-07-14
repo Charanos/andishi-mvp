@@ -205,25 +205,70 @@ const DeveloperProfileEditor: React.FC<Props> = ({
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (retryCount = 0) => {
     if (!profile || !profileId) return;
     setSaving(true);
     try {
+      console.log('Saving profile:', profile);
       const res = await fetch(`/api/developer-profiles/${profileId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+      
       if (!res.ok) {
-        throw new Error(`Save failed: ${res.status} ${res.statusText}`);
+        const errorText = await res.text();
+        console.error('Save failed:', errorText);
+        
+        // If it's a 500 error and we haven't retried yet, try once more
+        if (res.status === 500 && retryCount < 1) {
+          console.log('Retrying save operation...');
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          return handleSave(retryCount + 1);
+        }
+        
+        throw new Error(`Save failed: ${res.status} ${res.statusText} - ${errorText}`);
       }
+      
       const data = await res.json();
+      console.log('Save successful:', data);
+      
+      // Validate that the response contains the expected data
+      if (!data || !data.id) {
+        throw new Error('Invalid response format from server');
+      }
+      
       addNotification({ type: "success", title: "Profile Updated", message: "Profile updated successfully" });
       if (onSaveSuccess) {
         onSaveSuccess(data as DeveloperProfile);
       }
     } catch (err) {
-      addNotification({ type: "error", title: "Save Error", message: "Error saving profile" });
+      console.error('Save error:', err);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      
+      // Show a more user-friendly error message
+      if (errorMessage.includes('500')) {
+        addNotification({ 
+          type: "error", 
+          title: "Server Error", 
+          message: "The profile was saved but there was a server error. Please refresh the page to see the updated profile." 
+        });
+      } else if (errorMessage.includes('404')) {
+        addNotification({ 
+          type: "error", 
+          title: "Profile Not Found", 
+          message: "The profile could not be found. Please try refreshing the page." 
+        });
+      } else {
+        addNotification({ 
+          type: "error", 
+          title: "Save Error", 
+          message: `Error saving profile: ${errorMessage}` 
+        });
+      }
     } finally {
       setSaving(false);
     }
@@ -893,7 +938,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
                   Cancel
                 </button>
                 <button
-                  onClick={handleSave}
+                  onClick={() => handleSave()}
                   disabled={saving}
                   className="bg-blue-600 cursor-pointer hover:bg-blue-700 disabled:bg-blue-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
                 >

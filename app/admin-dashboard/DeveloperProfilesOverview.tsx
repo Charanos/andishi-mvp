@@ -50,6 +50,7 @@ import ToastContainer from "../components/ToastContainer";
 import { ToastNotification } from "../components/ToastNotification";
 
 import type { DeveloperProfile } from "../../lib/types";
+import { getCurrentAvailabilityStatus } from "../../services/developerAvailabilityService";
 
 interface Props {
   onViewProfile?: (profileId: string) => void;
@@ -204,11 +205,12 @@ const DeveloperProfilesOverview: React.FC<Props> = ({ onViewProfile, refreshUser
         selectedExperience === "all" ||
         profile.professionalInfo.experienceLevel === selectedExperience;
 
+      const enhancedAvailability = getEnhancedAvailabilityInfo(profile);
       const matchesAvailability =
         selectedAvailability === "all" ||
-        (selectedAvailability === "available" && profile.isAvailable) ||
-        (selectedAvailability === "unavailable" && !profile.isAvailable) ||
-        (selectedAvailability === "busy" && profile.professionalInfo.availability === "busy");
+        (selectedAvailability === "available" && enhancedAvailability.status === "available") ||
+        (selectedAvailability === "unavailable" && !profile.isAvailable && enhancedAvailability.status === "busy") ||
+        (selectedAvailability === "busy" && (enhancedAvailability.status === "busy" || enhancedAvailability.status === "busy_until_date"));
 
       return matchesSearch && matchesExperience && matchesAvailability;
     });
@@ -405,6 +407,23 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
       default:
         return "text-gray-400";
     }
+  };
+
+  // Enhanced availability display with busyUntilDate support
+  const getEnhancedAvailabilityInfo = (profile: DeveloperProfile) => {
+    const availabilityStatus = getCurrentAvailabilityStatus(
+      profile.isAvailable,
+      profile.busyUntilDate ? new Date(profile.busyUntilDate) : null
+    );
+    
+    return {
+      ...availabilityStatus,
+      colorClass: availabilityStatus.status === 'available' 
+        ? 'text-green-400' 
+        : availabilityStatus.status === 'busy_until_date'
+        ? 'text-orange-400'
+        : 'text-red-400'
+    };
   };
 
   const getExperienceColor = (level: string): string => {
@@ -1129,22 +1148,25 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                    <FaClock className="text-gray-400" />
-                    <div>
-                      <p className="text-gray-400 text-sm">Availability</p>
-                      <p className={`font-medium capitalize ${getAvailabilityColor(
-                        selectedProfile.professionalInfo.availability
-                      )}`}>
-                        {selectedProfile.professionalInfo.availability}
-                      </p>
-                      {selectedProfile.professionalInfo.workingHours && (
-                        <p className="text-gray-500 text-xs">
-                          {selectedProfile.professionalInfo.workingHours}
+                    <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
+                      <FaClock className="text-gray-400" />
+                      <div>
+                        <p className="text-gray-400 text-sm">Availability</p>
+                        <p className={`font-medium ${getEnhancedAvailabilityInfo(selectedProfile).colorClass}`}>
+                          {getEnhancedAvailabilityInfo(selectedProfile).displayText}
                         </p>
-                      )}
+                        {selectedProfile.professionalInfo.workingHours && (
+                          <p className="text-gray-500 text-xs">
+                            {selectedProfile.professionalInfo.workingHours}
+                          </p>
+                        )}
+                        {selectedProfile.busyUntilDate && (
+                          <p className="text-orange-400 text-xs">
+                            Busy until {new Date(selectedProfile.busyUntilDate).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
                 </div>
 
                 {/* Social Links */}
@@ -1698,11 +1720,9 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
                         </span>
                       </div>
                       <span
-                        className={`text-xs font-medium capitalize px-2 py-1 rounded-full ${getAvailabilityColor(
-                          profile.professionalInfo.availability
-                        )}`}
+                        className={`text-xs font-medium px-2 py-1 rounded-full ${getEnhancedAvailabilityInfo(profile).colorClass}`}
                       >
-                        {profile.professionalInfo.availability}
+                        {getEnhancedAvailabilityInfo(profile).displayText}
                       </span>
                     </div>
 
@@ -1878,7 +1898,7 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
             <h3 className="text-lg font-semibold text-white mb-4">
               Summary Statistics
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="bg-white/10 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-blue-400 mb-1">
                   {profiles.length}
@@ -1888,12 +1908,24 @@ const res = await fetch(`/api/developer-profiles?id=${profileToDelete.id}`, {
               <div className="bg-white/10 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-green-400 mb-1">
                   {
-                    profiles.filter(
-                      (p) => p.isAvailable
-                    ).length
+                    profiles.filter((p) => {
+                      const availabilityInfo = getEnhancedAvailabilityInfo(p);
+                      return availabilityInfo.status === "available";
+                    }).length
                   }
                 </div>
                 <div className="text-gray-400 text-sm">Available</div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-orange-400 mb-1">
+                  {
+                    profiles.filter((p) => {
+                      const availabilityInfo = getEnhancedAvailabilityInfo(p);
+                      return availabilityInfo.status === "busy_until_date";
+                    }).length
+                  }
+                </div>
+                <div className="text-gray-400 text-sm">Busy Until Date</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-yellow-400 mb-1">

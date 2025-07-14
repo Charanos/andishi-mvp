@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 import {
   FaHeart,
@@ -22,10 +23,10 @@ export default function Footer() {
 
   const footerLinks = {
     company: [
-      { name: "About Us", href: "#about" },
-      { name: "Our Team", href: "#team" },
-      { name: "Careers", href: "#careers" },
-      { name: "Contact", href: "#contact" },
+      { name: "About Us", href: "/about-us" },
+      { name: "Our Team", href: "/about-us" },
+      { name: "Careers", href: "/join-talent-pool" },
+      { name: "Contact", href: "/contact-us" },
     ],
     resources: [
       { name: "Blog", href: "/feaured-blog" },
@@ -123,7 +124,7 @@ export default function Footer() {
                 {socialLinks.map((social) => {
                   const IconComponent = social.icon;
                   return (
-                    <a
+                    <Link
                       key={social.name}
                       href={social.href}
                       className={`p-3 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-gray-400 ${social.color} transition-all duration-300 hover:scale-110 hover:bg-white/10 hover:border-white/20`}
@@ -131,13 +132,13 @@ export default function Footer() {
                       target="_blank"
                     >
                       <IconComponent className="text-lg" />
-                    </a>
+                    </Link>
                   );
                 })}
               </div>
 
               <Image
-                src="./logo.svg"
+                src="/logo.svg"
                 alt="Andishi Logo"
                 width={50}
                 height={50}
@@ -154,12 +155,12 @@ export default function Footer() {
                 <ul className="space-y-2">
                   {links.map((link) => (
                     <li key={link.name}>
-                      <a
+                      <Link
                         href={link.href}
                         className="text-gray-200 text-[15.6px] hover:text-purple-400 transition-colors duration-300 hover:translate-x-1 inline-block transform"
                       >
                         {link.name}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

@@ -127,7 +127,7 @@ export default function Navbar() {
             className="text-2xl font-semibold font-montserrat text-white"
             onClick={() => setIsOpen(false)}
           >
-            <img src="./logo.svg" alt="logo" className="w-10 h-10" />
+            <img src="/logo.svg" alt="logo" className="w-10 h-10" />
           </Link>
         </motion.div>
 

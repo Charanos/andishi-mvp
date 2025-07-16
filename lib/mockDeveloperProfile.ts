@@ -6,7 +6,8 @@
 import type { DeveloperProfile } from "./types";
 
 export const mockDeveloperProfile: Omit<DeveloperProfile, 'id'> = {
-  personalInfo: {
+  data: {
+    personalInfo: {
     firstName: "Alex",
     lastName: "Chen",
     email: "alex.chen@techtalent.dev",
@@ -17,8 +18,8 @@ export const mockDeveloperProfile: Omit<DeveloperProfile, 'id'> = {
     github: "https://github.com/alexchen",
     portfolio: "https://alexchen.dev",
     tagline: "Full-Stack Architect • AI Enthusiast • Open Source Contributor"
-  },
-  professionalInfo: {
+    },
+    professionalInfo: {
     title: "Senior Full Stack Architect",
     experienceLevel: "Senior",
     yearsOfExperience: "10+",
@@ -33,8 +34,8 @@ export const mockDeveloperProfile: Omit<DeveloperProfile, 'id'> = {
       "Google Cloud Professional",
       "MongoDB Certified Developer"
     ]
-  },
-  technicalSkills: {
+    },
+    technicalSkills: {
     primarySkills: [
       { name: "TypeScript", level: 95, category: "Language", trending: "up", endorsements: 47, lastUsed: "2024-01-15" },
       { name: "React", level: 92, category: "Frontend", trending: "stable", endorsements: 52, lastUsed: "2024-01-15" },
@@ -66,8 +67,8 @@ export const mockDeveloperProfile: Omit<DeveloperProfile, 'id'> = {
       "Security",
       "Scalable Architecture"
     ]
-  },
-  projects: [
+    },
+    projects: [
     {
       id: "1",
       title: "AI-Powered E-commerce Platform",
@@ -316,124 +317,125 @@ export const mockDeveloperProfile: Omit<DeveloperProfile, 'id'> = {
       ]
     }
   ],
-  stats: {
-    totalProjects: 47,
-    completedProjects: 43,
-    totalEarnings: 890000,
-    averageRating: 4.8,
-    totalCodeLines: 2400000,
-    activeDays: 1247,
-    clientRetention: 89,
-    responseTime: "< 2 hours",
-    totalCommits: 5847,
-    bugsFixed: 234,
-    codeReviewsGiven: 456,
-    mentoringSessions: 78
+    stats: {
+      totalProjects: 47,
+      completedProjects: 43,
+      totalEarnings: 890000,
+      averageRating: 4.8,
+      totalCodeLines: 2400000,
+      activeDays: 1247,
+      clientRetention: 89,
+      responseTime: "< 2 hours",
+      totalCommits: 5847,
+      bugsFixed: 234,
+      codeReviewsGiven: 456,
+      mentoringSessions: 78
+    },
+    achievements: [
+      {
+        id: "1",
+        title: "Code Ninja",
+        description: "Wrote 1M+ lines of production code",
+        icon: "ninja",
+        earnedDate: "2024-01-10",
+        category: "technical",
+        rarity: "epic"
+      },
+      {
+        id: "2",
+        title: "Perfect Score",
+        description: "Maintained 5-star rating for 10+ projects",
+        icon: "star",
+        earnedDate: "2024-01-05",
+        category: "project",
+        rarity: "legendary"
+      },
+      {
+        id: "3",
+        title: "Fast Responder",
+        description: "Average response time under 2 hours",
+        icon: "lightning",
+        earnedDate: "2023-12-20",
+        category: "collaboration",
+        rarity: "rare"
+      }
+    ],
+    recentActivity: [
+      {
+        id: "1",
+        action: "Completed task: ML Recommendation Engine",
+        timestamp: "2 hours ago",
+        type: "task"
+      },
+      {
+        id: "2",
+        action: "Received 5-star rating from TechCorp Inc.",
+        timestamp: "1 day ago",
+        type: "feedback"
+      },
+      {
+        id: "3",
+        action: "Committed 15 files to AI-E-commerce project",
+        timestamp: "1 day ago",
+        type: "code"
+      },
+      {
+        id: "4",
+        action: "Earned 'Code Ninja' achievement",
+        timestamp: "5 days ago",
+        type: "achievement"
+      }
+    ],
+    notifications: [
+      {
+        id: "1",
+        type: "deadline",
+        title: "Project Deadline Approaching",
+        message: "Healthcare Analytics Platform deadline is in 15 days",
+        timestamp: "1 hour ago",
+        read: false,
+        priority: "high"
+      },
+      {
+        id: "2",
+        type: "project",
+        title: "New Project Invitation",
+        message: "You've been invited to join 'FinTech Dashboard' project",
+        timestamp: "3 hours ago",
+        read: false,
+        priority: "medium"
+      },
+      {
+        id: "3",
+        type: "achievement",
+        title: "Achievement Unlocked!",
+        message: "You've earned the 'Code Ninja' achievement",
+        timestamp: "5 days ago",
+        read: true,
+        priority: "low"
+      }
+    ],
+    timeEntries: [
+      {
+        date: "2024-01-15",
+        hours: 8.5,
+        project: "AI-E-commerce",
+        description: "Frontend optimization and bug fixes"
+      },
+      {
+        date: "2024-01-14",
+        hours: 7.0,
+        project: "Healthcare Analytics",
+        description: "Security audit implementation"
+      },
+      {
+        date: "2024-01-13",
+        hours: 6.5,
+        project: "AI-E-commerce",
+        description: "API development and testing"
+      }
+    ],
   },
-  achievements: [
-    {
-      id: "1",
-      title: "Code Ninja",
-      description: "Wrote 1M+ lines of production code",
-      icon: "ninja",
-      earnedDate: "2024-01-10",
-      category: "technical",
-      rarity: "epic"
-    },
-    {
-      id: "2",
-      title: "Perfect Score",
-      description: "Maintained 5-star rating for 10+ projects",
-      icon: "star",
-      earnedDate: "2024-01-05",
-      category: "project",
-      rarity: "legendary"
-    },
-    {
-      id: "3",
-      title: "Fast Responder",
-      description: "Average response time under 2 hours",
-      icon: "lightning",
-      earnedDate: "2023-12-20",
-      category: "collaboration",
-      rarity: "rare"
-    }
-  ],
-  recentActivity: [
-    {
-      id: "1",
-      action: "Completed task: ML Recommendation Engine",
-      timestamp: "2 hours ago",
-      type: "task"
-    },
-    {
-      id: "2",
-      action: "Received 5-star rating from TechCorp Inc.",
-      timestamp: "1 day ago",
-      type: "feedback"
-    },
-    {
-      id: "3",
-      action: "Committed 15 files to AI-E-commerce project",
-      timestamp: "1 day ago",
-      type: "code"
-    },
-    {
-      id: "4",
-      action: "Earned 'Code Ninja' achievement",
-      timestamp: "5 days ago",
-      type: "achievement"
-    }
-  ],
-  notifications: [
-    {
-      id: "1",
-      type: "deadline",
-      title: "Project Deadline Approaching",
-      message: "Healthcare Analytics Platform deadline is in 15 days",
-      timestamp: "1 hour ago",
-      read: false,
-      priority: "high"
-    },
-    {
-      id: "2",
-      type: "project",
-      title: "New Project Invitation",
-      message: "You've been invited to join 'FinTech Dashboard' project",
-      timestamp: "3 hours ago",
-      read: false,
-      priority: "medium"
-    },
-    {
-      id: "3",
-      type: "achievement",
-      title: "Achievement Unlocked!",
-      message: "You've earned the 'Code Ninja' achievement",
-      timestamp: "5 days ago",
-      read: true,
-      priority: "low"
-    }
-  ],
-  timeEntries: [
-    {
-      date: "2024-01-15",
-      hours: 8.5,
-      project: "AI-E-commerce",
-      description: "Frontend optimization and bug fixes"
-    },
-    {
-      date: "2024-01-14",
-      hours: 7.0,
-      project: "Healthcare Analytics",
-      description: "Security audit implementation"
-    },
-    {
-      date: "2024-01-13",
-      hours: 6.5,
-      project: "AI-E-commerce",
-      description: "API development and testing"
-    }
-  ],
   status: "approved",
   isAvailable: true,
 };

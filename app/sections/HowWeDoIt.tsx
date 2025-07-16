@@ -55,11 +55,10 @@ export default function HowItWorks() {
         {steps.map((step, index) => (
           <div
             key={index}
-            className={`absolute w-80 h-80 rounded-full blur-3xl transition-all duration-2000 ${
-              activeStep === index
+            className={`absolute w-80 h-80 rounded-full blur-3xl transition-all duration-2000 ${activeStep === index
                 ? "opacity-20 scale-150"
                 : "opacity-5 scale-100"
-            }`}
+              }`}
             style={{
               background: `radial-gradient(circle, ${step.color}40 0%, transparent 70%)`,
               top: `${20 + (index % 2) * 60}%`,
@@ -74,11 +73,10 @@ export default function HowItWorks() {
         {/* Header */}
         <div className="text-center mb-18">
           <div
-            className={`transition-all duration-1000 ${
-              isVisible
+            className={`transition-all duration-1000 ${isVisible
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
-            }`}
+              }`}
           >
             <h2 className="text-xl lg:text-4xl font-semibold text-white mb-6 leading-tight">
               How We Do It in{" "}
@@ -91,10 +89,10 @@ export default function HowItWorks() {
         </div>
 
         {/* Steps Flow */}
-        <div className="relative">
+        <div className="hidden md:relative">
           {/* Flowing Path */}
           <svg
-            className="absolute inset-0 w-full h-full  rotate-90 md:rotate-0"
+            className="absolute inset-0 w-full h-full rotate-90 md:rotate-0"
             viewBox="0 0 1200 800"
             preserveAspectRatio="xMidYMid meet"
           >
@@ -161,11 +159,10 @@ export default function HowItWorks() {
               return (
                 <div
                   key={index}
-                  className={`relative flex flex-col items-center transition-all duration-1000 ${
-                    isVisible
+                  className={`relative flex flex-col items-center transition-all duration-1000 ${isVisible
                       ? "opacity-100 translate-y-0"
                       : "opacity-0 translate-y-12"
-                  }`}
+                    }`}
                   style={{
                     transitionDelay: `${delay}ms`,
                     zIndex: isActive ? 20 : 10,
@@ -173,22 +170,20 @@ export default function HowItWorks() {
                 >
                   {/* Floating Icon Container */}
                   <div
-                    className={`relative mb-8 transition-all duration-700 cursor-pointer ${
-                      isActive
+                    className={`relative mb-8 transition-all duration-700 cursor-pointer ${isActive
                         ? "scale-125 -translate-y-4"
                         : "hover:scale-110 hover:-translate-y-2"
-                    }`}
+                      }`}
                     onClick={() => setActiveStep(index)}
                   >
                     {/* Glowing Ring */}
                     <div
                       className={`
                       absolute inset-0 rounded-full transition-all duration-700
-                      ${
-                        isActive
+                      ${isActive
                           ? `bg-gradient-to-r ${step.gradient} p-1 animate-spin-slow shadow-2xl`
                           : "bg-white/10 p-1 hover:bg-white/20"
-                      }
+                        }
                     `}
                     >
                       <div className="w-full h-full bg-gray-900 rounded-full"></div>
@@ -198,11 +193,10 @@ export default function HowItWorks() {
                     <div
                       className={`
                       relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500
-                      ${
-                        isActive
+                      ${isActive
                           ? `bg-gradient-to-r ${step.gradient} text-white shadow-2xl`
                           : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"
-                      }
+                        }
                     `}
                     >
                       <Icon className="w-8 h-8" />
@@ -217,11 +211,10 @@ export default function HowItWorks() {
                     <div
                       className={`
                       absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500
-                      ${
-                        isActive
+                      ${isActive
                           ? `bg-gradient-to-r ${step.gradient} text-white shadow-lg`
                           : "bg-gray-700 text-gray-300"
-                      }
+                        }
                     `}
                     >
                       {index + 1}
@@ -238,11 +231,10 @@ export default function HowItWorks() {
                     <h3
                       className={`
                       text-xl font-bold mb-3 transition-all duration-300
-                      ${
-                        isActive
+                      ${isActive
                           ? `bg-gradient-to-r ${step.gradient} bg-clip-text text-transparent`
                           : "text-white hover:text-gray-200"
-                      }
+                        }
                     `}
                     >
                       {step.title}
@@ -280,10 +272,9 @@ export default function HowItWorks() {
                 onClick={() => setActiveStep(index)}
                 className={`
                   relative w-12 h-2 rounded-full transition-all duration-500 overflow-hidden
-                  ${
-                    activeStep === index
-                      ? "bg-white"
-                      : "bg-gray-700 hover:bg-gray-600"
+                  ${activeStep === index
+                    ? "bg-white"
+                    : "bg-gray-700 hover:bg-gray-600"
                   }
                 `}
               >

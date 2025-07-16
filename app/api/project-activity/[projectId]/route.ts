@@ -52,15 +52,15 @@ export async function GET(
 ) {
   try {
     // Add debug logging for the request
-    console.log('[API] Route accessed:', req.url);
-    console.log('[API] Method:', req.method);
+    
+    
 
     const { projectId } = await context.params;
-    console.log(`[API] Fetching activity for project: ${projectId}`);
+    
 
     // Validate projectId format (assuming UUID)
     if (!projectId || typeof projectId !== 'string' || projectId.trim() === '') {
-      console.log('[API] Invalid project ID format');
+      
       return NextResponse.json(
         { success: false, error: 'Invalid project ID format' } as ApiResponse,
         { status: 400, headers: corsHeaders }
@@ -68,10 +68,10 @@ export async function GET(
     }
 
     const session = await getSession(req);
-    console.log('[API] Session:', session?.user?.id ? 'Valid' : 'Invalid');
+    
 
     if (!session?.user?.id) {
-      console.log('[API] No valid session found');
+      
       return NextResponse.json(
         { success: false, error: 'Authentication required' } as ApiResponse,
         { status: 401, headers: corsHeaders }
@@ -90,9 +90,9 @@ export async function GET(
         _id: new ObjectId(projectId)
       });
 
-      console.log('[API] Project found:', project ? 'Yes' : 'No');
+      
     } catch (dbError) {
-      console.error('[API] Database error while fetching project:', dbError);
+      
       return NextResponse.json(
         { success: false, error: 'Database error' } as ApiResponse,
         { status: 500, headers: corsHeaders }
@@ -100,7 +100,7 @@ export async function GET(
     }
 
     if (!project) {
-      console.log(`[API] Project with id ${projectId} not found in database`);
+      
       return NextResponse.json(
         { success: false, error: 'Project not found' } as ApiResponse,
         { status: 404, headers: corsHeaders }
@@ -115,10 +115,10 @@ export async function GET(
       project.clientId?.toString() === userId ||
       project.createdBy?.toString() === userId;
 
-    console.log('[API] Access check:', { userRole, userId, clientId: project.clientId?.toString(), createdBy: project.createdBy?.toString(), hasAccess });
+    
 
     if (!hasAccess) {
-      console.log(`[API] User ${userId} does not have access to project ${projectId}`);
+      
       return NextResponse.json(
         { success: false, error: 'Access denied' } as ApiResponse,
         { status: 403, headers: corsHeaders }
@@ -127,7 +127,7 @@ export async function GET(
 
     const activities: ActivityItem[] = [];
 
-    console.log('[API] Generating activities for project:', project.title);
+    
 
     // 1. Add project creation activity
     activities.push({
@@ -260,7 +260,7 @@ export async function GET(
         });
       }
     } catch (chatError) {
-      console.error('[API] Error fetching chat messages:', chatError);
+      
     }
 
     // 7. Try to fetch project assignments
@@ -285,7 +285,7 @@ export async function GET(
         });
       });
     } catch (assignmentError) {
-      console.error('[API] Error fetching assignments:', assignmentError);
+      
     }
 
     // Sort all activities by createdAt (most recent first)
@@ -294,8 +294,8 @@ export async function GET(
     // Limit to most recent activities
     const recentActivities = activities.slice(0, 20);
 
-    console.log(`[API] Returning ${recentActivities.length} activities for project ${projectId}`);
-    console.log('[API] Activities data:', JSON.stringify(recentActivities, null, 2));
+    
+    
 
     return NextResponse.json({
       success: true,
@@ -307,7 +307,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('[API] Unexpected error in GET /api/project-activity/[projectId]:', error);
+    
     return NextResponse.json(
       { success: false, error: 'Internal server error' } as ApiResponse,
       { status: 500, headers: corsHeaders }

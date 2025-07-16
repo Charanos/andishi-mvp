@@ -122,13 +122,16 @@ model ChatParticipant {
 }
 
 model ChatMessage {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  chatId     String  @db.ObjectId
-  senderId   String
-  senderName String
-  senderRole String
-  content    String
-  timestamp  DateTime @default(now())
-  isRead     Boolean  @default(false)
-  chat       ProjectChat @relation(fields: [chatId], references: [id])
+  id                String     @id @default(auto()) @map("_id") @db.ObjectId
+  chatId            String     @db.ObjectId
+  senderId          String
+  senderName        String
+  senderRole        String
+  content           String
+  timestamp         DateTime   @default(now())
+  isRead            Boolean    @default(false)
+  chat              ProjectChat @relation(fields: [chatId], references: [id])
+  replyToMessageId  String?    @db.ObjectId
+  replyToMessage    ChatMessage? @relation("ReplyTo", fields: [replyToMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies           ChatMessage[] @relation("ReplyTo")
 }

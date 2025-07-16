@@ -27,7 +27,7 @@ export async function GET(
 
     return NextResponse.json(assignments, { status: 200 });
   } catch (error) {
-    console.error(`GET /api/project-assignments/${projectId}`, error);
+    
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
@@ -83,7 +83,7 @@ export async function POST(
       },
     });
 
-    console.log(`Developer ${developerId} assigned to project ${projectId} and marked as unavailable`);
+    
 
     return NextResponse.json(newAssignment, { status: 201 });
   } catch (error) {
@@ -92,7 +92,7 @@ export async function POST(
         return NextResponse.json({ error: 'Invalid projectId or developerId' }, { status: 404 });
       }
     }
-    console.error(`POST /api/project-assignments/${projectId}`, error);
+    
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
@@ -128,7 +128,7 @@ export async function PATCH(
 
     // If assignment is completed, check if developer should be made available
     if (updates.status === 'completed') {
-      console.log(`Assignment completed for developer ${developerId}, checking availability...`);
+      
       
       const otherActiveAssignments = await prisma.projectAssignment.count({
         where: {
@@ -138,7 +138,7 @@ export async function PATCH(
         }
       });
 
-      console.log(`Developer ${developerId} has ${otherActiveAssignments} other active assignments`);
+      
 
       if (otherActiveAssignments === 0) {
         // Get project info for busyUntilDate logic
@@ -156,14 +156,14 @@ export async function PATCH(
             isAvailable: false,
             busyUntilDate: project.estimatedCompletionDate,
           };
-          console.log(`Developer ${developerId} will be busy until ${project.estimatedCompletionDate}`);
+          
         } else {
           // Project completed on or after estimated completion date
           updateData = {
             isAvailable: true,
             busyUntilDate: null,
           };
-          console.log(`Developer ${developerId} is now available`);
+          
         }
 
         await prisma.developerProfile.update({
@@ -184,7 +184,7 @@ export async function PATCH(
           });
         }
       } else {
-        console.log(`Developer ${developerId} remains busy due to other active assignments`);
+        
       }
     }
 
@@ -193,7 +193,7 @@ export async function PATCH(
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
-    console.error(`PATCH /api/project-assignments/${projectId}`, error);
+    
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
@@ -257,7 +257,7 @@ export async function DELETE(
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
-    console.error(`DELETE /api/project-assignments/${projectId}`, error);
+    
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

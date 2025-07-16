@@ -176,7 +176,7 @@ export async function GET(request: Request) {
 
     // If refresh is requested, ensure data consistency
     if (refresh) {
-      console.log('Refreshing user data and ensuring consistency...');
+      
       
       // Ensure all developers have profiles
       const developersWithoutProfiles = await db.collection('users').find({
@@ -187,7 +187,7 @@ export async function GET(request: Request) {
       for (const developer of developersWithoutProfiles) {
         const profileExists = await db.collection('developerProfiles').findOne({ userId: developer._id });
         if (!profileExists) {
-          console.log(`Creating missing profile for developer ${developer._id}`);
+          
           // Create a basic profile
           await db.collection('developerProfiles').insertOne({
             userId: developer._id,
@@ -369,7 +369,7 @@ export async function GET(request: Request) {
       count: users.length 
     });
   } catch (err) {
-    console.error('Users API error:', err);
+    
     return NextResponse.json(
       { success: false, error: 'Failed to fetch users' }, 
       { status: 500 }
@@ -402,7 +402,7 @@ export async function POST(request: Request) {
     return await createNewUser(db, payload as CreateUserPayload);
     
   } catch (err) {
-    console.error('User create error:', err);
+    
     return NextResponse.json(
       { success: false, error: 'Failed to process request' }, 
       { status: 500 }
@@ -493,9 +493,9 @@ async function createNewUser(db: any, payload: CreateUserPayload) {
     if (payload.role === 'developer') {
       try {
         await createDeveloperProfile(db, result.insertedId, userResp);
-        console.log(`Auto-created developer profile for user: ${userResp.email}`);
+
       } catch (error) {
-        console.error('Failed to auto-create developer profile:', error);
+
         // Don't fail the user creation, just log the error
       }
     }
@@ -518,9 +518,9 @@ async function createNewUser(db: any, payload: CreateUserPayload) {
   if (payload.role === 'developer') {
     try {
       await createDeveloperProfile(db, result.insertedId, userResp);
-      console.log(`Auto-created developer profile for user: ${userResp.email}`);
+      
     } catch (error) {
-      console.error('Failed to auto-create developer profile:', error);
+      
       // Don't fail the user creation, just log the error
     }
   }
@@ -688,7 +688,7 @@ export async function PATCH(request: Request) {
       modifiedCount: result.modifiedCount
     });
   } catch (err) {
-    console.error('User update error:', err);
+    
     return NextResponse.json(
       { success: false, error: 'Failed to update user' },
       { status: 500 }
@@ -734,7 +734,7 @@ export async function DELETE(request: Request) {
     if (existingUser.role === 'developer') {
       const deleteProfileResult = await db.collection('developerProfiles').deleteOne({ userId: existingUser._id });
       deletedProfileCount = deleteProfileResult.deletedCount;
-      console.log(`Deleted associated developer profile: ${deletedProfileCount}`);
+      
     }
 
     const result = await db.collection('users').deleteOne({ _id: objectId });
@@ -753,7 +753,7 @@ export async function DELETE(request: Request) {
     });
     
   } catch (err) {
-    console.error('User delete error:', err);
+    
     return NextResponse.json(
       { success: false, error: 'Failed to delete user' }, 
       { status: 500 }

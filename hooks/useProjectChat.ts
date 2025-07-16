@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import { useCallback } from 'react';
+import { useToast } from './useToast';
 import { useAuth } from './useAuth';
 
 // Enhanced hook with typing for better TypeScript support
@@ -12,6 +13,8 @@ export interface ChatMessage {
     content: string;
     timestamp: Date;
     isRead: boolean;
+    replyToMessageId?: string;
+    replyToMessage?: ChatMessage;
 }
 
 export interface ChatParticipant {
@@ -50,6 +53,7 @@ const fetcher = async (url: string) => {
 
 export function useProjectChat(projectId: string) {
     const { user, token } = useAuth();
+    const { toast } = useToast();
 
     // Only fetch if user is authenticated and projectId exists
     const shouldFetch = user && projectId;
@@ -67,7 +71,7 @@ export function useProjectChat(projectId: string) {
     );
 
     // Send message - simplified to only send content
-    const sendMessage = useCallback(async (content: string) => {
+    const sendMessage = useCallback(async (content: string, replyToMessageId?: string) => {
         if (!user) {
             throw new Error('User not authenticated');
         }
@@ -87,7 +91,8 @@ export function useProjectChat(projectId: string) {
                     senderId: user.id,
                     senderName: user.name || user.email.split('@')[0], // Use user's name or extract from email
                     senderRole: user.role,
-                    content: content.trim()
+                    content: content.trim(),
+                    ...(replyToMessageId && { replyToMessageId })
                 }),
                 credentials: 'include',
             });
@@ -111,11 +116,11 @@ export function useProjectChat(projectId: string) {
             }, false);
 
             return newMessage;
-        } catch (error) {
-            console.error('Error sending message:', error);
+        } catch (error: any) {
+            toast.error(`Failed to send message: ${error.message}`);
             throw error;
         }
-    }, [projectId, mutate, user, token]);
+    }, [projectId, mutate, user, token, toast]);
 
     // Mark messages as read - simplified to use session
     const markAsRead = useCallback(async (messageIds?: string[]) => {
@@ -156,11 +161,11 @@ export function useProjectChat(projectId: string) {
             }, false);
 
             return await response.json();
-        } catch (error) {
-            console.error('Error marking messages as read:', error);
+        } catch (error: any) {
+            toast.error(`Failed to mark messages as read: ${error.message}`);
             throw error;
         }
-    }, [projectId, mutate, user, token]);
+    }, [projectId, mutate, user, token, toast]);
 
     // Update online status
     const updateOnlineStatus = useCallback(async (isOnline: boolean = true) => {
@@ -185,11 +190,11 @@ export function useProjectChat(projectId: string) {
             }
 
             return await response.json();
-        } catch (error) {
-            console.error('Error updating online status:', error);
+        } catch (error: any) {
+            toast.error(`Failed to update online status: ${error.message}`);
             throw error;
         }
-    }, [projectId, user, token]);
+    }, [projectId, user, token, toast]);
 
     // Get unread message count
     const getUnreadCount = useCallback(() => {
@@ -205,6 +210,82 @@ export function useProjectChat(projectId: string) {
         return data.participants.filter((p: ChatParticipant) => p.isOnline);
     }, [data?.participants]);
 
+    const updateMessage = useCallback(async (messageId: string, content: string) => {
+        if (!user) {
+            throw new Error('User not authenticated');
+        }
+
+        try {
+            const response = await fetch(`/api/project-chat/${projectId}/${messageId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ content }),
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to update message: ${errorText}`);
+            }
+
+            const updatedMessage = await response.json();
+
+            mutate((currentData: ProjectChat | undefined) => {
+                if (currentData) {
+                    return {
+                        ...currentData,
+                        messages: currentData.messages.map((msg) =>
+                            msg.id === messageId ? updatedMessage : msg
+                        ),
+                    };
+                }
+                return currentData;
+            }, false);
+
+            return updatedMessage;
+        } catch (error: any) {
+            toast.error(`Failed to update message: ${error.message}`);
+            throw error;
+        }
+    }, [projectId, mutate, user, token, toast]);
+
+    const deleteMessage = useCallback(async (messageId: string) => {
+        if (!user) {
+            throw new Error('User not authenticated');
+        }
+
+        try {
+            const response = await fetch(`/api/project-chat/${projectId}/${messageId}`, {
+                method: 'DELETE',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to delete message: ${errorText}`);
+            }
+
+            mutate((currentData: ProjectChat | undefined) => {
+                if (currentData) {
+                    return {
+                        ...currentData,
+                        messages: currentData.messages.filter((msg) => msg.id !== messageId),
+                    };
+                }
+                return currentData;
+            }, false);
+        } catch (error: any) {
+            toast.error(`Failed to delete message: ${error.message}`);
+            throw error;
+        }
+    }, [projectId, mutate, user, token, toast]);
+
     return {
         // Data
         messages: data?.messages || [],
@@ -217,6 +298,8 @@ export function useProjectChat(projectId: string) {
 
         // Actions
         sendMessage,
+        updateMessage,
+        deleteMessage,
         markAsRead,
         updateOnlineStatus,
         refetch: mutate,
@@ -245,7 +328,9 @@ export function useTypedProjectChat(projectId: string) {
         chat: ProjectChat | undefined;
         loading: boolean;
         error: Error | undefined;
-        sendMessage: (content: string) => Promise<ChatMessage>;
+        sendMessage: (content: string, replyToMessageId?: string) => Promise<ChatMessage>;
+        updateMessage: (messageId: string, content: string) => Promise<ChatMessage>;
+        deleteMessage: (messageId: string) => Promise<void>;
         markAsRead: (messageIds?: string[]) => Promise<any>;
         updateOnlineStatus: (isOnline?: boolean) => Promise<any>;
         refetch: () => void;

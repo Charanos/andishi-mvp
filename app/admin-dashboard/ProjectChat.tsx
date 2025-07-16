@@ -15,7 +15,7 @@ import {
   FaCheckDouble,
   FaSearch,
   FaPhone,
-  FaVideo,
+  FaTimes,
   FaSmile,
   FaPaperclip,
   FaMicrophone,
@@ -104,16 +104,24 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     loading,
     error,
     sendMessage,
+    updateMessage,
+    deleteMessage,
     refetch,
   } = useProjectChat(projectId);
 
   const [newMessage, setNewMessage] = useState("");
+  const [editingMessage, setEditingMessage] = useState<any | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState<any | null>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<any | null>(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [showDetails, setShowDetails] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "resources" | "milestones" | "participants">("overview");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-const { projectDetails, loading: projectLoading, error: projectError } = useProjectDetails(projectId);
+  const { projectDetails, loading: projectLoading, error: projectError } = useProjectDetails(projectId);
 
   const permissions = {
     canRead: true,
@@ -134,14 +142,42 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !permissions.canWrite) return;
-    await sendMessage(newMessage.trim());
+    await sendMessage(newMessage.trim(), replyingTo?.id);
     setNewMessage("");
+    setReplyingTo(null);
+  };
+
+  const handleEditMessage = async () => {
+    if (!editingMessage || !editingMessage.content.trim()) return;
+    await updateMessage(editingMessage.id, editingMessage.content);
+    setEditingMessage(null);
+  };
+
+  const handleDeleteMessage = (message: any) => {
+    setDeletingMessage(message);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingMessage) return;
+    await deleteMessage(deletingMessage.id);
+    setDeletingMessage(null);
+    setShowDeleteConfirmation(false);
+  };
+
+  const cancelDelete = () => {
+    setDeletingMessage(null);
+    setShowDeleteConfirmation(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      if (editingMessage) {
+        handleEditMessage();
+      } else {
+        handleSendMessage();
+      }
     }
   };
 
@@ -398,38 +434,38 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
       ) : (
         displayProjectDetails.resources.map((resource) => (
           <div key={resource.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-gray-600/50 transition-all">
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 bg-gray-700/50 rounded-lg flex items-center justify-center">
-              {getFileIcon(resource.type)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-white truncate">{resource.name}</h4>
-                <div className="flex items-center space-x-2">
-                  <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
-                    <FaEye className="text-xs" />
-                  </button>
-                  <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
-                    <FaDownload className="text-xs" />
-                  </button>
-                  {resource.type === "link" && (
-                    <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
-                      <FaExternalLinkAlt className="text-xs" />
-                    </button>
-                  )}
-                </div>
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                {getFileIcon(resource.type)}
               </div>
-              <p className="text-xs text-gray-400 mt-1">{resource.description}</p>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs text-gray-500">by {resource.uploadedBy}</span>
-                <div className="flex items-center space-x-3 text-xs text-gray-500">
-                  {resource.size && <span>{resource.size}</span>}
-                  <span>{formatDate(resource.uploadedAt)}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-white truncate">{resource.name}</h4>
+                  <div className="flex items-center space-x-2">
+                    <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
+                      <FaEye className="text-xs" />
+                    </button>
+                    <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
+                      <FaDownload className="text-xs" />
+                    </button>
+                    {resource.type === "link" && (
+                      <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
+                        <FaExternalLinkAlt className="text-xs" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{resource.description}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-gray-500">by {resource.uploadedBy}</span>
+                  <div className="flex items-center space-x-3 text-xs text-gray-500">
+                    {resource.size && <span>{resource.size}</span>}
+                    <span>{formatDate(resource.uploadedAt)}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
         ))
       )}
     </div>
@@ -454,26 +490,26 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
       ) : (
         displayProjectDetails.milestones.map((milestone) => (
           <div key={milestone.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <h4 className="text-sm font-medium text-white">{milestone.title}</h4>
-              <p className="text-xs text-gray-400 mt-1">{milestone.description}</p>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-white">{milestone.title}</h4>
+                <p className="text-xs text-gray-400 mt-1">{milestone.description}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(milestone.status)}`}>
+                  {milestone.status}
+                </span>
+                <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(milestone.priority)}`}>
+                  {milestone.priority}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(milestone.status)}`}>
-                {milestone.status}
-              </span>
-              <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(milestone.priority)}`}>
-                {milestone.priority}
-              </span>
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Due: {formatDate(milestone.dueDate)}</span>
-            <span>{milestone.assignedTo.length} assigned</span>
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>Due: {formatDate(milestone.dueDate)}</span>
+              <span>{milestone.assignedTo.length} assigned</span>
+            </div>
           </div>
-        </div>
         ))
       )}
     </div>
@@ -517,7 +553,29 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
   );
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black">
+    <div className=" min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex">
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 min-h-screen bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-black/70 p-6 rounded-lg shadow-xl border border-gray-700">
+            <h3 className="text-lg font-semibold text-white mb-4">Confirm Deletion</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to delete this message? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={cancelDelete}
+                className="cursor-pointer px-4 py-2 rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="cursor-pointer px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Chat Panel */}
       <div className={`flex flex-col transition-all duration-300 ${showDetails ? 'w-2/3' : 'w-full'}`}>
         {/* Chat Header */}
@@ -538,14 +596,11 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
-                  <FaSearch className="text-sm" />
-                </button>
-                <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
-                  <FaPhone className="text-sm" />
-                </button>
-                <button className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all">
-                  <FaVideo className="text-sm" />
+                <button
+                  onClick={() => window.open(`/admin-dashboard/project-chat/${projectId}`, '_blank')}
+                  className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
+                >
+                  <FaExternalLinkAlt className="text-sm" />
                 </button>
                 <button
                   onClick={toggleDetails}
@@ -630,7 +685,7 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
                         </div>
                       )}
                       {/* Message Content */}
-                      <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${isOwnMessage ? "ml-auto" : ""}`}>
+                      <div className={`w-[50%] xl:max-w-2xl ${isOwnMessage ? "ml-auto" : ""}`}>
                         {/* Sender Info */}
                         {!isOwnMessage && showAvatar && (
                           <div className="flex items-center space-x-2 mb-2">
@@ -644,14 +699,40 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
                         )}
                         {/* Message Bubble */}
                         <div
-                          className={`relative px-4 py-3 rounded-2xl shadow-lg ${isOwnMessage
-                            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto"
+                          className={`relative px-4 py-3 rounded-2xl shadow-lg group ${isOwnMessage
+                            ? "bg-gradient-to-r from-blue-600/70 to-blue-700/70 text-white ml-auto"
                             : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
                             } ${showAvatar ? "rounded-tl-md" : ""}`}
                         >
+                          {message.replyToMessage && (
+                            <div className="p-2 mb-2 bg-black/50 rounded-lg border border-gray-200/10 text-xs text-gray-300">
+                              <p className="font-semibold">Replying to {message.replyToMessage.senderName}:</p>
+                              <p className="italic truncate">{message.replyToMessage.content}</p>
+                            </div>
+                          )}
                           <p className="text-sm leading-relaxed whitespace-pre-wrap">
                             {message.content}
                           </p>
+                          {isOwnMessage && (
+                            <div
+                              className="absolute top-0 right-0 mt-1 mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              onMouseEnter={() => setHoveredMessageId(message.id)}
+                              onMouseLeave={() => setHoveredMessageId(null)}
+                            >
+                              <div className="relative">
+                                <button onClick={() => setActiveMessageId(message.id)} className="p-1 cursor-pointer rounded-full bg-black/20 hover:bg-black/40">
+                                  <FaEllipsisV className="text-white/70 w-3 h-3" />
+                                </button>
+                                {activeMessageId === message.id && (
+                                  <div className="absolute z-10 top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-xl">
+                                    <a href="#" onClick={() => { setReplyingTo(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-white hover:bg-gray-800">Reply</a>
+                                    <a href="#" onClick={() => { setEditingMessage(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-white hover:bg-gray-800">Edit</a>
+                                    <a href="#" onClick={() => { handleDeleteMessage(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-800">Delete</a>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                           {/* Message Status */}
                           {isOwnMessage && (
                             <div className="flex items-center justify-end mt-1 space-x-1">
@@ -695,30 +776,46 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
           </div>
         </div>
 
-        {/* Message Input */}
-        {permissions.canWrite && (
-          <div className="bg-black/40 backdrop-blur-sm border-t border-gray-800/50 p-4">
-            <div className="flex items-end space-x-3">
-              <button className="cursor-pointer p-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all">
-                <FaPaperclip className="text-lg" />
-              </button>
-              <div className="flex-1 relative">
-                <textarea
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  className="w-full px-4 py-3 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-white placeholder-gray-400 resize-none scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
-                  rows={1}
-                  style={{ minHeight: "48px", maxHeight: "120px" }}
-                />
-                <button className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors">
-                  <FaSmile className="text-lg" />
-                </button>
+        <div className="bg-black/40 backdrop-blur-sm border-t border-gray-800/50 p-4">
+          {replyingTo && (
+            <div className="flex items-center justify-between p-2 mb-2 bg-blue-900/30 rounded-lg border border-blue-700/50 text-sm text-blue-200">
+              <div className="flex-1 truncate">
+                Replying to <span className="font-semibold">{replyingTo.senderName}</span>: {replyingTo.content}
               </div>
-              <button className="cursor-pointer p-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all">
-                <FaMicrophone className="text-lg" />
+              <button onClick={() => setReplyingTo(null)} className="ml-2 text-blue-200 hover:text-white">
+                <FaTimes className="text-xs" />
               </button>
+            </div>
+          )}
+          <div className="flex items-center justify-center space-x-3 w-full px-4 py-2">
+            <div className="flex-1 relative w-full">
+              <textarea
+                value={editingMessage ? editingMessage.content : newMessage}
+                onChange={(e) => editingMessage ? setEditingMessage({ ...editingMessage, content: e.target.value }) : setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message..."
+                className="w-full px-4 py-3 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-white placeholder-gray-400 resize-none scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+                rows={1}
+                style={{ minHeight: "48px", maxHeight: "120px" }}
+              />
+            </div>
+            {editingMessage ? (
+              <>
+                <button
+                  onClick={handleEditMessage}
+                  disabled={!editingMessage.content.trim()}
+                  className="cursor-pointer p-3 bg-green-600/20 to-green-700/20 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-105 disabled:scale-100"
+                >
+                  <FaCheck className="text-lg w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => setEditingMessage(null)}
+                  className="cursor-pointer p-3 bg-red-600/20 to-red-700/20 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-105 disabled:scale-100"
+                >
+                  <FaTimes className="text-lg w-3 h-3" />
+                </button>
+              </>
+            ) : (
               <button
                 onClick={handleSendMessage}
                 disabled={!newMessage.trim()}
@@ -726,9 +823,9 @@ const { projectDetails, loading: projectLoading, error: projectError } = useProj
               >
                 <FaPaperPlane className="text-lg" />
               </button>
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Footer */}
         <div className="bg-black/20 backdrop-blur-sm px-6 py-3 border-t border-gray-800/30">

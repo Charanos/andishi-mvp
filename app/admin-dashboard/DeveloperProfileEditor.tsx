@@ -36,7 +36,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   onCancel,
 }) => {
   const [profile, setProfile] = useState<DeveloperProfile | null>(
-    initialProfile ?? null
+    initialProfile ? { ...initialProfile, data: initialProfile.data } : null
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -91,42 +91,46 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         // Initialize missing nested objects with default structures
         const initializedProfile: DeveloperProfile = {
           ...profileData,
-          personalInfo: {
-            firstName: "",
-            lastName: "",
-            email: "",
-            location: "",
-            tagline: "",
-            ...profileData.personalInfo,
+          data: {
+            personalInfo: {
+              firstName: "",
+              lastName: "",
+              email: "",
+              location: "",
+              tagline: "",
+              bio: "",
+              ...profileData.data.personalInfo,
+            },
+            professionalInfo: {
+              title: "",
+              experienceLevel: "Mid-level",
+              availability: "Full-time",
+              hourlyRate: 50,
+              bio: "",
+              languages: [],
+              certifications: [],
+              preferredWorkType: [],
+              ...profileData.data.professionalInfo,
+            },
+            technicalSkills: {
+              primarySkills: [],
+              frameworks: [],
+              databases: [],
+              tools: [],
+              cloudPlatforms: [],
+              specializations: [],
+              ...profileData.data.technicalSkills,
+            },
+            stats: {
+              totalProjects: 0,
+              averageRating: 0,
+              totalEarnings: 0,
+              clientRetention: 0,
+              ...profileData.data.stats,
+            },
+            projects: profileData.data.projects || [],
+            recentActivity: profileData.data.recentActivity || [],
           },
-          professionalInfo: {
-            title: "",
-            experienceLevel: "Mid-level",
-            availability: "Full-time",
-            hourlyRate: 50,
-            languages: [],
-            certifications: [],
-            preferredWorkType: [],
-            ...profileData.professionalInfo,
-          },
-          technicalSkills: {
-            primarySkills: [],
-            frameworks: [],
-            databases: [],
-            tools: [],
-            cloudPlatforms: [],
-            specializations: [],
-            ...profileData.technicalSkills,
-          },
-          stats: {
-            totalProjects: 0,
-            averageRating: 0,
-            totalEarnings: 0,
-            clientRetention: 0,
-            ...profileData.stats,
-          },
-          projects: profileData.projects || [],
-          recentActivity: profileData.recentActivity || [],
         };
 
         setProfile(initializedProfile);
@@ -139,19 +143,19 @@ const DeveloperProfileEditor: React.FC<Props> = ({
     fetchProfile();
   }, [profileId]);
 
-  const handleChange = (section: string, field: string, value: any) => {
+  const handleChange = (section: keyof DeveloperProfile['data'], field: string, value: any) => {
     if (!profile) return;
     setProfile((prev) => {
       if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore – dynamic indexing
-      updated[section][field] = value;
+      updated.data[section][field] = value;
       return updated;
     });
   };
 
   const handleArrayChange = (
-    section: string,
+    section: keyof DeveloperProfile['data'],
     field: string,
     index: number,
     value: any
@@ -161,14 +165,14 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore
-      updated[section][field][index] = value;
+      updated.data[section][field][index] = value;
       return updated;
     });
   };
 
   const isValidSection = (
-    section: string
-  ): section is keyof DeveloperProfile => {
+    section: keyof DeveloperProfile['data']
+  ): section is keyof DeveloperProfile['data'] => {
     return [
       "personalInfo",
       "professionalInfo",
@@ -183,8 +187,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
 
-      if (!isValidSection(section)) return prev;
-      const sectionObj = updated[section] as Record<string, any>;
+      if (!isValidSection(section as keyof DeveloperProfile['data'])) return prev;
+      const sectionObj = updated.data[section as keyof DeveloperProfile['data']] as Record<string, any>;
 
       if (!sectionObj[field]) {
         sectionObj[field] = [];
@@ -200,7 +204,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore
-      updated[section][field].splice(index, 1);
+      updated.data[section][field].splice(index, 1);
       return updated;
     });
   };
@@ -215,32 +219,32 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
-      
+
       console.log('Response status:', res.status);
       console.log('Response headers:', Object.fromEntries(res.headers.entries()));
-      
+
       if (!res.ok) {
         const errorText = await res.text();
         console.error('Save failed:', errorText);
-        
+
         // If it's a 500 error and we haven't retried yet, try once more
         if (res.status === 500 && retryCount < 1) {
           console.log('Retrying save operation...');
           await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
           return handleSave(retryCount + 1);
         }
-        
+
         throw new Error(`Save failed: ${res.status} ${res.statusText} - ${errorText}`);
       }
-      
+
       const data = await res.json();
       console.log('Save successful:', data);
-      
+
       // Validate that the response contains the expected data
       if (!data || !data.id) {
         throw new Error('Invalid response format from server');
       }
-      
+
       addNotification({ type: "success", title: "Profile Updated", message: "Profile updated successfully" });
       if (onSaveSuccess) {
         onSaveSuccess(data as DeveloperProfile);
@@ -248,25 +252,25 @@ const DeveloperProfileEditor: React.FC<Props> = ({
     } catch (err) {
       console.error('Save error:', err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
-      
+
       // Show a more user-friendly error message
       if (errorMessage.includes('500')) {
-        addNotification({ 
-          type: "error", 
-          title: "Server Error", 
-          message: "The profile was saved but there was a server error. Please refresh the page to see the updated profile." 
+        addNotification({
+          type: "error",
+          title: "Server Error",
+          message: "The profile was saved but there was a server error. Please refresh the page to see the updated profile."
         });
       } else if (errorMessage.includes('404')) {
-        addNotification({ 
-          type: "error", 
-          title: "Profile Not Found", 
-          message: "The profile could not be found. Please try refreshing the page." 
+        addNotification({
+          type: "error",
+          title: "Profile Not Found",
+          message: "The profile could not be found. Please try refreshing the page."
         });
       } else {
-        addNotification({ 
-          type: "error", 
-          title: "Save Error", 
-          message: `Error saving profile: ${errorMessage}` 
+        addNotification({
+          type: "error",
+          title: "Save Error",
+          message: `Error saving profile: ${errorMessage}`
         });
       }
     } finally {
@@ -286,8 +290,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         body: JSON.stringify({ profileId, action }),
       });
       if (!res.ok) throw new Error("Failed to update developer status");
-      addNotification({ 
-        type: "success", 
+      addNotification({
+        type: "success",
         title: action === "approve" ? "Developer Approved" : "Developer Rejected",
         message: action === "approve"
           ? "Developer approved and now available for assignment."
@@ -346,7 +350,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         Personal Information
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(profile.personalInfo).map(([key, value]) => (
+        {Object.entries(profile.data.personalInfo).map(([key, value]) => (
           <div key={key} className="flex flex-col">
             <label className="text-sm text-gray-300 mb-2 capitalize">
               {key.replace(/([A-Z])/g, " $1")}
@@ -382,7 +386,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       </h3>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Object.entries(profile.professionalInfo)
+          {Object.entries(profile.data.professionalInfo)
             .filter(
               ([key]) =>
                 !["languages", "certifications", "preferredWorkType"].includes(
@@ -459,7 +463,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-2">Languages</label>
           <div className="space-y-2">
-            {(profile.professionalInfo.languages || []).map((lang, index) => (
+            {(profile.data.professionalInfo.languages || []).map((lang, index) => (
               <div key={index} className="flex gap-2">
                 <input
                   className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
@@ -497,7 +501,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-2">Certifications</label>
           <div className="space-y-2">
-            {(profile.professionalInfo.certifications || []).map(
+            {(profile.data.professionalInfo.certifications || []).map(
               (cert, index) => (
                 <div key={index} className="flex gap-2">
                   <input
@@ -545,7 +549,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
             Preferred Work Type
           </label>
           <div className="space-y-2">
-            {(profile.professionalInfo.preferredWorkType || []).map(
+            {(profile.data.professionalInfo.preferredWorkType || []).map(
               (workType, index) => (
                 <div key={index} className="flex gap-2">
                   <select
@@ -602,8 +606,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   ) => {
     const IconComponent = icon;
     const skills =
-      (profile.technicalSkills[
-        skillKey as keyof typeof profile.technicalSkills
+      (profile.data.technicalSkills[
+        skillKey as keyof typeof profile.data.technicalSkills
       ] as any[]) || [];
 
     return (
@@ -778,7 +782,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
               Cloud Platforms
             </label>
             <div className="space-y-2">
-              {(profile.technicalSkills.cloudPlatforms || []).map(
+              {(profile.data.technicalSkills.cloudPlatforms || []).map(
                 (platform, index) => (
                   <div key={index} className="flex gap-2">
                     <input
@@ -825,7 +829,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
               Specializations
             </label>
             <div className="space-y-2">
-              {(profile.technicalSkills.specializations || []).map(
+              {(profile.data.technicalSkills.specializations || []).map(
                 (spec, index) => (
                   <div key={index} className="flex gap-2">
                     <input
@@ -878,7 +882,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         Statistics & Performance
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(profile.stats).map(([key, value]) => (
+        {Object.entries(profile.data.stats).map(([key, value]) => (
           <div key={key} className="flex flex-col">
             <label className="text-sm text-gray-300 mb-2 capitalize">
               {key.replace(/([A-Z])/g, " $1")}
@@ -959,8 +963,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === tab.id
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-white/10"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-white/10"
                       }`}
                   >
                     <IconComponent />

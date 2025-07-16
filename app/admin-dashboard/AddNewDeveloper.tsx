@@ -34,41 +34,43 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   // Initialize with empty profile structure
   const [profile, setProfile] = useState<DeveloperProfile>({
     id: `dev_${Date.now()}`, // Temporary ID, will be replaced by backend
-    personalInfo: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      location: "",
-      portfolio: "",
-      tagline: "",
-      bio: "",
+    data: {
+      personalInfo: {
+        firstName: "",
+        lastName: "",
+        email: "",
+        location: "",
+        portfolio: "",
+        tagline: "",
+        bio: "",
+      },
+      professionalInfo: {
+        title: "",
+        experienceLevel: "Mid-level",
+        availability: "Full-time",
+        hourlyRate: 50,
+        bio: "",
+        languages: [],
+        certifications: [],
+        preferredWorkType: [],
+      },
+      technicalSkills: {
+        primarySkills: [],
+        frameworks: [],
+        databases: [],
+        tools: [],
+        cloudPlatforms: [],
+        specializations: [],
+      },
+      stats: {
+        totalProjects: 0,
+        averageRating: 0,
+        totalEarnings: 0,
+        clientRetention: 0,
+      },
+      projects: [],
+      recentActivity: [],
     },
-    professionalInfo: {
-      title: "",
-      experienceLevel: "Mid-level",
-      availability: "Full-time",
-      hourlyRate: 50,
-      bio: "",
-      languages: [],
-      certifications: [],
-      preferredWorkType: [],
-    },
-    technicalSkills: {
-      primarySkills: [],
-      frameworks: [],
-      databases: [],
-      tools: [],
-      cloudPlatforms: [],
-      specializations: [],
-    },
-    stats: {
-      totalProjects: 0,
-      averageRating: 0,
-      totalEarnings: 0,
-      clientRetention: 0,
-    },
-    projects: [],
-    recentActivity: [],
     status: "pending", // New field: default to pending
     isAvailable: false, // New field: default to false
   });
@@ -77,17 +79,17 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   const [activeTab, setActiveTab] = useState("personal");
   const { toast, notifications, removeNotification } = useToast();
 
-  const handleChange = (section: string, field: string, value: any) => {
+  const handleChange = (section: keyof DeveloperProfile['data'], field: string, value: any) => {
     setProfile((prev) => {
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
-      // @ts-ignore – dynamic indexing
-      updated[section][field] = value;
+      // @ts-ignore – dynamic indexing within data
+      updated.data[section][field] = value;
       return updated;
     });
   };
 
   const handleArrayChange = (
-    section: string,
+    section: keyof DeveloperProfile['data'],
     field: string,
     index: number,
     value: any
@@ -95,14 +97,14 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
     setProfile((prev) => {
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore
-      updated[section][field][index] = value;
+      updated.data[section][field][index] = value;
       return updated;
     });
   };
 
   const isValidSection = (
-    section: string
-  ): section is keyof DeveloperProfile => {
+    section: keyof DeveloperProfile['data']
+  ): section is keyof DeveloperProfile['data'] => {
     return [
       "personalInfo",
       "professionalInfo",
@@ -115,8 +117,8 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
     setProfile((prev) => {
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
 
-      if (!isValidSection(section)) return prev;
-      const sectionObj = updated[section] as Record<string, any>;
+      if (!isValidSection(section as keyof DeveloperProfile['data'])) return prev;
+      const sectionObj = updated.data[section as keyof DeveloperProfile['data']] as Record<string, any>;
 
       if (!sectionObj[field]) {
         sectionObj[field] = [];
@@ -130,13 +132,13 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
     setProfile((prev) => {
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore
-      updated[section][field].splice(index, 1);
+      updated.data[section][field].splice(index, 1);
       return updated;
     });
   };
 
   const validateProfile = (): boolean => {
-    const { personalInfo, professionalInfo, technicalSkills } = profile;
+    const { personalInfo, professionalInfo, technicalSkills } = profile.data;
 
     // Required fields validation
     if (!personalInfo.firstName.trim()) {
@@ -189,9 +191,9 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
       
       // Step 1: Create user with developer role (this will auto-create the developer profile)
       const userPayload = {
-        email: profile.personalInfo.email,
-        firstName: profile.personalInfo.firstName,
-        lastName: profile.personalInfo.lastName,
+        email: profile.data.personalInfo.email,
+        firstName: profile.data.personalInfo.firstName,
+        lastName: profile.data.personalInfo.lastName,
         role: "developer",
         generatePassword: true, // Generate password automatically
       };
@@ -224,7 +226,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
       
       // Find the profile that matches the email we just created
       const newProfile = profiles.find((p: DeveloperProfile) => 
-        p.personalInfo.email === profile.personalInfo.email
+        p.data.personalInfo.email === profile.data.personalInfo.email
       );
       
       if (!newProfile) {
@@ -239,9 +241,9 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
           ...profile,
           id: newProfile.id, // Use the ID from the newly created profile
           personalInfo: {
-            ...profile.personalInfo,
+            ...profile.data.personalInfo,
             // Keep the email from the created user
-            email: profile.personalInfo.email
+            email: profile.data.personalInfo.email
           }
         }),
       });
@@ -283,7 +285,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         <span className="text-red-400 text-sm ml-2">* Required</span>
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(profile.personalInfo).map(([key, value]) => (
+        {Object.entries(profile.data.personalInfo).map(([key, value]) => (
           <div key={key} className="flex flex-col">
             <label className="text-sm text-gray-300 mb-2 capitalize flex items-center gap-1">
               {key.replace(/([A-Z])/g, " $1")}
@@ -341,7 +343,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
       </h3>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Object.entries(profile.professionalInfo)
+          {Object.entries(profile.data.professionalInfo)
             .filter(
               ([key]) =>
                 !["languages", "certifications", "preferredWorkType"].includes(
@@ -424,7 +426,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-2">Languages</label>
           <div className="space-y-2">
-            {(profile.professionalInfo.languages || []).map((lang, index) => (
+            {(profile.data.professionalInfo.languages || []).map((lang, index) => (
               <div key={index} className="flex gap-2">
                 <input
                   className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
@@ -462,7 +464,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-2">Certifications</label>
           <div className="space-y-2">
-            {(profile.professionalInfo.certifications || []).map(
+            {(profile.data.professionalInfo.certifications || []).map(
               (cert, index) => (
                 <div key={index} className="flex gap-2">
                   <input
@@ -510,7 +512,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
             Preferred Work Type
           </label>
           <div className="space-y-2">
-            {(profile.professionalInfo.preferredWorkType || []).map(
+            {(profile.data.professionalInfo.preferredWorkType || []).map(
               (workType, index) => (
                 <div key={index} className="flex gap-2">
                   <select
@@ -567,8 +569,8 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   ) => {
     const IconComponent = icon;
     const skills =
-      (profile.technicalSkills[
-        skillKey as keyof typeof profile.technicalSkills
+      (profile.data.technicalSkills[
+        skillKey as keyof typeof profile.data.technicalSkills
       ] as any[]) || [];
 
     return (
@@ -754,7 +756,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
               Cloud Platforms
             </label>
             <div className="space-y-2">
-              {(profile.technicalSkills.cloudPlatforms || []).map(
+              {(profile.data.technicalSkills.cloudPlatforms || []).map(
                 (platform, index) => (
                   <div key={index} className="flex gap-2">
                     <input
@@ -801,7 +803,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
               Specializations
             </label>
             <div className="space-y-2">
-              {(profile.technicalSkills.specializations || []).map(
+              {(profile.data.technicalSkills.specializations || []).map(
                 (spec, index) => (
                   <div key={index} className="flex gap-2">
                     <input
@@ -854,7 +856,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         Initial Statistics
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(profile.stats).map(([key, value]) => (
+        {Object.entries(profile.data.stats).map(([key, value]) => (
           <div key={key} className="flex flex-col">
             <label className="text-sm text-gray-300 mb-2 capitalize">
               {key.replace(/([A-Z])/g, " $1")}

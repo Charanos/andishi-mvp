@@ -189,7 +189,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         totalUsers: users.length
       });
     } catch (error: any) {
-      console.error('Synchronization error:', error);
+      
       return NextResponse.json({ error: 'Synchronization failed', details: error.message }, { status: 500 });
     }
   }
@@ -219,51 +219,53 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const data = profile.data || {};
       const responseData: DeveloperProfile = {
         id: profile._id.toString(),
-        personalInfo: {
-          firstName: data.personalInfo?.firstName || 'Unknown',
-          lastName: data.personalInfo?.lastName || 'Developer',
-          email: data.personalInfo?.email || '',
-          phone: data.personalInfo?.phone,
-          location: data.personalInfo?.location || 'Unknown',
-          timeZone: data.personalInfo?.timeZone,
-          linkedin: data.personalInfo?.linkedin,
-          github: data.personalInfo?.github,
-          portfolio: data.personalInfo?.portfolio,
-          tagline: data.personalInfo?.tagline || 'Full Stack Developer',
-          bio: data.personalInfo?.bio,
+        data: {
+          personalInfo: {
+            firstName: data.personalInfo?.firstName || 'Unknown',
+            lastName: data.personalInfo?.lastName || 'Developer',
+            email: data.personalInfo?.email || '',
+            phone: data.personalInfo?.phone,
+            location: data.personalInfo?.location || 'Unknown',
+            timeZone: data.personalInfo?.timeZone,
+            linkedin: data.personalInfo?.linkedin,
+            github: data.personalInfo?.github,
+            portfolio: data.personalInfo?.portfolio,
+            tagline: data.personalInfo?.tagline || 'Full Stack Developer',
+            bio: data.personalInfo?.bio,
+          },
+          professionalInfo: {
+            title: data.professionalInfo?.title || 'Developer',
+            experienceLevel: data.professionalInfo?.experienceLevel || 'Mid-level',
+            yearsOfExperience: data.professionalInfo?.yearsOfExperience,
+            availability: data.professionalInfo?.availability || 'Full-time',
+            hourlyRate: Number(data.professionalInfo?.hourlyRate) || 50,
+            bio: data.professionalInfo?.bio,
+            languages: data.professionalInfo?.languages || [],
+            certifications: data.professionalInfo?.certifications || [],
+            preferredWorkType: data.professionalInfo?.preferredWorkType || [],
+            workingHours: data.professionalInfo?.workingHours,
+          },
+          technicalSkills: constructTechnicalSkills(data.technicalSkills || {}),
+          stats: {
+            totalProjects: Number(data.stats?.totalProjects) || 0,
+            completedProjects: Number(data.stats?.completedProjects) || 0,
+            totalEarnings: Number(data.stats?.totalEarnings) || 0,
+            averageRating: Number(data.stats?.averageRating) || 0,
+            totalCodeLines: Number(data.stats?.totalCodeLines) || 0,
+            activeDays: Number(data.stats?.activeDays) || 0,
+            clientRetention: Number(data.stats?.clientRetention) || 0,
+            responseTime: data.stats?.responseTime,
+            totalCommits: Number(data.stats?.totalCommits) || 0,
+            bugsFixed: Number(data.stats?.bugsFixed) || 0,
+            codeReviewsGiven: Number(data.stats?.codeReviewsGiven) || 0,
+            mentoringSessions: Number(data.stats?.mentoringSessions) || 0,
+          },
+          projects: Array.isArray(data.projects) ? data.projects : [],
+          recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : [],
+          achievements: Array.isArray(data.achievements) ? data.achievements : [],
+          notifications: Array.isArray(data.notifications) ? data.notifications : [],
+          timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
         },
-        professionalInfo: {
-          title: data.professionalInfo?.title || 'Developer',
-          experienceLevel: data.professionalInfo?.experienceLevel || 'Mid-level',
-          yearsOfExperience: data.professionalInfo?.yearsOfExperience,
-          availability: data.professionalInfo?.availability || 'Full-time',
-          hourlyRate: Number(data.professionalInfo?.hourlyRate) || 50,
-          bio: data.professionalInfo?.bio,
-          languages: data.professionalInfo?.languages || [],
-          certifications: data.professionalInfo?.certifications || [],
-          preferredWorkType: data.professionalInfo?.preferredWorkType || [],
-          workingHours: data.professionalInfo?.workingHours,
-        },
-        technicalSkills: constructTechnicalSkills(data.technicalSkills || {}),
-        stats: {
-          totalProjects: Number(data.stats?.totalProjects) || 0,
-          completedProjects: Number(data.stats?.completedProjects) || 0,
-          totalEarnings: Number(data.stats?.totalEarnings) || 0,
-          averageRating: Number(data.stats?.averageRating) || 0,
-          totalCodeLines: Number(data.stats?.totalCodeLines) || 0,
-          activeDays: Number(data.stats?.activeDays) || 0,
-          clientRetention: Number(data.stats?.clientRetention) || 0,
-          responseTime: data.stats?.responseTime,
-          totalCommits: Number(data.stats?.totalCommits) || 0,
-          bugsFixed: Number(data.stats?.bugsFixed) || 0,
-          codeReviewsGiven: Number(data.stats?.codeReviewsGiven) || 0,
-          mentoringSessions: Number(data.stats?.mentoringSessions) || 0,
-        },
-        projects: Array.isArray(data.projects) ? data.projects : [],
-        recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : [],
-        achievements: Array.isArray(data.achievements) ? data.achievements : [],
-        notifications: Array.isArray(data.notifications) ? data.notifications : [],
-        timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
         status: profile.status || data.status || "pending",
         isAvailable: profile.isAvailable ?? data.isAvailable ?? false,
         createdAt: profile.createdAt?.toISOString() || new Date().toISOString(),
@@ -273,64 +275,66 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Fetch all profiles
-    console.log('Fetching developer profiles from database...');
+    
     const records = await db.collection('developerProfiles').find({}).toArray();
-    console.log(`Found ${records.length} developer profiles`);
+    
 
     // Debug: Log the first few records to see their structure
     if (records.length > 0) {
-      console.log('Sample developer profile structure:', JSON.stringify(records[0], null, 2));
+      
     }
 
     const profiles: DeveloperProfile[] = records.map((profile) => {
       const data = profile.data || {};
       return {
         id: profile._id.toString(),
-        personalInfo: {
-          firstName: data.personalInfo?.firstName || 'Unknown',
-          lastName: data.personalInfo?.lastName || 'Developer',
-          email: data.personalInfo?.email || '',
-          phone: data.personalInfo?.phone,
-          location: data.personalInfo?.location || 'Unknown',
-          timeZone: data.personalInfo?.timeZone,
-          linkedin: data.personalInfo?.linkedin,
-          github: data.personalInfo?.github,
-          portfolio: data.personalInfo?.portfolio,
-          tagline: data.personalInfo?.tagline || 'Full Stack Developer',
-          bio: data.personalInfo?.bio,
+        data: {
+          personalInfo: {
+            firstName: data.personalInfo?.firstName || 'Unknown',
+            lastName: data.personalInfo?.lastName || 'Developer',
+            email: data.personalInfo?.email || '',
+            phone: data.personalInfo?.phone,
+            location: data.personalInfo?.location || 'Unknown',
+            timeZone: data.personalInfo?.timeZone,
+            linkedin: data.personalInfo?.linkedin,
+            github: data.personalInfo?.github,
+            portfolio: data.personalInfo?.portfolio,
+            tagline: data.personalInfo?.tagline || 'Full Stack Developer',
+            bio: data.personalInfo?.bio,
+          },
+          professionalInfo: {
+            title: data.professionalInfo?.title || 'Developer',
+            experienceLevel: data.professionalInfo?.experienceLevel || 'Mid-level',
+            yearsOfExperience: data.professionalInfo?.yearsOfExperience,
+            availability: data.professionalInfo?.availability || 'Full-time',
+            hourlyRate: Number(data.professionalInfo?.hourlyRate) || 50,
+            bio: data.professionalInfo?.bio,
+            languages: data.professionalInfo?.languages || [],
+            certifications: data.professionalInfo?.certifications || [],
+            preferredWorkType: data.professionalInfo?.preferredWorkType || [],
+            workingHours: data.professionalInfo?.workingHours,
+          },
+          technicalSkills: constructTechnicalSkills(data.technicalSkills || {}),
+          stats: {
+            totalProjects: Number(data.stats?.totalProjects) || 0,
+            completedProjects: Number(data.stats?.completedProjects) || 0,
+            totalEarnings: Number(data.stats?.totalEarnings) || 0,
+            averageRating: Number(data.stats?.averageRating) || 0,
+            totalCodeLines: Number(data.stats?.totalCodeLines) || 0,
+            activeDays: Number(data.stats?.activeDays) || 0,
+            clientRetention: Number(data.stats?.clientRetention) || 0,
+            responseTime: data.stats?.responseTime,
+            totalCommits: Number(data.stats?.totalCommits) || 0,
+            bugsFixed: Number(data.stats?.bugsFixed) || 0,
+            codeReviewsGiven: Number(data.stats?.codeReviewsGiven) || 0,
+            mentoringSessions: Number(data.stats?.mentoringSessions) || 0,
+          },
+          projects: Array.isArray(data.projects) ? data.projects : [],
+          recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : [],
+          achievements: Array.isArray(data.achievements) ? data.achievements : [],
+          notifications: Array.isArray(data.notifications) ? data.notifications : [],
+          timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
         },
-        professionalInfo: {
-          title: data.professionalInfo?.title || 'Developer',
-          experienceLevel: data.professionalInfo?.experienceLevel || 'Mid-level',
-          yearsOfExperience: data.professionalInfo?.yearsOfExperience,
-          availability: data.professionalInfo?.availability || 'Full-time',
-          hourlyRate: Number(data.professionalInfo?.hourlyRate) || 50,
-          bio: data.professionalInfo?.bio,
-          languages: data.professionalInfo?.languages || [],
-          certifications: data.professionalInfo?.certifications || [],
-          preferredWorkType: data.professionalInfo?.preferredWorkType || [],
-          workingHours: data.professionalInfo?.workingHours,
-        },
-        technicalSkills: constructTechnicalSkills(data.technicalSkills || {}),
-        stats: {
-          totalProjects: Number(data.stats?.totalProjects) || 0,
-          completedProjects: Number(data.stats?.completedProjects) || 0,
-          totalEarnings: Number(data.stats?.totalEarnings) || 0,
-          averageRating: Number(data.stats?.averageRating) || 0,
-          totalCodeLines: Number(data.stats?.totalCodeLines) || 0,
-          activeDays: Number(data.stats?.activeDays) || 0,
-          clientRetention: Number(data.stats?.clientRetention) || 0,
-          responseTime: data.stats?.responseTime,
-          totalCommits: Number(data.stats?.totalCommits) || 0,
-          bugsFixed: Number(data.stats?.bugsFixed) || 0,
-          codeReviewsGiven: Number(data.stats?.codeReviewsGiven) || 0,
-          mentoringSessions: Number(data.stats?.mentoringSessions) || 0,
-        },
-        projects: Array.isArray(data.projects) ? data.projects : [],
-        recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : [],
-        achievements: Array.isArray(data.achievements) ? data.achievements : [],
-        notifications: Array.isArray(data.notifications) ? data.notifications : [],
-        timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
         status: profile.status || data.status || "pending",
         isAvailable: profile.isAvailable ?? data.isAvailable ?? false,
         createdAt: profile.createdAt?.toISOString() || new Date().toISOString(),
@@ -339,7 +343,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(profiles, { status: 200, headers: corsHeaders });
   } catch (err) {
-    console.error("GET /api/developer-profiles error", err);
+    
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
@@ -354,29 +358,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const profileData = body as DeveloperProfile;
 
     // Validate required fields
-    if (!profileData.personalInfo || !profileData.professionalInfo || !profileData.technicalSkills || !profileData.stats) {
+    if (!profileData.data || !profileData.data.personalInfo || !profileData.data.professionalInfo || !profileData.data.technicalSkills || !profileData.data.stats) {
       return new NextResponse("Complete profile data is required (personalInfo, professionalInfo, technicalSkills, stats)", { status: 400, headers: corsHeaders });
     }
 
     // Validate PersonalInfo
-    const { firstName, lastName, email, location, tagline } = profileData.personalInfo;
+    const { firstName, lastName, email, location, tagline } = profileData.data.personalInfo;
     if (!firstName || !lastName || !email || !location || !tagline) {
       return new NextResponse("Complete personal information is required (firstName, lastName, email, location, tagline)", { status: 400, headers: corsHeaders });
     }
 
     // Validate ProfessionalInfo
-    const { title, experienceLevel, availability, hourlyRate } = profileData.professionalInfo;
+    const { title, experienceLevel, availability, hourlyRate } = profileData.data.professionalInfo;
     if (!title || !experienceLevel || !availability || typeof hourlyRate !== 'number') {
       return new NextResponse("Complete professional information is required (title, experienceLevel, availability, hourlyRate)", { status: 400, headers: corsHeaders });
     }
 
     // Validate TechnicalSkills - ensure primarySkills is an array of Skill objects
-    if (!Array.isArray(profileData.technicalSkills.primarySkills)) {
+    if (!Array.isArray(profileData.data.technicalSkills.primarySkills)) {
       return new NextResponse("Primary skills must be an array", { status: 400, headers: corsHeaders });
     }
 
     // Validate that primarySkills contain proper Skill objects
-    const invalidSkills = profileData.technicalSkills.primarySkills.filter(skill =>
+    const invalidSkills = profileData.data.technicalSkills.primarySkills.filter(skill =>
       !skill.name || typeof skill.level !== 'number'
     );
     if (invalidSkills.length > 0) {
@@ -384,7 +388,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Validate Stats
-    const { totalProjects, averageRating, totalEarnings, clientRetention } = profileData.stats;
+    const { totalProjects, averageRating, totalEarnings, clientRetention } = profileData.data.stats;
     if (typeof totalProjects !== 'number' || typeof averageRating !== 'number' ||
       typeof totalEarnings !== 'number' || typeof clientRetention !== 'number') {
       return new NextResponse("Core stats must be numbers (totalProjects, averageRating, totalEarnings, clientRetention)", { status: 400, headers: corsHeaders });
@@ -395,25 +399,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Ensure technical skills are properly formatted
     const processedTechnicalSkills = {
-      primarySkills: ensureSkillArray(profileData.technicalSkills.primarySkills),
-      frameworks: ensureSkillArray(profileData.technicalSkills.frameworks),
-      databases: ensureSkillArray(profileData.technicalSkills.databases),
-      tools: ensureSkillArray(profileData.technicalSkills.tools),
-      cloudPlatforms: profileData.technicalSkills.cloudPlatforms || [],
-      specializations: profileData.technicalSkills.specializations || [],
+      primarySkills: ensureSkillArray(profileData.data.technicalSkills.primarySkills),
+      frameworks: ensureSkillArray(profileData.data.technicalSkills.frameworks),
+      databases: ensureSkillArray(profileData.data.technicalSkills.databases),
+      tools: ensureSkillArray(profileData.data.technicalSkills.tools),
+      cloudPlatforms: profileData.data.technicalSkills.cloudPlatforms || [],
+      specializations: profileData.data.technicalSkills.specializations || [],
     };
 
     const newProfile = {
       data: {
-        personalInfo: profileData.personalInfo,
-        professionalInfo: profileData.professionalInfo,
+        personalInfo: profileData.data.personalInfo,
+        professionalInfo: profileData.data.professionalInfo,
         technicalSkills: processedTechnicalSkills,
-        stats: profileData.stats,
-        projects: profileData.projects || [],
-        recentActivity: profileData.recentActivity || [],
-        achievements: profileData.achievements || [],
-        notifications: profileData.notifications || [],
-        timeEntries: profileData.timeEntries || [],
+        stats: profileData.data.stats,
+        projects: profileData.data.projects || [],
+        recentActivity: profileData.data.recentActivity || [],
+        achievements: profileData.data.achievements || [],
+        notifications: profileData.data.notifications || [],
+        timeEntries: profileData.data.timeEntries || [],
       },
       status: profileData.status || "pending",
       isAvailable: profileData.isAvailable || false,
@@ -426,15 +430,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Return the created profile with proper structure
     const createdProfile: DeveloperProfile = {
       id: result.insertedId.toString(),
-      personalInfo: profileData.personalInfo,
-      professionalInfo: profileData.professionalInfo,
-      technicalSkills: processedTechnicalSkills,
-      stats: profileData.stats,
-      projects: profileData.projects || [],
-      recentActivity: profileData.recentActivity || [],
-      achievements: profileData.achievements || [],
-      notifications: profileData.notifications || [],
-      timeEntries: profileData.timeEntries || [],
+      data: {
+        personalInfo: profileData.data.personalInfo,
+        professionalInfo: profileData.data.professionalInfo,
+        technicalSkills: processedTechnicalSkills,
+        stats: profileData.data.stats,
+        projects: profileData.data.projects || [],
+        recentActivity: profileData.data.recentActivity || [],
+        achievements: profileData.data.achievements || [],
+        notifications: profileData.data.notifications || [],
+        timeEntries: profileData.data.timeEntries || [],
+      },
       status: profileData.status || "pending",
       isAvailable: profileData.isAvailable || false,
       createdAt: new Date().toISOString(),
@@ -442,7 +448,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(createdProfile, { status: 201, headers: corsHeaders });
   } catch (err) {
-    console.error("POST /api/developer-profiles error", err);
+    
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
@@ -464,7 +470,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     try {
       profileObjectId = new ObjectId(profileId);
     } catch (error) {
-      console.error("Invalid profileId for ObjectId:", profileId, error);
+      
       return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
     }
 
@@ -527,7 +533,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       }
     }
 
-    console.log(`Attempting to update profile with _id: ${profileObjectId}`);
+    
 
     const result = await db.collection("developerProfiles").findOneAndUpdate(
       { _id: profileObjectId },
@@ -540,34 +546,36 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       { returnDocument: "after" }
     );
 
-    console.log("findOneAndUpdate result:", result);
+    
 
     const updatedProfile = result?.value;
 
     if (!updatedProfile) {
-      console.log(`Profile with _id: ${profileObjectId} not found after update.`);
+      
       return new NextResponse("Failed to update profile", { status: 500, headers: corsHeaders });
     }
 
     // Return properly formatted response
     const responseData: DeveloperProfile = {
       id: updatedProfile._id.toString(),
-      personalInfo: updatedProfile.data.personalInfo,
-      professionalInfo: updatedProfile.data.professionalInfo,
-      technicalSkills: constructTechnicalSkills(updatedProfile.data.technicalSkills || {}),
-      stats: updatedProfile.data.stats,
-      projects: updatedProfile.data.projects || [],
-      recentActivity: updatedProfile.data.recentActivity || [],
-      achievements: updatedProfile.data.achievements || [],
-      notifications: updatedProfile.data.notifications || [],
-      timeEntries: updatedProfile.data.timeEntries || [],
+      data: {
+        personalInfo: updatedProfile.data.personalInfo,
+        professionalInfo: updatedProfile.data.professionalInfo,
+        technicalSkills: constructTechnicalSkills(updatedProfile.data.technicalSkills || {}),
+        stats: updatedProfile.data.stats,
+        projects: updatedProfile.data.projects || [],
+        recentActivity: updatedProfile.data.recentActivity || [],
+        achievements: updatedProfile.data.achievements || [],
+        notifications: updatedProfile.data.notifications || [],
+        timeEntries: updatedProfile.data.timeEntries || [],
+      },
       status: updatedProfile.status || "pending",
       isAvailable: updatedProfile.isAvailable || false,
     };
 
     return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
   } catch (err) {
-    console.error("PUT /api/developer-profiles error", err);
+    
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
@@ -624,12 +632,12 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
           }
         }
       );
-      console.log(`Marked user ${profileToDelete.userId} as rejected to prevent profile recreation`);
+      
     }
 
     return new NextResponse(null, { status: 204, headers: corsHeaders }); // Success - No Content
   } catch (err) {
-    console.error(`DELETE /api/developer-profiles?id=${id} error`, err);
+    
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
@@ -725,22 +733,24 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     // Return properly formatted response
     const responseData: DeveloperProfile = {
       id: updatedProfile._id.toString(),
-      personalInfo: updatedProfile.data.personalInfo,
-      professionalInfo: updatedProfile.data.professionalInfo,
-      technicalSkills: constructTechnicalSkills(updatedProfile.data.technicalSkills || {}),
-      stats: updatedProfile.data.stats,
-      projects: updatedProfile.data.projects || [],
-      recentActivity: updatedProfile.data.recentActivity || [],
-      achievements: updatedProfile.data.achievements || [],
-      notifications: updatedProfile.data.notifications || [],
-      timeEntries: updatedProfile.data.timeEntries || [],
+      data: {
+        personalInfo: updatedProfile.data.personalInfo,
+        professionalInfo: updatedProfile.data.professionalInfo,
+        technicalSkills: constructTechnicalSkills(updatedProfile.data.technicalSkills || {}),
+        stats: updatedProfile.data.stats,
+        projects: updatedProfile.data.projects || [],
+        recentActivity: updatedProfile.data.recentActivity || [],
+        achievements: updatedProfile.data.achievements || [],
+        notifications: updatedProfile.data.notifications || [],
+        timeEntries: updatedProfile.data.timeEntries || [],
+      },
       status: updatedProfile.status || "pending",
       isAvailable: updatedProfile.isAvailable || false,
     };
 
     return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
   } catch (err) {
-    console.error("PATCH /api/developer-profiles error", err);
+    
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }

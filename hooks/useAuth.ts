@@ -9,6 +9,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface AuthContextType extends AuthContextTypeDefinition {
   token: string | null;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

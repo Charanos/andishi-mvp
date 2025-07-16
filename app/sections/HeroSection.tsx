@@ -156,7 +156,7 @@ export default function HeroSection() {
         </div>
 
         {/* Right column: illustration with glassmorphic frame */}
-        <div className="w-full lg:w-1/3 mb-12 lg:mb-0 flex justify-center">
+        <div className="w-full lg:w-1/3 mb-12 lg:mb-0 hidden md:flex justify-center">
           <div className="relative group">
             {/* Glassmorphic frame */}
             <div className="absolute inset-0 rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500"></div>

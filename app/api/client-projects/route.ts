@@ -218,14 +218,7 @@ export async function GET(req: NextRequest) {
 
     // Transform projects to ensure consistent structure
     const transformedProjects = projects.map(project => {
-      console.log(`\n=== TRANSFORMING PROJECT: ${project._id} ===`);
-      console.log('Raw project milestones:', project.milestones?.length || 0);
-      console.log('Raw pricing milestones:', project.pricing?.milestones?.length || 0);
-      console.log('Raw project payments:', project.payments?.length || 0);
-      console.log('Raw pricing:', project.pricing);
-      console.log('Project milestones data:', project.milestones);
-      console.log('Pricing milestones data:', project.pricing?.milestones);
-      console.log('Project payments data:', project.payments);
+      
       
       const transformedProject = {
         _id: project._id.toString(),
@@ -309,10 +302,7 @@ export async function GET(req: NextRequest) {
         }
       };
       
-      console.log('Transformed project milestones:', transformedProject.milestones?.length || 0);
-      console.log('Transformed project pricing:', transformedProject.pricing);
-      console.log('Transformed project payments:', transformedProject.payments?.length || 0);
-      console.log('Transformed project payments data:', transformedProject.payments);
+      
       
       return transformedProject;
     });
@@ -369,12 +359,7 @@ export async function POST(req: NextRequest) {
 
     const projectData = await req.json();
     
-    console.log('\n=== PROJECT CREATION DEBUG ===');
-    console.log('Received project data:', JSON.stringify(projectData, null, 2));
-    console.log('Pricing type:', projectData.pricing?.type);
-    console.log('Pricing milestones:', projectData.pricing?.milestones);
-    console.log('Milestone count:', projectData.pricing?.milestones?.length || 0);
-    console.log('Client submission ID:', projectData.clientSubmissionId);
+    
     
     // Check for duplicate submission using clientSubmissionId
     if (projectData.clientSubmissionId) {
@@ -383,7 +368,7 @@ export async function POST(req: NextRequest) {
       });
       
       if (existingProject) {
-        console.log('Duplicate submission detected:', projectData.clientSubmissionId);
+        
         return new NextResponse(JSON.stringify({
           success: false,
           message: 'Duplicate submission detected. Project already exists.',
@@ -426,12 +411,10 @@ export async function POST(req: NextRequest) {
     };
 
     // Handle milestones if pricing type is milestone
-    console.log('\n=== MILESTONE STORAGE DEBUG ===');
-    console.log('Pricing type check:', projectData.pricing?.type === 'milestone');
-    console.log('Milestones exist check:', projectData.pricing?.milestones && projectData.pricing?.milestones.length > 0);
+    
     
     if (projectData.pricing?.type === 'milestone' && projectData.pricing.milestones && projectData.pricing.milestones.length > 0) {
-      console.log('Creating milestones from pricing data...');
+      
       projectToInsert.milestones = projectData.pricing.milestones.map((m: any) => ({
         ...m,
         _id: new ObjectId(),
@@ -441,9 +424,9 @@ export async function POST(req: NextRequest) {
         createdAt: new Date(),
         updatedAt: new Date(),
       }));
-      console.log('Created milestones:', projectToInsert.milestones);
+      
     } else {
-      console.log('No milestones to create, setting empty array');
+      
       projectToInsert.milestones = [];
     }
 
@@ -506,7 +489,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    console.log('Received PATCH request with body:', body);
+    
     const { projectId, ...updates } = body;
 
     if (!projectId || Object.keys(updates).length === 0) {
@@ -661,9 +644,6 @@ export async function PATCH(req: NextRequest) {
             break;
             
           case 'payment_create':
-            console.log('\n=== PAYMENT CREATION DEBUG ===');
-            console.log('Received payment data:', data);
-            
             const newPayment: ProjectPayment = {
               _id: new ObjectId(),
               id: new ObjectId().toString(),
@@ -680,14 +660,10 @@ export async function PATCH(req: NextRequest) {
               updatedAt: new Date(),
             };
             
-            console.log('Creating payment object:', newPayment);
-            
             operationResult = await db.collection('projects').updateOne(
               { _id: new ObjectId(projectId) },
               { $push: { payments: { $each: [newPayment] } } } as any
             );
-            
-            console.log('Payment creation result:', operationResult);
             break;
             
           case 'payment_update':

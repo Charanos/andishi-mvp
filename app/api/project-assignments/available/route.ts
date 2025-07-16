@@ -5,7 +5,7 @@ import { getCurrentAvailabilityStatus } from "@/services/developerAvailabilitySe
 // GET /api/project-assignments/available - Get all available developers (approved and available)
 export async function GET() {
     try {
-        console.log('Fetching available developers...');
+        
         
         // Query developers with their user information and assignments
         const developers = await prisma.developerProfile.findMany({
@@ -39,13 +39,13 @@ export async function GET() {
             }
         });
 
-        console.log(`Found ${developers.length} approved developers`);
+        
 
         // Filter truly available developers (considering busyUntilDate and active assignments)
         const availableDevelopers = developers.filter(dev => {
             // Check if user is active
             if (dev.user?.status !== 'active') {
-                console.log(`Developer ${dev.id} user is not active: ${dev.user?.status}`);
+                
                 return false;
             }
 
@@ -59,17 +59,17 @@ export async function GET() {
             const isAvailable = availabilityStatus.status === 'available';
             
             if (!isAvailable) {
-                console.log(`Developer ${dev.id} not available: ${availabilityStatus.displayText}`);
+                
             }
 
             return isAvailable;
         });
 
-        console.log(`Filtered to ${availableDevelopers.length} available developers`);
+        
 
         return NextResponse.json(availableDevelopers, { status: 200 });
     } catch (error) {
-        console.error("GET /api/project-assignments/available", error);
+        
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error in developer availability cleanup:", error);
+    
     return NextResponse.json({
       success: false,
       message: "Failed to update developer availability",
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
       message: "Use POST to execute cleanup or add ?dry-run=true to see what would be updated"
     });
   } catch (error) {
-    console.error("Error in developer availability cleanup (GET):", error);
+    
     return NextResponse.json({
       success: false,
       message: "Failed to get developer availability info",

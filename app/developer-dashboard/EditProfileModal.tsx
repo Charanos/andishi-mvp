@@ -27,12 +27,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   }, [profile, isOpen]);
 
   const handleInputChange = (
-    section: keyof DeveloperProfile,
+    section: keyof DeveloperProfile['data'],
     field: string,
     value: string
   ) => {
     setFormData((prev: DeveloperProfile) => {
-      const sectionValue = prev[section];
+      const sectionValue = prev.data[section];
       let updatedSection;
 
       if (typeof sectionValue === 'object' && sectionValue !== null) {
@@ -48,7 +48,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
       return {
         ...prev,
-        [section]: updatedSection,
+        data: {
+          ...prev.data,
+          [section]: updatedSection,
+        },
       };
     });
   };
@@ -91,7 +94,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="First Name"
-                value={formData.personalInfo.firstName}
+                value={formData.data.personalInfo.firstName}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "firstName", e.target.value)
                 }
@@ -100,7 +103,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Last Name"
-                value={formData.personalInfo.lastName}
+                value={formData.data.personalInfo.lastName}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "lastName", e.target.value)
                 }
@@ -109,7 +112,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="email"
                 placeholder="Email"
-                value={formData.personalInfo.email}
+                value={formData.data.personalInfo.email}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "email", e.target.value)
                 }
@@ -118,7 +121,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Phone"
-                value={formData.personalInfo.phone}
+                value={formData.data.personalInfo.phone || ''}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "phone", e.target.value)
                 }
@@ -127,7 +130,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Location"
-                value={formData.personalInfo.location}
+                value={formData.data.personalInfo.location}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "location", e.target.value)
                 }
@@ -136,7 +139,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Time Zone"
-                value={formData.personalInfo.timeZone}
+                value={formData.data.personalInfo.timeZone || ''}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "timeZone", e.target.value)
                 }
@@ -145,7 +148,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="url"
                 placeholder="LinkedIn URL"
-                value={formData.personalInfo.linkedin}
+                value={formData.data.personalInfo.linkedin || ''}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "linkedin", e.target.value)
                 }
@@ -154,7 +157,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="url"
                 placeholder="GitHub URL"
-                value={formData.personalInfo.github}
+                value={formData.data.personalInfo.github || ''}
                 onChange={(e) =>
                   handleInputChange("personalInfo", "github", e.target.value)
                 }
@@ -172,7 +175,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Title"
-                value={formData.professionalInfo.title}
+                value={formData.data.professionalInfo.title}
                 onChange={(e) =>
                   handleInputChange("professionalInfo", "title", e.target.value)
                 }
@@ -181,7 +184,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Experience Level"
-                value={formData.professionalInfo.experienceLevel}
+                value={formData.data.professionalInfo.experienceLevel}
                 onChange={(e) =>
                   handleInputChange(
                     "professionalInfo",
@@ -194,7 +197,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Years of Experience"
-                value={formData.professionalInfo.yearsOfExperience}
+                value={formData.data.professionalInfo.yearsOfExperience || ''}
                 onChange={(e) =>
                   handleInputChange(
                     "professionalInfo",
@@ -207,7 +210,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <input
                 type="text"
                 placeholder="Availability"
-                value={formData.professionalInfo.availability}
+                value={formData.data.professionalInfo.availability}
                 onChange={(e) =>
                   handleInputChange(
                     "professionalInfo",

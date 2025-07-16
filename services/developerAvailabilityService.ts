@@ -74,7 +74,7 @@ export async function checkAndUpdateDeveloperAvailability(developerId: string): 
     const currentStatus = getCurrentAvailabilityStatus(developer.isAvailable, developer.busyUntilDate);
     return currentStatus;
   } catch (error) {
-    console.error(`Error checking developer availability for ${developerId}:`, error);
+    
     throw error;
   }
 }
@@ -170,10 +170,10 @@ export async function batchUpdateExpiredBusyUntilDates(): Promise<number> {
       updatedCount++;
     }
 
-    console.log(`Updated ${updatedCount} developers with expired busyUntilDate`);
+    
     return updatedCount;
   } catch (error) {
-    console.error('Error batch updating expired busyUntilDate:', error);
+    
     throw error;
   }
 }
@@ -210,7 +210,7 @@ export async function getAllDevelopersWithAvailability(): Promise<Array<{
       availability: getCurrentAvailabilityStatus(dev.isAvailable, dev.busyUntilDate)
     }));
   } catch (error) {
-    console.error('Error getting developers with availability:', error);
+    
     throw error;
   }
 }

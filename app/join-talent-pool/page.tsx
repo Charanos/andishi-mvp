@@ -531,7 +531,7 @@ export default function DeveloperRegistrationForm() {
           </div>
 
           {/* Progress Bar */}
-          <div className="flex justify-between items-center mb-20 relative">
+          <div className="hidden md:flex justify-between items-center mb-20 relative">
             <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-700 -translate-y-1/2"></div>
             <div
               className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 transition-all duration-500"
@@ -543,8 +543,8 @@ export default function DeveloperRegistrationForm() {
               <div key={step.number} className="relative z-10">
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.number
-                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
-                      : "bg-gray-700 text-gray-400"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-gray-700 text-gray-400"
                     }`}
                 >
                   <step.icon className="text-lg" />
@@ -872,8 +872,8 @@ export default function DeveloperRegistrationForm() {
                             )
                           }
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.professionalInfo.workType.includes(type)
-                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
                         >
                           {type}
@@ -900,8 +900,8 @@ export default function DeveloperRegistrationForm() {
                             )
                           }
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.professionalInfo.languages.includes(lang)
-                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
                         >
                           {lang}
@@ -954,8 +954,8 @@ export default function DeveloperRegistrationForm() {
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.primarySkills.includes(
                             skill
                           )
-                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
                         >
                           {skill}
@@ -982,8 +982,8 @@ export default function DeveloperRegistrationForm() {
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.frameworks.includes(
                             framework
                           )
-                              ? "bg-purple-500/20 border-purple-400 text-purple-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            ? "bg-purple-500/20 border-purple-400 text-purple-300"
+                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
                         >
                           {framework}
@@ -1008,8 +1008,8 @@ export default function DeveloperRegistrationForm() {
                             )
                           }
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.databases.includes(db)
-                              ? "bg-green-500/20 border-green-400 text-green-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            ? "bg-green-500/20 border-green-400 text-green-300"
+                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
                         >
                           {db}
@@ -1034,8 +1034,8 @@ export default function DeveloperRegistrationForm() {
                             )
                           }
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.tools.includes(tool)
-                              ? "bg-orange-500/20 border-orange-400 text-orange-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            ? "bg-orange-500/20 border-orange-400 text-orange-300"
+                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
                         >
                           {tool}
@@ -1532,8 +1532,8 @@ export default function DeveloperRegistrationForm() {
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${currentStep === 1
-                    ? "text-gray-500 cursor-not-allowed"
-                    : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
+                  ? "text-gray-500 cursor-not-allowed"
+                  : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
                   }`}
               >
                 <FaArrowLeft className="text-[15.5px" />
@@ -1550,8 +1550,8 @@ export default function DeveloperRegistrationForm() {
                   onClick={nextStep}
                   disabled={!isStepValid()}
                   className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${isStepValid()
-                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
-                      : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
+                    : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
                     }`}
                 >
                   Next
@@ -1563,8 +1563,8 @@ export default function DeveloperRegistrationForm() {
                   onClick={handleSubmit}
                   disabled={!isStepValid() || submitStatus === "loading"}
                   className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${isStepValid() && submitStatus !== "loading"
-                      ? "bg-green-500/20 text-green-300 hover:bg-green-500/30"
-                      : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                    ? "bg-green-500/20 text-green-300 hover:bg-green-500/30"
+                    : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
                     }`}
                 >
                   {submitStatus === "loading" ? (

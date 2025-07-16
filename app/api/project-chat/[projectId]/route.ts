@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import prisma from "@/lib/prisma";
+import { DeveloperProfile, DeveloperProfileDataContent } from "@/lib/types";
 import { getSession } from "@/lib/getSession";
 
 // GET /api/project-chat/{projectId} - Get chat messages for a project
@@ -17,15 +19,15 @@ export async function GET(
             timestamp: "asc",
           },
         },
+        participants: true,
       },
     });
 
-    // If a chat container doesn't exist, there are no messages.
     if (!chat) {
-      return NextResponse.json([], { status: 200 });
+      return NextResponse.json({ messages: [], participants: [] }, { status: 200 });
     }
 
-    return NextResponse.json(chat.messages, { status: 200 });
+    return NextResponse.json(chat, { status: 200 });
   } catch (error) {
     console.error("GET /api/project-chat/[projectId]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -44,7 +46,7 @@ export async function POST(
     }
 
     const { projectId } = await params;
-    const { content } = await req.json();
+    const { content, replyToMessageId } = await req.json();
 
     if (!content) {
       return new NextResponse("Content is required", { status: 400 });
@@ -57,14 +59,74 @@ export async function POST(
     });
 
     if (!chat) {
-        // In a real-world scenario, you might want to add participants here as well.
-        // The current schema has a ChatParticipant model that is not being used in this API.
-        chat = await prisma.projectChat.create({
-            data: {
-                projectId,
-                lastActivity: new Date(),
-            }
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          assignments: {
+            include: {
+              developer: true,
+            },
+          },
+        },
+      });
+
+      if (!project) {
+        return new NextResponse("Project not found", { status: 404 });
+      }
+
+      const participants = [];
+
+      // Add client as participant if clientId exists
+      if (project.clientId) {
+        const clientUser = await prisma.user.findUnique({
+          where: { id: project.clientId },
+          select: { id: true, firstName: true, lastName: true },
         });
+        if (clientUser) {
+          participants.push({
+            userId: clientUser.id,
+            name: `${clientUser.firstName} ${clientUser.lastName}`.trim() || "Client",
+            role: "client",
+            isOnline: false, // Default to false, will be updated by presence system
+          });
+        }
+      }
+
+      project.assignments.forEach((assignment) => {
+        if (assignment.developer && assignment.developer.userId) {
+          const developerData = assignment.developer.data as unknown as DeveloperProfileDataContent;
+          const firstName = developerData?.personalInfo?.firstName;
+          const lastName = developerData?.personalInfo?.lastName;
+          const developerName = (firstName && lastName) ? `${firstName} ${lastName}` : "Developer";
+
+          participants.push({
+            userId: assignment.developer.userId,
+            name: developerName,
+            role: "developer",
+            isOnline: false, // Default to false, will be updated by presence system
+          });
+        }
+      });
+
+      // Add the admin user who is sending the message
+      if (session.user.role === "admin" && !participants.some(p => p.userId === session.user.id)) {
+        participants.push({
+            userId: session.user.id,
+            name: session.user.name ?? "Admin",
+            role: "admin",
+            isOnline: false, // Default to false, will be updated by presence system
+        });
+      }
+
+      chat = await prisma.projectChat.create({
+        data: {
+          projectId,
+          lastActivity: new Date(),
+          participants: {
+            create: participants,
+          },
+        },
+      });
     } else {
         await prisma.projectChat.update({
             where: { id: chat.id },
@@ -84,6 +146,7 @@ export async function POST(
         senderName,
         senderRole,
         content,
+        ...(replyToMessageId && { replyToMessageId }),
       },
     });
 

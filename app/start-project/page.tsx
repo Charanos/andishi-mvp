@@ -367,7 +367,7 @@ export default function StartProjectForm() {
           </div>
 
           {/* Progress Steps */}
-          <div className="flex justify-between items-center mb-20 relative">
+          <div className="justify-between items-center mb-20 relative hidden md:flex">
             <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-700 -translate-y-1/2"></div>
             <div
               className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 transition-all duration-500"
@@ -379,11 +379,10 @@ export default function StartProjectForm() {
             {steps.map((step) => (
               <div key={step.number} className="relative z-10">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    currentStep >= step.number
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.number
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
                       : "bg-gray-700 text-gray-400"
-                  }`}
+                    }`}
                 >
                   <step.icon className="text-lg" />
                 </div>
@@ -579,11 +578,10 @@ export default function StartProjectForm() {
                           key={tech}
                           type="button"
                           onClick={() => toggleTechStack(tech)}
-                          className={`px-3 hover:bg-purple-700 cursor-pointer py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.projectDetails.techStack.includes(tech)
+                          className={`px-3 hover:bg-purple-700 cursor-pointer py-2 rounded-lg border transition-all duration-300 text-sm ${formData.projectDetails.techStack.includes(tech)
                               ? "bg-blue-500/20 border-blue-400 text-blue-300"
                               : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
+                            }`}
                         >
                           {tech}
                         </button>
@@ -703,22 +701,20 @@ export default function StartProjectForm() {
                       <button
                         type="button"
                         onClick={() => updatePricing("currency", "USD")}
-                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${
-                          formData.pricing.currency === "USD"
+                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${formData.pricing.currency === "USD"
                             ? "bg-blue-500/20 border-blue-400 text-blue-300"
                             : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
-                        }`}
+                          }`}
                       >
                         USD ($)
                       </button>
                       <button
                         type="button"
                         onClick={() => updatePricing("currency", "KES")}
-                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${
-                          formData.pricing.currency === "KES"
+                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${formData.pricing.currency === "KES"
                             ? "bg-blue-500/20 border-blue-400 text-blue-300"
                             : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
-                        }`}
+                          }`}
                       >
                         KES (KSh)
                       </button>
@@ -734,11 +730,10 @@ export default function StartProjectForm() {
                       <button
                         type="button"
                         onClick={() => updatePricing("type", "fixed")}
-                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${
-                          formData.pricing.type === "fixed"
+                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "fixed"
                             ? "bg-blue-500/20 border-blue-400"
                             : "bg-white/5 border-white/10 hover:border-white/20"
-                        }`}
+                          }`}
                       >
                         <div className="text-lg font-semibold text-white mb-2 monty uppercase">
                           Fixed Price
@@ -751,11 +746,10 @@ export default function StartProjectForm() {
                       <button
                         type="button"
                         onClick={() => updatePricing("type", "milestone")}
-                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${
-                          formData.pricing.type === "milestone"
+                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "milestone"
                             ? "bg-blue-500/20 border-blue-400"
                             : "bg-white/5 border-white/10 hover:border-white/20"
-                        }`}
+                          }`}
                       >
                         <div className="text-lg font-semibold text-white mb-2 monty uppercase">
                           Milestone Based
@@ -768,11 +762,10 @@ export default function StartProjectForm() {
                       <button
                         type="button"
                         onClick={() => updatePricing("type", "hourly")}
-                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${
-                          formData.pricing.type === "hourly"
+                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "hourly"
                             ? "bg-blue-500/20 border-blue-400"
                             : "bg-white/5 border-white/10 hover:border-white/20"
-                        }`}
+                          }`}
                       >
                         <div className="text-lg font-semibold monty uppercase text-white mb-2">
                           Hourly Rate
@@ -1229,11 +1222,10 @@ export default function StartProjectForm() {
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
-                  currentStep === 1
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${currentStep === 1
                     ? "text-gray-500 cursor-not-allowed"
                     : "text-gray-300 hover:text-white hover:bg-white/5  cursor-pointer"
-                }`}
+                  }`}
               >
                 <FaArrowLeft className="text-[15.5px" />
                 <span>Previous</span>
@@ -1248,11 +1240,10 @@ export default function StartProjectForm() {
                   type="button"
                   onClick={nextStep}
                   disabled={!isStepValid()}
-                  className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
-                    isStepValid()
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${isStepValid()
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
                       : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   <span>Next</span>
                   <FaArrowRight className="text-[15.5px" />

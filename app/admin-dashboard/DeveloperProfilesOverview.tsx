@@ -67,12 +67,12 @@ type SortOption = "name" | "rating" | "projects" | "earnings";
 type ExperienceLevel = "all" | "junior" | "mid" | "senior" | "lead";
 type AvailabilityStatus = "all" | "available" | "busy" | "unavailable";
 
-const DeveloperProfilesOverview: React.FC<Props> = ({ 
-  onViewProfile, 
-  refreshUsers, 
-  onRefresh, 
-  onApproveProfile, 
-  onRejectProfile, 
+const DeveloperProfilesOverview: React.FC<Props> = ({
+  onViewProfile,
+  refreshUsers,
+  onRefresh,
+  onApproveProfile,
+  onRejectProfile,
   onDeleteProfile,
   refreshTrigger
 }) => {
@@ -143,10 +143,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
       // Remove duplicate profiles based on normalized email address
       const uniqueProfiles: DeveloperProfile[] = profilesArray.filter((profile: DeveloperProfile, index: number, self: DeveloperProfile[]) => {
-        const email = profile.personalInfo.email?.trim().toLowerCase();
+        const email = profile.data.personalInfo.email?.trim().toLowerCase();
         return (
           email &&
-          index === self.findIndex((p: DeveloperProfile) => p.personalInfo.email?.trim().toLowerCase() === email)
+          index === self.findIndex((p: DeveloperProfile) => p.data.personalInfo.email?.trim().toLowerCase() === email)
         );
       });
 
@@ -208,10 +208,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
   useEffect(() => {
     let filtered = profiles.filter((profile) => {
       const fullName =
-        `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`.toLowerCase();
-      const email = profile.personalInfo.email.toLowerCase();
-      const title = profile.professionalInfo.title.toLowerCase();
-      const location = profile.personalInfo.location.toLowerCase();
+        `${profile.data.personalInfo.firstName} ${profile.data.personalInfo.lastName}`.toLowerCase();
+      const email = profile.data.personalInfo.email.toLowerCase();
+      const title = profile.data.professionalInfo.title.toLowerCase();
+      const location = profile.data.personalInfo.location.toLowerCase();
 
       const matchesSearch =
         searchTerm === "" ||
@@ -222,7 +222,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
       const matchesExperience =
         selectedExperience === "all" ||
-        profile.professionalInfo.experienceLevel === selectedExperience;
+        profile.data.professionalInfo.experienceLevel === selectedExperience;
 
       const enhancedAvailability = getEnhancedAvailabilityInfo(profile);
       const matchesAvailability = (() => {
@@ -257,15 +257,15 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
       // Otherwise, sort by selected option
       switch (sortBy) {
         case "name":
-          return `${a.personalInfo.firstName} ${a.personalInfo.lastName}`.localeCompare(
-            `${b.personalInfo.firstName} ${b.personalInfo.lastName}`
+          return `${a.data.personalInfo.firstName} ${a.data.personalInfo.lastName}`.localeCompare(
+            `${b.data.personalInfo.firstName} ${b.data.personalInfo.lastName}`
           );
         case "rating":
-          return b.stats.averageRating - a.stats.averageRating;
+          return b.data.stats.averageRating - a.data.stats.averageRating;
         case "projects":
-          return b.stats.totalProjects - a.stats.totalProjects;
+          return b.data.stats.totalProjects - a.data.stats.totalProjects;
         case "earnings":
-          return b.stats.totalEarnings - a.stats.totalEarnings;
+          return b.data.stats.totalEarnings - a.data.stats.totalEarnings;
         default:
           // Default: newest first
           return bCreatedAt - aCreatedAt;
@@ -372,13 +372,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
         }
         refreshUsers();
       }
-      
+
       // Update local state
       setProfiles((prev) => prev.filter((p) => p.id !== profileToDelete.id));
       setFilteredProfiles((prev) => prev.filter((p) => p.id !== profileToDelete.id));
-      
+
       toast.success(`${profileToDelete.name}'s profile has been deleted`, "Profile removed successfully.");
-      
+
       // Refresh local data after successful deletion
       await fetchProfiles();
     } catch (err) {
@@ -420,7 +420,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
         }
 
         console.log(`Successfully ${action}d developer:`, result);
-        
+
         // Refresh both data sources to ensure consistency
         refreshUsers();
 
@@ -446,20 +446,20 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
   const getActiveProjects = (profile: DeveloperProfile): number => {
     return (
-      profile.projects?.filter((p) => p.status === "in-progress").length ?? 0
+      profile.data.projects?.filter((p) => p.status === "in-progress").length ?? 0
     );
   };
 
   const getLastActivity = (profile: DeveloperProfile): string => {
-    if (!profile.recentActivity || profile.recentActivity.length === 0)
+    if (!profile.data.recentActivity || profile.data.recentActivity.length === 0)
       return "No recent activity";
-    const lastActivity = profile.recentActivity[0];
+    const lastActivity = profile.data.recentActivity[0];
     const date = new Date(lastActivity.timestamp);
     return date.toLocaleDateString();
   };
 
   const getTopSkills = (profile: DeveloperProfile): string[] => {
-    return profile.technicalSkills.primarySkills
+    return profile.data.technicalSkills.primarySkills
       .sort((a, b) => b.level - a.level)
       .slice(0, 3)
       .map((skill) => skill.name);
@@ -534,15 +534,15 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                 <div className="w-px h-6 bg-gray-600"></div>
                 <div>
                   <h1 className="text-2xl font-semibold text-white">
-                    {selectedProfile.personalInfo.firstName}{" "}
-                    {selectedProfile.personalInfo.lastName}
+                    {selectedProfile.data.personalInfo.firstName}{" "}
+                    {selectedProfile.data.personalInfo.lastName}
                   </h1>
                   <p className="text-gray-400 mt-1">
-                    {selectedProfile.professionalInfo.title}
+                    {selectedProfile.data.professionalInfo.title}
                   </p>
-                  {selectedProfile.personalInfo.bio && (
+                  {selectedProfile.data.personalInfo.bio && (
                     <p className="text-gray-300 text-sm mt-2 max-w-md">
-                      {selectedProfile.personalInfo.bio}
+                      {selectedProfile.data.personalInfo.bio}
                     </p>
                   )}
                 </div>
@@ -551,20 +551,20 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                 <div className="flex items-center space-x-2">
                   <FaStar className="text-yellow-400" />
                   <span className="text-white font-medium">
-                    {selectedProfile.stats.averageRating.toFixed(1)}
+                    {selectedProfile.data.stats.averageRating.toFixed(1)}
                   </span>
                 </div>
                 <div className="text-right">
                   <p className="text-gray-400 text-sm">Hourly Rate</p>
                   <p className="text-xl font-semibold text-green-400">
-                    ${selectedProfile.professionalInfo.hourlyRate}/hr
+                    ${selectedProfile.data.professionalInfo.hourlyRate}/hr
                   </p>
                 </div>
-                {selectedProfile.stats.responseTime && (
+                {selectedProfile.data.stats.responseTime && (
                   <div className="text-right">
                     <p className="text-gray-400 text-sm">Response Time</p>
                     <p className="text-white font-medium">
-                      {selectedProfile.stats.responseTime}
+                      {selectedProfile.data.stats.responseTime}
                     </p>
                   </div>
                 )}
@@ -591,11 +591,11 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     Professional Summary
                   </h4>
                   <p className="text-gray-300 leading-relaxed">
-                    {selectedProfile.personalInfo.tagline}
+                    {selectedProfile.data.personalInfo.tagline}
                   </p>
-                  {selectedProfile.professionalInfo.bio && (
+                  {selectedProfile.data.professionalInfo.bio && (
                     <p className="text-gray-300 leading-relaxed mt-3">
-                      {selectedProfile.professionalInfo.bio}
+                      {selectedProfile.data.professionalInfo.bio}
                     </p>
                   )}
                 </div>
@@ -606,14 +606,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </p>
                     <p
                       className={`font-medium capitalize ${getExperienceColor(
-                        selectedProfile.professionalInfo.experienceLevel
+                        selectedProfile.data.professionalInfo.experienceLevel
                       )}`}
                     >
-                      {selectedProfile.professionalInfo.experienceLevel}
+                      {selectedProfile.data.professionalInfo.experienceLevel}
                     </p>
-                    {selectedProfile.professionalInfo.yearsOfExperience && (
+                    {selectedProfile.data.professionalInfo.yearsOfExperience && (
                       <p className="text-gray-500 text-xs mt-1">
-                        {selectedProfile.professionalInfo.yearsOfExperience}{" "}
+                        {selectedProfile.data.professionalInfo.yearsOfExperience}{" "}
                         years
                       </p>
                     )}
@@ -622,25 +622,25 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <p className="text-gray-400 text-sm mb-1">Availability</p>
                     <p
                       className={`font-medium capitalize ${getAvailabilityColor(
-                        selectedProfile.professionalInfo.availability
+                        selectedProfile.data.professionalInfo.availability
                       )}`}
                     >
-                      {selectedProfile.professionalInfo.availability}
+                      {selectedProfile.data.professionalInfo.availability}
                     </p>
-                    {selectedProfile.professionalInfo.workingHours && (
+                    {selectedProfile.data.professionalInfo.workingHours && (
                       <p className="text-gray-500 text-xs mt-1">
-                        {selectedProfile.professionalInfo.workingHours}
+                        {selectedProfile.data.professionalInfo.workingHours}
                       </p>
                     )}
                   </div>
                   <div className="bg-white/5 rounded-lg p-4">
                     <p className="text-gray-400 text-sm mb-1">Location</p>
                     <p className="text-white font-medium">
-                      {selectedProfile.personalInfo.location}
+                      {selectedProfile.data.personalInfo.location}
                     </p>
-                    {selectedProfile.personalInfo.timeZone && (
+                    {selectedProfile.data.personalInfo.timeZone && (
                       <p className="text-gray-500 text-xs mt-1">
-                        {selectedProfile.personalInfo.timeZone}
+                        {selectedProfile.data.personalInfo.timeZone}
                       </p>
                     )}
                   </div>
@@ -663,7 +663,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   Primary Skills
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {selectedProfile.technicalSkills.primarySkills.map(
+                  {selectedProfile.data.technicalSkills.primarySkills.map(
                     (skill) => (
                       <div
                         key={skill.name}
@@ -724,14 +724,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               </div>
 
               {/* Additional Skills Sections */}
-              {selectedProfile.technicalSkills.frameworks &&
-                selectedProfile.technicalSkills.frameworks.length > 0 && (
+              {selectedProfile.data.technicalSkills.frameworks &&
+                selectedProfile.data.technicalSkills.frameworks.length > 0 && (
                   <div className="mb-6">
                     <h4 className="text-white font-medium mb-3">
                       Frameworks & Libraries
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {selectedProfile.technicalSkills.frameworks.map(
+                      {selectedProfile.data.technicalSkills.frameworks.map(
                         (skill) => (
                           <span
                             key={skill.name}
@@ -745,12 +745,12 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   </div>
                 )}
 
-              {selectedProfile.technicalSkills.databases &&
-                selectedProfile.technicalSkills.databases.length > 0 && (
+              {selectedProfile.data.technicalSkills.databases &&
+                selectedProfile.data.technicalSkills.databases.length > 0 && (
                   <div className="mb-6">
                     <h4 className="text-white font-medium mb-3">Databases</h4>
                     <div className="flex flex-wrap gap-2">
-                      {selectedProfile.technicalSkills.databases.map(
+                      {selectedProfile.data.technicalSkills.databases.map(
                         (skill) => (
                           <span
                             key={skill.name}
@@ -764,14 +764,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   </div>
                 )}
 
-              {selectedProfile.technicalSkills.tools &&
-                selectedProfile.technicalSkills.tools.length > 0 && (
+              {selectedProfile.data.technicalSkills.tools &&
+                selectedProfile.data.technicalSkills.tools.length > 0 && (
                   <div className="mb-6">
                     <h4 className="text-white font-medium mb-3">
                       Tools & Technologies
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {selectedProfile.technicalSkills.tools.map((skill) => (
+                      {selectedProfile.data.technicalSkills.tools.map((skill) => (
                         <span
                           key={skill.name}
                           className="bg-teal-600/10 text-gray-300 px-3 py-1 rounded-full text-sm"
@@ -783,14 +783,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   </div>
                 )}
 
-              {selectedProfile.technicalSkills.cloudPlatforms &&
-                selectedProfile.technicalSkills.cloudPlatforms.length > 0 && (
+              {selectedProfile.data.technicalSkills.cloudPlatforms &&
+                selectedProfile.data.technicalSkills.cloudPlatforms.length > 0 && (
                   <div className="mb-6">
                     <h4 className="text-white font-medium mb-3">
                       Cloud Platforms
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {selectedProfile.technicalSkills.cloudPlatforms.map(
+                      {selectedProfile.data.technicalSkills.cloudPlatforms.map(
                         (platform) => (
                           <span
                             key={platform}
@@ -804,14 +804,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   </div>
                 )}
 
-              {selectedProfile.technicalSkills.specializations &&
-                selectedProfile.technicalSkills.specializations.length > 0 && (
+              {selectedProfile.data.technicalSkills.specializations &&
+                selectedProfile.data.technicalSkills.specializations.length > 0 && (
                   <div>
                     <h4 className="text-white font-medium mb-3">
                       Specializations
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {selectedProfile.technicalSkills.specializations.map(
+                      {selectedProfile.data.technicalSkills.specializations.map(
                         (spec) => (
                           <span
                             key={spec}
@@ -840,7 +840,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div>
                       <p className="text-gray-400 text-sm">Total Projects</p>
                       <p className="text-2xl font-semibold text-white">
-                        {selectedProfile.stats.totalProjects}
+                        {selectedProfile.data.stats.totalProjects}
                       </p>
                     </div>
                     <div className="w-10 h-10 bg-blue-400/20 rounded-full flex items-center justify-center">
@@ -848,7 +848,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </div>
                   </div>
                   <p className="text-gray-500 text-sm">
-                    {selectedProfile.stats.completedProjects ||
+                    {selectedProfile.data.stats.completedProjects ||
                       getActiveProjects(selectedProfile)}{" "}
                     completed
                   </p>
@@ -859,7 +859,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div>
                       <p className="text-gray-400 text-sm">Total Earnings</p>
                       <p className="text-2xl font-semibold text-green-400">
-                        ${selectedProfile.stats.totalEarnings.toLocaleString()}
+                        ${selectedProfile.data.stats.totalEarnings.toLocaleString()}
                       </p>
                     </div>
                     <div className="w-10 h-10 bg-green-400/20 rounded-full flex items-center justify-center">
@@ -874,7 +874,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div>
                       <p className="text-gray-400 text-sm">Average Rating</p>
                       <p className="text-2xl font-semibold text-yellow-400">
-                        {selectedProfile.stats.averageRating.toFixed(1)}
+                        {selectedProfile.data.stats.averageRating.toFixed(1)}
                       </p>
                     </div>
                     <div className="w-10 h-10 bg-yellow-400/20 rounded-full flex items-center justify-center">
@@ -889,7 +889,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div>
                       <p className="text-gray-400 text-sm">Client Retention</p>
                       <p className="text-2xl font-semibold text-purple-400">
-                        {selectedProfile.stats.clientRetention}%
+                        {selectedProfile.data.stats.clientRetention}%
                       </p>
                     </div>
                     <div className="w-10 h-10 bg-purple-400/20 rounded-full flex items-center justify-center">
@@ -987,8 +987,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Recent Projects */}
-            {selectedProfile.projects &&
-              selectedProfile.projects.length > 0 && (
+            {selectedProfile.data.projects &&
+              selectedProfile.data.projects.length > 0 && (
                 <div className="bg-white/5 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaProjectDiagram className="text-gray-400" />
@@ -997,7 +997,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </h3>
                   </div>
                   <div className="space-y-4">
-                    {selectedProfile?.projects.slice(0, 3).map((project) => (
+                    {selectedProfile?.data.projects.slice(0, 3).map((project) => (
                       <div
                         key={project.id}
                         className="bg-white/5 rounded-lg p-4"
@@ -1076,8 +1076,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               )}
 
             {/* Achievements */}
-            {selectedProfile.achievements &&
-              selectedProfile.achievements.length > 0 && (
+            {selectedProfile.data.achievements &&
+              selectedProfile.data.achievements.length > 0 && (
                 <div className="bg-white/5 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaTrophy className="text-gray-400" />
@@ -1086,7 +1086,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedProfile.achievements
+                    {selectedProfile.data.achievements
                       .slice(0, 6)
                       .map((achievement) => (
                         <div
@@ -1153,16 +1153,16 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                 <div className="text-center pb-4 border-b border-gray-700">
                   <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-3">
                     <span className="text-white font-semibold text-lg">
-                      {selectedProfile.personalInfo.firstName[0]}
-                      {selectedProfile.personalInfo.lastName[0]}
+                      {selectedProfile.data.personalInfo.firstName[0]}
+                      {selectedProfile.data.personalInfo.lastName[0]}
                     </span>
                   </div>
                   <h4 className="text-white font-semibold mb-1">
-                    {selectedProfile.personalInfo.firstName}{" "}
-                    {selectedProfile.personalInfo.lastName}
+                    {selectedProfile.data.personalInfo.firstName}{" "}
+                    {selectedProfile.data.personalInfo.lastName}
                   </h4>
                   <p className="text-gray-400 text-sm">
-                    {selectedProfile.professionalInfo.title}
+                    {selectedProfile.data.professionalInfo.title}
                   </p>
                 </div>
 
@@ -1172,18 +1172,18 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div>
                       <p className="text-gray-400 text-sm">Email</p>
                       <p className="text-white font-medium">
-                        {selectedProfile.personalInfo.email}
+                        {selectedProfile.data.personalInfo.email}
                       </p>
                     </div>
                   </div>
 
-                  {selectedProfile.personalInfo.phone && (
+                  {selectedProfile.data.personalInfo.phone && (
                     <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                       <FaPhone className="text-gray-400" />
                       <div>
                         <p className="text-gray-400 text-sm">Phone</p>
                         <p className="text-white font-medium">
-                          {selectedProfile.personalInfo.phone}
+                          {selectedProfile.data.personalInfo.phone}
                         </p>
                       </div>
                     </div>
@@ -1194,11 +1194,11 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div>
                       <p className="text-gray-400 text-sm">Location</p>
                       <p className="text-white font-medium">
-                        {selectedProfile.personalInfo.location}
+                        {selectedProfile.data.personalInfo.location}
                       </p>
-                      {selectedProfile.personalInfo.timeZone && (
+                      {selectedProfile.data.personalInfo.timeZone && (
                         <p className="text-gray-500 text-xs">
-                          {selectedProfile.personalInfo.timeZone}
+                          {selectedProfile.data.personalInfo.timeZone}
                         </p>
                       )}
                     </div>
@@ -1209,13 +1209,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div>
                       <p className="text-gray-400 text-sm">Experience</p>
                       <p className={`font-medium capitalize ${getExperienceColor(
-                        selectedProfile.professionalInfo.experienceLevel
+                        selectedProfile.data.professionalInfo.experienceLevel
                       )}`}>
-                        {selectedProfile.professionalInfo.experienceLevel}
+                        {selectedProfile.data.professionalInfo.experienceLevel}
                       </p>
-                      {selectedProfile.professionalInfo.yearsOfExperience && (
+                      {selectedProfile.data.professionalInfo.yearsOfExperience && (
                         <p className="text-gray-500 text-xs">
-                          {selectedProfile.professionalInfo.yearsOfExperience}
+                          {selectedProfile.data.professionalInfo.yearsOfExperience}
                         </p>
                       )}
                     </div>
@@ -1228,9 +1228,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       <p className={`font-medium ${getEnhancedAvailabilityInfo(selectedProfile).colorClass}`}>
                         {getEnhancedAvailabilityInfo(selectedProfile).displayText}
                       </p>
-                      {selectedProfile.professionalInfo.workingHours && (
+                      {selectedProfile.data.professionalInfo.workingHours && (
                         <p className="text-gray-500 text-xs">
-                          {selectedProfile.professionalInfo.workingHours}
+                          {selectedProfile.data.professionalInfo.workingHours}
                         </p>
                       )}
                       {selectedProfile.busyUntilDate && (
@@ -1243,15 +1243,15 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                 </div>
 
                 {/* Social Links */}
-                {(selectedProfile.personalInfo.linkedin ||
-                  selectedProfile.personalInfo.github ||
-                  selectedProfile.personalInfo.portfolio) && (
+                {(selectedProfile.data.personalInfo.linkedin ||
+                  selectedProfile.data.personalInfo.github ||
+                  selectedProfile.data.personalInfo.portfolio) && (
                     <div className="pt-4 border-t border-gray-700">
                       <h4 className="text-white font-medium mb-3">Links</h4>
                       <div className="space-y-2">
-                        {selectedProfile.personalInfo.linkedin && (
+                        {selectedProfile.data.personalInfo.linkedin && (
                           <a
-                            href={selectedProfile.personalInfo.linkedin}
+                            href={selectedProfile.data.personalInfo.linkedin}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors"
@@ -1260,9 +1260,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                             <span className="text-sm">LinkedIn</span>
                           </a>
                         )}
-                        {selectedProfile.personalInfo.github && (
+                        {selectedProfile.data.personalInfo.github && (
                           <a
-                            href={selectedProfile.personalInfo.github}
+                            href={selectedProfile.data.personalInfo.github}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
@@ -1271,9 +1271,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                             <span className="text-sm">GitHub</span>
                           </a>
                         )}
-                        {selectedProfile.personalInfo.portfolio && (
+                        {selectedProfile.data.personalInfo.portfolio && (
                           <a
-                            href={selectedProfile.personalInfo.portfolio}
+                            href={selectedProfile.data.personalInfo.portfolio}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center space-x-2 text-green-400 hover:text-green-300 transition-colors"
@@ -1289,9 +1289,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Professional Details */}
-            {(selectedProfile.professionalInfo.languages ||
-              selectedProfile.professionalInfo.certifications ||
-              selectedProfile.professionalInfo.preferredWorkType) && (
+            {(selectedProfile.data.professionalInfo.languages ||
+              selectedProfile.data.professionalInfo.certifications ||
+              selectedProfile.data.professionalInfo.preferredWorkType) && (
                 <div className="bg-white/5 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaBriefcase className="text-gray-400" />
@@ -1300,14 +1300,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </h3>
                   </div>
                   <div className="space-y-4">
-                    {selectedProfile.professionalInfo.languages &&
-                      selectedProfile.professionalInfo.languages.length > 0 && (
+                    {selectedProfile.data.professionalInfo.languages &&
+                      selectedProfile.data.professionalInfo.languages.length > 0 && (
                         <div>
                           <h4 className="text-white font-medium mb-2">
                             Languages
                           </h4>
                           <div className="flex flex-wrap gap-2">
-                            {selectedProfile.professionalInfo.languages.map(
+                            {selectedProfile.data.professionalInfo.languages.map(
                               (language) => (
                                 <span
                                   key={language}
@@ -1321,15 +1321,15 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         </div>
                       )}
 
-                    {selectedProfile.professionalInfo.certifications &&
-                      selectedProfile.professionalInfo.certifications.length >
+                    {selectedProfile.data.professionalInfo.certifications &&
+                      selectedProfile.data.professionalInfo.certifications.length >
                       0 && (
                         <div>
                           <h4 className="text-white font-medium mb-2">
                             Certifications
                           </h4>
                           <div className="space-y-2">
-                            {selectedProfile.professionalInfo.certifications.map(
+                            {selectedProfile.data.professionalInfo.certifications.map(
                               (cert) => (
                                 <div
                                   key={cert}
@@ -1346,15 +1346,15 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         </div>
                       )}
 
-                    {selectedProfile.professionalInfo.preferredWorkType &&
-                      selectedProfile.professionalInfo.preferredWorkType.length >
+                    {selectedProfile.data.professionalInfo.preferredWorkType &&
+                      selectedProfile.data.professionalInfo.preferredWorkType.length >
                       0 && (
                         <div>
                           <h4 className="text-white font-medium mb-2">
                             Preferred Work Type
                           </h4>
                           <div className="flex flex-wrap gap-2">
-                            {selectedProfile.professionalInfo.preferredWorkType.map(
+                            {selectedProfile.data.professionalInfo.preferredWorkType.map(
                               (type) => (
                                 <span
                                   key={type}
@@ -1372,8 +1372,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               )}
 
             {/* Recent Activity */}
-            {selectedProfile.recentActivity &&
-              selectedProfile.recentActivity.length > 0 && (
+            {selectedProfile.data.recentActivity &&
+              selectedProfile.data.recentActivity.length > 0 && (
                 <div className="bg-white/5 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaClock className="text-gray-400" />
@@ -1382,7 +1382,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </h3>
                   </div>
                   <div className="space-y-3">
-                    {selectedProfile.recentActivity
+                    {selectedProfile.data.recentActivity
                       .slice(0, 5)
                       .map((activity) => (
                         <div
@@ -1426,8 +1426,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               )}
 
             {/* Time Tracking Summary */}
-            {selectedProfile.timeEntries &&
-              selectedProfile.timeEntries.length > 0 && (
+            {selectedProfile.data.timeEntries &&
+              selectedProfile.data.timeEntries.length > 0 && (
                 <div className="bg-white/5 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaClock className="text-gray-400" />
@@ -1436,7 +1436,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </h3>
                   </div>
                   <div className="space-y-3">
-                    {selectedProfile.timeEntries
+                    {selectedProfile.data.timeEntries
                       .slice(0, 5)
                       .map((entry, index) => (
                         <div
@@ -1465,7 +1465,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400">Total Hours</span>
                         <span className="text-cyan-400 font-semibold">
-                          {selectedProfile.timeEntries.reduce(
+                          {selectedProfile.data.timeEntries.reduce(
                             (sum, entry) => sum + entry.hours,
                             0
                           )}
@@ -1494,7 +1494,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   onClick={() =>
                     handleDelete(
                       selectedProfile.id,
-                      `${selectedProfile.personalInfo.firstName} ${selectedProfile.personalInfo.lastName}`
+                      `${selectedProfile.data.personalInfo.firstName} ${selectedProfile.data.personalInfo.lastName}`
                     )
                   }
                   className="cursor-pointer w-full px-4 py-3 bg-white/10 hover:bg-black/20 text-white rounded-lg transition-all flex items-center justify-center space-x-2"
@@ -1514,19 +1514,19 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                   <span className="text-gray-400">Hourly Rate</span>
                   <span className="text-green-400 font-semibold">
-                    ${selectedProfile.professionalInfo.hourlyRate}/hr
+                    ${selectedProfile.data.professionalInfo.hourlyRate}/hr
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                   <span className="text-gray-400">Total Projects</span>
                   <span className="text-blue-400 font-semibold">
-                    {selectedProfile.stats.totalProjects}
+                    {selectedProfile.data.stats.totalProjects}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                   <span className="text-gray-400">Success Rate</span>
                   <span className="text-purple-400 font-semibold">
-                    {selectedProfile.stats.clientRetention}%
+                    {selectedProfile.data.stats.clientRetention}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
@@ -1534,7 +1534,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   <div className="flex items-center space-x-1">
                     <FaStar className="text-yellow-400" />
                     <span className="text-yellow-400 font-semibold">
-                      {selectedProfile.stats.averageRating.toFixed(1)}
+                      {selectedProfile.data.stats.averageRating.toFixed(1)}
                     </span>
                   </div>
                 </div>
@@ -1725,23 +1725,23 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <div className="flex items-center space-x-4">
                       <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center border border-gray-600/50">
                         <span className="text-white font-semibold text-lg">
-                          {profile.personalInfo.firstName[0]}
-                          {profile.personalInfo.lastName[0]}
+                          {profile.data.personalInfo.firstName[0]}
+                          {profile.data.personalInfo.lastName[0]}
                         </span>
                       </div>
                       <div>
                         <h3 className="text-white font-semibold text-lg mb-1">
-                          {profile.personalInfo.firstName} {profile.personalInfo.lastName}
+                          {profile.data.personalInfo.firstName} {profile.data.personalInfo.lastName}
                         </h3>
                         <p className="text-gray-400 text-sm">
-                          {profile.professionalInfo.title}
+                          {profile.data.professionalInfo.title}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-1 bg-white/5 px-3 py-1 rounded-full">
                       <FaStar className="text-yellow-400 text-sm" />
                       <span className="text-white font-medium text-sm">
-                        {profile.stats.averageRating.toFixed(1)}
+                        {profile.data.stats.averageRating.toFixed(1)}
                       </span>
                     </div>
                   </div>
@@ -1754,7 +1754,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         <span className="text-gray-400 text-xs uppercase tracking-wide font-medium">Projects</span>
                       </div>
                       <p className="text-white font-semibold text-lg">
-                        {profile.stats.totalProjects}
+                        {profile.data.stats.totalProjects}
                       </p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3 border border-gray-700/30">
@@ -1763,7 +1763,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         <span className="text-gray-400 text-xs uppercase tracking-wide font-medium">Level</span>
                       </div>
                       <p className="text-white font-medium text-sm capitalize">
-                        {profile.professionalInfo.experienceLevel}
+                        {profile.data.professionalInfo.experienceLevel}
                       </p>
                     </div>
                   </div>
@@ -1789,7 +1789,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       <div className="flex items-center space-x-2">
                         <FaMapMarkerAlt className="text-gray-400 text-xs" />
                         <span className="text-gray-400 text-sm">
-                          {profile.personalInfo.location}
+                          {profile.data.personalInfo.location}
                         </span>
                       </div>
                       <span
@@ -1862,7 +1862,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       onClick={() =>
                         handleDelete(
                           profile.id,
-                          `${profile.personalInfo.firstName} ${profile.personalInfo.lastName}`
+                          `${profile.data.personalInfo.firstName} ${profile.data.personalInfo.lastName}`
                         )
                       }
                       className="cursor-pointer px-3 py-2 bg-white/5 border border-gray-600/50 text-gray-400 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200 text-sm"
@@ -2005,7 +2005,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   {profiles.length > 0
                     ? (
                       profiles.reduce(
-                        (sum, p) => sum + p.stats.averageRating,
+                        (sum, p) => sum + p.data.stats.averageRating,
                         0
                       ) / profiles.length
                     ).toFixed(1)
@@ -2016,7 +2016,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               <div className="bg-white/10 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-purple-400 mb-1">
                   {profiles.length > 0
-                    ? profiles.reduce((sum, p) => sum + p.stats.totalProjects, 0)
+                    ? profiles.reduce((sum, p) => sum + p.data.stats.totalProjects, 0)
                     : 0}
                 </div>
                 <div className="text-gray-400 text-sm">Total Projects</div>

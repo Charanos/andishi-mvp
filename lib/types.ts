@@ -144,8 +144,7 @@ export interface TimeEntry {
   description: string;
 }
 
-export interface DeveloperProfile {
-  id: string;
+export interface DeveloperProfileDataContent {
   personalInfo: PersonalInfo;
   professionalInfo: ProfessionalInfo;
   technicalSkills: TechnicalSkills;
@@ -155,6 +154,11 @@ export interface DeveloperProfile {
   recentActivity?: RecentActivity[];
   notifications?: Notification[];
   timeEntries?: TimeEntry[];
+}
+
+export interface DeveloperProfile {
+  id: string;
+  data: DeveloperProfileDataContent;
   status: "pending" | "approved" | "rejected";
   isAvailable: boolean;
   busyUntilDate?: string | null;

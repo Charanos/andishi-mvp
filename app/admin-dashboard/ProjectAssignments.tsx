@@ -700,7 +700,8 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                   return (
                     <div
                       key={developer._id}
-                      className={`group w-full relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] ${isSelected
+                      onClick={() => toggleDeveloperSelection(developer._id)}
+                      className={`group w-full relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] cursor-pointer ${isSelected
                         ? "border-blue-500 bg-black/30 shadow-lg"
                         : isAssigned
                           ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
@@ -722,18 +723,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                       </div>
 
                       <div className="flex items-center w-full space-x-4">
-                        {!isAssigned && (
-                          <div className="mt-1">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() =>
-                                toggleDeveloperSelection(developer._id)
-                              }
-                              className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-2"
-                            />
-                          </div>
-                        )}
+                        
 
                         <div className="flex-1 min-w-0">
                           {/* Developer Header */}

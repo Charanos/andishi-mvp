@@ -44,6 +44,7 @@ import {
 } from "react-icons/fa";
 import { useProjectChat } from "../../hooks/useProjectChat";
 import { useProjectDetails } from "../../hooks/useProjectDetails";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 interface ProjectChatProps {
   projectId: string;
@@ -554,28 +555,15 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
 
   return (
     <div className=" min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex">
-      {showDeleteConfirmation && (
-        <div className="fixed inset-0 min-h-screen bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-black/70 p-6 rounded-lg shadow-xl border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Confirm Deletion</h3>
-            <p className="text-gray-300 mb-6">Are you sure you want to delete this message? This action cannot be undone.</p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={cancelDelete}
-                className="cursor-pointer px-4 py-2 rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="cursor-pointer px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={showDeleteConfirmation}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this message? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        variant="danger"
+        confirmText="Delete"
+      />
       {/* Chat Panel */}
       <div className={`flex flex-col transition-all duration-300 ${showDetails ? 'w-2/3' : 'w-full'}`}>
         {/* Chat Header */}

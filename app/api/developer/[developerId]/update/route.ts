@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+// Helper function to validate MongoDB ObjectId format
+function isValidObjectId(id: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(id);
+}
+
 interface RequestBody {
   assignedProject?: {
     projectId: string;
@@ -27,19 +32,69 @@ async function updateDeveloperProfile(developerId: string, updateData: any) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        developerId,
+        id: developerId, // Fixed: API expects 'id' not 'developerId'
         ...updateData
       }),
     });
     
     if (!response.ok) {
-      console.error('Failed to update developer profile via API');
+      const errorText = await response.text();
+      console.error('Failed to update developer profile via API:', response.status, errorText);
       return false;
     }
     
+    const result = await response.json();
+    console.log('Developer profile updated successfully via API:', result);
     return true;
   } catch (error) {
     console.error('Error updating developer profile:', error);
+    return false;
+  }
+}
+
+// Direct MongoDB update function for availability
+async function updateDeveloperAvailabilityDirectly(developerId: string, isAvailable: boolean, busyUntilDate: Date | null = null) {
+  try {
+    const clientPromise = require('@/lib/mongodb').default;
+    const client = await clientPromise;
+    const db = client.db();
+    
+    // First try to find the developer profile by _id
+    let updateResult = await db.collection('developerProfiles').updateOne(
+      { _id: new (require('mongodb').ObjectId)(developerId) },
+      { 
+        $set: { 
+          isAvailable: isAvailable,
+          busyUntilDate: busyUntilDate,
+          updatedAt: new Date()
+        }
+      }
+    );
+    
+    // If not found by _id, try to find by userId
+    if (updateResult.matchedCount === 0) {
+      console.log(`Developer profile not found by _id ${developerId}, trying userId...`);
+      updateResult = await db.collection('developerProfiles').updateOne(
+        { userId: new (require('mongodb').ObjectId)(developerId) },
+        { 
+          $set: { 
+            isAvailable: isAvailable,
+            busyUntilDate: busyUntilDate,
+            updatedAt: new Date()
+          }
+        }
+      );
+    }
+    
+    if (updateResult.matchedCount === 0) {
+      console.error(`Developer profile ${developerId} not found in MongoDB by _id or userId`);
+      return false;
+    }
+    
+    console.log(`Successfully updated developer ${developerId} availability to ${isAvailable ? 'available' : 'busy'} via MongoDB`);
+    return true;
+  } catch (error) {
+    console.error('Error updating developer availability directly:', error);
     return false;
   }
 }
@@ -53,6 +108,16 @@ export async function PATCH(
     const body: RequestBody = await request.json();
 
     console.log(`Processing assignment update for developer ${developerId}:`, body);
+    
+    // Validate developerId format (should be a valid MongoDB ObjectId)
+    if (!developerId || !isValidObjectId(developerId)) {
+      console.error(`Invalid developer ID format: ${developerId}`);
+      return NextResponse.json({
+        success: false,
+        message: "Invalid developer ID format",
+        error: "Developer ID must be a valid MongoDB ObjectId (24 hex characters)",
+      }, { status: 400 });
+    }
 
     if (body.assignedProject) {
       // Handle assignment
@@ -75,42 +140,58 @@ export async function PATCH(
         satisfaction: 3 as const
       };
       
-      // Update developer profile availability directly
+      // Update developer profile availability directly using Prisma
       try {
-        await prisma.developerProfile.update({
+        // First, verify the developer profile exists
+        const existingProfile = await prisma.developerProfile.findUnique({
           where: { id: developerId },
-          data: {
-            isAvailable: false,
-            busyUntilDate: null
-          }
+          select: { id: true, userId: true }
         });
         
-        // Also update user status to reflect busy state
-        // Find the user associated with this developer profile
-        const developerProfile = await prisma.developerProfile.findUnique({
-          where: { id: developerId },
-          select: { userId: true }
-        });
-        
-        if (developerProfile?.userId) {
-          await prisma.user.update({
-            where: { id: developerProfile.userId },
-            data: { status: "busy" }
+        if (!existingProfile) {
+          console.error(`Developer profile with ID ${developerId} not found in Prisma`);
+          // Don't return error here, continue with MongoDB update
+        } else {
+          // Update the developer profile via Prisma
+          await prisma.developerProfile.update({
+            where: { id: developerId },
+            data: {
+              isAvailable: false,
+              busyUntilDate: null
+            }
           });
+          
+          // Also update user status to reflect busy state
+          if (existingProfile.userId) {
+            await prisma.user.update({
+              where: { id: existingProfile.userId },
+              data: { status: "busy" }
+            });
+          }
+          
+          console.log(`Successfully updated developer profile ${developerId} to busy status via Prisma`);
         }
       } catch (error) {
-        console.error('Error updating developer profile availability:', error);
+        console.error('Error updating developer profile availability via Prisma:', error);
+        // Don't return error here, continue with MongoDB update
       }
       
-      // Update developer profile with new project
+      // Update developer profile with new project via API
       const profileUpdateSuccess = await updateDeveloperProfile(developerId, {
         addProject: newProject,
         updateAvailability: 'busy',
         updateActiveProjects: 1
       });
       
+      // Ensure availability is updated - use direct MongoDB update as fallback
+      const availabilityUpdateSuccess = await updateDeveloperAvailabilityDirectly(developerId, false, null);
+      
       if (!profileUpdateSuccess) {
-        console.warn('Failed to update developer profile, but assignment will continue');
+        console.warn('Failed to update developer profile via API, but assignment will continue');
+      }
+      
+      if (!availabilityUpdateSuccess) {
+        console.warn('Failed to update developer availability directly');
       }
       
       return NextResponse.json({
@@ -171,6 +252,21 @@ export async function PATCH(
           };
         }
 
+        // First, verify the developer profile exists
+        const existingProfile = await prisma.developerProfile.findUnique({
+          where: { id: developerId },
+          select: { id: true, userId: true }
+        });
+        
+        if (!existingProfile) {
+          console.error(`Developer profile with ID ${developerId} not found`);
+          return NextResponse.json({
+            success: false,
+            message: "Developer profile not found",
+            error: "The specified developer profile does not exist in the database",
+          }, { status: 404 });
+        }
+        
         // Update the developer profile directly
         await prisma.developerProfile.update({
           where: { id: developerId },
@@ -178,15 +274,9 @@ export async function PATCH(
         });
         
         // Update user status to reflect availability
-        // Find the user associated with this developer profile
-        const developerProfile = await prisma.developerProfile.findUnique({
-          where: { id: developerId },
-          select: { userId: true }
-        });
-        
-        if (developerProfile?.userId) {
+        if (existingProfile.userId) {
           await prisma.user.update({
-            where: { id: developerProfile.userId },
+            where: { id: existingProfile.userId },
             data: { status: developerUpdateData.isAvailable ? "active" : "busy" }
           });
         }
@@ -269,6 +359,21 @@ export async function PATCH(
           };
         }
 
+        // First, verify the developer profile exists
+        const existingProfile = await prisma.developerProfile.findUnique({
+          where: { id: developerId },
+          select: { id: true, userId: true }
+        });
+        
+        if (!existingProfile) {
+          console.error(`Developer profile with ID ${developerId} not found`);
+          return NextResponse.json({
+            success: false,
+            message: "Developer profile not found",
+            error: "The specified developer profile does not exist in the database",
+          }, { status: 404 });
+        }
+        
         // Update the developer profile directly
         await prisma.developerProfile.update({
           where: { id: developerId },
@@ -276,15 +381,9 @@ export async function PATCH(
         });
         
         // Update user status to reflect availability
-        // Find the user associated with this developer profile
-        const developerProfile = await prisma.developerProfile.findUnique({
-          where: { id: developerId },
-          select: { userId: true }
-        });
-        
-        if (developerProfile?.userId) {
+        if (existingProfile.userId) {
           await prisma.user.update({
-            where: { id: developerProfile.userId },
+            where: { id: existingProfile.userId },
             data: { status: developerUpdateData.isAvailable ? "active" : "busy" }
           });
         }

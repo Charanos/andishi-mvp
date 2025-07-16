@@ -716,6 +716,23 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     if (updates.achievements) updateData['data.achievements'] = updates.achievements;
     if (updates.notifications) updateData['data.notifications'] = updates.notifications;
     if (updates.timeEntries) updateData['data.timeEntries'] = updates.timeEntries;
+    
+    // Handle availability updates
+    if (updates.updateAvailability) {
+      const isAvailable = updates.updateAvailability === 'available';
+      updateData.isAvailable = isAvailable;
+      console.log(`Updating developer availability to: ${isAvailable ? 'available' : 'busy'}`);
+    }
+    
+    // Handle direct availability setting
+    if (updates.isAvailable !== undefined) {
+      updateData.isAvailable = updates.isAvailable;
+      console.log(`Setting developer availability to: ${updates.isAvailable ? 'available' : 'busy'}`);
+    }
+    
+    if (updates.busyUntilDate !== undefined) {
+      updateData.busyUntilDate = updates.busyUntilDate;
+    }
 
     updateData.updatedAt = new Date();
 

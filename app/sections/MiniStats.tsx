@@ -67,12 +67,10 @@ export default function TrustBadgesSection(): React.JSX.Element {
   return (
     <section className="py-16 relative overflow-hidden">
       {/* Background gradient overlay */}
-
-      {/* Subtle background elements */}
-      {/* <div className="absolute top-8 left-16 w-16 h-16 bg-blue-500/3 rounded-full blur-xl"></div>
-      <div className="absolute bottom-8 right-16 w-20 h-20 bg-purple-500/3 rounded-full blur-xl"></div> */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
+
         {/* Trust Badges Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-6">
           {trustBadges.map((badge: TrustBadge, index: number) => (

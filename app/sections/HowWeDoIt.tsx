@@ -56,8 +56,8 @@ export default function HowItWorks() {
           <div
             key={index}
             className={`absolute w-80 h-80 rounded-full blur-3xl transition-all duration-2000 ${activeStep === index
-                ? "opacity-20 scale-150"
-                : "opacity-5 scale-100"
+              ? "opacity-20 scale-150"
+              : "opacity-5 scale-100"
               }`}
             style={{
               background: `radial-gradient(circle, ${step.color}40 0%, transparent 70%)`,
@@ -74,8 +74,8 @@ export default function HowItWorks() {
         <div className="text-center mb-18">
           <div
             className={`transition-all duration-1000 ${isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
               }`}
           >
             <h2 className="text-xl lg:text-4xl font-semibold text-white mb-6 leading-tight">
@@ -89,10 +89,10 @@ export default function HowItWorks() {
         </div>
 
         {/* Steps Flow */}
-        <div className="hidden md:relative">
+        <div className="relative">
           {/* Flowing Path */}
           <svg
-            className="absolute inset-0 w-full h-full rotate-90 md:rotate-0"
+            className="hidden md:absolute inset-0 w-full h-full rotate-90 md:rotate-0"
             viewBox="0 0 1200 800"
             preserveAspectRatio="xMidYMid meet"
           >
@@ -160,8 +160,8 @@ export default function HowItWorks() {
                 <div
                   key={index}
                   className={`relative flex flex-col items-center transition-all duration-1000 ${isVisible
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-12"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
                     }`}
                   style={{
                     transitionDelay: `${delay}ms`,
@@ -171,8 +171,8 @@ export default function HowItWorks() {
                   {/* Floating Icon Container */}
                   <div
                     className={`relative mb-8 transition-all duration-700 cursor-pointer ${isActive
-                        ? "scale-125 -translate-y-4"
-                        : "hover:scale-110 hover:-translate-y-2"
+                      ? "scale-125 -translate-y-4"
+                      : "hover:scale-110 hover:-translate-y-2"
                       }`}
                     onClick={() => setActiveStep(index)}
                   >

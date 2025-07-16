@@ -158,7 +158,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const ensureCookieToken = (token: string) => {
     if (typeof document === 'undefined') return;
     if (!document.cookie.split('; ').some(c => c.startsWith('auth_token='))) {
-      document.cookie = `auth_token=${token}; path=/; SameSite=Lax`;
+      let cookieString = `auth_token=${token}; path=/; SameSite=Lax`;
+      if (process.env.NODE_ENV === 'production') {
+        cookieString += '; Secure';
+      }
+      document.cookie = cookieString;
     }
   };
 

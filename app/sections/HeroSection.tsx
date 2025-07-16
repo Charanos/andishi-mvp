@@ -23,8 +23,8 @@ export default function HeroSection() {
         {/* Left column: text & CTAs */}
         <div className="w-full lg:w-2/3 text-white">
           {/* Live indicator with glassmorphic design */}
-          <div className="flex items-center space-x-3 text-sm w-fit group">
-            <div className="flex items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+          <div className="flex items-center space-x-3 text-sm w-fit group mb-10">
+            <div className="flex items-center space-x-2 px-4  sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-400" />
@@ -32,13 +32,13 @@ export default function HeroSection() {
               <span className="text-green-400 font-mediummonty ">Live</span>
             </div>
 
-            <div className="monty px-4 py-2 rounded-full backdrop-blur-md bg-white/5 border border-white/10">
+            <div className="monty px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-white/5 border border-white/10">
               <span className="text-white font-medium">
                 10 teams building now
               </span>
             </div>
 
-            <div className="monty px-4 py-2 rounded-full backdrop-blur-md bg-purple-500/20 border border-purple-400/30">
+            <div className="monty px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-purple-500/20 border border-purple-400/30">
               <span className="text-purple-300 font-medium">
                 48hr special pricing
               </span>
@@ -59,14 +59,14 @@ export default function HeroSection() {
 
             <div className="flex items-center space-x-3">
               <div className="h-1 w-16 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full"></div>
-              <p className="text-lg text-gray-300 font-medium tracking-wide uppercase">
+              <p className="sm:text-lg text-md text-gray-300 font-medium tracking-wide uppercase">
                 Connect with vetted developers in 48 hours
               </p>
             </div>
           </div>
 
           {/* Description */}
-          <p className="text-lg text-gray-300 my-6 leading-relaxed max-w-2xl">
+          <p className="sm:text-lg text-md text-gray-300 my-6 leading-relaxed max-w-2xl">
             Skip the lengthy recruitment process. Andishi's intelligent talent
             matching platform connects you with expert developers specializing
             in web development, mobile apps, AI/ML, blockchain, and SaaS
@@ -78,7 +78,7 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row my-6 gap-4 pt-4">
             <Link
               href="/start-project"
-              className="group relative px-8 py-4 flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
+              className="group relative px-8 md:py-4 py-3 flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <span className="relative flex items-center justify-center space-x-2 uppercase tracking-wide">
@@ -101,7 +101,7 @@ export default function HeroSection() {
 
             <Link
               href="/tech-talent-pool"
-              className="group px-8 py-4 backdrop-blur-md bg-white/5 border-2 border-blue-400/50 text-blue-300 rounded-full font-semibold hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 hover:scale-105"
+              className="group px-8 md:py-4 py-3 backdrop-blur-md bg-white/5 border-2 border-blue-400/50 text-blue-300 rounded-full font-semibold hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 hover:scale-105"
             >
               <span className="flex items-center justify-center space-x-2 uppercase tracking-wide">
                 <span>Explore Our Talent Pool</span>

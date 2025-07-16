@@ -1,4 +1,5 @@
 import "./globals.css";
+import Script from "next/script";
 import type { Metadata } from "next";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Analytics } from "@vercel/analytics/next";
@@ -6,7 +7,6 @@ import { Nunito, Montserrat } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ConditionalLayout from "./components/ConditionalLayout";
 import ClientMotionProvider from "./components/ClientMotionProvider";
-import Script from "next/script";
 import WhatsAppButton from "./components/FloatingWhatsappButton";
 
 //  font configurations
@@ -38,6 +38,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+
   return (
     <html lang="en" className={`${nunito.variable} ${montserrat.variable}`}>
       <body className="relative font-sans antialiased text-white bg-dark">

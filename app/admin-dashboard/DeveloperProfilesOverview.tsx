@@ -1233,11 +1233,12 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                           {selectedProfile.data.professionalInfo.workingHours}
                         </p>
                       )}
-                      {selectedProfile.busyUntilDate && (
-                        <p className="text-orange-400 text-xs">
-                          Busy until {new Date(selectedProfile.busyUntilDate).toLocaleDateString()}
-                        </p>
-                      )}
+            {/* Calculate the busy until date based on project data */}
+            {selectedProfile.busyUntilDate && (
+              <p className="text-orange-400 text-xs">
+                Busy until {new Date(selectedProfile.busyUntilDate).toLocaleDateString()}
+              </p>
+            )}
                     </div>
                   </div>
                 </div>
@@ -1823,6 +1824,20 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         )}
                       </span>
                     </div>
+                    
+                    {/* Busy Until Date */}
+                    {profile.busyUntilDate && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-400 uppercase tracking-wide">Busy Until</span>
+                        <span className="text-xs font-medium text-orange-400">
+                          {new Date(profile.busyUntilDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Buttons */}

@@ -54,12 +54,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const styles = getVariantStyles();
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-white/10 rounded-xl p-6 w-full max-w-md mx-4 relative">
+    <div className="min-h-screen fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-black/80 border border-white/10 rounded-xl p-6 w-full max-w-md mx-4 relative">
         {/* Close Button */}
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          className="cursor-pointer absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -80,9 +80,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button
             onClick={onConfirm}
             disabled={loading}
-            className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium text-sm ${styles.confirmBg} ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`cursor-pointer flex-1 px-4 py-2 rounded-lg border transition-colors font-medium text-sm ${styles.confirmBg} ${loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
             {loading ? (
               <div className="flex items-center justify-center space-x-2">
@@ -97,9 +96,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button
             onClick={onCancel}
             disabled={loading}
-            className={`flex-1 px-4 py-2 rounded-lg border border-gray-600 bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 transition-colors font-medium text-sm ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`cursor-pointer flex-1 px-4 py-2 rounded-lg border border-gray-600 bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 transition-colors font-medium text-sm ${loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
             {cancelText}
           </button>

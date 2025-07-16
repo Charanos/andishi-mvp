@@ -113,6 +113,7 @@ async function createJWTToken(user: User): Promise<string> {
     userId: (user as any)._id ? (user as any)._id.toString() : (user as any).id,
     email: user.email,
     role: user.role,
+    name: user.name || `${user.firstName} ${user.lastName}`.trim() || user.email,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

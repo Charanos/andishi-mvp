@@ -5,9 +5,11 @@ import { ToastNotification } from "../app/components/ToastNotification";
 
 export const useToast = () => {
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [counter, setCounter] = useState(0);
 
   const addNotification = useCallback((notification: Omit<ToastNotification, "id">) => {
-    const id = Date.now().toString();
+    setCounter((prevCounter) => prevCounter + 1);
+    const id = `${Date.now()}-${counter}`;
     const newNotification: ToastNotification = {
       id,
       ...notification,

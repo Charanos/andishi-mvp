@@ -55,8 +55,16 @@ export function useProjectChat(projectId: string) {
     const { user, token } = useAuth();
     const { toast } = useToast();
 
-    // Only fetch if user is authenticated and projectId exists
-    const shouldFetch = user && projectId;
+    // Validate project ID format (MongoDB ObjectId)
+    const isValidProjectId = projectId && /^[a-f\d]{24}$/i.test(projectId);
+    
+    // Only fetch if user is authenticated and projectId exists and is valid
+    const shouldFetch = user && isValidProjectId;
+    
+    // Log warning if projectId is invalid
+    if (projectId && !isValidProjectId) {
+        console.warn(`Invalid project ID format: ${projectId}`);
+    }
 
     const { data, error, mutate, isLoading } = useSWR<ProjectChat>(
         shouldFetch ? `/api/project-chat/${projectId}` : null,

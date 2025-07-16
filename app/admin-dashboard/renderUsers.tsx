@@ -29,6 +29,7 @@ import ScrollToTop from "../components/ScrollToTop";
 import ToastContainer from "../components/ToastContainer";
 import useToast from "../../hooks/useToast";
 import { getComprehensiveAvailabilityStatus } from "@/services/developerAvailabilityService";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 // Type definitions
 interface SystemUser {
@@ -146,6 +147,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  
+  
 
 
   // Form state for create/edit
@@ -500,46 +503,40 @@ const UserManagement: React.FC<UserManagementProps> = ({
     }
   };
 
-  const deleteUser = async (userId: string): Promise<void> => {
-    if (!userId) return;
-    try {
-      setLoading(true);
-      
-      // Use the new hook function if available
-      if (onDeleteUser) {
-        await onDeleteUser(userId);
-        if (refreshUsers) {
-          await refreshUsers();
-        }
-      } else {
-        // Fallback to original implementation
-        const response = await fetch(`/api/users?id=${userId}`, {
-          method: "DELETE",
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to delete user");
-        }
-
-        setUsers(users.filter((user) => user._id !== userId));
-      }
-      
-      setSelectedUser(null);
-      setViewMode("list");
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
+  const deleteUser = (userId: string) => {
+    setUserToDelete(userId);
+    setDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (userToDelete) {
-      deleteUser(userToDelete);
-      setDeleteModalOpen(false);
-      setUserToDelete(null);
+      try {
+        setLoading(true);
+        if (onDeleteUser) {
+          await onDeleteUser(userToDelete);
+          if (refreshUsers) {
+            await refreshUsers();
+          }
+        } else {
+          const response = await fetch(`/api/users?id=${userToDelete}`, {
+            method: "DELETE",
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Failed to delete user");
+          }
+          setUsers(users.filter((user) => user._id !== userToDelete));
+        }
+        setSelectedUser(null);
+        setViewMode("list");
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+        setDeleteModalOpen(false);
+        setUserToDelete(null);
+      }
     }
   };
 
@@ -1885,6 +1882,15 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
   return (
     <div className="space-y-6">
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this user? This action cannot be undone."
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        variant="danger"
+        confirmText="Delete"
+      />
       {/* User Management Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -2352,28 +2358,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
         </div>
       )}
 
-      {isDeleteModalOpen && (
-        <div className="fixed min-h-screen inset-0 bg-black/5 backdrop-blur-md bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-indigo-900/80 backdrop-blur-md p-6 rounded-lg shadow-xl">
-            <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
-            <p>Are you sure you want to delete this user?</p>
-            <div className="mt-6 flex justify-end gap-4">
-              <button
-                onClick={handleDeleteCancel}
-                className="cursor-pointer px-4 py-2 monty rounded-md bg-transparent border border-white/10 hover:bg-gray-700/10 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="cursor-pointer px-4 py-2 monty rounded-md bg-red-600 hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* User Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

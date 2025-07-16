@@ -24,9 +24,16 @@ function getToken(request: NextRequest): string | null {
 
 export async function getSession(request: NextRequest): Promise<Session | null> {
     const token = getToken(request);
-    if (!token) return null;
-    const secretValue = process.env.JWT_SECRET || process.env.NEXT_PUBLIC_JWT_SECRET;
-    if (!secretValue) return null;
+    if (!token) {
+        return null;
+    }
+    
+    // Use the same JWT secret as login API for consistency
+    const secretValue = process.env.JWT_SECRET || 'your-secret-key-for-development';
+    if (!secretValue) {
+        return null;
+    }
+    
     const secret = new TextEncoder().encode(secretValue);
     try {
         const { payload } = await jwtVerify(token, secret);
@@ -39,7 +46,7 @@ export async function getSession(request: NextRequest): Promise<Session | null> 
                 name: payload.name as string | undefined, // Include name from payload
             },
         };
-    } catch {
+    } catch (error) {
         return null;
     }
 }

@@ -74,12 +74,59 @@ export async function POST(
       },
     });
 
-    // Update developer availability and clear any busyUntilDate
+    // Get project info to calculate busyUntilDate
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { 
+        estimatedCompletionDate: true, 
+        timeline: true,
+        createdAt: true
+      }
+    });
+
+    // Calculate busyUntilDate based on project data
+    let busyUntilDate = null;
+    if (project) {
+      if (project.estimatedCompletionDate) {
+        busyUntilDate = project.estimatedCompletionDate;
+      } else if (project.timeline) {
+        // Parse timeline to estimate completion date
+        const now = new Date();
+        let durationInDays = 7; // Default to 1 week
+        
+        // Try to parse timeline string (e.g., "2 weeks", "1 month", "3 days")
+        const timelineMatch = project.timeline.match(/(\d+)\s*(day|week|month)s?/i);
+        if (timelineMatch) {
+          const amount = parseInt(timelineMatch[1]);
+          const unit = timelineMatch[2].toLowerCase();
+          
+          switch (unit) {
+            case 'day':
+              durationInDays = amount;
+              break;
+            case 'week':
+              durationInDays = amount * 7;
+              break;
+            case 'month':
+              durationInDays = amount * 30;
+              break;
+          }
+        }
+        
+        busyUntilDate = new Date(now.getTime() + (durationInDays * 24 * 60 * 60 * 1000));
+      } else {
+        // Default to 2 weeks from now if no timeline specified
+        const now = new Date();
+        busyUntilDate = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000));
+      }
+    }
+
+    // Update developer availability with calculated busyUntilDate
     await prisma.developerProfile.update({
       where: { id: developerId },
       data: { 
         isAvailable: false,
-        busyUntilDate: null // Clear any existing busyUntilDate when assigning to new project
+        busyUntilDate: busyUntilDate
       },
     });
 

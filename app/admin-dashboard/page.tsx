@@ -678,10 +678,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     });
 
     // Calculate total revenue and project/user status counts
-    const totalRevenue = projectStats.reduce(
-      (sum, project) => sum + (project.budget || 0),
-      0
-    );
+    const totalRevenue = projectStats.reduce((sum, project) => sum + (project.budget || 0), 0);
 
     // Ensure mandatory keys are present before aggregation
     const initialProjectsByStatus: EnhancedAnalyticsData["projectsByStatus"] = {

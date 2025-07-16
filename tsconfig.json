@@ -17,6 +17,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "allowImportingTsExtensions": true,
     "plugins": [
       {
         "name": "next"
@@ -34,15 +35,12 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".next/standalone/types/**/*.ts",
-    ".next/standalone/types/**/*.ts",
-    ".next/standalone/types/**/*.ts",
-    ".next/standalone/types/**/*.ts",
     "global.d.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next/standalone/types"
   ]
 }

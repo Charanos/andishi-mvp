@@ -69,6 +69,7 @@ type Pricing {
     fixedBudget Float?
     hourlyRate Float?
     estimatedHours Int?
+    milestones Milestone[]  // Added for milestone-based pricing
 }
 
 type ProjectFile {
@@ -119,6 +120,9 @@ model Project {
   maxTeamSize            Int      @default(1)
   clientId               String?  @db.ObjectId
   estimatedCompletionDate DateTime?
+  actualCompletionDate   DateTime?  // Added for analytics
+  currency               String?    @default("USD")  // Added for legacy support
+  userInfo               Json?      // Added for legacy client info
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
   assignments            ProjectAssignment[]

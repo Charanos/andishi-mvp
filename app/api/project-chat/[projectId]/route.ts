@@ -217,7 +217,7 @@ export async function GET(
         }))
       });
 
-      const participants = [];
+      const participants: any[] = [];
 
       // Add client as participant if clientId exists
       if (project.clientId) {
@@ -453,7 +453,7 @@ export async function POST(
     });
 
     if (!chat) {
-      const participants = [];
+      const participants: any[] = [];
 
       // Try to get project data if it exists
       const project = await getProjectDetails(projectId);

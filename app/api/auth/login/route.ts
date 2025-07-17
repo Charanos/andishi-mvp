@@ -66,13 +66,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create JWT token
-    const token = await createJWTToken(user);
+    // Create JWT token with permissions (empty array for now)
+    const userWithPermissions = {
+      ...user,
+      permissions: [] // Add empty permissions array to satisfy User type
+    };
+    const token = await createJWTToken(userWithPermissions as User);
 
     // Create response
     const response = new NextResponse(JSON.stringify({
       user: {
-        id: user._id?.toString() ?? user.id,
+        id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -108,7 +112,7 @@ async function createJWTToken(user: User): Promise<string> {
   );
 
   const token = await new SignJWT({
-    userId: (user as any)._id ? (user as any)._id.toString() : (user as any).id,
+    userId: user.id,
     email: user.email,
     role: user.role,
     name: user.name || `${user.firstName} ${user.lastName}`.trim() || user.email,

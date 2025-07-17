@@ -1,4 +1,3 @@
-
 import { toast } from 'react-toastify';
 import prisma from '@/lib/prisma';
 import { getSession, Session } from '@/lib/getSession';
@@ -41,7 +40,29 @@ interface AnalyticsPerformance {
     metrics: Array<{ metric: string; value: number; target: number }>;
 }
 
-interface AnalyticsResponse { version: string; timestamp: string; overview: AnalyticsOverview; financial: AnalyticsFinancial; performance: AnalyticsPerformance; activities: Array<{ type: string; message: string; time: string; icon: string }>; }
+interface AnalyticsResponse {
+    version: string;
+    timestamp: string;
+    overview: AnalyticsOverview;
+    financial: AnalyticsFinancial;
+    performance: AnalyticsPerformance;
+    activities: Array<{ type: string; message: string; time: string; icon: string }>;
+}
+
+interface UserInfo {
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+}
+
+// Type guards for better type safety
+function isUserInfo(obj: any): obj is UserInfo {
+    return obj && typeof obj === 'object';
+}
+
+function isValidJsonObject(obj: any): obj is Record<string, any> {
+    return obj && typeof obj === 'object' && !Array.isArray(obj);
+}
 
 // Helper functions
 // Exchange rates (should match the main dashboard)
@@ -53,11 +74,10 @@ const EXCHANGE_RATES: Record<"USD" | "KES", number> = {
 /**
  * Converts an amount to USD based on the currency provided.
  */
-const toUSD = (amount: number, currency: "USD" | "KES" = "USD") => {
-    const rate = EXCHANGE_RATES[currency] ?? 1;
-    const converted = amount * rate;
-
-    return converted;
+const toUSD = (amount: number, currency: "USD" | "KES" | undefined = "USD"): number => {
+    const validCurrency = currency === "KES" ? "KES" : "USD";
+    const rate = EXCHANGE_RATES[validCurrency];
+    return amount * rate;
 };
 
 function getTimeAgo(timestamp: Date): string {
@@ -105,13 +125,12 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
                     console.log(`  Payment found:`, payment);
                     allPayments.push({
                         ...payment,
-                projectId: project.id,
+                        projectId: project.id,
                         clientId: project.clientId
                     });
                 });
             }
         });
-
 
         // Calculate real revenues from project payments (include approved, completed)
         let revenues = allPayments
@@ -119,34 +138,34 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
             .reduce((sum, payment) => {
                 const amount = Number(payment.amount) || 0;
                 const currency = payment.currency || 'USD';
-                const amountInUSD = toUSD(amount, currency);
-
+                const amountInUSD = toUSD(amount, currency as "USD" | "KES");
                 return sum + amountInUSD;
             }, 0);
 
         // If no payments found, calculate revenues from project budgets
         if (revenues === 0 || allPayments.length === 0) {
-
             revenues = projects.reduce((sum, project) => {
                 let projectBudget = 0;
 
                 // Try to get budget from pricing
-                if (project.pricing) {
-                    const currency = project.pricing.currency || 'USD';
+                if (project.pricing && isValidJsonObject(project.pricing)) {
+                    const pricing = project.pricing as any;
+                    const currency = pricing.currency || 'USD';
 
-                    if (project.pricing.type === 'fixed' && project.pricing.fixedBudget) {
-                        projectBudget = toUSD(Number(project.pricing.fixedBudget) || 0, currency);
-                    } else if (project.pricing.type === 'milestone' && project.pricing.milestones) {
-                        projectBudget = project.pricing.milestones.reduce((milestoneSum: number, m: any) =>
-                            milestoneSum + toUSD(Number(m.budget) || 0, currency), 0);
-                    } else if (project.pricing.type === 'hourly') {
-                        projectBudget = toUSD((Number(project.pricing.hourlyRate) || 0) * (Number(project.pricing.estimatedHours) || 0), currency);
+                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
+                        projectBudget = toUSD(Number(pricing.fixedBudget) || 0, currency as "USD" | "KES");
+                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
+                        projectBudget = pricing.milestones.reduce((milestoneSum: number, m: any) => {
+                            return milestoneSum + toUSD(Number(m.budget) || 0, currency as "USD" | "KES");
+                        }, 0);
+                    } else if (pricing.type === 'hourly') {
+                        projectBudget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency as "USD" | "KES");
                     }
                 }
 
                 // Fallback to legacy budget field if exists
                 if (projectBudget === 0 && project.budget) {
-                    projectBudget = toUSD(Number(project.budget) || 0, project.currency || 'USD');
+                    projectBudget = toUSD(Number(project.budget) || 0, (project.currency || 'USD') as "USD" | "KES");
                 }
 
                 // If still no budget, use a reasonable default for completed projects
@@ -157,7 +176,6 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
                 return sum + projectBudget;
             }, 0);
         }
-
 
         // Real project statuses
         const projectStatuses = projects.reduce((acc, project) => {
@@ -177,19 +195,22 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
         const clientSpending = new Map<string, { name: string; projects: number; total: number; pending: number; id: string }>();
 
         projects.forEach(project => {
-            const clientId = project.clientId || project.userInfo?.email;
+            const userInfo = project.userInfo;
+            const projectUserInfo: UserInfo = isUserInfo(userInfo) ? userInfo : {};
+            const clientId = project.clientId || projectUserInfo.email;
+
             if (clientId) {
                 // Find client user
                 const client = users.find(u =>
                     u.id === clientId ||
-                    u.email === project.userInfo?.email
+                    u.email === projectUserInfo.email
                 );
 
                 const clientName = client
                     ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email
-                    : project.userInfo?.firstName && project.userInfo?.lastName
-                        ? `${project.userInfo.firstName} ${project.userInfo.lastName}`
-                        : project.userInfo?.email || `Client ${String(clientId).slice(-6)}`;
+                    : projectUserInfo.firstName && projectUserInfo.lastName
+                        ? `${projectUserInfo.firstName} ${projectUserInfo.lastName}`
+                        : projectUserInfo.email || `Client ${String(clientId).slice(-6)}`;
 
                 const key = String(clientId);
                 if (!clientSpending.has(key)) {
@@ -203,11 +224,11 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
                 if (project.payments && Array.isArray(project.payments)) {
                     const paidTotal = project.payments
                         .filter(p => p.status === 'completed' || p.status === 'approved')
-                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
+                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, (p.currency || 'USD') as "USD" | "KES"), 0);
 
                     const pendingTotal = project.payments
                         .filter(p => p.status === 'pending')
-                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
+                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, (p.currency || 'USD') as "USD" | "KES"), 0);
 
                     clientData.total += paidTotal;
                     clientData.pending += pendingTotal;
@@ -216,22 +237,23 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
                 // Also include project budget if no payments but project has pricing
                 let projectBudget = 0;
 
-                if (project.pricing) {
-                    const currency = project.pricing.currency || 'USD';
+                if (project.pricing && isValidJsonObject(project.pricing)) {
+                    const pricing = project.pricing as any;
+                    const currency = pricing.currency || 'USD';
 
-                    if (project.pricing.type === 'fixed' && project.pricing.fixedBudget) {
-                        projectBudget = toUSD(Number(project.pricing.fixedBudget) || 0, currency);
-                    } else if (project.pricing.type === 'milestone' && project.pricing.milestones) {
-                        projectBudget = project.pricing.milestones.reduce((sum: number, m: any) =>
+                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
+                        projectBudget = toUSD(Number(pricing.fixedBudget) || 0, currency);
+                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
+                        projectBudget = pricing.milestones.reduce((sum: number, m: any) =>
                             sum + toUSD(Number(m.budget) || 0, currency), 0);
-                    } else if (project.pricing.type === 'hourly') {
-                        projectBudget = toUSD((Number(project.pricing.hourlyRate) || 0) * (Number(project.pricing.estimatedHours) || 0), currency);
+                    } else if (pricing.type === 'hourly') {
+                        projectBudget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency);
                     }
                 }
 
                 // Fallback to legacy budget field
                 if (projectBudget === 0 && project.budget) {
-                    projectBudget = toUSD(Number(project.budget) || 0, project.currency || 'USD');
+                    projectBudget = toUSD(Number(project.budget) || 0, (project.currency || 'USD') as "USD" | "KES");
                 }
 
                 // If still no budget found and no payments, use default values based on project status
@@ -274,19 +296,24 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
         const topDevelopers = developerProfiles
             .map((profile, index) => {
                 const data = profile.data || {};
-                const personalInfo = data.personalInfo || {};
-                const stats = data.stats || {};
-                const technicalSkills = data.technicalSkills || {};
+                const profileData = isValidJsonObject(data) ? data : {};
+                const personalInfo = isValidJsonObject((profileData as any).personalInfo) ? (profileData as any).personalInfo : {};
+                const stats = isValidJsonObject((profileData as any).stats) ? (profileData as any).stats : {};
+                const technicalSkills = isValidJsonObject((profileData as any).technicalSkills) ? (profileData as any).technicalSkills : {};
 
                 const devName = personalInfo.firstName && personalInfo.lastName
                     ? `${personalInfo.firstName} ${personalInfo.lastName}`
                     : personalInfo.email || `Developer ${index + 1}`;
 
+                const skills = Array.isArray(technicalSkills.primarySkills)
+                    ? technicalSkills.primarySkills.map((s: any) => s.name || s)
+                    : [];
+
                 return {
                     name: devName,
                     completedProjects: Number(stats.completedProjects) || 0,
                     rating: Number(stats.averageRating) || 0,
-                    skills: technicalSkills.primarySkills?.map((s: any) => s.name || s) || [],
+                    skills: skills,
                     id: profile.id || `dev-${index}`
                 };
             })
@@ -345,18 +372,17 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
 
         developerProfiles.forEach(profile => {
             const data = profile.data || {};
-            const technicalSkills = data.technicalSkills || {};
-            const primarySkills = technicalSkills.primarySkills || [];
+            const profileData = isValidJsonObject(data) ? data : {};
+            const technicalSkills = isValidJsonObject((profileData as any).technicalSkills) ? (profileData as any).technicalSkills : {};
+            const primarySkills = Array.isArray(technicalSkills.primarySkills) ? technicalSkills.primarySkills : [];
 
-            if (Array.isArray(primarySkills)) {
-                primarySkills.forEach((skill: any) => {
-                    const skillName = skill.name || skill;
-                    if (skillName) {
-                        skillCounts.set(skillName, (skillCounts.get(skillName) || 0) + 1);
-                        totalSkills++;
-                    }
-                });
-            }
+            primarySkills.forEach((skill: any) => {
+                const skillName = skill.name || skill;
+                if (skillName) {
+                    skillCounts.set(skillName, (skillCounts.get(skillName) || 0) + 1);
+                    totalSkills++;
+                }
+            });
         });
 
         const skillsDemand = Array.from(skillCounts.entries())
@@ -453,17 +479,18 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
             });
 
             const monthOutstanding = monthProjects.reduce((sum, project) => {
-                if (project.status !== 'completed' && project.pricing) {
-                    const currency = project.pricing.currency || 'USD';
+                if (project.status !== 'completed' && project.pricing && isValidJsonObject(project.pricing)) {
+                    const pricing = project.pricing as any;
+                    const currency = pricing.currency || 'USD';
                     let budget = 0;
 
-                    if (project.pricing.type === 'fixed' && project.pricing.fixedBudget) {
-                        budget = toUSD(Number(project.pricing.fixedBudget) || 0, currency);
-                    } else if (project.pricing.type === 'milestone' && project.pricing.milestones) {
-                        budget = project.pricing.milestones.reduce((sum: number, m: any) =>
+                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
+                        budget = toUSD(Number(pricing.fixedBudget) || 0, currency);
+                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
+                        budget = pricing.milestones.reduce((sum: number, m: any) =>
                             sum + toUSD(Number(m.budget) || 0, currency), 0);
-                    } else if (project.pricing.type === 'hourly') {
-                        budget = toUSD((Number(project.pricing.hourlyRate) || 0) * (Number(project.pricing.estimatedHours) || 0), currency);
+                    } else if (pricing.type === 'hourly') {
+                        budget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency);
                     }
 
                     return sum + budget;
@@ -539,22 +566,23 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
             const totalProjectBudgets = projects.reduce((sum, project) => {
                 let projectBudget = 0;
 
-                if (project.pricing) {
-                    const currency = project.pricing.currency || 'USD';
+                if (project.pricing && isValidJsonObject(project.pricing)) {
+                    const pricing = project.pricing as any;
+                    const currency = pricing.currency || 'USD';
 
-                    if (project.pricing.type === 'fixed' && project.pricing.fixedBudget) {
-                        projectBudget = toUSD(Number(project.pricing.fixedBudget) || 0, currency);
-                    } else if (project.pricing.type === 'milestone' && project.pricing.milestones) {
-                        projectBudget = project.pricing.milestones.reduce((milestoneSum: number, m: any) =>
+                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
+                        projectBudget = toUSD(Number(pricing.fixedBudget) || 0, currency);
+                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
+                        projectBudget = pricing.milestones.reduce((milestoneSum: number, m: any) =>
                             milestoneSum + toUSD(Number(m.budget) || 0, currency), 0);
-                    } else if (project.pricing.type === 'hourly') {
-                        projectBudget = toUSD((Number(project.pricing.hourlyRate) || 0) * (Number(project.pricing.estimatedHours) || 0), currency);
+                    } else if (pricing.type === 'hourly') {
+                        projectBudget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency);
                     }
                 }
 
                 // Fallback to legacy budget field
                 if (projectBudget === 0 && project.budget) {
-                    projectBudget = toUSD(Number(project.budget) || 0, project.currency || 'USD');
+                    projectBudget = toUSD(Number(project.budget) || 0, (project.currency || 'USD') as "USD" | "KES");
                 }
 
                 return sum + projectBudget;
@@ -587,7 +615,6 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
             }
         });
 
-
         // Calculate real payment methods from actual payment data
         const paymentMethodCounts = allPayments.reduce((acc: any, payment) => {
             const method = payment.method || 'bank_transfer';
@@ -599,7 +626,6 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
             acc[method].total += toUSD(amount, payment.currency || 'USD');
             return acc;
         }, {});
-
 
         const totalMethodAmount = Object.values(paymentMethodCounts).reduce((sum: number, data: any) => sum + data.total, 0);
 
@@ -643,25 +669,24 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
         const prevRevenue = monthlyPaymentTrends[prevMonth]?.[1] || 0;
         const realRevenueGrowth = prevRevenue > 0 ? ((currentRevenue - prevRevenue) / prevRevenue) * 100 : 0;
 
-        // Calculate REAL performance metrics based on actual data
+        // Calculate real performance metrics based on actual data
         const avgProjectDurationDays = averageProjectDuration;
         const clientSatisfaction = Math.max(50, Math.min(100, 100 - (avgProjectDurationDays > 30 ? (avgProjectDurationDays - 30) * 2 : 0)));
 
-        // Real developer utilization - developers with recent activity
         const activeDevelopers = developerProfiles.filter(profile => {
             const data = profile.data || {};
-            const stats = data.stats || {};
+            const stats = isValidJsonObject((data as any).stats) ? (data as any).stats : {};
             return (Number(stats.completedProjects) || 0) > 0 || (Number(stats.totalProjects) || 0) > 0;
         }).length;
+
         const developerUtilization = developerProfiles.length > 0 ? (activeDevelopers / developerProfiles.length) * 100 : 0;
 
-        // Real project success rate based on completion vs cancellation
         const cancelledProjects = projects.filter(p => p.status === 'cancelled').length;
         const totalNonPendingProjects = projects.filter(p => p.status !== 'pending').length;
-        const projectSuccessRate = totalNonPendingProjects > 0 ?
-            ((totalNonPendingProjects - cancelledProjects) / totalNonPendingProjects) * 100 : 100;
+        const projectSuccessRate = totalNonPendingProjects > 0
+            ? ((totalNonPendingProjects - cancelledProjects) / totalNonPendingProjects) * 100
+            : 100;
 
-        // Real delivery performance based on project timelines
         const onTimeProjects = projects.filter(p => {
             if (p.status === 'completed' && p.createdAt && p.actualCompletionDate && p.estimatedCompletionDate) {
                 const actual = new Date(p.actualCompletionDate).getTime();
@@ -670,6 +695,7 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
             }
             return false;
         }).length;
+
         const deliveryPerformance = completedProjects > 0 ? (onTimeProjects / completedProjects) * 100 : 0;
 
         const performanceMetricsFormatted = [
@@ -781,20 +807,21 @@ async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
 
 export async function GET(request: NextRequest) {
     try {
-        // Check authentication
+        // Authenticate user session
         const session: Session | null = await getSession(request);
         if (!session) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        // Check if user has admin role
+        // Check admin role
         if (session.user.role !== 'admin') {
             return new NextResponse('Forbidden - Admin access required', { status: 403 });
         }
 
-        // Fetch analytics data
+        // Fetch the analytics data
         const analyticsData = await fetchAnalyticsData();
 
+        // Return data as JSON response
         return NextResponse.json(analyticsData);
 
     } catch (error) {

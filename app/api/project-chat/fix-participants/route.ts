@@ -46,10 +46,21 @@ async function getUserName(userId: string): Promise<string> {
   }
   
   if (user) {
-    const name = `${user.firstName} ${user.lastName}`.trim() || user.email;
-    return name || (user.role === 'admin' ? 'Admin' : 
-                   user.role === 'client' ? 'Client' : 
-                   user.role === 'developer' ? 'Developer' : 'User');
+    // Handle missing firstName/lastName by falling back to email or default
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    // If both names are missing, use email or default
+    if (fullName) {
+      return fullName;
+    } else if (user.email) {
+      return user.email.split('@')[0] || 'User';
+    } else {
+      return user.role === 'admin' ? 'Admin User' : 
+             user.role === 'client' ? 'Client User' : 
+             user.role === 'developer' ? 'Developer User' : 'User';
+    }
   }
   
   return 'User';
@@ -70,11 +81,13 @@ export async function POST(req: NextRequest) {
 
     console.log('Starting participant name fix process...');
 
-    // Find all chat participants with "Unknown User" names
+    // Find all chat participants with "Unknown User" names or undefined names
     const unknownParticipants = await prisma.chatParticipant.findMany({
       where: {
         OR: [
           { name: "Unknown User" },
+          { name: "undefined undefined" },
+          { name: { contains: "undefined" } },
           { name: "" },
           { name: null as any }
         ]

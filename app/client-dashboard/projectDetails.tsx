@@ -37,13 +37,13 @@ import { SystemUser } from "~/types";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../components/ToastContainer";
 import ConfirmationModal from "../components/ConfirmationModal";
-import { 
-  PAYMENT_METHODS, 
-  getEnabledPaymentMethods, 
-  getPaymentMethodsForCurrency, 
-  formatPaymentMethodLabel, 
+import {
+  PAYMENT_METHODS,
+  getEnabledPaymentMethods,
+  getPaymentMethodsForCurrency,
+  formatPaymentMethodLabel,
   DEFAULT_PAYMENT_METHOD,
-  PaymentMethodType 
+  PaymentMethodType
 } from "@/lib/paymentMethods";
 
 export interface ActivityItem {
@@ -330,22 +330,32 @@ export default function EnhancedProjectTracking({
     fetcher,
     {
       onError: (error) => {
-        console.error('Activity fetch error:', error);
+        // Notify user of general activity fetch error
+        toast.error('Activity Fetch Error', 'An error occurred while fetching activity data. Please try again later.');
+        // Notify user of unexpected errors other than 404
+        if (error?.status !== 404) {
+          toast.error('Unexpected Error', 'An unexpected error occurred.');
+        }
       },
       revalidateOnFocus: false,
-      shouldRetryOnError: true,
-      errorRetryCount: 3
+      shouldRetryOnError: (error) => {
+        // Only retry on non-404 errors
+        return error?.status !== 404;
+      },
+      errorRetryCount: 2, // Reduce retry count
+      errorRetryInterval: 2000 // Wait 2 seconds between retries
     }
   );
 
   // Debug logging
   useEffect(() => {
-    console.log('Client Dashboard - Project Data:', projectData);
-    console.log('Client Dashboard - Milestones:', projectData.milestones);
-    console.log('Client Dashboard - Pricing:', projectData.pricing);
-    console.log('Client Dashboard - Payments:', projectData.payments);
-    console.log('Client Dashboard - Activity Data:', activityData);
-    console.log('Client Dashboard - Activity Error:', activityError);
+    // Use these logs for debugging if needed, comment them out in production
+    // console.log('Client Dashboard - Project Data:', projectData);
+    // console.log('Client Dashboard - Milestones:', projectData.milestones);
+    // console.log('Client Dashboard - Pricing:', projectData.pricing);
+    // console.log('Client Dashboard - Payments:', projectData.payments);
+    // console.log('Client Dashboard - Activity Data:', activityData);
+    // console.log('Client Dashboard - Activity Error:', activityError);
   }, [projectData, activityData, activityError]);
 
   const {
@@ -373,24 +383,45 @@ export default function EnhancedProjectTracking({
     const fetchDevelopers = async () => {
       setLoadingDevelopers(true);
       try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          console.warn('No auth token found, skipping developers fetch');
+          return;
+        }
+
         const response = await fetch('/api/users', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
+
         if (response.ok) {
           const data = await response.json();
-          setDevelopers(data.users.filter((user: any) => user.role === 'developer'));
+          if (data.success && data.users) {
+            setDevelopers(data.users.filter((user: any) => user.role === 'developer'));
+          } else {
+            toast.warning('No Data', 'No user data was found in the response.');
+          }
+        } else {
+          toast.error('Fetch Error', 'Failed to fetch developer data.');
         }
       } catch (error) {
-        console.error('Error fetching developers:', error);
+        toast.error('Developer Fetch Error', 'An error occurred while retrieving developer data.');
+        // Notify user of unexpected errors other than 404
+        if (error instanceof Error && !error.message.includes('404')) {
+          toast.error('Unexpected Error', 'An unexpected error occurred while fetching developers.');
+        }
       } finally {
         setLoadingDevelopers(false);
       }
     };
-    fetchDevelopers();
-  }, []);
+
+    // Only fetch if we're on the assignments view to avoid unnecessary API calls
+    if (trackingView === 'assignments') {
+      fetchDevelopers();
+    }
+  }, [trackingView]);
 
   // Convert date strings to Date objects
   useEffect(() => {
@@ -641,13 +672,47 @@ export default function EnhancedProjectTracking({
   };
 
   const handleDeleteFile = async (id: string) => {
-    const result = await deleteFile(projectData._id, id);
-    if (result.success) {
-      setProjectData((prev) => ({
-        ...prev,
-        files: prev.files?.filter((file) => file.id !== id) || [],
-      }));
-    }
+    const file = projectData.files?.find(f => f.id === id);
+    if (!file) return;
+
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete File",
+      message: `Are you sure you want to delete the file "${file.fileName}"? This action cannot be undone.`,
+      variant: "danger",
+      loading: false,
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, loading: true }));
+
+        try {
+          const token = localStorage.getItem('auth_token');
+          const response = await fetch(`/api/client-projects/${projectData._id}/files?fileId=${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            setProjectData((prev) => ({
+              ...prev,
+              files: prev.files?.filter((file) => file.id !== id) || [],
+            }));
+            toast.success("File deleted", "The file has been successfully deleted.");
+          } else {
+            toast.error("Failed to delete file", result.error || "Please try again.");
+          }
+        } catch (error) {
+          console.error('File deletion error:', error);
+          toast.error("Failed to delete file", "An error occurred while deleting the file.");
+        }
+
+        setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+      },
+    });
   };
 
   // Milestone CRUD operations
@@ -779,12 +844,13 @@ export default function EnhancedProjectTracking({
         ...(newPayment.invoiceUrl && { invoiceUrl: newPayment.invoiceUrl }),
       };
 
-      console.log('\n=== FRONTEND PAYMENT CREATION ===');
-      console.log('Payment data being sent:', paymentData);
-      console.log('Project ID:', projectData._id);
+      // Remove or comment out console logs used for debugging
+      // console.log('\n=== FRONTEND PAYMENT CREATION ===');
+      // console.log('Payment data being sent:', paymentData);
+      // console.log('Project ID:', projectData._id);
 
       const result = await createPayment(projectData._id, paymentData);
-      console.log('Payment creation result:', result);
+      // console.log('Payment creation result:', result);
 
       if (result.success) {
         const payment: Payment = {
@@ -793,7 +859,7 @@ export default function EnhancedProjectTracking({
           createdAt: new Date().toISOString(),
         };
 
-        console.log('Adding payment to local state:', payment);
+        // console.log('Adding payment to local state:', payment);
 
         setProjectData((prev) => ({
           ...prev,
@@ -823,17 +889,59 @@ export default function EnhancedProjectTracking({
         ) || [],
       }));
       setEditingPayment(null);
+      setNewPayment({}); // Reset the form
+      toast.success("Payment updated", "The payment has been successfully updated.");
+    } else {
+      toast.error("Failed to update payment", result.error || "Please try again.");
     }
   };
 
+  const handleStartEditPayment = (payment: Payment) => {
+    setEditingPayment(payment.id);
+    setNewPayment({
+      amount: payment.amount,
+      description: payment.description,
+      date: payment.date,
+      method: payment.method,
+      currency: payment.currency,
+    });
+  };
+
+  const handleCancelEditPayment = () => {
+    setEditingPayment(null);
+    setNewPayment({});
+  };
+
   const handleDeletePayment = async (id: string) => {
-    const result = await deletePayment(projectData._id, id);
-    if (result.success) {
-      setProjectData((prev) => ({
-        ...prev,
-        payments: prev.payments?.filter((payment) => payment.id !== id) || [],
-      }));
-    }
+    const payment = projectData.payments?.find(p => p.id === id);
+    if (!payment) return;
+
+    const paymentDescription = payment.description || "Payment";
+    const paymentAmount = formatCurrency(payment.amount, payment.currency || "USD");
+
+    setConfirmationModal({
+      isOpen: true,
+      title: "Delete Payment",
+      message: `Are you sure you want to delete the payment "${paymentDescription}" (${paymentAmount})? This action cannot be undone.`,
+      variant: "danger",
+      loading: false,
+      onConfirm: async () => {
+        setConfirmationModal(prev => ({ ...prev, loading: true }));
+
+        const result = await deletePayment(projectData._id, id);
+        if (result.success) {
+          setProjectData((prev) => ({
+            ...prev,
+            payments: prev.payments?.filter((payment) => payment.id !== id) || [],
+          }));
+          toast.success("Payment deleted", "The payment has been successfully deleted.");
+        } else {
+          toast.error("Failed to delete payment", result.error || "Please try again.");
+        }
+
+        setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+      },
+    });
   };
 
   // Updates operations
@@ -884,16 +992,36 @@ export default function EnhancedProjectTracking({
   };
 
   const recentActivity = [
-    ...(projectData.updates || []).map((u) => ({ ...u, activityType: "update" })),
+    ...(projectData.updates || []).map((u) => ({
+      ...u,
+      activityType: "update",
+      description: `Update by ${u.author}: ${u.description}`,
+    })),
     ...(projectData.milestones || [])
       .filter((m) => m.completedAt)
       .map((m) => ({
         id: m.id,
-        title: `Milestone: ${m.title}`,
-        description: "Milestone completed",
-        createdAt: m.completedAt!,
+        title: `Milestone Completed: ${m.title}`,
+        description: `Milestone completed on ${m.completedAt ? new Date(m.completedAt).toLocaleDateString() : 'N/A'}`,
+        createdAt: m.completedAt ? (typeof m.completedAt === 'string' ? new Date(m.completedAt) : m.completedAt) : new Date(),
         activityType: "milestone",
       })),
+    ...(projectData.payments || [])
+      .filter((p) => p.date)
+      .map((p) => ({
+        id: p.id,
+        title: `Payment: ${p.description || 'Payment'}`,
+        description: `Amount: ${formatCurrency(p.amount, p.currency || 'USD')} - Status: ${p.status}`,
+        createdAt: p.date ? new Date(p.date) : new Date(),
+        activityType: "payment",
+      })),
+    {  // Example Manual Entry
+      id: 'manual-entry',
+      title: "Project Status Changed",
+      description: `Status changed to ${projectData.status.replace("_", " ")}`,
+      createdAt: new Date(),
+      activityType: "statusChange",
+    }
   ]
     .sort(
       (a, b) =>
@@ -1061,112 +1189,112 @@ export default function EnhancedProjectTracking({
             {/* Activity and Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Recent Activity */}
-            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
-                  <Activity className="w-5 h-5 text-cyan-300" />
-                </div>
-                <h2 className="text-2xl font-semibold text-white">
-                  Recent Activity
-                </h2>
-              </div>
-
-              <div className="space-y-6">
-                {recentActivity.length === 0 ? (
-                  <p className="text-gray-400">No recent activity available</p>
-                ) : (
-                  recentActivity.map((activity) => (
-                    <div key={activity.id} className="border-b border-gray-700 pb-2 mb-2">
-                      <h3 className="text-lg font-semibold text-white mb-1">{activity.title}</h3>
-                      <p className="text-gray-300 text-sm">{activity.description}</p>
-                      <p className="text-gray-500 text-xs mt-1">{new Date(activity.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Project Information */}
-            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
-                  <FileText className="w-5 h-5 text-cyan-300" />
-                </div>
-                <h2 className="text-2xl font-semibold text-white">
-                  Project Details
-                </h2>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    Description
-                  </h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    {projectData.projectDetails?.description}
-                  </p>
+              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
+                    <Activity className="w-5 h-5 text-cyan-300" />
+                  </div>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Recent Activity
+                  </h2>
                 </div>
 
-                {projectData.projectDetails?.requirements && (
+                <div className="space-y-6">
+                  {recentActivity.length === 0 ? (
+                    <p className="text-gray-400">No recent activity available</p>
+                  ) : (
+                    recentActivity.map((activity) => (
+                      <div key={activity.id} className="border-b border-gray-700 pb-2 mb-2">
+                        <h3 className="text-lg font-semibold text-white mb-1">{activity.title}</h3>
+                        <p className="text-gray-300 text-sm">{activity.description}</p>
+                        <p className="text-gray-500 text-xs mt-1">{new Date(activity.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Project Information */}
+              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
+                    <FileText className="w-5 h-5 text-cyan-300" />
+                  </div>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Project Details
+                  </h2>
+                </div>
+
+                <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-3">
-                      Requirements
+                      Description
                     </h3>
                     <p className="text-gray-300 leading-relaxed">
-                      {projectData.projectDetails?.requirements}
+                      {projectData.projectDetails?.description}
                     </p>
                   </div>
-                )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                    <label className="text-sm font-medium text-gray-400 mb-2 block">
-                      Priority
-                    </label>
-                    <span className="text-white font-medium capitalize">
-                      {projectData.projectDetails?.priority}
-                    </span>
-                  </div>
+                  {projectData.projectDetails?.requirements && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-3">
+                        Requirements
+                      </h3>
+                      <p className="text-gray-300 leading-relaxed">
+                        {projectData.projectDetails?.requirements}
+                      </p>
+                    </div>
+                  )}
 
-                  <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                    <label className="text-sm font-medium text-gray-400 mb-2 block">
-                      Timeline
-                    </label>
-                    <span className="text-white font-medium">
-                      {projectData.projectDetails.timeline}
-                    </span>
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
+                      <label className="text-sm font-medium text-gray-400 mb-2 block">
+                        Priority
+                      </label>
+                      <span className="text-white font-medium capitalize">
+                        {projectData.projectDetails?.priority}
+                      </span>
+                    </div>
 
-                  <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                    <label className="text-sm font-medium text-gray-400 mb-2 block">
-                      Expected Completion
-                    </label>
-                    <span className="text-white font-medium">
-                      {(() => {
-                        // Use existing completion date if available
-                        if (projectData.estimatedCompletionDate) {
-                          return new Date(projectData.estimatedCompletionDate).toLocaleDateString();
+                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
+                      <label className="text-sm font-medium text-gray-400 mb-2 block">
+                        Timeline
+                      </label>
+                      <span className="text-white font-medium">
+                        {projectData.projectDetails.timeline}
+                      </span>
+                    </div>
+
+                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
+                      <label className="text-sm font-medium text-gray-400 mb-2 block">
+                        Expected Completion
+                      </label>
+                      <span className="text-white font-medium">
+                        {(() => {
+                          // Use existing completion date if available
+                          if (projectData.estimatedCompletionDate) {
+                            return new Date(projectData.estimatedCompletionDate).toLocaleDateString();
+                          }
+
+                          // Calculate completion date
+                          const calculatedDate = calculateProjectCompletionDate(projectData);
+                          if (calculatedDate) {
+                            return (
+                              <span className="text-blue-400">
+                                {calculatedDate.toLocaleDateString()}
+                                <span className="text-xs text-gray-500 ml-1 block">(calculated)</span>
+                              </span>
+                            );
+                          }
+
+                          return "TBD";
+                        })()
                         }
-
-                        // Calculate completion date
-                        const calculatedDate = calculateProjectCompletionDate(projectData);
-                        if (calculatedDate) {
-                          return (
-                            <span className="text-blue-400">
-                              {calculatedDate.toLocaleDateString()}
-                              <span className="text-xs text-gray-500 ml-1 block">(calculated)</span>
-                            </span>
-                          );
-                        }
-
-                        return "TBD";
-                      })()
-                      }
-                    </span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             </div>
 
             {/* Performance Insights */}
@@ -1416,7 +1544,7 @@ export default function EnhancedProjectTracking({
               {projectData.milestones?.map((milestone) => (
                 <div
                   key={milestone.id}
-                  className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                  className="p-6 bg-black/10 rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
                 >
                   {editingMilestone === milestone.id ? (
                     <div className="space-y-4">
@@ -1517,133 +1645,89 @@ export default function EnhancedProjectTracking({
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
+                      {/* Clean Milestone Card */}
+                      <div className="space-y-4">
+                        {/* Milestone Header - Compact */}
+                        <div className="flex items-center justify-between">
+                          <div>
                             <h3 className="text-lg font-semibold text-white">
                               {milestone.title}
                             </h3>
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                                milestone.status
-                              )}`}
-                            >
-                              {milestone.status.replace("_", " ")}
-                            </span>
+                            <p className="text-sm text-gray-400">
+                              {milestone.description}
+                            </p>
                           </div>
-                          <p className="text-gray-300 mb-4">
-                            {milestone.description}
-                          </p>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-white">
+                              ${milestone.budget}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {milestone.timeline || "No timeline"}
+                            </div>
+                          </div>
+                        </div>
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-400">Budget:</span>
-                              <p className="text-white font-medium">
-                                ${milestone.budget}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Timeline:</span>
-                              <p className="text-white font-medium">
-                                {milestone.timeline}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Due Date:</span>
-                              <p className="text-white font-medium">
+                        {/* Milestone Details - Inline */}
+                        <div className="flex items-center justify-between py-2 border-t border-gray-700">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="w-4 h-4 text-gray-500" />
+                              <span className="text-sm text-gray-400">Due:</span>
+                              <span className="text-sm font-medium text-white">
                                 {(() => {
-                                  // First try to use existing due date
                                   if (milestone.dueDate) {
                                     return (milestone.dueDate instanceof Date
                                       ? milestone.dueDate
                                       : new Date(milestone.dueDate)
                                     ).toLocaleDateString();
                                   }
-
-                                  // If no due date, calculate from timeline
                                   if (milestone.timeline) {
                                     const milestoneIndex = projectData.milestones?.findIndex(m => m.id === milestone.id) || 0;
                                     const calculatedDueDate = calculateMilestoneDueDate(projectData, milestone, milestoneIndex);
                                     if (calculatedDueDate) {
-                                      return (
-                                        <span className="text-blue-400">
-                                          {calculatedDueDate.toLocaleDateString()}
-                                          <span className="text-xs text-gray-500 ml-1">(calculated)</span>
-                                        </span>
-                                      );
+                                      return calculatedDueDate.toLocaleDateString();
                                     }
                                   }
-
                                   return "N/A";
                                 })()}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <span className="text-gray-400">Status:</span>
-                              <p className="text-white font-medium capitalize">
-                                {milestone.status.replace("_", " ")}
-                              </p>
-                            </div>
-                          </div>
-
-                          {milestone.deliverables &&
-                            milestone.deliverables.length > 0 && (
-                              <div className="mt-4">
-                                <span className="text-gray-400 text-sm">
-                                  Deliverables:
-                                </span>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  {milestone.deliverables.map(
-                                    (deliverable, index) => (
-                                      <span
-                                        key={index}
-                                        className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs"
-                                      >
-                                        {deliverable}
-                                      </span>
-                                    )
-                                  )}
-                                </div>
+                            {milestone.deliverables && milestone.deliverables.length > 0 && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-400">{milestone.deliverables.length} deliverables</span>
                               </div>
                             )}
-                        </div>
-
-                        <div className="flex items-center space-x-2 ml-4">
-                          {(!milestone.submittedBy ||
-                            milestone.status === "rejected") && (
-                              <>
-                                <button
-                                  onClick={() =>
-                                    handleStartEditMilestone(milestone)
-                                  }
-                                  className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-                                  title="Edit milestone"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDeleteMilestone(milestone.id)
-                                  }
-                                  className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                                  title="Delete milestone"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          {milestone.submittedBy === "client" &&
-                            milestone.status === "pending" && (
-                              <span className="text-xs text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded">
-                                Awaiting Approval
-                              </span>
-                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(milestone.status)}`}>
+                              {milestone.status.replace("_", " ")}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </>
                   )}
                 </div>
               ))}
+              {projectData.milestones?.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-gray-500" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    No Milestones Yet
+                  </h3>
+                  <p className="text-gray-400 mb-4">
+                    Start tracking your project progress by adding milestones
+                  </p>
+                  <button
+                    onClick={() => setShowAddMilestone(true)}
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                  >
+                    Add Your First Milestone
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -1727,7 +1811,7 @@ export default function EnhancedProjectTracking({
                 <h2 className="text-2xl font-semibold text-white">Payments</h2>
                 <button
                   onClick={() => setShowAddPayment(true)}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-xl transition-all duration-200"
+                  className="cursor-pointer flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-xl transition-all duration-200"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Payment</span>
@@ -1768,7 +1852,7 @@ export default function EnhancedProjectTracking({
 
               {/* Add Payment Form */}
               {showAddPayment && (
-                <div className="mb-6 p-6 bg-white/[0.03] rounded-xl border border-white/10">
+                <div className="mb-6 p-6 bg-white/5 rounded-xl border border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-4">
                     Add New Payment
                   </h3>
@@ -1783,7 +1867,7 @@ export default function EnhancedProjectTracking({
                           amount: Number(e.target.value),
                         })
                       }
-                      className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                      className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                     />
                     <input
                       type="text"
@@ -1795,7 +1879,7 @@ export default function EnhancedProjectTracking({
                           description: e.target.value,
                         })
                       }
-                      className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                      className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                     />
                     <input
                       type="date"
@@ -1806,7 +1890,7 @@ export default function EnhancedProjectTracking({
                           date: e.target.value,
                         })
                       }
-                      className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                      className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                     />
                     <select
                       value={newPayment.method || DEFAULT_PAYMENT_METHOD}
@@ -1816,7 +1900,7 @@ export default function EnhancedProjectTracking({
                           method: e.target.value,
                         })
                       }
-                      className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                      className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                     >
                       {getPaymentMethodsForCurrency(projectData.pricing?.currency || "USD").map((method) => (
                         <option key={method.value} value={method.value}>
@@ -1828,14 +1912,14 @@ export default function EnhancedProjectTracking({
                   <div className="flex items-center space-x-3 mt-4">
                     <button
                       onClick={handleAddPayment}
-                      className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl transition-colors"
+                      className="cursor-pointer flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl transition-colors"
                     >
                       <Save className="w-4 h-4" />
                       <span>Save Payment</span>
                     </button>
                     <button
                       onClick={() => setShowAddPayment(false)}
-                      className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors"
+                      className="cursor-pointer flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors"
                     >
                       <X className="w-4 h-4" />
                       <span>Cancel</span>
@@ -1850,74 +1934,132 @@ export default function EnhancedProjectTracking({
                   <>
                     {pendingPayments.length > 0 ? (
                       pendingPayments.map((payment: Payment) => (
-                        <div
-                          key={payment.id}
-                          className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
-                        >
+                        <div key={payment.id} className="p-6 bg-black/10 rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center space-x-3 mb-2">
-                                <h3 className="text-lg font-semibold text-white">
-                                  {payment.description || "Payment"}
-                                </h3>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                                    payment.status || "pending"
-                                  )}`}
-                                >
-                                  {payment.status || "pending"}
-                                </span>
-                                {payment.submittedBy && (
-                                  <span className="text-xs text-gray-400">
-                                    by {payment.submittedBy}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                <div>
-                                  <span className="text-gray-400">Amount:</span>
-                                  <p className="text-white font-medium">
-                                    {formatCurrency(
-                                      payment.amount,
-                                      payment.currency || "USD"
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-400">Date:</span>
-                                  <p className="text-white font-medium">
-                                    {payment.date}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-400">Method:</span>
-                                  <p className="text-white font-medium capitalize">
-                                    {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-400">Status:</span>
-                                  <p className="text-white font-medium capitalize">
-                                    {payment.status || "pending"}
-                                  </p>
-                                </div>
-
-                                {payment.status === "pending" &&
-                                  payment.submittedBy === "client" && (
-                                    <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                                      <span className="text-yellow-400 text-sm font-medium">
-                                        Status:
-                                      </span>
-                                      <p className="text-yellow-300 text-sm mt-1">
-                                        Waiting for admin approval
-                                      </p>
+                              {editingPayment === payment.id ? (
+                                <div className="space-y-4">
+                                  <h3 className="text-lg font-semibold text-white mb-4">Edit Payment</h3>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={newPayment.amount || payment.amount || ""}
+                                        onChange={(e) =>
+                                          setNewPayment({ ...newPayment, amount: Number(e.target.value) })
+                                        }
+                                        placeholder="Amount"
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                                      />
                                     </div>
-                                  )}
-                              </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">Date</label>
+                                      <input
+                                        type="date"
+                                        value={newPayment.date || payment.date || ""}
+                                        onChange={(e) =>
+                                          setNewPayment({ ...newPayment, date: e.target.value })
+                                        }
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                                      <input
+                                        type="text"
+                                        value={newPayment.description || payment.description || ""}
+                                        onChange={(e) =>
+                                          setNewPayment({ ...newPayment, description: e.target.value })
+                                        }
+                                        placeholder="Description"
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">Payment Method</label>
+                                      <select
+                                        value={newPayment.method || payment.method || DEFAULT_PAYMENT_METHOD}
+                                        onChange={(e) =>
+                                          setNewPayment({ ...newPayment, method: e.target.value })
+                                        }
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
+                                      >
+                                        {getPaymentMethodsForCurrency(projectData.pricing?.currency || "USD").map((method) => (
+                                          <option key={method.value} value={method.value}>
+                                            {method.icon} {method.label}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-3 mt-6">
+                                    <button
+                                      onClick={() => handleUpdatePayment(payment.id, newPayment)}
+                                      disabled={!newPayment.amount && !payment.amount}
+                                      className="cursor-pointer flex items-center space-x-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors"
+                                    >
+                                      <Save className="w-4 h-4" />
+                                      <span>Update Payment</span>
+                                    </button>
+                                    <button
+                                      onClick={handleCancelEditPayment}
+                                      className="cursor-pointer flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors"
+                                    >
+                                      <X className="w-4 h-4" />
+                                      <span>Cancel</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Clean Payment Card */}
+                                  <div className="space-y-4">
+                                    {/* Payment Header - Compact */}
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <h3 className="text-lg font-semibold text-white">
+                                          {payment.description || "Payment Request"}
+                                        </h3>
+                                        <p className="text-sm text-gray-400">
+                                          Pending Admin Approval
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-2xl font-bold text-white">
+                                          {formatCurrency(
+                                            payment.amount,
+                                            payment.currency || "USD"
+                                          )}
+                                        </div>
+                                        <div className="text-sm text-gray-400">
+                                          {payment.date}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Payment Details - Inline */}
+                                    <div className="flex items-center justify-between py-2 border-t border-gray-700">
+                                      <div className="flex items-center space-x-2">
+                                        <ExternalLink className="w-4 h-4 text-gray-500" />
+                                        <span className="text-sm text-gray-400">Method:</span>
+                                        <span className="text-sm font-medium text-white capitalize">
+                                          {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <Clock className="w-4 h-4 text-yellow-500" />
+                                        <span className="text-sm text-yellow-500 font-medium">Under Review</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
                             </div>
 
-                            <div className="flex items-center space-x-2 ml-4">
+                            <div className="flex justify-center items-center space-x-2 ml-4">
                               {payment.invoiceUrl && (
                                 <a
                                   href={payment.invoiceUrl}
@@ -1929,14 +2071,14 @@ export default function EnhancedProjectTracking({
                                 </a>
                               )}
                               <button
-                                onClick={() => setEditingPayment(payment.id)}
-                                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                onClick={() => handleStartEditPayment(payment)}
+                                className="p-2 text-indigo-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeletePayment(payment.id)}
-                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                className="p-2 text-red-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -2060,7 +2202,7 @@ export default function EnhancedProjectTracking({
                                 </a>
                               )}
                               <button
-                                onClick={() => setEditingPayment(payment.id)}
+                                onClick={() => handleStartEditPayment(payment)}
                                 className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                               >
                                 <Edit className="w-4 h-4" />
@@ -2097,16 +2239,26 @@ export default function EnhancedProjectTracking({
 
       case "files":
         return (
-          <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+          <div className="bg-black/5 backdrop-blur-xl rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-semibold text-white">Project Files</h2>
               <button
                 onClick={() => setShowAddFile(true)}
-                className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl transition-all duration-200"
+                className="cursor-pointer flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl transition-all duration-200"
               >
                 <Upload className="w-4 h-4" />
                 <span>Upload File</span>
               </button>
+
+            </div>
+            <div className="text-gray-400 mb-4 text-md text-center ">
+              Manage your project files here. You can upload, view, and delete files related to this project.
+              {projectData.files?.length === 0 && !showAddFile && (
+                <p className="mt-2 text-md text-gray-500 text-center ">
+                  No files uploaded yet. Click "Upload File" to add new files.
+                </p>
+
+              )}
             </div>
 
             {/* Add File Form */}
@@ -2123,7 +2275,7 @@ export default function EnhancedProjectTracking({
                     onChange={(e) =>
                       setNewFile({ ...newFile, fileName: e.target.value })
                     }
-                    className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
+                    className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
                   />
                   <input
                     type="file"
@@ -2134,7 +2286,7 @@ export default function EnhancedProjectTracking({
                         setNewFile({ ...newFile, fileSize: file.size });
                       }
                     }}
-                    className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:bg-purple-500 file:text-white hover:file:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
+                    className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:bg-purple-500 file:text-white hover:file:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
                   />
                   <select
                     value={newFile.fileType || "document"}
@@ -2144,7 +2296,7 @@ export default function EnhancedProjectTracking({
                         fileType: e.target.value as FileType,
                       })
                     }
-                    className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
+                    className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
                   >
                     <option value="document">Document</option>
                     <option value="image">Image</option>
@@ -2152,7 +2304,7 @@ export default function EnhancedProjectTracking({
                     <option value="other">Other</option>
                   </select>
                   {selectedFile && (
-                    <div className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white">
+                    <div className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white">
                       <p className="text-sm text-gray-400">Selected file:</p>
                       <p className="text-white">{selectedFile.name}</p>
                       <p className="text-sm text-gray-400">Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
@@ -2165,20 +2317,20 @@ export default function EnhancedProjectTracking({
                   onChange={(e) =>
                     setNewFile({ ...newFile, description: e.target.value })
                   }
-                  className="w-full mt-4 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
+                  className="w-full mt-4 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent"
                   rows={3}
                 />
                 <div className="flex items-center space-x-3 mt-4">
                   <button
                     onClick={handleAddFile}
-                    className="flex items-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl transition-colors"
+                    className="cursor-pointer flex items-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl transition-colors"
                   >
                     <Save className="w-4 h-4" />
                     <span>Upload File</span>
                   </button>
                   <button
                     onClick={() => setShowAddFile(false)}
-                    className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors"
+                    className="cursor-pointer flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors"
                   >
                     <X className="w-4 h-4" />
                     <span>Cancel</span>
@@ -2192,7 +2344,7 @@ export default function EnhancedProjectTracking({
               {projectData.files?.map((file) => (
                 <div
                   key={file.id}
-                  className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                  className="p-6 bg-black/10 rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
@@ -2209,19 +2361,13 @@ export default function EnhancedProjectTracking({
                     <div className="flex items-center space-x-1">
                       <button
                         onClick={() => window.open(file.fileUrl, "_blank")}
-                        className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                        className="cursor-pointer p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
                       >
                         <Download className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => setEditingFile(file.id)}
-                        className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
                         onClick={() => handleDeleteFile(file.id)}
-                        className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                        className="cursor-pointer p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -2409,15 +2555,15 @@ export default function EnhancedProjectTracking({
                     className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
                   >
                     <div className="flex-shrink-0 mt-1">
-                      {activity.type === "milestone" ? (
+                      {activity.activityType === "milestone" ? (
                         <div className="p-2 bg-green-500/20 rounded-lg">
                           <CheckCircle className="w-5 h-5 text-green-300" />
                         </div>
-                      ) : activity.type === "update" ? (
+                      ) : activity.activityType === "update" ? (
                         <div className="p-2 bg-blue-500/20 rounded-lg">
                           <MessageSquare className="w-5 h-5 text-blue-300" />
                         </div>
-                      ) : activity.type === "payment" ? (
+                      ) : activity.activityType === "payment" ? (
                         <div className="p-2 bg-yellow-500/20 rounded-lg">
                           <DollarSign className="w-5 h-5 text-yellow-300" />
                         </div>
@@ -2428,19 +2574,17 @@ export default function EnhancedProjectTracking({
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-white font-medium">{activity.title}</h3>
-                      <p className="text-gray-400 text-sm">
+                      <h3 className="text-white font-semibold text-lg mb-1">{activity.title}</h3>
+                      <p className="text-gray-300 text-sm mb-1">
                         {activity.description}
                       </p>
-                      <p className="text-gray-500 text-xs mt-2">
-                        {(typeof activity.createdAt === "string"
-                          ? new Date(activity.createdAt)
-                          : activity.createdAt
-                        ).toLocaleDateString()}
+                      <p className="text-gray-500 text-xs">
+                        {new Date(activity.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                )))}
+                ))
+              )}
               {(activityData?.data?.length === 0 || activityError) && (
                 <div className="text-center py-12">
                   <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />

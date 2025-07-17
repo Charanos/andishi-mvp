@@ -271,6 +271,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
   };
 
   const getInitials = (name: string) => {
+    if (!name || name.trim() === '') return "U";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -538,7 +539,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-white">{participant.name}</h4>
+                <h4 className="text-sm font-medium text-white">{participant.name || 'Unknown User'}</h4>
                 <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getRoleBadge(participant.role)}`}>
                   {participant.role}
                 </span>

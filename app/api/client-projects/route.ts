@@ -320,6 +320,7 @@ export async function GET(req: NextRequest) {
     }
 
   } catch (error) {
+    // Log error for debugging while providing user-friendly response
     console.error('Error fetching client projects:', error);
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Failed to fetch projects', error: error instanceof Error ? error.message : error }),
@@ -445,6 +446,7 @@ export async function POST(req: NextRequest) {
     }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
+    // Log error for debugging while providing user-friendly response
     console.error('Error creating project:', error);
     return new NextResponse(
       JSON.stringify({ 
@@ -509,9 +511,13 @@ export async function PATCH(req: NextRequest) {
         _id: new ObjectId(projectId)
       });
     } else {
+      // Use the same logic as GET handler for consistency
       project = await db.collection('projects').findOne({
         _id: new ObjectId(projectId),
-        clientId: clientUser._id
+        $or: [
+          { clientId: clientUser._id.toString() },
+          { 'userInfo.email': userEmail }
+        ]
       });
     }
 
@@ -718,6 +724,7 @@ export async function PATCH(req: NextRequest) {
         }), { status: 200, headers: corsHeaders });
         
       } catch (operationError) {
+        // Log operation error for debugging
         console.error(`Error in ${operation}:`, operationError);
         return new NextResponse(
           JSON.stringify({ 
@@ -790,6 +797,7 @@ export async function PATCH(req: NextRequest) {
     }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
+    // Log error for debugging while providing user-friendly response
     console.error('Error updating project:', error);
     return new NextResponse(
       JSON.stringify({ 
@@ -847,9 +855,13 @@ export async function DELETE(req: NextRequest) {
         _id: new ObjectId(projectId)
       });
     } else {
+      // Use the same logic as GET handler for consistency
       project = await db.collection('projects').findOne({
         _id: new ObjectId(projectId),
-        clientId: clientUser._id
+        $or: [
+          { clientId: clientUser._id.toString() },
+          { 'userInfo.email': userEmail }
+        ]
       });
     }
 
@@ -880,6 +892,7 @@ export async function DELETE(req: NextRequest) {
     }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
+    // Log error for debugging while providing user-friendly response
     console.error('Error deleting project:', error);
     return new NextResponse(
       JSON.stringify({ 

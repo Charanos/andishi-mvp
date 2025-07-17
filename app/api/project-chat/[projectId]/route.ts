@@ -381,9 +381,24 @@ export async function GET(
           }
         }
         
-        const userName = currentUser ? 
-          `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email :
-          session.user.name || session.user.email || "User";
+        // Handle missing firstName/lastName by falling back to email or default
+        let userName = "User";
+        if (currentUser) {
+          const firstName = currentUser.firstName || '';
+          const lastName = currentUser.lastName || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          
+          // If both names are missing, use email or default
+          if (fullName) {
+            userName = fullName;
+          } else if (currentUser.email) {
+            userName = currentUser.email.split('@')[0] || 'User';
+          } else {
+            userName = currentUser.role === 'admin' ? 'Admin User' : 'User';
+          }
+        } else {
+          userName = session.user.name || session.user.email || "User";
+        }
         
         console.log(`Adding current user as participant:`, {
           userId: session.user.id,
@@ -397,7 +412,7 @@ export async function GET(
           userId: session.user.id,
           name: userName,
           role: session.user.role,
-          isOnline: false,
+          isOnline: true, // Current user is online
         });
       }
       
@@ -423,6 +438,30 @@ export async function GET(
       });
       
       console.log(`GET /api/project-chat/[projectId] - Created new chat with ${participants.length} participants`);
+    } else {
+      // Update existing chat - mark current user as online
+      await prisma.chatParticipant.updateMany({
+        where: {
+          chatId: chat.id,
+          userId: session.user.id,
+        },
+        data: {
+          isOnline: true,
+        },
+      });
+      
+      // Refresh the chat data to include updated participant status
+      chat = await prisma.projectChat.findFirst({
+        where: { projectId },
+        include: {
+          messages: {
+            orderBy: {
+              timestamp: "asc",
+            },
+          },
+          participants: true,
+        },
+      });
     }
 
     return NextResponse.json(chat, { status: 200, headers: corsHeaders });
@@ -712,9 +751,24 @@ export async function POST(
           }
         }
         
-        const userName = currentUser ? 
-          `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email :
-          session.user.name || session.user.email || "User";
+        // Handle missing firstName/lastName by falling back to email or default
+        let userName = "User";
+        if (currentUser) {
+          const firstName = currentUser.firstName || '';
+          const lastName = currentUser.lastName || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          
+          // If both names are missing, use email or default
+          if (fullName) {
+            userName = fullName;
+          } else if (currentUser.email) {
+            userName = currentUser.email.split('@')[0] || 'User';
+          } else {
+            userName = currentUser.role === 'admin' ? 'Admin User' : 'User';
+          }
+        } else {
+          userName = session.user.name || session.user.email || "User";
+        }
         
         participants.push({
           userId: session.user.id,
@@ -780,7 +834,18 @@ export async function POST(
       }
       
       if (currentUser) {
-        senderName = `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email;
+        const firstName = currentUser.firstName || '';
+        const lastName = currentUser.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+        
+        // If both names are missing, use email or default
+        if (fullName) {
+          senderName = fullName;
+        } else if (currentUser.email) {
+          senderName = currentUser.email.split('@')[0] || 'User';
+        } else {
+          senderName = 'User';
+        }
       }
     }
     

@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
           id: a.id,
           status: a.status,
           developerId: a.developer?.userId,
-          developerName: a.developer?.data?.personalInfo?.firstName || 'Unknown'
+          developerName: (a.developer?.data as any)?.personalInfo?.firstName || 'Unknown'
         }))
       },
       hasAccess,

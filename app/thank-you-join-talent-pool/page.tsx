@@ -44,7 +44,7 @@ export default function DeveloperThankYouPage() {
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
 
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Success Animation Container */}
         <div className="text-center mb-16">
           <div className="relative inline-block mb-8">
@@ -54,14 +54,14 @@ export default function DeveloperThankYouPage() {
             <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
           </div>
 
-          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h1 className="text-3xl lg:text-4xl font-semibold text-white mb-6">
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-              Thank You!
+              Thank you for submitting your details.
             </span>
           </h1>
 
           <p className="text-xl text-gray-300 mb-4 max-w-2xl mx-auto leading-relaxed">
-            Thank you for submitting your details. We will be in touch with you
+            We will be in touch with you
             regarding the next steps.
           </p>
 
@@ -73,7 +73,7 @@ export default function DeveloperThankYouPage() {
         </div>
 
         {/* What Happens Next */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
           <h2 className="text-2xl font-bold text-white mb-8 text-center flex items-center justify-center">
             <FaLaptopCode className="mr-3 text-blue-400" />
             Your Developer Journey
@@ -108,7 +108,7 @@ export default function DeveloperThankYouPage() {
         </div>
 
         {/* Developer Perks */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
           <h2 className="text-2xl font-bold text-white mb-8 text-center flex items-center justify-center">
             <FaHandshake className="mr-3 text-green-400" />
             What You Get as Part of Our Talent Pool
@@ -150,7 +150,7 @@ export default function DeveloperThankYouPage() {
         </div>
 
         {/* Contact Information */}
-        <div className="text-center p-6 backdrop-blur-md bg-white/5 border border-white/10 rounded-xl">
+        <div className="text-center p-6 backdrop-blur-md bg-black/10 border border-white/10 rounded-xl">
           <h3 className="text-lg font-semibold text-white mb-4">
             Questions About Your Application?
           </h3>
@@ -159,11 +159,11 @@ export default function DeveloperThankYouPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-gray-300">
             <a
-              href="mailto:talent@andishi.co.ke"
+              href="mailto:info@andishi.dev"
               className="flex items-center space-x-2 hover:text-blue-400 transition-colors"
             >
               <FaEnvelope className="text-md" />
-              <span>talent@andishi.co.ke</span>
+              <span>info@andishi.dev</span>
             </a>
           </div>
         </div>

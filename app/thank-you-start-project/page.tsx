@@ -56,7 +56,7 @@ export default function ThankYouPage() {
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
 
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Success Animation Container */}
         <div className="text-center mb-16">
           <div className="relative inline-block mb-8">
@@ -66,7 +66,7 @@ export default function ThankYouPage() {
             <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
           </div>
 
-          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h1 className="text-3xl lg:text-4xl font-semibold text-white mb-6">
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
               Thank You!
             </span>
@@ -88,7 +88,7 @@ export default function ThankYouPage() {
         </div>
 
         {/* Main CTA - Join Slack */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/25">
               <FaSlack className="text-2xl text-white" />
@@ -130,7 +130,7 @@ export default function ThankYouPage() {
         </div>
 
         {/* What Happens Next */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl p-8 shadow-2xl">
           <h2 className="text-2xl font-bold text-white mb-8 text-center flex items-center justify-center">
             <FaUsers className="mr-3 text-blue-400" />
             What Happens Next?
@@ -140,19 +140,17 @@ export default function ThankYouPage() {
             {nextSteps.map((step, index) => (
               <div
                 key={index}
-                className={`p-6 rounded-xl border transition-all duration-300 hover:scale-105 ${
-                  step.action
+                className={`p-6 rounded-xl border transition-all duration-300 hover:scale-105 ${step.action
                     ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/50 shadow-lg shadow-purple-500/10"
                     : "bg-white/5 border-white/10 hover:border-white/20"
-                }`}
+                  }`}
               >
                 <div className="flex items-start space-x-4">
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      step.action
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${step.action
                         ? "bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25"
                         : "bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/25"
-                    }`}
+                      }`}
                   >
                     <step.icon className="text-white text-lg" />
                   </div>
@@ -165,9 +163,8 @@ export default function ThankYouPage() {
                       {step.description}
                     </p>
                     <div
-                      className={`text-xs font-medium uppercase tracking-wide ${
-                        step.action ? "text-purple-300" : "text-blue-300"
-                      }`}
+                      className={`text-xs font-medium uppercase tracking-wide ${step.action ? "text-purple-300" : "text-blue-300"
+                        }`}
                     >
                       {step.time}
                     </div>
@@ -179,7 +176,7 @@ export default function ThankYouPage() {
         </div>
 
         {/* Contact Information */}
-        <div className="text-center mt-12 p-6 backdrop-blur-md bg-white/5 border border-white/10 rounded-xl">
+        <div className="text-center mt-12 p-6 backdrop-blur-md bg-black/10 border border-white/10 rounded-xl">
           <h3 className="text-lg font-semibold text-white mb-4">
             Questions? We're Here to Help
           </h3>

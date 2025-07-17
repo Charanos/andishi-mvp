@@ -367,13 +367,12 @@ export default function BlogsSection() {
 
               {/* Image Section */}
               <div
-                className={`relative bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden ${
-                  blog.size === "large"
-                    ? "h-40" // Reduced from h-48
-                    : blog.size === "medium"
+                className={`relative bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden ${blog.size === "large"
+                  ? "h-40" // Reduced from h-48
+                  : blog.size === "medium"
                     ? "h-28" // Reduced from h-32
                     : "h-20" // Reduced from h-24
-                }`}
+                  }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 <Image
@@ -396,9 +395,8 @@ export default function BlogsSection() {
               {/* Content */}
               <div className="relative p-4 lg:p-6 space-y-3 flex-1 flex flex-col">
                 <h3
-                  className={`font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 line-clamp-2 ${
-                    blog.size === "large" ? "text-xl" : "text-lg"
-                  }`}
+                  className={`font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 line-clamp-2 ${blog.size === "large" ? "text-xl" : "text-lg"
+                    }`}
                 >
                   {blog.title}
                 </h3>

@@ -159,11 +159,10 @@ export default function ProjectShowcase() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-300 capitalize ${
-                  selectedCategory === category
-                    ? "bg-purple-500/20 border-purple-400/50 text-purple-300"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-gray-300"
-                }`}
+                className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-300 capitalize ${selectedCategory === category
+                  ? "bg-purple-500/20 border-purple-400/50 text-purple-300"
+                  : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-gray-300"
+                  }`}
               >
                 {category === "all" ? "All Projects" : category}
               </button>
@@ -271,10 +270,9 @@ export default function ProjectShowcase() {
                   {project.technologies.map((tech) => (
                     <div
                       key={tech}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                        techColors[tech] ||
+                      className={`px-3 py-1 rounded-full text-xs font-medium border ${techColors[tech] ||
                         "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                      }`}
+                        }`}
                     >
                       {tech}
                     </div>

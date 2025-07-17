@@ -36,10 +36,12 @@ export interface ProjectChat {
 
 // Enhanced fetcher with better error handling
 const fetcher = async (url: string) => {
+    const token = localStorage.getItem('auth_token');
     const response = await fetch(url, {
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
         }
     });
 
@@ -65,6 +67,14 @@ export function useProjectChat(projectId: string) {
     if (projectId && !isValidProjectId) {
         console.warn(`Invalid project ID format: ${projectId}`);
     }
+    
+    // Enhanced debugging
+    console.log('=== useProjectChat Debug ===');
+    console.log('Project ID:', projectId);
+    console.log('Is valid ObjectId:', isValidProjectId);
+    console.log('User:', user);
+    console.log('Should fetch:', shouldFetch);
+    console.log('Expected API URL:', shouldFetch ? `/api/project-chat/${projectId}` : 'No fetch');
 
     const { data, error, mutate, isLoading } = useSWR<ProjectChat>(
         shouldFetch ? `/api/project-chat/${projectId}` : null,
@@ -89,16 +99,14 @@ export function useProjectChat(projectId: string) {
         }
 
         try {
+            const token = localStorage.getItem('auth_token');
             const response = await fetch(`/api/project-chat/${projectId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    senderId: user.id,
-                    senderName: user.name || user.email.split('@')[0], // Use user's name or extract from email
-                    senderRole: user.role,
                     content: content.trim(),
                     ...(replyToMessageId && { replyToMessageId })
                 }),
@@ -128,7 +136,7 @@ export function useProjectChat(projectId: string) {
             toast.error(`Failed to send message: ${error.message}`);
             throw error;
         }
-    }, [projectId, mutate, user, token, toast]);
+    }, [projectId, mutate, user, toast]);
 
     // Mark messages as read - simplified to use session
     const markAsRead = useCallback(async (messageIds?: string[]) => {
@@ -137,11 +145,12 @@ export function useProjectChat(projectId: string) {
         }
 
         try {
+            const token = localStorage.getItem('auth_token');
             const response = await fetch(`/api/project-chat/${projectId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     messageIds: messageIds || undefined
@@ -173,7 +182,7 @@ export function useProjectChat(projectId: string) {
             toast.error(`Failed to mark messages as read: ${error.message}`);
             throw error;
         }
-    }, [projectId, mutate, user, token, toast]);
+    }, [projectId, mutate, user, toast]);
 
     // Update online status
     const updateOnlineStatus = useCallback(async (isOnline: boolean = true) => {
@@ -182,11 +191,12 @@ export function useProjectChat(projectId: string) {
         }
 
         try {
+            const token = localStorage.getItem('auth_token');
             const response = await fetch(`/api/project-chat/${projectId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({ isOnline }),
                 credentials: 'include',
@@ -202,7 +212,7 @@ export function useProjectChat(projectId: string) {
             toast.error(`Failed to update online status: ${error.message}`);
             throw error;
         }
-    }, [projectId, user, token, toast]);
+    }, [projectId, user, toast]);
 
     // Get unread message count
     const getUnreadCount = useCallback(() => {
@@ -224,11 +234,12 @@ export function useProjectChat(projectId: string) {
         }
 
         try {
+            const token = localStorage.getItem('auth_token');
             const response = await fetch(`/api/project-chat/${projectId}/${messageId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({ content }),
                 credentials: 'include',
@@ -258,7 +269,7 @@ export function useProjectChat(projectId: string) {
             toast.error(`Failed to update message: ${error.message}`);
             throw error;
         }
-    }, [projectId, mutate, user, token, toast]);
+    }, [projectId, mutate, user, toast]);
 
     const deleteMessage = useCallback(async (messageId: string) => {
         if (!user) {
@@ -266,10 +277,12 @@ export function useProjectChat(projectId: string) {
         }
 
         try {
+            const token = localStorage.getItem('auth_token');
             const response = await fetch(`/api/project-chat/${projectId}/${messageId}`, {
                 method: 'DELETE',
                 headers: {
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 credentials: 'include',
             });
@@ -292,7 +305,7 @@ export function useProjectChat(projectId: string) {
             toast.error(`Failed to delete message: ${error.message}`);
             throw error;
         }
-    }, [projectId, mutate, user, token, toast]);
+    }, [projectId, mutate, user, toast]);
 
     return {
         // Data

@@ -915,7 +915,7 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <FaBell className="mr-2 text-blue-400" />
               Global Notification Preferences
@@ -974,7 +974,7 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <FaComment className="mr-2 text-green-400" />
               Business Communication Settings
@@ -1030,27 +1030,27 @@ const ClientDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <FaInfoCircle className="mr-2 text-purple-400" />
             Portfolio Overview
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-3 bg-white/5 rounded-lg">
+            <div className="p-3 bg-black/10 rounded-lg">
               <p className="text-gray-400 text-sm">Total Projects</p>
               <p className="text-white font-medium text-xl">{totalProjects}</p>
             </div>
-            <div className="p-3 bg-white/5 rounded-lg">
+            <div className="p-3 bg-black/10 rounded-lg">
               <p className="text-gray-400 text-sm">Active Projects</p>
               <p className="text-white font-medium text-xl">{activeProjects}</p>
             </div>
-            <div className="p-3 bg-white/5 rounded-lg">
+            <div className="p-3 bg-black/10 rounded-lg">
               <p className="text-gray-400 text-sm">Completed</p>
               <p className="text-white font-medium text-xl">
                 {completedProjects}
               </p>
             </div>
-            <div className="p-3 bg-white/5 rounded-lg">
+            <div className="p-3 bg-black/10 rounded-lg">
               <p className="text-gray-400 text-sm">Pending</p>
               <p className="text-white font-medium text-xl">
                 {pendingProjects}
@@ -1079,7 +1079,7 @@ const ClientDashboard: React.FC = () => {
 
         {/* Project Management Settings */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <FaCog className="mr-2 text-orange-400" />
               Project Management
@@ -1131,7 +1131,7 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <FaShieldAlt className="mr-2 text-red-400" />
               Security & Backup
@@ -1178,7 +1178,7 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         {/* Global Action Buttons */}
-        <div className="flex items-center justify-between p-6 backdrop-blur-md bg-white/5 border border-white/10 rounded-xl">
+        <div className="flex items-center justify-between p-6 backdrop-blur-md bg-black/10 border border-white/10 rounded-xl">
           <div>
             <h4 className="text-white font-medium mb-1">Portfolio Actions</h4>
             <p className="text-gray-400 text-sm">
@@ -1199,7 +1199,7 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <FaChartBar className="mr-2 text-cyan-400" />
             Quick Portfolio Stats
@@ -1299,7 +1299,7 @@ const ClientDashboard: React.FC = () => {
           ).map((metric: AnalyticsMetric, index: number) => (
             <div
               key={metric.label}
-              className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6"
+              className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -1333,7 +1333,7 @@ const ClientDashboard: React.FC = () => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Project Status Visual Cards */}
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Project Status Distribution
             </h3>
@@ -1436,7 +1436,7 @@ const ClientDashboard: React.FC = () => {
             `}</style>
           </div>
 
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Portfolio Overview
             </h3>
@@ -1503,7 +1503,7 @@ const ClientDashboard: React.FC = () => {
 
         {/* Project Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Recent Activity
             </h3>
@@ -1544,7 +1544,7 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Recent Files
             </h3>
@@ -1593,7 +1593,7 @@ const ClientDashboard: React.FC = () => {
 
         {/* Project Categories & Tech Stack */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Project Categories
             </h3>
@@ -1641,7 +1641,7 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Popular Tech Stack
             </h3>
@@ -1742,7 +1742,7 @@ const ClientDashboard: React.FC = () => {
       <>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Projects</p>
@@ -1756,7 +1756,7 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">In Progress</p>
@@ -1770,7 +1770,7 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Completed</p>
@@ -1784,7 +1784,7 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Avg Progress</p>

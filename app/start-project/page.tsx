@@ -19,9 +19,9 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { startProjectFormSchema } from "@/lib/formSchema";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { useToast } from "../../hooks/useToast";
+import ToastContainer from "../components/ToastContainer";
 
 interface UserInfo {
   firstName: string;
@@ -67,6 +67,7 @@ interface FormData {
 
 export default function StartProjectForm() {
   const router = useRouter();
+  const { toast, notifications, removeNotification } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [clientTermsAccepted, setClientTermsAccepted] = useState(false);
   const [clientPrivacyAccepted, setClientPrivacyAccepted] = useState(false);
@@ -263,8 +264,8 @@ export default function StartProjectForm() {
 
   const handleSubmit = async () => {
     // Check if terms are accepted
-    if (!clientTermsAccepted || !clientPrivacyAccepted) {
-      toast.error("Please accept both the Terms of Service and Privacy Policy before submitting.");
+    if (!clientPrivacyAccepted) {
+      toast.error("Please accept the Terms of Service and Privacy Policy before submitting.");
       return;
     }
 
@@ -272,13 +273,13 @@ export default function StartProjectForm() {
       const result = await startProjectFormSchema.safeParse(formData);
       if (!result.success) {
         result.error.issues.forEach((issue) => {
-          toast.error(issue.message);
+        toast.error(issue.message);
         });
         return;
       }
 
       setSubmitStatus("loading");
-      toast.info("Submitting your project...");
+    toast.info("Submitting your project...");
 
       try {
         const res = await fetch("/api/start-project", {
@@ -289,18 +290,18 @@ export default function StartProjectForm() {
         const result = await res.json();
 
         if (result.success) {
-          setSubmitStatus("success");
-          toast.success(
-            "Your project has been submitted successfully! Redirecting..."
-          );
+        setSubmitStatus("success");
+        toast.success(
+          "Your project has been submitted successfully! Redirecting..."
+        );
 
           // Redirect to thank you page after a short delay
           setTimeout(() => {
             router.push("/thank-you-start-project");
           }, 2000);
         } else {
-          setSubmitStatus("error");
-          toast.error(result.message || "Submission failed. Please try again.");
+        setSubmitStatus("error");
+        toast.error(result.message || "Submission failed. Please try again.");
         }
       } catch (error) {
         setSubmitStatus("error");
@@ -330,7 +331,7 @@ export default function StartProjectForm() {
         }
         return true;
       case 4:
-        return clientTermsAccepted && clientPrivacyAccepted;
+        return clientPrivacyAccepted;
       default:
         return true;
     }
@@ -339,16 +340,9 @@ export default function StartProjectForm() {
   return (
     <>
       <ToastContainer
-        position="top-center"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+        position="top-right"
       />
       <section className="min-h-screen py-16 relative overflow-hidden">
         {/* Background gradient overlay */}
@@ -380,8 +374,8 @@ export default function StartProjectForm() {
               <div key={step.number} className="relative z-10">
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.number
-                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
-                      : "bg-gray-700 text-gray-400"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-gray-700 text-gray-400"
                     }`}
                 >
                   <step.icon className="text-lg" />
@@ -394,7 +388,7 @@ export default function StartProjectForm() {
           </div>
 
           {/* Form Container */}
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl px-8 py-10 shadow-2xl">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl px-8 py-10 shadow-2xl">
             {/* Step 1: User Info */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -579,8 +573,8 @@ export default function StartProjectForm() {
                           type="button"
                           onClick={() => toggleTechStack(tech)}
                           className={`px-3 hover:bg-purple-700 cursor-pointer py-2 rounded-lg border transition-all duration-300 text-sm ${formData.projectDetails.techStack.includes(tech)
-                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
                         >
                           {tech}
@@ -702,8 +696,8 @@ export default function StartProjectForm() {
                         type="button"
                         onClick={() => updatePricing("currency", "USD")}
                         className={`px-6 py-3 rounded-lg border transition-all duration-300 ${formData.pricing.currency === "USD"
-                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
+                          ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                          : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
                           }`}
                       >
                         USD ($)
@@ -712,8 +706,8 @@ export default function StartProjectForm() {
                         type="button"
                         onClick={() => updatePricing("currency", "KES")}
                         className={`px-6 py-3 rounded-lg border transition-all duration-300 ${formData.pricing.currency === "KES"
-                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
+                          ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                          : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
                           }`}
                       >
                         KES (KSh)
@@ -731,8 +725,8 @@ export default function StartProjectForm() {
                         type="button"
                         onClick={() => updatePricing("type", "fixed")}
                         className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "fixed"
-                            ? "bg-blue-500/20 border-blue-400"
-                            : "bg-white/5 border-white/10 hover:border-white/20"
+                          ? "bg-blue-500/20 border-blue-400"
+                          : "bg-white/5 border-white/10 hover:border-white/20"
                           }`}
                       >
                         <div className="text-lg font-semibold text-white mb-2 monty uppercase">
@@ -747,8 +741,8 @@ export default function StartProjectForm() {
                         type="button"
                         onClick={() => updatePricing("type", "milestone")}
                         className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "milestone"
-                            ? "bg-blue-500/20 border-blue-400"
-                            : "bg-white/5 border-white/10 hover:border-white/20"
+                          ? "bg-blue-500/20 border-blue-400"
+                          : "bg-white/5 border-white/10 hover:border-white/20"
                           }`}
                       >
                         <div className="text-lg font-semibold text-white mb-2 monty uppercase">
@@ -763,8 +757,8 @@ export default function StartProjectForm() {
                         type="button"
                         onClick={() => updatePricing("type", "hourly")}
                         className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "hourly"
-                            ? "bg-blue-500/20 border-blue-400"
-                            : "bg-white/5 border-white/10 hover:border-white/20"
+                          ? "bg-blue-500/20 border-blue-400"
+                          : "bg-white/5 border-white/10 hover:border-white/20"
                           }`}
                       >
                         <div className="text-lg font-semibold monty uppercase text-white mb-2">
@@ -1159,58 +1153,40 @@ export default function StartProjectForm() {
                   </div>
 
                   {/* Client Terms and Privacy Policy */}
-                  <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/20 rounded-lg space-y-4">
+
+                  <div className="p-6 bg-indigo-400/5 border border-white/10 rounded-lg">
                     <div className="flex items-start space-x-3">
                       <input
-                        id="clientTerms"
                         type="checkbox"
-                        checked={clientTermsAccepted}
-                        onChange={(e) => setClientTermsAccepted(e.target.checked)}
+                        id="terms"
+                        checked={clientPrivacyAccepted}
+                        onChange={(e) => setClientPrivacyAccepted(e.target.checked)}
                         className="mt-1 w-4 h-4 text-blue-400 bg-transparent border-2 border-blue-400 rounded focus:ring-blue-400 focus:ring-2"
                       />
-                      <label
-                        htmlFor="clientTerms"
-                        className="text-[15.5px] text-gray-300 leading-relaxed"
-                      >
+                      <label htmlFor="terms" className="text-sm text-gray-300">
                         I agree to the{" "}
-                        <a
+                        <Link
                           href="/legal/client-terms-of-service"
                           className="text-blue-400 hover:text-blue-300 underline"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Client Terms of Service
-                        </a>
-                        .
-                      </label>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <input
-                        id="clientPrivacy"
-                        type="checkbox"
-                        checked={clientPrivacyAccepted}
-                        onChange={(e) => setClientPrivacyAccepted(e.target.checked)}
-                        className="mt-1 w-4 h-4 text-blue-400 bg-transparent border-2 border-blue-400 rounded focus:ring-blue-400 focus:ring-2"
-                      />
-                      <label
-                        htmlFor="clientPrivacy"
-                        className="text-[15.5px] text-gray-300 leading-relaxed"
-                      >
-                        I agree to the{" "}
-                        <a
+                          Terms of Service
+                        </Link>{" "}
+                        and{" "}
+                        <Link
                           href="/legal/client-privacy-policy"
                           className="text-blue-400 hover:text-blue-300 underline"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Client Privacy Policy
-                        </a>
-                        .
+                          Privacy Policy
+                        </Link>
+                        . I understand that this is a project inquiry and
+                        final pricing will be confirmed after initial
+                        consultation.
                       </label>
                     </div>
-                    <p className="text-[15.5px] text-gray-400 leading-relaxed mt-4">
-                      I understand that this is a project inquiry and final pricing will be confirmed after initial consultation.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1223,8 +1199,8 @@ export default function StartProjectForm() {
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${currentStep === 1
-                    ? "text-gray-500 cursor-not-allowed"
-                    : "text-gray-300 hover:text-white hover:bg-white/5  cursor-pointer"
+                  ? "text-gray-500 cursor-not-allowed"
+                  : "text-gray-300 hover:text-white hover:bg-white/5  cursor-pointer"
                   }`}
               >
                 <FaArrowLeft className="text-[15.5px" />
@@ -1241,8 +1217,8 @@ export default function StartProjectForm() {
                   onClick={nextStep}
                   disabled={!isStepValid()}
                   className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${isStepValid()
-                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
-                      : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
+                    : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
                     }`}
                 >
                   <span>Next</span>

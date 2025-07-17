@@ -347,11 +347,10 @@ export default function SingleArticleView() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleLike}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  isLiked
-                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                    : "bg-white/5 text-gray-400 border border-white/10 hover:border-red-500/30 hover:text-red-400"
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${isLiked
+                  ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                  : "bg-white/5 text-gray-400 border border-white/10 hover:border-red-500/30 hover:text-red-400"
+                  }`}
               >
                 <FaHeart className="text-sm" />
                 <span className="text-sm font-medium">{likeCount}</span>
@@ -359,11 +358,10 @@ export default function SingleArticleView() {
 
               <button
                 onClick={() => setIsBookmarked(!isBookmarked)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  isBookmarked
-                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                    : "bg-white/5 text-gray-400 border border-white/10 hover:border-blue-500/30 hover:text-blue-400"
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${isBookmarked
+                  ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                  : "bg-white/5 text-gray-400 border border-white/10 hover:border-blue-500/30 hover:text-blue-400"
+                  }`}
               >
                 <FaBookmark className="text-sm" />
                 <span className="text-sm font-medium">Save</span>

@@ -29,9 +29,9 @@ import {
   FaStar,
   FaTools,
 } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { useToast } from "../../hooks/useToast";
+import ToastContainer from "../components/ToastContainer";
 
 interface PersonalInfo {
   firstName: string;
@@ -96,6 +96,7 @@ interface FormData {
 
 export default function DeveloperRegistrationForm() {
   const router = useRouter();
+  const { toast, notifications, removeNotification } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -404,16 +405,16 @@ export default function DeveloperRegistrationForm() {
 
   const handleSubmit = async () => {
     if (!termsAccepted) {
-      toast.error("Please accept the terms and conditions before submitting.");
+      toast.error("Terms Required", "Please accept the terms and conditions before submitting.");
       return;
     }
 
     try {
       setSubmitStatus("loading");
-      toast.info("Submitting your application...");
+      toast.info("Submitting Application", "Your application is being submitted...");
 
-      // First create the user record in the talent pool
-      const userResponse = await fetch("/api/join-talent-pool", {
+      // Submit to join-talent-pool endpoint (this creates both user and developer profile)
+      const response = await fetch("/api/join-talent-pool", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -433,45 +434,27 @@ export default function DeveloperRegistrationForm() {
         }),
       });
 
-      if (!userResponse.ok) {
-        throw new Error("Failed to submit application");
-      }
-
-      const { insertedId } = await userResponse.json();
-
-      // Then create the developer profile
-      const response = await fetch("/api/developer-profiles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: insertedId,
-          data: {
-            personalInfo: formData.personalInfo,
-            professionalInfo: formData.professionalInfo,
-            technicalSkills: formData.technicalSkills,
-            workExperience: formData.workExperience,
-            projects: formData.projects,
-            stats: {
-              totalProjects: 0,
-              averageRating: 0,
-              totalEarnings: 0,
-              clientRetention: 0,
-            },
-          },
-        }),
-      });
-
       if (!response.ok) {
-        throw new Error("Failed to create developer profile");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit application");
       }
 
-      toast.success("Successfully joined the talent pool!");
-      router.push("/thank-you-join-talent-pool");
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Failed to submit application");
+      }
+
+      toast.success("Application Submitted!", "Successfully joined the talent pool! Redirecting...");
+      setSubmitStatus("success");
+      
+      // Delay redirect to show success message
+      setTimeout(() => {
+        router.push("/thank-you-join-talent-pool");
+      }, 2000);
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to submit form. Please try again.");
+      toast.error("Submission Failed", "Failed to submit form. Please try again.");
       setSubmitStatus("error");
     }
   };
@@ -505,16 +488,9 @@ export default function DeveloperRegistrationForm() {
   return (
     <>
       <ToastContainer
-        position="top-center"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+        position="top-right"
       />
       <section className="min-h-screen py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
@@ -556,7 +532,7 @@ export default function DeveloperRegistrationForm() {
             ))}
           </div>
 
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl px-8 py-10 shadow-2xl">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl px-8 py-10 shadow-2xl">
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -871,7 +847,7 @@ export default function DeveloperRegistrationForm() {
                               "workType"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.professionalInfo.workType.includes(type)
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${formData.professionalInfo.workType.includes(type)
                             ? "bg-blue-500/20 border-blue-400 text-blue-300"
                             : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
@@ -899,7 +875,7 @@ export default function DeveloperRegistrationForm() {
                               "languages"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.professionalInfo.languages.includes(lang)
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${formData.professionalInfo.languages.includes(lang)
                             ? "bg-blue-500/20 border-blue-400 text-blue-300"
                             : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
                             }`}
@@ -1563,7 +1539,7 @@ export default function DeveloperRegistrationForm() {
                   onClick={handleSubmit}
                   disabled={!isStepValid() || submitStatus === "loading"}
                   className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${isStepValid() && submitStatus !== "loading"
-                    ? "bg-green-500/20 text-green-300 hover:bg-green-500/30"
+                    ? "cursor-pointer bg-green-500/80 text-gray-200 hover:bg-green-500/70"
                     : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
                     }`}
                 >

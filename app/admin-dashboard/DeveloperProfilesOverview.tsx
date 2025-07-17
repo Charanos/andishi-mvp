@@ -578,7 +578,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Overview */}
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <FaUser className="text-gray-400" />
                 <h3 className="text-lg font-semibold !text-indigo-400">
@@ -649,7 +649,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Technical Skills */}
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <FaCode className="text-gray-400" />
                 <h3 className="text-lg font-semibold !text-indigo-400">
@@ -827,7 +827,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Enhanced Performance Stats */}
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <FaChartLine className="text-gray-400" />
                 <h3 className="text-lg font-semibold !text-indigo-400">
@@ -898,98 +898,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   </div>
                   <p className="text-gray-500 text-sm">Return rate</p>
                 </div>
-
-                {/* {selectedProfile.stats.totalCodeLines && (
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="text-gray-400 text-sm">Lines of Code</p>
-                        <p className="text-2xl font-semibold text-cyan-400">
-                          {selectedProfile.stats.totalCodeLines.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 bg-cyan-400/20 rounded-full flex items-center justify-center">
-                        <FaCode className="text-cyan-400" />
-                      </div>
-                    </div>
-                    <p className="text-gray-500 text-sm">Total written</p>
-                  </div>
-                )}
-
-                {selectedProfile.stats.totalCommits && (
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="text-gray-400 text-sm">Git Commits</p>
-                        <p className="text-2xl font-semibold text-orange-400">
-                          {selectedProfile.stats.totalCommits.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 bg-orange-400/20 rounded-full flex items-center justify-center">
-                        <FaGitAlt className="text-orange-400" />
-                      </div>
-                    </div>
-                    <p className="text-gray-500 text-sm">Total commits</p>
-                  </div>
-                )}
-
-                {selectedProfile.stats.bugsFixed && (
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="text-gray-400 text-sm">Bugs Fixed</p>
-                        <p className="text-2xl font-semibold text-red-400">
-                          {selectedProfile.stats.bugsFixed}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 bg-red-400/20 rounded-full flex items-center justify-center">
-                        <FaBug className="text-red-400" />
-                      </div>
-                    </div>
-                    <p className="text-gray-500 text-sm">Issues resolved</p>
-                  </div>
-                )}
-
-                {selectedProfile.stats.codeReviewsGiven && (
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="text-gray-400 text-sm">Code Reviews</p>
-                        <p className="text-2xl font-semibold text-indigo-400">
-                          {selectedProfile.stats.codeReviewsGiven}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 bg-indigo-400/20 rounded-full flex items-center justify-center">
-                        <FaEye className="text-indigo-400" />
-                      </div>
-                    </div>
-                    <p className="text-gray-500 text-sm">Reviews given</p>
-                  </div>
-                )}
-
-                {selectedProfile.stats.mentoringSessions && (
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="text-gray-400 text-sm">Mentoring</p>
-                        <p className="text-2xl font-semibold text-pink-400">
-                          {selectedProfile.stats.mentoringSessions}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 bg-pink-400/20 rounded-full flex items-center justify-center">
-                        <FaGraduationCap className="text-pink-400" />
-                      </div>
-                    </div>
-                    <p className="text-gray-500 text-sm">Sessions held</p>
-                  </div>
-                )} */}
               </div>
             </div>
 
             {/* Recent Projects */}
             {selectedProfile.data.projects &&
               selectedProfile.data.projects.length > 0 && (
-                <div className="bg-white/5 rounded-xl p-6">
+                <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaProjectDiagram className="text-gray-400" />
                     <h3 className="text-lg font-semibold !text-indigo-400">
@@ -1078,7 +993,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             {/* Achievements */}
             {selectedProfile.data.achievements &&
               selectedProfile.data.achievements.length > 0 && (
-                <div className="bg-white/5 rounded-xl p-6">
+                <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaTrophy className="text-gray-400" />
                     <h3 className="text-lg font-semibold !text-indigo-400">
@@ -1142,7 +1057,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
           {/* Right Column */}
           <div className="space-y-6">
             {/* Enhanced Personal Information */}
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <FaUser className="text-gray-400" />
                 <h3 className="text-lg font-semibold !text-indigo-400">
@@ -1233,12 +1148,12 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                           {selectedProfile.data.professionalInfo.workingHours}
                         </p>
                       )}
-            {/* Calculate the busy until date based on project data */}
-            {selectedProfile.busyUntilDate && (
-              <p className="text-orange-400 text-xs">
-                Busy until {new Date(selectedProfile.busyUntilDate).toLocaleDateString()}
-              </p>
-            )}
+                      {/* Calculate the busy until date based on project data */}
+                      {selectedProfile.busyUntilDate && (
+                        <p className="text-orange-400 text-xs">
+                          Busy until {new Date(selectedProfile.busyUntilDate).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1293,7 +1208,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             {(selectedProfile.data.professionalInfo.languages ||
               selectedProfile.data.professionalInfo.certifications ||
               selectedProfile.data.professionalInfo.preferredWorkType) && (
-                <div className="bg-white/5 rounded-xl p-6">
+                <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaBriefcase className="text-gray-400" />
                     <h3 className="text-lg font-semibold !text-indigo-400">
@@ -1375,7 +1290,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             {/* Recent Activity */}
             {selectedProfile.data.recentActivity &&
               selectedProfile.data.recentActivity.length > 0 && (
-                <div className="bg-white/5 rounded-xl p-6">
+                <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
                     <FaClock className="text-gray-400" />
                     <h3 className="text-lg font-semibold !text-indigo-400">
@@ -1479,7 +1394,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               )}
 
             {/* Action Buttons */}
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-white mb-4">
                 Profile Actions
               </h3>
@@ -1507,7 +1422,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Enhanced Quick Summary */}
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-white mb-4">
                 Quick Summary
               </h3>
@@ -1793,11 +1708,11 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                           {profile.data.personalInfo.location}
                         </span>
                       </div>
-                      <span
+                      {/* <span
                         className={`text-xs font-medium px-2 py-1 rounded-full ${getEnhancedAvailabilityInfo(profile).colorClass}`}
                       >
                         {getEnhancedAvailabilityInfo(profile).displayText}
-                      </span>
+                      </span> */}
                     </div>
 
                     {/* Approval Status */}
@@ -1824,7 +1739,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         )}
                       </span>
                     </div>
-                    
+
                     {/* Busy Until Date */}
                     {profile.busyUntilDate && (
                       <div className="flex items-center justify-between">

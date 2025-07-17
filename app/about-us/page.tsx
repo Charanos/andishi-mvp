@@ -305,11 +305,10 @@ export default function AndishiAboutPage() {
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
             <div
-              className={`text-center mb-10 transition-all duration-1000 ${
-                isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-              }`}
+              className={`text-center mb-10 transition-all duration-1000 ${isVisible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-10"
+                }`}
             >
               <div className="max-w-6xl mx-auto px-6 relative z-10 mt-14 mb-10">
                 <h1 className="text-3xl lg:text-4xl font-medium text-white mb-4">
@@ -330,11 +329,10 @@ export default function AndishiAboutPage() {
                   <button
                     key={section}
                     onClick={() => setActiveSection(section)}
-                    className={`px-6 py-3 rounded-full cursor-pointer font-semibold monty uppercase text-sm transition-all duration-300 ${
-                      activeSection === section
-                        ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
-                        : "bg-white/10 text-gray-300 hover:bg-white/20"
-                    }`}
+                    className={`px-6 py-3 rounded-full cursor-pointer font-semibold monty uppercase text-sm transition-all duration-300 ${activeSection === section
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
+                      : "bg-white/10 text-gray-300 hover:bg-white/20"
+                      }`}
                   >
                     {section.charAt(0).toUpperCase() + section.slice(1)}
                   </button>
@@ -503,11 +501,10 @@ export default function AndishiAboutPage() {
                       <button
                         key={index}
                         onClick={() => setActiveTimelineItem(index)}
-                        className={`px-4 py-2 cursor-pointer rounded-lg text-sm font-medium transition-all duration-300 ${
-                          activeTimelineItem === index
-                            ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
-                            : "bg-white/10 text-gray-300 hover:bg-white/20"
-                        }`}
+                        className={`px-4 py-2 cursor-pointer rounded-lg text-sm font-medium transition-all duration-300 ${activeTimelineItem === index
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
+                          : "bg-white/10 text-gray-300 hover:bg-white/20"
+                          }`}
                       >
                         {event.year} {event.quarter}
                       </button>

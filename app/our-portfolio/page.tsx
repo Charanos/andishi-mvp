@@ -529,8 +529,8 @@ export default function OurProjectsPage() {
                       key={category}
                       onClick={() => setSelectedCategory(category)}
                       className={`group monty relative px-6 py-3 rounded-full border transition-all duration-300 capitalize font-medium text-sm transform hover:scale-105 active:scale-95 ${selectedCategory === category
-                          ? "bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400/60 text-white shadow-lg shadow-purple-500/25"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
+                        ? "bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400/60 text-white shadow-lg shadow-purple-500/25"
+                        : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
                         }`}
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
@@ -567,8 +567,8 @@ export default function OurProjectsPage() {
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`p-3.5 transition-all duration-300 ${viewMode === "grid"
-                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                      ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
+                      : "text-gray-400 hover:text-white hover:bg-white/10"
                       }`}
                     title="Grid View"
                   >
@@ -578,8 +578,8 @@ export default function OurProjectsPage() {
                   <button
                     onClick={() => setViewMode("list")}
                     className={`p-3.5 transition-all duration-300 ${viewMode === "list"
-                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                      ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
+                      : "text-gray-400 hover:text-white hover:bg-white/10"
                       }`}
                     title="List View"
                   >
@@ -1060,8 +1060,8 @@ export default function OurProjectsPage() {
                       <FiStar
                         key={i}
                         className={`${i < review.rating
-                            ? "fill-current opacity-100"
-                            : "opacity-30"
+                          ? "fill-current opacity-100"
+                          : "opacity-30"
                           }`}
                       />
                     ))}

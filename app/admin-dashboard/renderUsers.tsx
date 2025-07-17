@@ -147,8 +147,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
-  
-  
+
+
 
 
   // Form state for create/edit
@@ -406,7 +406,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       return;
     try {
       setLoading(true);
-      
+
       // Use the new hook function if available
       if (onCreateUser) {
         await onCreateUser(userData);
@@ -445,7 +445,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
           }
         }
       }
-      
+
       setViewMode("list");
       setError(null);
     } catch (err) {
@@ -462,7 +462,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
     if (!userId) return;
     try {
       setLoading(true);
-      
+
       // Use the new hook function if available
       if (onUpdateUser) {
         await onUpdateUser(userId, userData);
@@ -492,7 +492,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
           )
         );
       }
-      
+
       setSelectedUser(null);
       setViewMode("list");
       setError(null);
@@ -766,7 +766,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       )}
 
       {/* Form */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md bg-black/10 border border-gray-400/20 rounded-xl p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -879,7 +879,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors"
+              className="cursor-pointer flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors"
             >
               <FaSave />
               <span>{loading ? "Creating..." : "Create User"}</span>
@@ -1135,7 +1135,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
             {/* Left Column - User Information */}
             <div className="lg:col-span-2 space-y-8">
               {/* Personal Information Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
+              <div className="bg-black/10 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
@@ -1701,7 +1701,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                     <button
                       onClick={generateCredentials}
                       disabled={isCreatingAccount}
-                      className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
+                      className="cursor-pointer px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
                     >
                       <FaKey className="text-sm" />
                       <span className="text-sm">
@@ -1712,7 +1712,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                     <button
                       onClick={sendCredentials}
                       disabled={!generatedPassword && !accountExists}
-                      className="px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
+                      className="cursor-pointer px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
                     >
                       <FaPaperPlane className="text-sm" />
                       <span className="text-sm">Send Info</span>
@@ -1721,7 +1721,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                     {(generatedPassword || accountExists) && (
                       <button
                         onClick={copyCredentials}
-                        className="px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
+                        className="cursor-pointer px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
                       >
                         <FaCopy className="text-sm" />
                         <span className="text-sm">Copy Details</span>
@@ -1735,7 +1735,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             ? revokeAccess
                             : restoreAccess
                         }
-                        className={`px-4 py-3 bg-gradient-to-r ${getAccountStatusInfo().isActive
+                        className={`cursor-pointer px-4 py-3 bg-gradient-to-r ${getAccountStatusInfo().isActive
                           ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
                           : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600"
                           } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
@@ -1760,7 +1760,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
             {/* Right Column - Quick Actions & Stats */}
             <div className="space-y-8">
               {/* Quick Actions Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+              <div className="bg-black/10 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Quick Actions
                 </h3>
@@ -1798,7 +1798,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
               </div>
 
               {/* User Statistics Card */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+              <div className="bg-black/10 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   User Statistics
                 </h3>
@@ -1806,7 +1806,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 <div className="space-y-6">
                   <div className="text-center">
                     <div className="text-3xl font-semibold text-blue-400 mb-1">
-                      {selectedUser.projectsCount || 0}
+                      {selectedUser.projectsCount || 1}
                     </div>
                     <p className="text-gray-400 text-sm monty uppercase">
                       Total Projects

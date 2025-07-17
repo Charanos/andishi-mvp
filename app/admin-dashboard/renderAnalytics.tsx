@@ -362,10 +362,10 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
           const data = await response.json();
           setAnalyticsData(data);
         } else {
-toast.error("Failed to fetch analytics data");
+          toast.error("Failed to fetch analytics data");
         }
       } catch (error) {
-toast.error("Error fetching analytics data", error instanceof Error ? error.message : "Unknown error");
+        toast.error("Error fetching analytics data", error instanceof Error ? error.message : "Unknown error");
       } finally {
         setLoadingAnalytics(false);
         setIsLoading(false);
@@ -1146,9 +1146,9 @@ toast.error("Error fetching analytics data", error instanceof Error ? error.mess
           </div>
         )}
       </div>
-      <ToastContainer 
-        notifications={notifications} 
-        onRemoveNotification={removeNotification} 
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
       />
     </div>
   );

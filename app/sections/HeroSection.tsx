@@ -19,7 +19,7 @@ export default function HeroSection() {
         style={{ animationDelay: "2s" }}
       ></div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col-reverse justify-between lg:flex-row items-center h-full">
+      <div className="relative z-10 min-w-8xl mx-auto flex flex-col-reverse justify-between lg:flex-row items-center h-full">
         {/* Left column: text & CTAs */}
         <div className="w-full lg:w-2/3 text-white">
           {/* Live indicator with glassmorphic design */}
@@ -47,12 +47,12 @@ export default function HeroSection() {
 
           {/* Main heading with gradient text */}
           <div className="space-y-2 mb-10 mt-3">
-            <h1 className="text-4xl lg:text-6xl font-semibold leading-tight">
-              <span className="bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+            <h1 className="text-4xl lg:text-6xl leading-tight">
+              <span className="bg-gradient-to-r font-semibold from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
                 Global Tech Excellence,
               </span>
               <br />
-              <span className="bg-gradient-to-r font-semibold from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r font-medium from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
                 On Demand
               </span>
             </h1>

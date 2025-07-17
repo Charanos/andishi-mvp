@@ -1092,11 +1092,10 @@ export default function TechTalentPool() {
               <motion.button
                 key={role}
                 onClick={() => setSelectedRole(role)}
-                className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-300 cursor-pointer ${
-                  selectedRole === role
-                    ? "bg-purple-500/20 border-purple-400/50 text-gray-300"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-gray-300"
-                }`}
+                className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-300 cursor-pointer ${selectedRole === role
+                  ? "bg-purple-500/20 border-purple-400/50 text-gray-300"
+                  : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-gray-300"
+                  }`}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -1143,11 +1142,10 @@ export default function TechTalentPool() {
                 {/* Availability Badge */}
                 <div className="absolute top-4 right-4 z-10">
                   <motion.span
-                    className={`px-2 py-1 text-xs font-medium rounded-full backdrop-blur-sm ${
-                      developer.availability === "Available"
-                        ? "bg-green-500/60 text-white"
-                        : "bg-orange-500/60 text-white"
-                    }`}
+                    className={`px-2 py-1 text-xs font-medium rounded-full backdrop-blur-sm ${developer.availability === "Available"
+                      ? "bg-green-500/60 text-white"
+                      : "bg-orange-500/60 text-white"
+                      }`}
                     variants={badgeVariants}
                   >
                     {developer.availability}
@@ -1233,10 +1231,9 @@ export default function TechTalentPool() {
                     {developer.skills.slice(0, 3).map((skill, index) => (
                       <motion.div
                         key={skill}
-                        className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                          skillColors[skill] ||
+                        className={`px-2 py-1 rounded-full text-xs font-medium border ${skillColors[skill] ||
                           "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                        }`}
+                          }`}
                         variants={badgeVariants}
                         custom={index}
                       >
@@ -1341,10 +1338,9 @@ export default function TechTalentPool() {
               <button
                 key={page}
                 className={`px-4 cursor-pointer monty py-2 rounded-lg text-sm font-medium transition-all duration-300
-                  ${
-                    page === 1
-                      ? "bg-blue-500/20 border-blue-400/50 text-gray-300"
-                      : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+                  ${page === 1
+                    ? "bg-blue-500/20 border-blue-400/50 text-gray-300"
+                    : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
                   }`}
               >
                 {page}

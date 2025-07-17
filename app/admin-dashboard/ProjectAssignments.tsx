@@ -281,7 +281,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
       setSelectedDevelopers([]);
       refetch();
-      
+
       // Refresh the developer data to reflect availability changes
       if (refreshDevelopers) {
         refreshDevelopers();
@@ -341,7 +341,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       await updateDeveloperUponUnassignment();
       toast.success(`Successfully unassigned ${developerName} from ${projectTitle}`);
       refetch();
-      
+
       // Refresh the developer data to reflect availability changes
       if (refreshDevelopers) {
         refreshDevelopers();
@@ -445,7 +445,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
             <div className="p-2 bg-green-500/20 rounded-xl mr-3">
               <FaCheckCircle className="w-5 h-5 text-green-400" />
             </div>
-            <h4 className="text-xl font-semibold text-white">
+            <h4 className="text-xl font-medium text-white">
               Assigned Team ({getAssignedDevelopers().length})
             </h4>
           </div>
@@ -457,7 +457,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
               return (
                 <div
                   key={developer._id}
-                  className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 hover:border-green-500/30 transition-all duration-200 relative"
+                  className="bg-black/50 rounded-xl p-4 border border-gray-700/50 hover:border-green-500/30 transition-all duration-200 relative"
                 >
                   {/* Unassign Button */}
                   {!readOnly && (
@@ -502,7 +502,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                   <div className="flex items-center space-x-2 mb-3">
                     {/* Availability Status */}
                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                      Busy (Assigned)
+                      Busy
                     </span>
 
                     {/* Assignment Status */}
@@ -516,7 +516,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                   <div className="mb-3">
                     <p className="text-xs text-gray-400 mb-2">Primary Skills</p>
                     <div className="flex flex-wrap gap-1">
-                      {(enhancedDev.skills || []).slice(0, 3).map((skill: any, index: number) => (
+                      {(developer.skills || []).slice(0, 3).map((skill: any, index: number) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-gray-600/30 rounded text-xs text-gray-300 border border-gray-600/30"
@@ -524,9 +524,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           {typeof skill === 'string' ? skill : skill.name}
                         </span>
                       ))}
-                      {(enhancedDev.skills?.length || 0) > 3 && (
+                      {(developer.skills?.length || 0) > 3 && (
                         <span className="px-2 py-1 bg-gray-600/30 rounded text-xs text-gray-400 border border-gray-600/30">
-                          +{(enhancedDev.skills?.length || 0) - 3} more
+                          +{(developer.skills?.length || 0) - 3} more
                         </span>
                       )}
                     </div>
@@ -709,7 +709,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         }`}
                     >
                       {/* Compatibility Score Badge */}
-                      <div className="absolute top-4 right-4">
+                      {/* <div className="absolute top-4 right-4">
                         <div
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${compatibilityScore >= 70
                             ? "bg-green-500/20 text-green-400 border border-green-500/30"
@@ -720,14 +720,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         >
                           {compatibilityScore}% match
                         </div>
-                      </div>
+                      </div> */}
 
                       <div className="flex items-center w-full space-x-4">
-                        
-
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 items-center">
                           {/* Developer Header */}
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center space-x-3">
                               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                 <FaUser className="w-6 h-6 text-white" />
@@ -772,7 +770,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                               Primary Skills
                             </p>
                             <div className="flex flex-wrap gap-2">
-                              {(enhancedDev.skills || [])
+                              {(developer.skills || [])
                                 .slice(0, 4)
                                 .map((skill: any, index: number) => (
                                   <span
@@ -782,9 +780,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                     {typeof skill === 'string' ? skill : skill.name}
                                   </span>
                                 ))}
-                              {(enhancedDev.skills?.length || 0) > 4 && (
+                              {(developer.skills?.length || 0) > 4 && (
                                 <span className="px-2 py-1 bg-gray-600/30 rounded-lg text-xs text-gray-400 border border-gray-600/30">
-                                  +{(enhancedDev.skills?.length || 0) - 4} more
+                                  +{(developer.skills?.length || 0) - 4} more
                                 </span>
                               )}
                             </div>

@@ -11,10 +11,175 @@ function isValidObjectId(id: string): boolean {
 
 // CORS headers for production
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' ? 'https://andishi.dev' : '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Credentials': 'true',
 };
+
+// Helper function to get user details from both Prisma and MongoDB
+export async function getUserDetails(userId: string) {
+  try {
+    // Try Prisma first
+    let user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, firstName: true, lastName: true, email: true, role: true },
+    });
+    
+    // If not found in Prisma, try MongoDB directly
+    if (!user) {
+      const { MongoClient } = require('mongodb');
+      const client = new MongoClient(process.env.DATABASE_URL!);
+      await client.connect();
+      const db = client.db();
+      
+      const mongoUser = await db.collection('users').findOne({
+        _id: new (require('mongodb').ObjectId)(userId)
+      });
+      
+      await client.close();
+      
+      if (mongoUser) {
+        user = {
+          id: mongoUser._id.toString(),
+          firstName: mongoUser.firstName,
+          lastName: mongoUser.lastName,
+          email: mongoUser.email,
+          role: mongoUser.role
+        };
+      }
+    }
+    
+    return user;
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    return null;
+  }
+}
+
+// Helper function to get project details from both Prisma and MongoDB
+export async function getProjectDetails(projectId: string) {
+  try {
+    // Try Prisma first
+    let project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        assignments: {
+          where: {
+            status: { in: ['pending', 'accepted'] } // Only active assignments
+          },
+          include: {
+            developer: true,
+          },
+        },
+      },
+    });
+
+    // If not found in Prisma, try MongoDB directly
+    if (!project) {
+      const { MongoClient } = require('mongodb');
+      const client = new MongoClient(process.env.DATABASE_URL!);
+      await client.connect();
+      const db = client.db();
+      
+      const mongoProject = await db.collection('projects').findOne({
+        _id: new (require('mongodb').ObjectId)(projectId)
+      });
+      
+      await client.close();
+      
+      if (mongoProject) {
+        console.log(`Found MongoDB project:`, {
+          id: mongoProject._id.toString(),
+          title: mongoProject.title,
+          clientId: mongoProject.clientId,
+          maxTeamSize: mongoProject.maxTeamSize
+        });
+        
+        // Get project assignments from Prisma using the project ID
+        console.log(`Looking for assignments with projectId: ${mongoProject._id.toString()}`);
+        const assignments = await prisma.projectAssignment.findMany({
+          where: { 
+            projectId: mongoProject._id.toString(),
+            status: { in: ['pending', 'accepted'] } // Only active assignments
+          },
+          include: {
+            developer: true,
+          },
+        });
+        
+        console.log(`Found ${assignments.length} assignments:`, assignments.map(a => ({
+          id: a.id,
+          projectId: a.projectId,
+          status: a.status,
+          developerId: a.developer?.userId,
+          developerData: a.developer ? 'present' : 'missing'
+        })));
+        
+        // Convert MongoDB project to expected format
+        project = {
+          id: mongoProject._id.toString(),
+          title: mongoProject.title,
+          clientId: mongoProject.clientId,
+          assignments: assignments
+        } as any;
+      }
+    }
+    
+    return project;
+  } catch (error) {
+    console.error('Error fetching project details:', error);
+    return null;
+  }
+}
+
+// Helper function to create proper chat participants for a project
+export async function createChatParticipants(project: any) {
+  const participants = [];
+  
+  // 1. Add client as participant if clientId exists
+  if (project.clientId) {
+    const clientUser = await getUserDetails(project.clientId);
+    if (clientUser) {
+      participants.push({
+        userId: clientUser.id,
+        name: `${clientUser.firstName} ${clientUser.lastName}`.trim() || clientUser.email || "Client",
+        role: "client",
+        isOnline: false,
+      });
+    }
+  }
+  
+  // 2. Add assigned developers as participants
+  if (project.assignments && project.assignments.length > 0) {
+    for (const assignment of project.assignments) {
+      if (assignment.developer && assignment.developer.userId) {
+        const developerUser = await getUserDetails(assignment.developer.userId);
+        if (developerUser) {
+          // Try to get name from developer profile data first
+          const developerData = assignment.developer.data as unknown as DeveloperProfileDataContent;
+          const firstName = developerData?.personalInfo?.firstName;
+          const lastName = developerData?.personalInfo?.lastName;
+          let developerName = (firstName && lastName) ? `${firstName} ${lastName}` : null;
+          
+          // Fallback to user details if no name in profile
+          if (!developerName) {
+            developerName = `${developerUser.firstName} ${developerUser.lastName}`.trim() || developerUser.email || "Developer";
+          }
+          
+          participants.push({
+            userId: assignment.developer.userId,
+            name: developerName,
+            role: "developer",
+            isOnline: false,
+          });
+        }
+      }
+    }
+  }
+  
+  return participants;
+}
 
 // GET /api/project-chat/{projectId} - Get chat messages for a project
 export async function GET(
@@ -22,6 +187,17 @@ export async function GET(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    // Validate environment variables
+    if (!process.env.JWT_SECRET) {
+      console.error('GET /api/project-chat/[projectId] - JWT_SECRET not found in environment');
+      return new NextResponse("Server configuration error", { status: 500, headers: corsHeaders });
+    }
+    
+    if (!process.env.DATABASE_URL) {
+      console.error('GET /api/project-chat/[projectId] - DATABASE_URL not found in environment');
+      return new NextResponse("Server configuration error", { status: 500, headers: corsHeaders });
+    }
+    
     const { projectId } = await params;
     
     // Validate ObjectId format
@@ -34,73 +210,21 @@ export async function GET(
     const session = await getSession(req);
     if (!session || !session.user) {
       console.error(`GET /api/project-chat/[projectId] - Unauthorized access attempt for project ${projectId}`);
+      console.error('Session details:', { session, hasSession: !!session, hasUser: !!session?.user });
+      
+      // Check if token exists
+      const authHeader = req.headers.get('authorization');
+      const cookieToken = req.cookies.get('auth_token')?.value;
+      console.error('Token details:', { hasAuthHeader: !!authHeader, hasCookieToken: !!cookieToken });
+      
       return new NextResponse("Unauthorized", { status: 401, headers: corsHeaders });
     }
     
     console.log(`GET /api/project-chat/[projectId] - User ${session.user.id} (${session.user.role}) accessing project ${projectId}`);
     
-    // For admin users, allow access to any project chat (even if project doesn't exist)
-    if (session.user.role === "admin") {
-      console.log(`GET /api/project-chat/[projectId] - Admin access granted for project ${projectId}`);
-      
-      // Try to find existing chat first
-      let chat = await prisma.projectChat.findFirst({
-        where: { projectId },
-        include: {
-          messages: {
-            orderBy: {
-              timestamp: "asc",
-            },
-          },
-          participants: true,
-        },
-      });
-      
-      // If no chat exists, create one with admin as the only participant
-      if (!chat) {
-        console.log(`GET /api/project-chat/[projectId] - Creating admin-only chat for project ${projectId}`);
-        
-        chat = await prisma.projectChat.create({
-          data: {
-            projectId,
-            lastActivity: new Date(),
-            participants: {
-              create: [{
-                userId: session.user.id,
-                name: session.user.name ?? "Admin",
-                role: "admin",
-                isOnline: false,
-              }],
-            },
-          },
-          include: {
-            messages: {
-              orderBy: {
-                timestamp: "asc",
-              },
-            },
-            participants: true,
-          },
-        });
-        
-        console.log(`GET /api/project-chat/[projectId] - Created admin-only chat`);
-      }
-      
-      return NextResponse.json(chat, { status: 200, headers: corsHeaders });
-    }
+    // Get project details first (required for all users)
+    const project = await getProjectDetails(projectId);
     
-    // For non-admin users, verify project exists and check access
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      include: {
-        assignments: {
-          include: {
-            developer: true,
-          },
-        },
-      },
-    });
-
     if (!project) {
       console.error(`GET /api/project-chat/[projectId] - Project not found: ${projectId}`);
       return new NextResponse("Project not found", { status: 404, headers: corsHeaders });
@@ -108,9 +232,11 @@ export async function GET(
 
     // Check if user has access to this project
     const hasAccess = 
+      session.user.role === "admin" || // Admin can access all projects
       project.clientId === session.user.id || // Client can access their projects
       project.assignments.some(assignment => 
-        assignment.developer?.userId === session.user.id // Developer can access assigned projects
+        assignment.developer?.userId === session.user.id && 
+        ['pending', 'accepted'].includes(assignment.status) // Only active assignments
       );
 
     if (!hasAccess) {
@@ -134,22 +260,71 @@ export async function GET(
     // If no chat exists, create one with default participants
     if (!chat) {
       console.log(`GET /api/project-chat/[projectId] - Creating new chat for project ${projectId}`);
+      console.log(`Project details:`, {
+        id: project.id,
+        clientId: project.clientId,
+        assignmentsCount: project.assignments.length,
+        assignments: project.assignments.map(a => ({
+          id: a.id,
+          status: a.status,
+          developerId: a.developer?.userId
+        }))
+      });
       
       const participants = [];
       
       // Add client as participant if clientId exists
       if (project.clientId) {
-        const clientUser = await prisma.user.findUnique({
+        // Try Prisma first
+        let clientUser = await prisma.user.findUnique({
           where: { id: project.clientId },
-          select: { id: true, firstName: true, lastName: true },
+          select: { id: true, firstName: true, lastName: true, email: true },
         });
+        
+        // If not found in Prisma, try MongoDB directly
+        if (!clientUser) {
+          try {
+            const { MongoClient } = require('mongodb');
+            const client = new MongoClient(process.env.DATABASE_URL!);
+            await client.connect();
+            const db = client.db();
+            
+            const mongoUser = await db.collection('users').findOne({
+              _id: new (require('mongodb').ObjectId)(project.clientId)
+            });
+            
+            await client.close();
+            
+            if (mongoUser) {
+              clientUser = {
+                id: mongoUser._id.toString(),
+                firstName: mongoUser.firstName,
+                lastName: mongoUser.lastName,
+                email: mongoUser.email
+              };
+            }
+          } catch (mongoError) {
+            console.error('Error fetching client user from MongoDB:', mongoError);
+          }
+        }
+        
         if (clientUser) {
+          const clientName = `${clientUser.firstName} ${clientUser.lastName}`.trim() || clientUser.email || "Client";
+          console.log(`Adding client participant:`, {
+            userId: clientUser.id,
+            name: clientName,
+            firstName: clientUser.firstName,
+            lastName: clientUser.lastName,
+            email: clientUser.email
+          });
           participants.push({
             userId: clientUser.id,
-            name: `${clientUser.firstName} ${clientUser.lastName}`.trim() || "Client",
+            name: clientName,
             role: "client",
             isOnline: false,
           });
+        } else {
+          console.log(`Client user not found for clientId: ${project.clientId}`);
         }
       }
       
@@ -170,15 +345,63 @@ export async function GET(
         }
       });
       
-      // Add admin user if they're the one accessing
-      if (session.user.role === "admin" && !participants.some(p => p.userId === session.user.id)) {
+      // Always add the current user as a participant if they're not already included
+      if (!participants.some(p => p.userId === session.user.id)) {
+        // Get user details for proper name display
+        let currentUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { id: true, firstName: true, lastName: true, email: true, role: true },
+        });
+        
+        // If not found in Prisma, try MongoDB directly
+        if (!currentUser) {
+          try {
+            const { MongoClient } = require('mongodb');
+            const client = new MongoClient(process.env.DATABASE_URL!);
+            await client.connect();
+            const db = client.db();
+            
+            const mongoUser = await db.collection('users').findOne({
+              _id: new (require('mongodb').ObjectId)(session.user.id)
+            });
+            
+            await client.close();
+            
+            if (mongoUser) {
+              currentUser = {
+                id: mongoUser._id.toString(),
+                firstName: mongoUser.firstName,
+                lastName: mongoUser.lastName,
+                email: mongoUser.email,
+                role: mongoUser.role
+              };
+            }
+          } catch (mongoError) {
+            console.error('Error fetching current user from MongoDB:', mongoError);
+          }
+        }
+        
+        const userName = currentUser ? 
+          `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email :
+          session.user.name || session.user.email || "User";
+        
+        console.log(`Adding current user as participant:`, {
+          userId: session.user.id,
+          name: userName,
+          role: session.user.role,
+          currentUserFound: !!currentUser,
+          currentUserDetails: currentUser
+        });
+        
         participants.push({
           userId: session.user.id,
-          name: session.user.name ?? "Admin",
-          role: "admin",
+          name: userName,
+          role: session.user.role,
           isOnline: false,
         });
       }
+      
+      console.log(`Final participants array before creating chat:`, participants);
       
       // Create the chat
       chat = await prisma.projectChat.create({
@@ -231,6 +454,17 @@ export async function POST(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    // Validate environment variables
+    if (!process.env.JWT_SECRET) {
+      console.error('POST /api/project-chat/[projectId] - JWT_SECRET not found in environment');
+      return new NextResponse("Server configuration error", { status: 500, headers: corsHeaders });
+    }
+    
+    if (!process.env.DATABASE_URL) {
+      console.error('POST /api/project-chat/[projectId] - DATABASE_URL not found in environment');
+      return new NextResponse("Server configuration error", { status: 500, headers: corsHeaders });
+    }
+    
     const { projectId } = await params;
     
     // Validate ObjectId format
@@ -257,7 +491,7 @@ export async function POST(
       console.log(`POST /api/project-chat/[projectId] - Admin access granted for posting to project ${projectId}`);
     } else {
       // For non-admin users, verify project exists and check access
-      const projectCheck = await prisma.project.findUnique({
+      let projectCheck = await prisma.project.findUnique({
         where: { id: projectId },
         include: {
           assignments: {
@@ -267,6 +501,41 @@ export async function POST(
           },
         },
       });
+
+      // If not found in Prisma, try MongoDB projects collection directly
+      if (!projectCheck) {
+        try {
+          const { MongoClient } = require('mongodb');
+          const client = new MongoClient(process.env.DATABASE_URL!);
+          await client.connect();
+          const db = client.db();
+          
+          const mongoProject = await db.collection('projects').findOne({
+            _id: new (require('mongodb').ObjectId)(projectId)
+          });
+          
+          await client.close();
+          
+          if (mongoProject) {
+            // Get project assignments from Prisma using the project ID
+            const assignments = await prisma.projectAssignment.findMany({
+              where: { projectId: mongoProject._id.toString() },
+              include: {
+                developer: true,
+              },
+            });
+            
+            // Convert MongoDB project to expected format for access check
+            projectCheck = {
+              id: mongoProject._id.toString(),
+              clientId: mongoProject.clientId,
+              assignments: assignments
+            } as any;
+          }
+        } catch (mongoError) {
+          console.error('Error checking MongoDB projects in POST:', mongoError);
+        }
+      }
 
       if (!projectCheck) {
         return new NextResponse("Project not found", { status: 404, headers: corsHeaders });
@@ -294,7 +563,7 @@ export async function POST(
       const participants = [];
       
       // Try to get project data if it exists
-      const project = await prisma.project.findUnique({
+      let project = await prisma.project.findUnique({
         where: { id: projectId },
         include: {
           assignments: {
@@ -305,17 +574,81 @@ export async function POST(
         },
       });
 
+      // If not found in Prisma, try MongoDB projects collection directly
+      if (!project) {
+        try {
+          const { MongoClient } = require('mongodb');
+          const client = new MongoClient(process.env.DATABASE_URL!);
+          await client.connect();
+          const db = client.db();
+          
+          const mongoProject = await db.collection('projects').findOne({
+            _id: new (require('mongodb').ObjectId)(projectId)
+          });
+          
+          await client.close();
+          
+          if (mongoProject) {
+            // Get project assignments from Prisma using the project ID
+            const assignments = await prisma.projectAssignment.findMany({
+              where: { projectId: mongoProject._id.toString() },
+              include: {
+                developer: true,
+              },
+            });
+            
+            // Convert MongoDB project to expected format
+            project = {
+              id: mongoProject._id.toString(),
+              clientId: mongoProject.clientId,
+              assignments: assignments
+            } as any;
+          }
+        } catch (mongoError) {
+          console.error('Error checking MongoDB projects in POST chat creation:', mongoError);
+        }
+      }
+
       if (project) {
         // Add client as participant if clientId exists
         if (project.clientId) {
-          const clientUser = await prisma.user.findUnique({
+          // Try Prisma first
+          let clientUser = await prisma.user.findUnique({
             where: { id: project.clientId },
-            select: { id: true, firstName: true, lastName: true },
+            select: { id: true, firstName: true, lastName: true, email: true },
           });
+          
+          // If not found in Prisma, try MongoDB directly
+          if (!clientUser) {
+            try {
+              const { MongoClient } = require('mongodb');
+              const client = new MongoClient(process.env.DATABASE_URL!);
+              await client.connect();
+              const db = client.db();
+              
+              const mongoUser = await db.collection('users').findOne({
+                _id: new (require('mongodb').ObjectId)(project.clientId)
+              });
+              
+              await client.close();
+              
+              if (mongoUser) {
+                clientUser = {
+                  id: mongoUser._id.toString(),
+                  firstName: mongoUser.firstName,
+                  lastName: mongoUser.lastName,
+                  email: mongoUser.email
+                };
+              }
+            } catch (mongoError) {
+              console.error('Error fetching client user from MongoDB in POST:', mongoError);
+            }
+          }
+          
           if (clientUser) {
             participants.push({
               userId: clientUser.id,
-              name: `${clientUser.firstName} ${clientUser.lastName}`.trim() || "Client",
+              name: `${clientUser.firstName} ${clientUser.lastName}`.trim() || clientUser.email || "Client",
               role: "client",
               isOnline: false,
             });
@@ -345,9 +678,47 @@ export async function POST(
 
       // Always add the current user as a participant if they're not already included
       if (!participants.some(p => p.userId === session.user.id)) {
+        // Get user details for proper name display
+        let currentUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { id: true, firstName: true, lastName: true, email: true, role: true },
+        });
+        
+        // If not found in Prisma, try MongoDB directly
+        if (!currentUser) {
+          try {
+            const { MongoClient } = require('mongodb');
+            const client = new MongoClient(process.env.DATABASE_URL!);
+            await client.connect();
+            const db = client.db();
+            
+            const mongoUser = await db.collection('users').findOne({
+              _id: new (require('mongodb').ObjectId)(session.user.id)
+            });
+            
+            await client.close();
+            
+            if (mongoUser) {
+              currentUser = {
+                id: mongoUser._id.toString(),
+                firstName: mongoUser.firstName,
+                lastName: mongoUser.lastName,
+                email: mongoUser.email,
+                role: mongoUser.role
+              };
+            }
+          } catch (mongoError) {
+            console.error('Error fetching current user from MongoDB in POST:', mongoError);
+          }
+        }
+        
+        const userName = currentUser ? 
+          `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email :
+          session.user.name || session.user.email || "User";
+        
         participants.push({
           userId: session.user.id,
-          name: session.user.name ?? (session.user.role === "admin" ? "Admin" : "User"),
+          name: userName,
           role: session.user.role,
           isOnline: false,
         });
@@ -372,8 +743,54 @@ export async function POST(
     }
 
     // The ChatMessage schema requires senderName and senderRole.
-    // We'll construct the name from the session. This assumes the session user has these fields.
-    const senderName = session.user.name ?? "Unknown User";
+    // We'll construct the name from the session or fetch from database if needed.
+    let senderName = session.user.name;
+    
+    // If no name in session, try to get it from database
+    if (!senderName) {
+      let currentUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { firstName: true, lastName: true, email: true },
+      });
+      
+      // If not found in Prisma, try MongoDB directly
+      if (!currentUser) {
+        try {
+          const { MongoClient } = require('mongodb');
+          const client = new MongoClient(process.env.DATABASE_URL!);
+          await client.connect();
+          const db = client.db();
+          
+          const mongoUser = await db.collection('users').findOne({
+            _id: new (require('mongodb').ObjectId)(session.user.id)
+          });
+          
+          await client.close();
+          
+          if (mongoUser) {
+            currentUser = {
+              firstName: mongoUser.firstName,
+              lastName: mongoUser.lastName,
+              email: mongoUser.email
+            };
+          }
+        } catch (mongoError) {
+          console.error('Error fetching user from MongoDB for message:', mongoError);
+        }
+      }
+      
+      if (currentUser) {
+        senderName = `${currentUser.firstName} ${currentUser.lastName}`.trim() || currentUser.email;
+      }
+    }
+    
+    // Fallback to role-based name if still no name found
+    if (!senderName) {
+      senderName = session.user.role === 'admin' ? 'Admin' : 
+                  session.user.role === 'client' ? 'Client' : 
+                  session.user.role === 'developer' ? 'Developer' : 'User';
+    }
+    
     const senderRole = session.user.role ?? "User";
 
     const newMessage = await prisma.chatMessage.create({

@@ -98,7 +98,7 @@ export interface DeveloperProfile {
     avatar?: string;
     tagline: string;
   };
-    professionalInfo: {
+  professionalInfo: {
     title: string;
     experienceLevel: string;
     yearsOfExperience: string;
@@ -208,13 +208,13 @@ export default function EnhancedDeveloperDashboard() {
             bio: profileData.professionalInfo?.bio || "",
             preferredWorkType: profileData.professionalInfo?.preferredWorkType || [],
             workingHours: profileData.professionalInfo?.workingHours || "",
-    certifications: profileData.professionalInfo?.certifications || [],
+            certifications: profileData.professionalInfo?.certifications || [],
           },
         });
       } catch (err) {
-        addNotification({ 
-          type: "error", 
-          title: "Profile Load Error", 
+        addNotification({
+          type: "error",
+          title: "Profile Load Error",
           message: "Failed to load your developer profile. Please try again."
         });
       } finally {
@@ -345,10 +345,10 @@ export default function EnhancedDeveloperDashboard() {
                   <FaBell className="text-xl" />
                   {profile?.notifications?.filter((n) => !n.read).length >
                     0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                      {profile?.notifications?.filter((n) => !n.read).length}
-                    </span>
-                  )}
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                        {profile?.notifications?.filter((n) => !n.read).length}
+                      </span>
+                    )}
                 </button>
 
                 {showNotifications && (
@@ -362,9 +362,8 @@ export default function EnhancedDeveloperDashboard() {
                       {(profile?.notifications ?? []).map((notification) => (
                         <div
                           key={notification.id}
-                          className={`p-4 border-b border-white/5 hover:bg-white/5 ${
-                            !notification.read ? "bg-blue-500/5" : ""
-                          }`}
+                          className={`p-4 border-b border-white/5 hover:bg-white/5 ${!notification.read ? "bg-blue-500/5" : ""
+                            }`}
                         >
                           <div className="flex items-start space-x-3">
                             <div
@@ -473,11 +472,10 @@ export default function EnhancedDeveloperDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg transition-all ${
-                    activeTab === tab.id
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
-                  }`}
+                  className={`flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg transition-all ${activeTab === tab.id
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
                 >
                   <tab.icon className="text-lg" />
                   <span className="font-medium">{tab.label}</span>
@@ -508,4 +506,3 @@ export default function EnhancedDeveloperDashboard() {
     </div>
   );
 }
- 

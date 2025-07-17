@@ -127,9 +127,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   // State Management
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
-  const { 
-    profiles: devProfiles, 
-    loading: devProfilesLoading, 
+  const {
+    profiles: devProfiles,
+    loading: devProfilesLoading,
     updateProfile: updateDevProfile,
     approveProfile,
     rejectProfile,
@@ -457,11 +457,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
           "Content-Type": "application/json"
         }
       });
-      
+
       if (!syncResponse.ok) {
         throw new Error(`Sync request failed with status: ${syncResponse.status}`);
       }
-      
+
       const syncResult = await syncResponse.json();
       if (syncResult.message) {
         toast.success("Data synchronized successfully", syncResult.message);
@@ -482,17 +482,17 @@ export default function EnhancedAdminDashboard(): ReactNode {
     try {
       setLoading(true);
       console.log("Refreshing all data...");
-      
+
       // Refresh both users and developer profiles
       await Promise.all([
         refreshUsers(),
         refetchProfiles(),
         syncDeveloperData()
       ]);
-      
+
       // Trigger developer profile refresh
       setProfileRefreshTrigger(Date.now());
-      
+
       console.log("All data refreshed successfully");
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -553,7 +553,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const fetchAllData = async () => {
     setLoading(true);
     setError(null);
-    
+
     // First, try to sync data to ensure consistency
     await syncDeveloperData();
     try {
@@ -571,7 +571,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       const usersRes = await fetch("/api/users");
       const usersData = await usersRes.json();
       let usersArray: SystemUser[] = [];
-      
+
       if (usersData.success && Array.isArray(usersData.users)) {
         usersArray = usersData.users;
         console.log(`Loaded ${usersArray.length} users with enhanced profile data`);
@@ -3630,7 +3630,7 @@ Generate new credentials to reset password.`;
             <AdvancedAnalyticsDashboard analytics={analytics} />
           )}
           {activeTab === "dev profiles" && (
-            <DeveloperProfilesOverview 
+            <DeveloperProfilesOverview
               refreshUsers={refreshAllData}
               onApproveProfile={handleApproveProfile}
               onRejectProfile={handleRejectProfile}

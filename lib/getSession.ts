@@ -25,18 +25,27 @@ function getToken(request: NextRequest): string | null {
 export async function getSession(request: NextRequest): Promise<Session | null> {
     const token = getToken(request);
     if (!token) {
+        console.error('getSession: No token found');
         return null;
     }
     
     // Use the same JWT secret as login API for consistency
-    const secretValue = process.env.JWT_SECRET || 'your-secret-key-for-development';
+    const secretValue = process.env.JWT_SECRET;
     if (!secretValue) {
+        console.error('getSession: JWT_SECRET not found in environment');
         return null;
     }
     
     const secret = new TextEncoder().encode(secretValue);
     try {
         const { payload } = await jwtVerify(token, secret);
+        
+        // Validate required fields
+        if (!payload.userId || !payload.email || !payload.role) {
+            console.error('getSession: Missing required fields in token payload');
+            return null;
+        }
+        
         return {
             user: {
                 id: payload.userId as string,
@@ -47,6 +56,7 @@ export async function getSession(request: NextRequest): Promise<Session | null> 
             },
         };
     } catch (error) {
+        console.error('getSession: JWT verification failed:', error instanceof Error ? error.message : String(error));
         return null;
     }
 }

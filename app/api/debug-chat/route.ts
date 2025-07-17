@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/getSession";
-import { getUserDetails, getProjectDetails } from "../project-chat/[projectId]/route";
+import prisma from '@/lib/prisma';
 
 // Helper function to validate MongoDB ObjectId
 function isValidObjectId(id: string): boolean {
@@ -39,8 +39,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid project ID format' }, { status: 400 });
     }
     
-    // Get project details
-    const project = await getProjectDetails(projectId);
+    // Get project details using Prisma
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        assignments: {
+          include: {
+            developer: true
+          }
+        }
+      }
+    });
     console.log('Project found:', project ? 'Yes' : 'No');
     
     if (!project) {
@@ -52,7 +61,7 @@ export async function POST(req: NextRequest) {
       session.user.role === "admin" || 
       project.clientId === session.user.id ||
       project.assignments.some(assignment => 
-        assignment.developer?.userId === session.user.id && 
+        assignment.developerId === session.user.id && 
         ['pending', 'accepted'].includes(assignment.status)
       );
     
@@ -66,8 +75,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
     
-    // Get user details
-    const userDetails = await getUserDetails(session.user.id);
+    // Get user details using Prisma
+    const userDetails = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { developerProfile: true }
+    });
     console.log('User details:', userDetails);
     
     return NextResponse.json({
@@ -81,7 +93,7 @@ export async function POST(req: NextRequest) {
         assignments: project.assignments.map(a => ({
           id: a.id,
           status: a.status,
-          developerId: a.developer?.userId,
+          developerId: a.developerId,
           developerName: (a.developer?.data as any)?.personalInfo?.firstName || 'Unknown'
         }))
       },

@@ -1,5 +1,5 @@
-import clientPromise from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import prisma from '@/lib/prisma';
 
 const allowedOrigins = [
   'https://andishi-mvp.vercel.app',
@@ -39,9 +39,6 @@ async function getAuthenticatedUserEmail(authHeader: string | null): Promise<str
 
 export async function GET(req: NextRequest) {
   try {
-    const client = await clientPromise;
-    const db = client.db();
-    
     // Get the user's email from the auth token
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
@@ -51,17 +48,22 @@ export async function GET(req: NextRequest) {
     const token = authHeader.split(' ')[1];
     const userEmail = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).email;
     
-    // Find the profile for the authenticated user
-    const record = await db.collection('developerProfiles').findOne({ 'data.personalInfo.email': userEmail });
-
-    if (!record) {
+    // Find the user first
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      include: { developerProfile: true }
+    });
+    
+    if (!user || !user.developerProfile) {
       return new NextResponse(
         JSON.stringify({ error: 'Profile not found' }), 
         { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
+    
+    const record = user.developerProfile;
 
-    return new NextResponse(JSON.stringify(record?.data), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    return new NextResponse(JSON.stringify(record.data), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
   } catch (err) {
     console.error("GET /api/developer-profile error", err);
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
@@ -90,13 +92,13 @@ export async function PUT(req: NextRequest) {
       return new NextResponse('Forbidden: Cannot update another user\'s profile', { status: 403, headers: corsHeaders });
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    // Find the user and their developer profile
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      include: { developerProfile: true }
+    });
 
-    // Check if profile exists for this user
-    const existing = await db.collection('developerProfiles').findOne({ 'data.personalInfo.email': userEmail });
-
-    if (!existing) {
+    if (!user || !user.developerProfile) {
       return new NextResponse(
         JSON.stringify({ error: 'Profile not found' }), 
         { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
@@ -104,15 +106,17 @@ export async function PUT(req: NextRequest) {
     }
 
     // Update the existing profile
-    await db.collection('developerProfiles').updateOne(
-      { 'data.personalInfo.email': userEmail },
-      { $set: { data: payload } }
-    );
+    const updatedProfile = await prisma.developerProfile.update({
+      where: { id: user.developerProfile.id },
+      data: { 
+        data: payload,
+        updatedAt: new Date()
+      }
+    });
     
-    // Return the updated profile
-    const record = await db.collection('developerProfiles').findOne({ 'data.personalInfo.email': userEmail });
+    const record = updatedProfile;
 
-    return new NextResponse(JSON.stringify(record!.data), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    return new NextResponse(JSON.stringify(record.data), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
   } catch (err) {
     console.error("PUT /api/developer-profile error", err);
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });

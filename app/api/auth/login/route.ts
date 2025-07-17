@@ -1,7 +1,7 @@
 
 import { SignJWT } from 'jose';
 import { User } from '@/types/auth';
-import clientPromise from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -35,9 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Try to fetch user from database
-    const client = await clientPromise;
-    const db = client.db();
-    let user: any = await db.collection('users').findOne({ email: email.toLowerCase() });
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
 
     if (!user) {
       return new NextResponse(

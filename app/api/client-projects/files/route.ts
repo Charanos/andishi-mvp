@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
 import path from 'path';
 import { writeFile, mkdir } from 'fs/promises';
 
@@ -32,12 +31,9 @@ export async function POST(req: NextRequest) {
     // Construct public URL (assuming /public is the static folder)
     const fileUrl = `/uploads/${fileName}`;
 
-    // Connect to MongoDB and push file metadata to project
-    const client = await clientPromise;
-    const db = client.db();
-
+    // Push file metadata to project using Prisma
     const newFile = {
-      _id: new ObjectId(),
+      id: `${Date.now()}${Math.random().toString(16).slice(2)}`, // Generate a unique ID
       fileName: file.name,
       fileUrl,
       fileSize: file.size,
@@ -45,19 +41,17 @@ export async function POST(req: NextRequest) {
       createdAt: new Date(),
     };
 
-    const result = await db.collection('projects').updateOne(
-      { _id: new ObjectId(projectId) },
-      {
-        $push: {
-          files: newFile,
+    const result = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        files: {
+          push: newFile,
         },
-        $set: {
-          updatedAt: new Date(),
-        },
-      } as any
-    );
+        updatedAt: new Date(),
+      }
+    });
 
-    if (result.modifiedCount === 0) {
+    if (!result) {
       return NextResponse.json(
         { success: false, message: 'Project not found or not updated' },
         { status: 404 }

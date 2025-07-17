@@ -1,6 +1,6 @@
-import { ObjectId } from 'mongodb';
-import clientPromise from '@/lib/mongodb';
+// MongoDB imports removed
 import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
 const allowedOrigins = [
   'https://andishi-mvp.vercel.app',
@@ -22,10 +22,10 @@ export async function OPTIONS() {
 // GET handler to fetch all developer submissions
 export async function GET() {
   try {
-    const client = await clientPromise;
-    const db = client.db();
-    const collection = db.collection('developers');
-    const developers = await collection.find({}).sort({ createdAt: -1 }).toArray();
+    // Fetch developers using Prisma
+    const developers = await prisma.developer.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
     return new NextResponse(JSON.stringify({ success: true, developers }), { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error('Error fetching developers:', error);
@@ -36,73 +36,146 @@ export async function GET() {
 // POST handler to add a developer to the talent pool
 export async function POST(req: NextRequest) {
   try {
+    // Validate environment variables first
+    if (!process.env.DATABASE_URL) {
+      console.error('DATABASE_URL not found in environment');
+      return new NextResponse(JSON.stringify({ 
+        success: false, 
+        message: 'Server configuration error - DATABASE_URL missing' 
+      }), { status: 500, headers: corsHeaders });
+    }
+
+    console.log('Environment variables validated successfully');
+    
     const data = await req.json();
     data.createdAt = new Date();
-    const client = await clientPromise;
-    const db = client.db();
-    const developersCol = db.collection('developers');
-    const usersCol = db.collection('users');
+    // Prisma code handles developer creation
 
-    // 1) Insert into developers collection
-    const result = await developersCol.insertOne(data);
+    // 1) Create developer record
+    const developer = await prisma.developer.create({
+      data: {
+        email: data.email || '',
+        firstName: data.firstName || data.personalInfo?.firstName || '',
+        lastName: data.lastName || data.personalInfo?.lastName || '',
+        personalInfo: data.personalInfo || {},
+        professionalInfo: data.professionalInfo || {},
+        technicalSkills: data.technicalSkills || {},
+        workExperience: data.workExperience || [],
+        projects: data.projects || [],
+        createdAt: data.createdAt
+      }
+    });
 
-    // 2) Upsert into users collection so the developer is visible in the admin dashboard
+    // 2) Create or update user using Prisma (this ensures proper relations)
     const emailLower = (data.email || '').toLowerCase().trim();
-    if (emailLower) {
-      await usersCol.updateOne(
-        { email: emailLower },
-        {
-          $set: {
-            role: 'developer', // always ensure role
-            firstName: data.firstName || data.personalInfo?.firstName || '',
-            lastName: data.lastName || data.personalInfo?.lastName || '',
+    const firstName = data.firstName || data.personalInfo?.firstName || '';
+    const lastName = data.lastName || data.personalInfo?.lastName || '';
+    
+    let user;
+    try {
+      // Try to find existing user first
+      user = await prisma.user.findUnique({ where: { email: emailLower } });
+      
+      if (user) {
+        // Update existing user
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            firstName,
+            lastName,
+            role: 'developer',
             isActive: true,
             updatedAt: new Date(),
           },
-          $setOnInsert: {
+        });
+        console.log('Updated existing user:', user.id);
+      } else {
+        // Create new user
+        user = await prisma.user.create({
+          data: {
             email: emailLower,
+            firstName,
+            lastName,
+            role: 'developer',
+            status: 'pending',
+            developerProfileStatus: 'pending',
+            isActive: true,
             accountCreated: false,
             passwordGenerated: false,
-            loginAttempts: 0,
-            accountLocked: false,
-            createdAt: new Date(),
-          }
-        },
-        { upsert: true }
-      );
-    }
-
-    // 3) Create developer profile if it doesn't exist
-    const profilesCol = db.collection('developerProfiles');
-    try {
-      await profilesCol.insertOne({
-        userId: result.insertedId,
-        status: "pending", // always set pending on submission
-        isAvailable: false, // always set unavailable on submission
-        data: {
-          personalInfo: data.personalInfo || {},
-          professionalInfo: data.professionalInfo || {},
-          technicalSkills: data.technicalSkills || {},
-          workExperience: data.workExperience || [],
-          projects: data.projects || [],
-          stats: {
-            totalProjects: 0,
-            averageRating: 0,
-            totalEarnings: 0,
-            clientRetention: 0,
+            projectCount: 0,
+            progress: 0,
           },
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    } catch (profileErr: any) {
-      // Ignore duplicate key error if profile already exists
-      if (profileErr?.code !== 11000) {
-        throw profileErr;
+        });
+        console.log('Created new user:', user.id);
       }
+    } catch (userError) {
+      console.error('Error creating/updating user:', userError);
+      throw userError;
     }
 
-    return new NextResponse(JSON.stringify({ success: true, insertedId: result.insertedId.toString() }), { status: 200, headers: corsHeaders });
+    // 3) Create developer profile using Prisma (this ensures proper relations)
+    try {
+      // Check if developer profile already exists
+      const existingProfile = await prisma.developerProfile.findUnique({
+        where: { userId: user.id },
+      });
+      
+      if (existingProfile) {
+        // Update existing profile
+        await prisma.developerProfile.update({
+          where: { id: existingProfile.id },
+          data: {
+            data: {
+              personalInfo: data.personalInfo || {},
+              professionalInfo: data.professionalInfo || {},
+              technicalSkills: data.technicalSkills || {},
+              workExperience: data.workExperience || [],
+              projects: data.projects || [],
+              stats: {
+                totalProjects: 0,
+                averageRating: 0,
+                totalEarnings: 0,
+                clientRetention: 0,
+              },
+            },
+            status: "pending",
+            isAvailable: false,
+            updatedAt: new Date(),
+          },
+        });
+        console.log('Updated existing developer profile for user:', user.id);
+      } else {
+        // Create new profile
+        await prisma.developerProfile.create({
+          data: {
+            userId: user.id,
+            status: "pending",
+            isAvailable: false,
+            data: {
+              personalInfo: data.personalInfo || {},
+              professionalInfo: data.professionalInfo || {},
+              technicalSkills: data.technicalSkills || {},
+              workExperience: data.workExperience || [],
+              projects: data.projects || [],
+              stats: {
+                totalProjects: 0,
+                averageRating: 0,
+                totalEarnings: 0,
+                clientRetention: 0,
+              },
+            },
+          },
+        });
+        console.log('Created new developer profile for user:', user.id);
+      }
+    } catch (profileErr: any) {
+      console.error('Error creating/updating developer profile:', profileErr);
+      throw profileErr;
+    }
+
+    // MongoDB backward compatibility removed, handled by Prisma
+
+    return new NextResponse(JSON.stringify({ success: true, insertedId: developer.id }), { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error('Error adding developer:', error);
     return new NextResponse(JSON.stringify({ success: false, message: 'Failed to add developer', error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
@@ -116,21 +189,11 @@ export async function DELETE(req: NextRequest) {
     if (!(_id && typeof _id === 'string')) {
       return new NextResponse(JSON.stringify({ success: false, message: 'Missing or invalid _id' }), { status: 400, headers: corsHeaders });
     }
-    let objectId;
-    try {
-      objectId = new ObjectId(_id);
-    } catch {
-      return new NextResponse(JSON.stringify({ success: false, message: 'Invalid _id format' }), { status: 400, headers: corsHeaders });
-    }
-    const client = await clientPromise;
-    const db = client.db();
-    const collection = db.collection('developers');
-    const result = await collection.deleteOne({ _id: objectId });
-    if (result.deletedCount === 1) {
-      return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
-    } else {
-      return new NextResponse(JSON.stringify({ success: false, message: 'Developer not found' }), { status: 404, headers: corsHeaders });
-    }
+    // Delete developer using Prisma
+    const result = await prisma.developer.delete({
+      where: { id: _id }
+    });
+    return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error('Error deleting developer:', error);
     return new NextResponse(JSON.stringify({ success: false, message: 'Failed to delete developer', error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });
@@ -144,21 +207,12 @@ export async function PUT(req: NextRequest) {
     if (!(_id && typeof _id === 'string')) {
       return new NextResponse(JSON.stringify({ success: false, message: 'Missing or invalid _id' }), { status: 400, headers: corsHeaders });
     }
-    let objectId;
-    try {
-      objectId = new ObjectId(_id);
-    } catch {
-      return new NextResponse(JSON.stringify({ success: false, message: 'Invalid _id format' }), { status: 400, headers: corsHeaders });
-    }
-    const client = await clientPromise;
-    const db = client.db();
-    const collection = db.collection('developers');
-    const result = await collection.updateOne({ _id: objectId }, { $set: updateData });
-    if (result.matchedCount === 1) {
-      return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
-    } else {
-      return new NextResponse(JSON.stringify({ success: false, message: 'Developer not found' }), { status: 404, headers: corsHeaders });
-    }
+    // Update developer using Prisma
+    const result = await prisma.developer.update({
+      where: { id: _id },
+      data: updateData
+    });
+    return new NextResponse(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error('Error updating developer:', error);
     return new NextResponse(JSON.stringify({ success: false, message: 'Failed to update developer', error: error instanceof Error ? error.message : error }), { status: 500, headers: corsHeaders });

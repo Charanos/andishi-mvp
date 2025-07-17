@@ -28,7 +28,7 @@ const PrivacyPolicyPage = () => {
         </h2>
         <div className="space-y-4 text-gray-300 leading-relaxed">
           <p>
-            Andishi ("we", "us", "our") is committed to protecting your personal
+            Andishi is committed to protecting your personal
             data in strict compliance with the Data Protection Act, 2019 and its
             implementing regulations under Legal Notice 263/2021.
           </p>

@@ -12,40 +12,16 @@ const corsHeaders = {
 
 // Helper function to get user name from database
 async function getUserName(userId: string): Promise<string> {
-  // Try Prisma first
-  let user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { firstName: true, lastName: true, email: true, role: true },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true, email: true, role: true },
+    });
   
-  // If not found in Prisma, try MongoDB directly
-  if (!user) {
-    try {
-      const { MongoClient } = require('mongodb');
-      const client = new MongoClient(process.env.DATABASE_URL!);
-      await client.connect();
-      const db = client.db();
-      
-      const mongoUser = await db.collection('users').findOne({
-        _id: new (require('mongodb').ObjectId)(userId)
-      });
-      
-      await client.close();
-      
-      if (mongoUser) {
-        user = {
-          firstName: mongoUser.firstName,
-          lastName: mongoUser.lastName,
-          email: mongoUser.email,
-          role: mongoUser.role
-        };
-      }
-    } catch (mongoError) {
-      console.error('Error fetching user from MongoDB:', mongoError);
+    if (!user) {
+      console.log(`User not found with ID: ${userId}`);
+      return 'User';
     }
-  }
-  
-  if (user) {
     // Handle missing firstName/lastName by falling back to email or default
     const firstName = user.firstName || '';
     const lastName = user.lastName || '';
@@ -61,9 +37,10 @@ async function getUserName(userId: string): Promise<string> {
              user.role === 'client' ? 'Client User' : 
              user.role === 'developer' ? 'Developer User' : 'User';
     }
+  } catch (error) {
+    console.error(`Error fetching user ${userId}:`, error);
+    return 'User';
   }
-  
-  return 'User';
 }
 
 // POST /api/project-chat/fix-participants - Fix participant names with "Unknown User"

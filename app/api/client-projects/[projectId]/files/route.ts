@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
 import path from 'path';
 import { writeFile, mkdir } from 'fs/promises';
 import { getSession } from '@/lib/getSession';
@@ -35,10 +34,9 @@ export async function POST(
 
     // User uploading file to project
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(projectId)) {
-      // Invalid ObjectId format
-      return new NextResponse("Invalid project ID format", { status: 400, headers: corsHeaders });
+    // Validate projectId is provided
+    if (!projectId) {
+      return new NextResponse("Project ID is required", { status: 400, headers: corsHeaders });
     }
 
     const formData = await req.formData();
@@ -55,12 +53,9 @@ export async function POST(
       );
     }
 
-    // Connect to MongoDB and verify project exists and user has access
-    const client = await clientPromise;
-    const db = client.db();
-    
-    const project = await db.collection('projects').findOne({
-      _id: new ObjectId(projectId)
+    // Verify project exists and user has access using Prisma
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
     });
 
     if (!project) {
@@ -98,7 +93,7 @@ export async function POST(
 
     // Create file metadata
     const newFile = {
-      id: new ObjectId().toString(),
+      id: `${Date.now()}${Math.random().toString(16).slice(2)}`,
       fileName: fileName,
       fileUrl,
       fileSize: file.size,
@@ -108,20 +103,18 @@ export async function POST(
       ...(description && { description }),
     };
 
-    // Update project with new file
-    const result = await db.collection('projects').updateOne(
-      { _id: new ObjectId(projectId) },
-      {
-        $push: {
-          files: newFile,
-        } as any,
-        $set: {
-          updatedAt: new Date(),
+    // Update project with new file using Prisma
+    const result = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        files: {
+          push: newFile,
         },
+        updatedAt: new Date(),
       }
-    );
+    });
 
-    if (result.modifiedCount === 0) {
+    if (!result) {
       return NextResponse.json(
         { success: false, error: 'Failed to update project with file' },
         { status: 500, headers: corsHeaders }
@@ -164,17 +157,14 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401, headers: corsHeaders });
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(projectId)) {
-      return new NextResponse("Invalid project ID format", { status: 400, headers: corsHeaders });
+    // Validate projectId is provided
+    if (!projectId) {
+      return new NextResponse("Project ID is required", { status: 400, headers: corsHeaders });
     }
 
-    // Connect to MongoDB
-    const client = await clientPromise;
-    const db = client.db();
-    
-    const project = await db.collection('projects').findOne({
-      _id: new ObjectId(projectId)
+    // Retrieve project using Prisma
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
     });
 
     if (!project) {
@@ -231,17 +221,14 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401, headers: corsHeaders });
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(projectId)) {
-      return new NextResponse("Invalid project ID format", { status: 400, headers: corsHeaders });
+    // Validate projectId is provided
+    if (!projectId) {
+      return new NextResponse("Project ID is required", { status: 400, headers: corsHeaders });
     }
 
-    // Connect to MongoDB
-    const client = await clientPromise;
-    const db = client.db();
-    
-    const project = await db.collection('projects').findOne({
-      _id: new ObjectId(projectId)
+    // Retrieve project using Prisma
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
     });
 
     if (!project) {
@@ -260,20 +247,17 @@ export async function DELETE(
       return new NextResponse("Access denied", { status: 403, headers: corsHeaders });
     }
 
-    // Remove file from project
-    const result = await db.collection('projects').updateOne(
-      { _id: new ObjectId(projectId) },
-      {
-        $pull: {
-          files: { id: fileId }
-        } as any,
-        $set: {
-          updatedAt: new Date(),
-        },
+    // Remove file from project using Prisma
+    const files = project.files?.filter((f: any) => f.id !== fileId) || [];
+    const result = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        files: files,
+        updatedAt: new Date(),
       }
-    );
+    });
 
-    if (result.modifiedCount === 0) {
+    if (!result || project.files?.length === files.length) {
       return NextResponse.json(
         { success: false, error: 'File not found or not removed' },
         { status: 404, headers: corsHeaders }

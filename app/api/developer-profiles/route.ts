@@ -1,5 +1,4 @@
-import { ObjectId } from "mongodb";
-import clientPromise from "@/lib/mongodb";
+import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import {
   DeveloperProfile,
@@ -92,12 +91,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   // Handle synchronization action
   if (action === 'sync') {
     try {
-      const client = await clientPromise;
-      const db = client.db();
-
       // Logic to synchronize data between Developer Profiles and Users collections
-      const usersCollection = db.collection('users');
-      const profilesCollection = db.collection('developerProfiles');
 
       // Default profile data for new profiles
       const defaultProfileData = {
@@ -156,26 +150,30 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       // Ensure every user with role 'developer' has a corresponding developer profile
       // But only if they don't have a rejected status (to avoid recreating deleted profiles)
-      const users = await usersCollection.find({
-        role: 'developer',
-        developerProfileStatus: { $ne: 'rejected' } // Don't recreate profiles for rejected users
-      }).toArray();
+      const users = await prisma.user.findMany({
+        where: {
+          role: 'developer',
+          developerProfileStatus: { not: 'rejected' } // Don't recreate profiles for rejected users
+        }
+      });
       let profilesCreated = 0;
 
       for (const user of users) {
-        const profileExists = await profilesCollection.findOne({ userId: user._id });
+        const profileExists = await prisma.developerProfile.findUnique({ where: { userId: user.id } });
         if (!profileExists && user.developerProfileStatus !== 'rejected') {
           // Insert a default developer profile for the user
-          await profilesCollection.insertOne({
-            userId: user._id,
-            ...defaultProfileData,
+          await prisma.developerProfile.create({
             data: {
-              ...defaultProfileData.data,
-              personalInfo: {
-                ...defaultProfileData.data.personalInfo,
-                firstName: user.firstName || 'Unknown',
-                lastName: user.lastName || 'Developer',
-                email: user.email || ''
+              userId: user.id,
+              ...defaultProfileData,
+              data: {
+                ...defaultProfileData.data,
+                personalInfo: {
+                  ...defaultProfileData.data.personalInfo,
+                  firstName: user.firstName || 'Unknown',
+                  lastName: user.lastName || 'Developer',
+                  email: user.email || ''
+                }
               }
             }
           });
@@ -195,30 +193,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const client = await clientPromise;
-    const db = client.db();
-
     // If an ID is provided, fetch a single profile
     if (id) {
-      let objectId: ObjectId;
-      try {
-        objectId = new ObjectId(id);
-      } catch (error) {
-        return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
-      }
-
-      const profile = await db
-        .collection('developerProfiles')
-        .findOne({ _id: objectId });
+      const profile = await prisma.developerProfile.findUnique({ 
+        where: { id },
+        include: { user: true }
+      });
 
       if (!profile) {
         return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
       }
 
       // Reconstruct the profile to match the DeveloperProfile interface
-      const data = profile.data || {};
+      const data = (profile.data as any) || {};
       const responseData: DeveloperProfile = {
-        id: profile._id.toString(),
+        id: profile.id,
         data: {
           personalInfo: {
             firstName: data.personalInfo?.firstName || 'Unknown',
@@ -266,7 +255,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           notifications: Array.isArray(data.notifications) ? data.notifications : [],
           timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
         },
-        status: profile.status || data.status || "pending",
+        status: (profile.status || 'pending') as 'pending' | 'rejected' | 'approved',
         isAvailable: profile.isAvailable ?? data.isAvailable ?? false,
         createdAt: profile.createdAt?.toISOString() || new Date().toISOString(),
       };
@@ -276,7 +265,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // Fetch all profiles
     
-    const records = await db.collection('developerProfiles').find({}).toArray();
+    const records = await prisma.developerProfile.findMany({ include: { user: true } });
     
 
     // Debug: Log the first few records to see their structure
@@ -285,9 +274,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     const profiles: DeveloperProfile[] = records.map((profile) => {
-      const data = profile.data || {};
+      const data = (profile.data as any) || {};
       return {
-        id: profile._id.toString(),
+        id: profile.id,
         data: {
           personalInfo: {
             firstName: data.personalInfo?.firstName || 'Unknown',
@@ -335,7 +324,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           notifications: Array.isArray(data.notifications) ? data.notifications : [],
           timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
         },
-        status: profile.status || data.status || "pending",
+        status: (profile.status || 'pending') as 'pending' | 'rejected' | 'approved',
         isAvailable: profile.isAvailable ?? data.isAvailable ?? false,
         createdAt: profile.createdAt?.toISOString() || new Date().toISOString(),
       };
@@ -394,9 +383,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return new NextResponse("Core stats must be numbers (totalProjects, averageRating, totalEarnings, clientRetention)", { status: 400, headers: corsHeaders });
     }
 
-    const client = await clientPromise;
-    const db = client.db();
-
     // Ensure technical skills are properly formatted
     const processedTechnicalSkills = {
       primarySkills: ensureSkillArray(profileData.data.technicalSkills.primarySkills),
@@ -407,43 +393,31 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       specializations: profileData.data.technicalSkills.specializations || [],
     };
 
-    const newProfile = {
+    const result = await prisma.developerProfile.create({
       data: {
-        personalInfo: profileData.data.personalInfo,
-        professionalInfo: profileData.data.professionalInfo,
-        technicalSkills: processedTechnicalSkills,
-        stats: profileData.data.stats,
-        projects: profileData.data.projects || [],
-        recentActivity: profileData.data.recentActivity || [],
-        achievements: profileData.data.achievements || [],
-        notifications: profileData.data.notifications || [],
-        timeEntries: profileData.data.timeEntries || [],
-      },
-      status: profileData.status || "pending",
-      isAvailable: profileData.isAvailable || false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await db.collection("developerProfiles").insertOne(newProfile);
+        data: {
+          personalInfo: profileData.data.personalInfo,
+          professionalInfo: profileData.data.professionalInfo,
+          technicalSkills: processedTechnicalSkills,
+          stats: profileData.data.stats,
+          projects: profileData.data.projects || [],
+          recentActivity: profileData.data.recentActivity || [],
+          achievements: profileData.data.achievements || [],
+          notifications: profileData.data.notifications || [],
+          timeEntries: profileData.data.timeEntries || [],
+        } as any,
+        status: profileData.status || "pending",
+        isAvailable: profileData.isAvailable || false,
+      }
+    });
 
     // Return the created profile with proper structure
     const createdProfile: DeveloperProfile = {
-      id: result.insertedId.toString(),
-      data: {
-        personalInfo: profileData.data.personalInfo,
-        professionalInfo: profileData.data.professionalInfo,
-        technicalSkills: processedTechnicalSkills,
-        stats: profileData.data.stats,
-        projects: profileData.data.projects || [],
-        recentActivity: profileData.data.recentActivity || [],
-        achievements: profileData.data.achievements || [],
-        notifications: profileData.data.notifications || [],
-        timeEntries: profileData.data.timeEntries || [],
-      },
-      status: profileData.status || "pending",
-      isAvailable: profileData.isAvailable || false,
-      createdAt: new Date().toISOString(),
+      id: result.id,
+      data: result.data as any,
+status: result.status as 'pending' | 'rejected' | 'approved',
+      isAvailable: result.isAvailable,
+      createdAt: result.createdAt.toISOString(),
     };
 
     return NextResponse.json(createdProfile, { status: 201, headers: corsHeaders });
@@ -466,19 +440,8 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       return new NextResponse("Profile ID is required", { status: 400, headers: corsHeaders });
     }
 
-    let profileObjectId: ObjectId;
-    try {
-      profileObjectId = new ObjectId(profileId);
-    } catch (error) {
-      
-      return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
-    }
-
-    const client = await clientPromise;
-    const db = client.db();
-
     // Check if profile exists
-    const existingProfile = await db.collection("developerProfiles").findOne({ _id: profileObjectId });
+    const existingProfile = await prisma.developerProfile.findUnique({ where: { id: profileId } });
     if (!existingProfile) {
       return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
     }
@@ -535,42 +498,44 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
 
     
 
-    const result = await db.collection("developerProfiles").findOneAndUpdate(
-      { _id: profileObjectId },
-      {
-        $set: {
-          data: dataToSave,
-          updatedAt: new Date(),
-        },
-      },
-      { returnDocument: "after" }
-    );
+    // Process technical skills to ensure proper format
+    const processedSkills = {
+      primarySkills: ensureSkillArray(dataToSave.technicalSkills.primarySkills),
+      frameworks: ensureSkillArray(dataToSave.technicalSkills.frameworks),
+      databases: ensureSkillArray(dataToSave.technicalSkills.databases),
+      tools: ensureSkillArray(dataToSave.technicalSkills.tools),
+      cloudPlatforms: dataToSave.technicalSkills.cloudPlatforms || [],
+      specializations: dataToSave.technicalSkills.specializations || [],
+    };
 
-    
-
-    const updatedProfile = result?.value;
+    const updatedProfile = await prisma.developerProfile.update({
+      where: { id: profileId },
+      data: {
+        data: {
+          personalInfo: dataToSave.personalInfo,
+          professionalInfo: dataToSave.professionalInfo,
+          technicalSkills: processedSkills,
+          stats: dataToSave.stats,
+          projects: dataToSave.projects || [],
+          recentActivity: dataToSave.recentActivity || [],
+          achievements: dataToSave.achievements || [],
+          notifications: dataToSave.notifications || [],
+          timeEntries: dataToSave.timeEntries || [],
+        } as any,
+        updatedAt: new Date(),
+      }
+    });
 
     if (!updatedProfile) {
-      
       return new NextResponse("Failed to update profile", { status: 500, headers: corsHeaders });
     }
 
     // Return properly formatted response
     const responseData: DeveloperProfile = {
-      id: updatedProfile._id.toString(),
-      data: {
-        personalInfo: updatedProfile.data.personalInfo,
-        professionalInfo: updatedProfile.data.professionalInfo,
-        technicalSkills: constructTechnicalSkills(updatedProfile.data.technicalSkills || {}),
-        stats: updatedProfile.data.stats,
-        projects: updatedProfile.data.projects || [],
-        recentActivity: updatedProfile.data.recentActivity || [],
-        achievements: updatedProfile.data.achievements || [],
-        notifications: updatedProfile.data.notifications || [],
-        timeEntries: updatedProfile.data.timeEntries || [],
-      },
-      status: updatedProfile.status || "pending",
-      isAvailable: updatedProfile.isAvailable || false,
+      id: updatedProfile.id,
+      data: updatedProfile.data as any,
+      status: updatedProfile.status as 'pending' | 'rejected' | 'approved',
+      isAvailable: updatedProfile.isAvailable,
     };
 
     return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
@@ -593,46 +558,30 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const client = await clientPromise;
-    const db = client.db();
-    const profilesCollection = db.collection("developerProfiles");
-    const usersCollection = db.collection("users");
-
-    let objectId: ObjectId;
-    try {
-      objectId = new ObjectId(id);
-    } catch (error) {
-      return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
-    }
-
     // First, get the profile to find the associated user
-    const profileToDelete = await profilesCollection.findOne({ _id: objectId });
+    const profileToDelete = await prisma.developerProfile.findUnique({ 
+      where: { id },
+      include: { user: true }
+    });
 
     if (!profileToDelete) {
       return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
     }
 
     // Delete the profile
-    const deleteResult = await profilesCollection.deleteOne({ _id: objectId });
-
-    if (deleteResult.deletedCount === 0) {
-      return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
-    }
+    await prisma.developerProfile.delete({ where: { id } });
 
     // Mark the associated user as rejected to prevent profile recreation
     if (profileToDelete.userId) {
-      await usersCollection.updateOne(
-        { _id: profileToDelete.userId },
-        {
-          $set: {
-            developerProfileStatus: "rejected",
-            status: "inactive",
-            isActive: false,
-            updatedAt: new Date()
-          }
+      await prisma.user.update({
+        where: { id: profileToDelete.userId },
+        data: {
+          developerProfileStatus: "rejected",
+          status: "inactive",
+          isActive: false,
+          updatedAt: new Date()
         }
-      );
-      
+      });
     }
 
     return new NextResponse(null, { status: 204, headers: corsHeaders }); // Success - No Content
@@ -655,18 +604,8 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       return new NextResponse("Profile ID is required", { status: 400, headers: corsHeaders });
     }
 
-    let profileObjectId: ObjectId;
-    try {
-      profileObjectId = new ObjectId(id);
-    } catch (error) {
-      return new NextResponse("Invalid profile ID format", { status: 400, headers: corsHeaders });
-    }
-
-    const client = await clientPromise;
-    const db = client.db();
-
     // Check if profile exists
-    const existingProfile = await db.collection("developerProfiles").findOne({ _id: profileObjectId });
+    const existingProfile = await prisma.developerProfile.findUnique({ where: { id } });
     if (!existingProfile) {
       return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
     }
@@ -736,32 +675,16 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 
     updateData.updatedAt = new Date();
 
-    const result = await db.collection("developerProfiles").findOneAndUpdate(
-      { _id: profileObjectId },
-      { $set: updateData },
-      { returnDocument: "after" }
-    );
-
-    const updatedProfile = result?.value;
-    if (!updatedProfile) {
-      return new NextResponse("Failed to update profile", { status: 500, headers: corsHeaders });
-    }
+    const updatedProfile = await prisma.developerProfile.update({
+      where: { id },
+      data: updateData,
+    });
 
     // Return properly formatted response
     const responseData: DeveloperProfile = {
-      id: updatedProfile._id.toString(),
-      data: {
-        personalInfo: updatedProfile.data.personalInfo,
-        professionalInfo: updatedProfile.data.professionalInfo,
-        technicalSkills: constructTechnicalSkills(updatedProfile.data.technicalSkills || {}),
-        stats: updatedProfile.data.stats,
-        projects: updatedProfile.data.projects || [],
-        recentActivity: updatedProfile.data.recentActivity || [],
-        achievements: updatedProfile.data.achievements || [],
-        notifications: updatedProfile.data.notifications || [],
-        timeEntries: updatedProfile.data.timeEntries || [],
-      },
-      status: updatedProfile.status || "pending",
+      id: updatedProfile.id,
+      data: updatedProfile.data as any,
+      status: (updatedProfile.status || 'pending') as 'pending' | 'rejected' | 'approved',
       isAvailable: updatedProfile.isAvailable || false,
     };
 

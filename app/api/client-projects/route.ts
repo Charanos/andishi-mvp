@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 const allowedOrigins = [
   'https://andishi-mvp.vercel.app',
@@ -22,51 +22,52 @@ export async function OPTIONS(request: NextRequest) {
 
 // Add type definitions
 interface ProjectMilestone {
-  _id?: ObjectId;
-  id?: string;
+  id: string;
   title: string;
   description: string;
-  budget: string;
+  budget: number;
   timeline: string;
   status: string;
-  dueDate?: Date;
-  completedAt?: Date;
+  dueDate?: Date | null;
+  completedAt?: Date | null;
   order: number;
+  deliverables?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface ProjectUpdate {
-  _id?: ObjectId;
-  id?: string;
+  id: string;
   title: string;
   description: string;
   type: string;
+  author?: string | null;
   createdAt: Date;
 }
 
 interface ProjectFile {
-  _id?: ObjectId;
-  id?: string;
+  id: string;
   fileName: string;
   fileUrl: string;
-  fileSize?: number;
-  fileType?: string;
+  fileSize?: number | null;
+  fileType?: string | null;
   createdAt: Date;
+  updatedAt?: Date | null;
 }
 
 interface ProjectPayment {
-  _id?: ObjectId;
-  id?: string;
+  id: string;
   amount: number;
   date: Date;
   method: string;
   status: string;
   submittedBy: string;
-  notes?: string;
-  description?: string;
-  currency?: string;
-  invoiceUrl?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  notes?: string | null;
+  description?: string | null;
+  currency?: string | null;
+  invoiceUrl?: string | null;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
 }
 
 // Helper to extract auth info if middleware headers are missing
@@ -92,38 +93,26 @@ const authenticateRequest = async (req: NextRequest) => {
   }
 };
 
-// Helper function to check if a string is a valid ObjectId
-const isValidObjectId = (id: string): boolean => {
-  return typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
+// Helper function to generate a unique ID
+const generateId = (): string => {
+  return new Date().getTime().toString(36) + Math.random().toString(36).substr(2);
 };
 
-// Helper function to perform delete operation that handles both _id and id fields
-const performDeleteOperation = async (db: any, projectId: string, itemId: string, arrayField: string) => {
-  let result = { modifiedCount: 0 };
-  
-  if (isValidObjectId(itemId)) {
-    // First try to delete by _id (ObjectId)
-    result = await db.collection('projects').updateOne(
-      { _id: new ObjectId(projectId) },
-      { $pull: { [arrayField]: { _id: new ObjectId(itemId) } } }
-    );
-    
-    // If no document was modified, try deleting by id (string)
-    if (result.modifiedCount === 0) {
-      result = await db.collection('projects').updateOne(
-        { _id: new ObjectId(projectId) },
-        { $pull: { [arrayField]: { id: itemId } } }
-      );
-    }
-  } else {
-    // For non-ObjectId strings, only try the id field
-    result = await db.collection('projects').updateOne(
-      { _id: new ObjectId(projectId) },
-      { $pull: { [arrayField]: { id: itemId } } }
-    );
-  }
-  
-  return result;
+// Helper function to find item in array by id
+const findItemById = (array: any[], id: string) => {
+  return array.find(item => item.id === id);
+};
+
+// Helper function to update item in array by id
+const updateItemInArray = (array: any[], id: string, updates: any) => {
+  return array.map(item =>
+    item.id === id ? { ...item, ...updates, updatedAt: new Date() } : item
+  );
+};
+
+// Helper function to remove item from array by id
+const removeItemFromArray = (array: any[], id: string) => {
+  return array.filter(item => item.id !== id);
 };
 
 // GET handler to fetch projects for the logged-in client
@@ -138,36 +127,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Connect to MongoDB
-    const client = await clientPromise;
-    const db = client.db();
-
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get('id');
-
     let projects: any[] = [];
-    let clientUser: any = null; // populated for client role
 
+    // Fetch a single project by ID
     if (projectId) {
-      // Fetch a single project by ID
-      let query: any = { _id: new ObjectId(projectId) };
-      if (userRole === 'client') {
-        const user = await db.collection('users').findOne({
-          email: userEmail,
-          role: 'client',
-          isActive: true
-        });
-        if (!user) {
-          return new NextResponse(
-            JSON.stringify({ success: false, message: 'User not found or not authorized' }),
-            { status: 404, headers: corsHeaders }
-          );
-        }
-        query = { _id: new ObjectId(projectId), $or: [{ clientId: user._id.toString() }, { 'userInfo.email': userEmail }] };
-      }
-      const project = await db.collection('projects').findOne(query);
+      const project = await prisma.project.findUnique({
+        where: { id: projectId }
+      });
 
-      if (!project) {
+      if (!project || (userRole !== 'admin' && project.clientId !== userEmail)) {
         return new NextResponse(
           JSON.stringify({ success: false, message: 'Project not found' }),
           { status: 404, headers: corsHeaders }
@@ -176,17 +146,14 @@ export async function GET(req: NextRequest) {
       projects = [project];
     } else if (userRole === 'admin') {
       // Admins have access to all projects
-      projects = await db
-        .collection('projects')
-        .find({})
-        .sort({ createdAt: -1 })
-        .toArray();
+      projects = await prisma.project.findMany({
+        orderBy: { createdAt: 'desc' }
+      });
     } else {
-      // First, get the user to verify they are a client
-      const user = await db.collection('users').findOne({
-        email: userEmail,
-        role: 'client',
-        isActive: true
+      // Fetch projects for a client
+      const user = await prisma.user.findUnique({
+        where: { email: userEmail },
+        select: { id: true }
       });
 
       if (!user) {
@@ -196,116 +163,29 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      // Find projects either by clientId or userInfo.email
-      projects = await db
-        .collection('projects')
-        .find({
-          $or: [
-            { clientId: user._id.toString() },
-            { 'userInfo.email': userEmail }
-          ]
-        })
-        .sort({ createdAt: -1 })
-        .toArray();
-
-      // Update user's project count if it doesn't match
-      const projectCount = projects.length;
-      await db.collection('users').updateOne(
-        { _id: user._id },
-        { $set: { projectCount } }
-      );
+      projects = await prisma.project.findMany({
+        where: { clientId: user.id },
+        orderBy: { createdAt: 'desc' }
+      });
     }
 
     // Transform projects to ensure consistent structure
-    const transformedProjects = projects.map(project => {
-      
-      
-      const transformedProject = {
-        _id: project._id.toString(),
-          id: project._id.toString(),
-        title: project.title || '',
-        description: project.description || '',
-        status: project.status || 'pending',
-        priority: project.priority || project.projectDetails?.priority || 'low',
-        progress: project.progress || 0,
-        techStack: project.techStack || project.projectDetails?.techStack || [],
-        createdAt: project.createdAt ? new Date(project.createdAt) : new Date(),
-        updatedAt: project.updatedAt ? new Date(project.updatedAt) : new Date(),
-        category: project.category || project.projectDetails?.category,
-        timeline: project.timeline || project.projectDetails?.timeline,
-        requirements: project.requirements || project.projectDetails?.requirements,
-        startDate: project.startDate ? new Date(project.startDate) : undefined,
-        endDate: project.endDate ? new Date(project.endDate) : undefined,
-        estimatedCompletionDate: project.estimatedCompletionDate ? new Date(project.estimatedCompletionDate) : undefined,
-        actualCompletionDate: project.actualCompletionDate ? new Date(project.actualCompletionDate) : undefined,
-        pricing: project.pricing ? {
-          type: project.pricing.type || 'fixed',
-          currency: project.pricing.currency || 'USD',
-          fixedBudget: project.pricing.fixedBudget,
-          hourlyRate: project.pricing.hourlyRate,
-          estimatedHours: project.pricing.estimatedHours,
-          totalPaid: project.pricing.totalPaid,
-          milestones: project.pricing.milestones
-        } : undefined,
-        milestones: (project.milestones && project.milestones.length ? project.milestones : project.pricing?.milestones || []).map((m: ProjectMilestone) => ({
-          id: m._id?.toString() || m.id,
-          title: m.title,
-          description: m.description,
-          budget: m.budget,
-          timeline: m.timeline,
-          status: m.status || 'pending',
-          dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-          completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-          order: m.order || 0
-        })),
-        updates: (project.updates || []).map((u: ProjectUpdate) => ({
-          id: u._id?.toString() || u.id,
-          title: u.title,
-          description: u.description,
-          type: u.type || 'general',
-          createdAt: u.createdAt ? new Date(u.createdAt) : new Date()
-        })),
-        payments: (project.payments || []).map((p: any) => ({
-          id: p._id?.toString() || p.id,
-          amount: p.amount,
-          method: p.method,
-          notes: p.notes,
-          date: p.date ? (typeof p.date === 'string' ? p.date : new Date(p.date).toISOString().split('T')[0]) : undefined,
-          status: p.status || 'pending',
-          submittedBy: p.submittedBy || 'client',
-          currency: p.currency || 'USD',
-          description: p.description || p.notes || '',
-          invoiceUrl: p.invoiceUrl || '',
-          createdAt: p.createdAt ? (typeof p.createdAt === 'string' ? p.createdAt : new Date(p.createdAt).toISOString()) : new Date().toISOString(),
-          updatedAt: p.updatedAt ? (typeof p.updatedAt === 'string' ? p.updatedAt : new Date(p.updatedAt).toISOString()) : undefined,
-        })),
-      files: (project.files || []).map((f: ProjectFile) => ({
-        id: f._id?.toString() || f.id,
-        fileName: f.fileName,
-        fileUrl: f.fileUrl,
-        fileSize: f.fileSize,
-        fileType: f.fileType,
-        createdAt: f.createdAt ? new Date(f.createdAt) : new Date()
-      })),
-      userInfo: project.userInfo || (clientUser ? {
-        firstName: clientUser.firstName,
-        lastName: clientUser.lastName,
-        email: clientUser.email,
-        phone: clientUser.phone || '',
-        company: clientUser.company || '',
-        role: 'client'
-      } : {}),
-        projectDetails: {
-          ...project.projectDetails,
-          priority: project.projectDetails?.priority || project.priority || 'low',
-          techStack: project.projectDetails?.techStack || []
-        }
-      };
-      
-      
-      
-      return transformedProject;
-    });
+    const transformedProjects = projects.map(project => ({
+      id: project.id,
+      title: project.title || '',
+      description: project.description || '',
+      status: project.status || 'pending',
+      priority: project.priority || 'low',
+      progress: project.progress || 0,
+      techStack: project.techStack || [],
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      milestones: project.milestones || [],
+      updates: project.updates || [],
+      files: project.files || [],
+      payments: project.payments || [],
+      pricing: project.pricing
+    }));
 
     if (projectId) {
       return new NextResponse(JSON.stringify({
@@ -320,7 +200,6 @@ export async function GET(req: NextRequest) {
     }
 
   } catch (error) {
-    // Log error for debugging while providing user-friendly response
     console.error('Error fetching client projects:', error);
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Failed to fetch projects', error: error instanceof Error ? error.message : error }),
@@ -341,14 +220,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
-
     // Verify user is a client
-    const user = await db.collection('users').findOne({
-      email: userEmail,
-      role: 'client',
-      isActive: true
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+      select: { id: true, firstName: true, lastName: true }
     });
 
     if (!user) {
@@ -359,100 +234,78 @@ export async function POST(req: NextRequest) {
     }
 
     const projectData = await req.json();
-    
-    
-    
-    // Check for duplicate submission using clientSubmissionId
+
+    // Check for duplicate submission
     if (projectData.clientSubmissionId) {
-      const existingProject = await db.collection('projects').findOne({
-        clientSubmissionId: projectData.clientSubmissionId
+      const existingProject = await prisma.project.findFirst({
+        where: { title: projectData.title, clientId: user.id }
       });
-      
+
       if (existingProject) {
-        
         return new NextResponse(JSON.stringify({
           success: false,
           message: 'Duplicate submission detected. Project already exists.',
-          existingProjectId: existingProject._id
+          existingProjectId: existingProject.id
         }), { status: 409, headers: corsHeaders });
       }
     }
 
-    // Add metadata
-    const now = new Date();
-    const projectToInsert = {
-      ...projectData,
-      clientSubmissionId: projectData.clientSubmissionId, // Store for duplicate prevention
-      projectDetails: {
-        title: projectData.title,
-        description: projectData.description,
-        category: projectData.category,
-        timeline: projectData.timeline,
-        priority: projectData.priority || 'medium',
-        techStack: projectData.techStack || [],
-        requirements: projectData.requirements
-      },
-      status: 'pending',
-      priority: projectData.priority || 'medium',
-      progress: 0,
-      createdAt: now,
-      updatedAt: now,
-      createdBy: user._id,
-      clientId: user._id,
-      userInfo: {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        company: user.company
-      },
-      // Initialize empty arrays for CRUD operations
-      payments: [],
-      files: [],
-      updates: []
-    };
-
-    // Handle milestones if pricing type is milestone
-    
-    
-    if (projectData.pricing?.type === 'milestone' && projectData.pricing.milestones && projectData.pricing.milestones.length > 0) {
-      
-      projectToInsert.milestones = projectData.pricing.milestones.map((m: any) => ({
-        ...m,
-        _id: new ObjectId(),
-        id: new ObjectId().toString(),
+    // Create milestones data for embedded field
+    const milestones = projectData.pricing?.type === 'milestone' && projectData.pricing?.milestones
+      ? projectData.pricing.milestones.map((m: any, index: number) => ({
+        id: generateId(),
+        title: m.title,
+        description: m.description || '',
+        budget: parseFloat(m.budget) || 0,
+        timeline: m.timeline || '',
         status: m.status || 'pending',
-        dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-      
-    } else {
-      
-      projectToInsert.milestones = [];
-    }
+        dueDate: m.dueDate ? new Date(m.dueDate) : null,
+        order: m.order || index,
+        deliverables: m.deliverables || [],
+        completedAt: null
+      }))
+      : [];
 
-    const result = await db.collection('projects').insertOne(projectToInsert);
-
-    // Update user's project count
-    await db.collection('users').updateOne(
-      { _id: user._id },
-      { $inc: { projectCount: 1 } }
-    );
+    const createdProject = await prisma.project.create({
+      data: {
+        title: projectData.title,
+        description: projectData.description || '',
+        status: 'pending',
+        priority: projectData.priority || 'medium',
+        budget: projectData.budget || 0,
+        timeline: projectData.timeline || '',
+        techStack: projectData.techStack || [],
+        requiredSkills: projectData.requiredSkills || [],
+        experienceLevel: projectData.experienceLevel || 'Mid-level',
+        maxTeamSize: projectData.maxTeamSize || 1,
+        clientId: user.id,
+        pricing: projectData.pricing ? {
+          type: projectData.pricing.type,
+          currency: projectData.pricing.currency || 'USD',
+          fixedBudget: projectData.pricing.fixedBudget || null,
+          hourlyRate: projectData.pricing.hourlyRate || null,
+          estimatedHours: projectData.pricing.estimatedHours || null
+        } : null,
+        milestones: milestones,
+        updates: [],
+        files: [],
+        payments: []
+      }
+    });
 
     return new NextResponse(JSON.stringify({
       success: true,
       message: 'Project created successfully',
-      project: { ...projectToInsert, id: result.insertedId.toString(), _id: result.insertedId }
+      project: createdProject
     }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
-    // Log error for debugging while providing user-friendly response
     console.error('Error creating project:', error);
     return new NextResponse(
-      JSON.stringify({ 
-        success: false, 
+      JSON.stringify({
+        success: false,
         message: 'Failed to create project',
-        error: error instanceof Error ? error.message : error 
+        error: error instanceof Error ? error.message : error
       }),
       { status: 500, headers: corsHeaders }
     );
@@ -471,16 +324,15 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
-
     // For client role ensure user exists and active, for admin skip
     let clientUser: any = null;
     if (userRole === 'client') {
-      clientUser = await db.collection('users').findOne({
-        email: userEmail,
-        role: 'client',
-        isActive: true
+      clientUser = await prisma.user.findUnique({
+        where: {
+          email: userEmail,
+          role: 'client',
+          isActive: true
+        }
       });
       if (!clientUser) {
         return new NextResponse(
@@ -491,7 +343,6 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    
     const { projectId, ...updates } = body;
 
     if (!projectId || Object.keys(updates).length === 0) {
@@ -505,305 +356,386 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Verify the project belongs to the client or allow admin
-    let project;
-    if (userRole === 'admin') {
-      project = await db.collection('projects').findOne({
-        _id: new ObjectId(projectId)
-      });
-    } else {
-      // Use the same logic as GET handler for consistency
-      project = await db.collection('projects').findOne({
-        _id: new ObjectId(projectId),
-        $or: [
-          { clientId: clientUser._id.toString() },
-          { 'userInfo.email': userEmail }
-        ]
-      });
-    }
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
 
-    if (!project) {
-      return new NextResponse(
-        JSON.stringify({ success: false, message: 'Project not found' }),
-        { status: 404, headers: corsHeaders }
-      );
+    if (!project || (userRole !== 'admin' && project?.clientId !== userEmail)) {
+      return new NextResponse(JSON.stringify({ success: false, message: 'Project not found' }),
+        { status: 404, headers: corsHeaders });
     }
-
-    // Build dynamic update operations
-    const setOps: Record<string, any> = { updatedAt: new Date() };
-    const pushOps: Record<string, any> = {};
-
-    if (updates.status !== undefined) setOps.status = updates.status;
-    if (updates.progress !== undefined) {
-      setOps.progress = updates.progress;
-      // If progress reaches 100, mark the project as completed
-      if (updates.progress === 100) {
-        setOps.status = 'completed';
-        setOps.actualCompletionDate = new Date();
-      }
-    }
-
-    // Push array-like updates
-    if (Array.isArray(updates.updates) && updates.updates.length) {
-      pushOps.updates = { $each: updates.updates };
-    }
-    if (Array.isArray(updates.files) && updates.files.length) {
-      pushOps.files = { $each: updates.files };
-    }
-    if (Array.isArray(updates.payments) && updates.payments.length) {
-      const paymentsToPush = updates.payments.map((p: any) => ({
-        ...p,
-        _id: new ObjectId(),
-        date: p.date ? new Date(p.date) : new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-      pushOps.payments = { $each: paymentsToPush };
-    }
-
-    const updateQuery: Record<string, any> = {};
-    if (Object.keys(setOps).length) updateQuery.$set = setOps;
-    if (Object.keys(pushOps).length) updateQuery.$push = pushOps;
 
     // Handle different CRUD operations based on request type
-    let operationResult = { modifiedCount: 0 };
-    
-    // Handle individual CRUD operations
     if (updates.operation) {
       const { operation, data, itemId } = updates;
-      
+
       try {
         switch (operation) {
           case 'milestone_create':
             const newMilestone = {
-              ...data,
-              _id: new ObjectId(),
-              id: new ObjectId().toString(),
+              id: generateId(),
+              title: data.title,
+              description: data.description || '',
+              budget: parseFloat(data.budget) || 0,
+              timeline: data.timeline || '',
               status: data.status || 'pending',
-              dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              dueDate: data.dueDate ? new Date(data.dueDate) : null,
+              order: data.order || 0,
+              deliverables: data.deliverables || [],
+              completedAt: null
             };
-            operationResult = await db.collection('projects').updateOne(
-              { _id: new ObjectId(projectId) },
-              { $push: { milestones: newMilestone } }
-            );
-            break;
-            
+
+            const updatedMilestones = [...(project.milestones || []), newMilestone];
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { milestones: updatedMilestones }
+            });
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Milestone created successfully',
+              data: newMilestone
+            }), { status: 200, headers: corsHeaders });
+
           case 'milestone_update':
-            const milestoneSet: Record<string, any> = {};
-            if (data.title !== undefined) milestoneSet['milestones.$.title'] = data.title;
-            if (data.description !== undefined) milestoneSet['milestones.$.description'] = data.description;
-            if (data.budget !== undefined) milestoneSet['milestones.$.budget'] = data.budget;
-            if (data.timeline !== undefined) milestoneSet['milestones.$.timeline'] = data.timeline;
-            if (data.status !== undefined) milestoneSet['milestones.$.status'] = data.status;
-            if (data.dueDate !== undefined) milestoneSet['milestones.$.dueDate'] = new Date(data.dueDate);
-            if (data.completedAt !== undefined) milestoneSet['milestones.$.completedAt'] = new Date(data.completedAt);
-            milestoneSet['milestones.$.updatedAt'] = new Date();
-            
-            const milestoneQuery = isValidObjectId(itemId)
-              ? { _id: new ObjectId(projectId), 'milestones._id': new ObjectId(itemId) }
-              : { _id: new ObjectId(projectId), 'milestones.id': itemId };
-              
-            operationResult = await db.collection('projects').updateOne(
-              milestoneQuery,
-              { $set: milestoneSet }
-            );
-            break;
-            
+            const currentMilestones = project.milestones || [];
+            const updatedMilestoneArray = currentMilestones.map((m: any) => {
+              if (m.id === itemId) {
+                return {
+                  ...m,
+                  ...data,
+                  id: m.id, // Ensure id is preserved
+                  dueDate: data.dueDate ? new Date(data.dueDate) : m.dueDate,
+                  completedAt: data.completedAt ? new Date(data.completedAt) : m.completedAt,
+                  budget: data.budget ? parseFloat(data.budget) : m.budget
+                };
+              }
+              return m;
+            });
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { milestones: updatedMilestoneArray }
+            });
+
+            const updatedMilestone = findItemById(updatedMilestoneArray, itemId);
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Milestone updated successfully',
+              data: updatedMilestone
+            }), { status: 200, headers: corsHeaders });
+
           case 'milestone_delete':
-            operationResult = await performDeleteOperation(db, projectId, itemId, 'milestones');
-            break;
-            
+            const milestonesAfterDelete = removeItemFromArray(project.milestones || [], itemId);
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { milestones: milestonesAfterDelete }
+            });
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Milestone deleted successfully'
+            }), { status: 200, headers: corsHeaders });
+
           case 'file_create':
             const newFile = {
-              ...data,
-              _id: new ObjectId(),
-              id: new ObjectId().toString(),
+              id: generateId(),
+              fileName: data.fileName,
+              fileUrl: data.fileUrl,
+              fileSize: data.fileSize || null,
+              fileType: data.fileType || null,
               createdAt: new Date(),
+              updatedAt: new Date()
             };
-            operationResult = await db.collection('projects').updateOne(
-              { _id: new ObjectId(projectId) },
-              { $push: { files: newFile } }
-            );
-            break;
-            
-          case 'file_update':
-            const fileSet: Record<string, any> = {};
-            Object.keys(data).forEach(key => {
-              if (data[key] !== undefined) {
-                fileSet[`files.$.${key}`] = data[key];
-              }
+
+            const updatedFiles = [...(project.files || []), newFile];
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { files: updatedFiles }
             });
-            fileSet['files.$.updatedAt'] = new Date();
-            
-            const fileQuery = isValidObjectId(itemId)
-              ? { _id: new ObjectId(projectId), 'files._id': new ObjectId(itemId) }
-              : { _id: new ObjectId(projectId), 'files.id': itemId };
-            operationResult = await db.collection('projects').updateOne(
-              fileQuery,
-              { $set: fileSet }
-            );
-            break;
-            
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'File created successfully',
+              data: newFile
+            }), { status: 200, headers: corsHeaders });
+
+          case 'file_update':
+            const currentFiles = project.files || [];
+            const updatedFileArray = currentFiles.map((f: any) => {
+              if (f.id === itemId) {
+                return {
+                  ...f,
+                  ...data,
+                  id: f.id, // Ensure id is preserved
+                  updatedAt: new Date()
+                };
+              }
+              return f;
+            });
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { files: updatedFileArray }
+            });
+
+            const updatedFile = findItemById(updatedFileArray, itemId);
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'File updated successfully',
+              data: updatedFile
+            }), { status: 200, headers: corsHeaders });
+
           case 'file_delete':
-            operationResult = await performDeleteOperation(db, projectId, itemId, 'files');
-            break;
-            
+            const filesAfterDelete = removeItemFromArray(project.files || [], itemId);
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { files: filesAfterDelete }
+            });
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'File deleted successfully'
+            }), { status: 200, headers: corsHeaders });
+
           case 'payment_create':
-            const newPayment: ProjectPayment = {
-              _id: new ObjectId(),
-              id: new ObjectId().toString(),
-              amount: data.amount,
-              date: data.date || new Date().toISOString().split('T')[0], // Use current date if not provided
+            const newPayment = {
+              id: generateId(),
+              amount: parseFloat(data.amount) || 0,
+              date: data.date ? new Date(data.date) : new Date(),
               method: data.method || 'bank_transfer',
               status: data.status || 'pending',
               submittedBy: data.submittedBy || 'client',
-              notes: data.description || data.notes || '',
-              description: data.description || data.notes || '',
-              currency: data.currency || 'USD',
-              invoiceUrl: data.invoiceUrl || '',
+              notes: data.description || data.notes || null,
+              description: data.description || data.notes || null,
+              currency: data.currency || null,
+              invoiceUrl: data.invoiceUrl || null,
               createdAt: new Date(),
-              updatedAt: new Date(),
+              updatedAt: new Date()
             };
-            
-            operationResult = await db.collection('projects').updateOne(
-              { _id: new ObjectId(projectId) },
-              { $push: { payments: { $each: [newPayment] } } } as any
-            );
-            break;
-            
-          case 'payment_update':
-            const paymentSet: Record<string, any> = {};
-            Object.keys(data).forEach(key => {
-              if (data[key] !== undefined) {
-                paymentSet[`payments.$.${key}`] = data[key];
-              }
+
+            const updatedPayments = [...(project.payments || []), newPayment];
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { payments: updatedPayments }
             });
-            paymentSet['payments.$.updatedAt'] = new Date();
-            
-            const paymentQuery = isValidObjectId(itemId)
-              ? { _id: new ObjectId(projectId), 'payments._id': new ObjectId(itemId) }
-              : { _id: new ObjectId(projectId), 'payments.id': itemId };
-            operationResult = await db.collection('projects').updateOne(
-              paymentQuery,
-              { $set: paymentSet }
-            );
-            break;
-            
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Payment created successfully',
+              data: newPayment
+            }), { status: 200, headers: corsHeaders });
+
+          case 'payment_update':
+            const currentPayments = project.payments || [];
+            const updatedPaymentArray = currentPayments.map((p: any) => {
+              if (p.id === itemId) {
+                return {
+                  ...p,
+                  ...data,
+                  id: p.id, // Ensure id is preserved
+                  amount: data.amount ? parseFloat(data.amount) : p.amount,
+                  date: data.date ? new Date(data.date) : p.date,
+                  updatedAt: new Date()
+                };
+              }
+              return p;
+            });
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { payments: updatedPaymentArray }
+            });
+
+            const updatedPayment = findItemById(updatedPaymentArray, itemId);
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Payment updated successfully',
+              data: updatedPayment
+            }), { status: 200, headers: corsHeaders });
+
           case 'payment_delete':
-            operationResult = await performDeleteOperation(db, projectId, itemId, 'payments');
-            break;
-            
+            const paymentsAfterDelete = removeItemFromArray(project.payments || [], itemId);
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { payments: paymentsAfterDelete }
+            });
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Payment deleted successfully'
+            }), { status: 200, headers: corsHeaders });
+
           case 'update_create':
             const newUpdate = {
-              ...data,
-              _id: new ObjectId(),
-              id: new ObjectId().toString(),
-              createdAt: new Date(),
-              author: data.author || 'Client',
+              id: generateId(),
+              title: data.title,
+              description: data.description,
+              type: data.type || 'general',
+              author: data.author || null,
+              createdAt: new Date()
             };
-            operationResult = await db.collection('projects').updateOne(
-              { _id: new ObjectId(projectId) },
-              { $push: { updates: newUpdate } }
-            );
-            break;
-            
+
+            const updatedUpdates = [...(project.updates || []), newUpdate];
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { updates: updatedUpdates }
+            });
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Update created successfully',
+              data: newUpdate
+            }), { status: 200, headers: corsHeaders });
+
           case 'update_delete':
-            operationResult = await performDeleteOperation(db, projectId, itemId, 'updates');
-            break;
-            
+            const updatesAfterDelete = removeItemFromArray(project.updates || [], itemId);
+
+            await prisma.project.update({
+              where: { id: projectId },
+              data: { updates: updatesAfterDelete }
+            });
+
+            return new NextResponse(JSON.stringify({
+              success: true,
+              message: 'Update deleted successfully'
+            }), { status: 200, headers: corsHeaders });
+
           default:
             throw new Error(`Unknown operation: ${operation}`);
         }
-        
-        // For CRUD operations, return immediately
-        return new NextResponse(JSON.stringify({
-          success: true,
-          message: `${operation} completed successfully`,
-          modifiedCount: operationResult.modifiedCount
-        }), { status: 200, headers: corsHeaders });
-        
+
       } catch (operationError) {
-        // Log operation error for debugging
         console.error(`Error in ${operation}:`, operationError);
         return new NextResponse(
-          JSON.stringify({ 
-            success: false, 
+          JSON.stringify({
+            success: false,
             message: `Failed to ${operation}`,
-            error: operationError instanceof Error ? operationError.message : operationError 
+            error: operationError instanceof Error ? operationError.message : operationError
           }),
           { status: 500, headers: corsHeaders }
         );
       }
     }
-    
-    // Legacy milestone handling for backwards compatibility
-    let milestoneResult = { modifiedCount: 0 };
-    if (updates.milestones && !updates.operation) {
-      const ms = updates.milestones as any;
-      if (ms.id) {
-        // update existing milestone
-        const milestoneSet: Record<string, any> = {};
-        if (ms.title !== undefined) milestoneSet['milestones.$.title'] = ms.title;
-        if (ms.description !== undefined) milestoneSet['milestones.$.description'] = ms.description;
-        if (ms.budget !== undefined) milestoneSet['milestones.$.budget'] = ms.budget;
-        if (ms.timeline !== undefined) milestoneSet['milestones.$.timeline'] = ms.timeline;
-        if (ms.status !== undefined) milestoneSet['milestones.$.status'] = ms.status;
-        if (ms.dueDate !== undefined) milestoneSet['milestones.$.dueDate'] = new Date(ms.dueDate);
-        if (ms.completedAt !== undefined) milestoneSet['milestones.$.completedAt'] = new Date(ms.completedAt);
-        milestoneSet['milestones.$.updatedAt'] = new Date();
 
-        const milestoneQuery = isValidObjectId(ms.id)
-          ? { _id: new ObjectId(projectId), 'milestones._id': new ObjectId(ms.id) }
-          : { _id: new ObjectId(projectId), 'milestones.id': ms.id };
+    // Handle bulk updates and basic project field updates
+    const updateData: any = { updatedAt: new Date() };
 
-        milestoneResult = await db.collection('projects').updateOne(
-          milestoneQuery,
-          { $set: milestoneSet }
-        );
-      } else {
-        // add new milestone
-        const generatedId = new ObjectId();
-        const newMilestoneWithId = {
-          ...ms,
-          _id: generatedId,
-          id: generatedId.toString(),
-          status: ms.status || 'pending',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        updateQuery.$push = {
-          ...updateQuery.$push,
-          milestones: newMilestoneWithId,
-        };
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.progress !== undefined) {
+      updateData.progress = updates.progress;
+      // If progress reaches 100, mark the project as completed
+      if (updates.progress === 100) {
+        updateData.status = 'completed';
+        updateData.actualCompletionDate = new Date();
       }
     }
 
-    // Execute main update if there is something to do
-    let result = { modifiedCount: 0 };
-    if (Object.keys(updateQuery).length) {
-      result = await db.collection('projects').updateOne(
-        { _id: new ObjectId(projectId) },
-        updateQuery
-      );
+    // Handle array updates for bulk operations
+    if (Array.isArray(updates.updates) && updates.updates.length) {
+      const newUpdates = updates.updates.map((update: any) => ({
+        id: generateId(),
+        title: update.title,
+        description: update.description,
+        type: update.type || 'general',
+        author: update.author || 'Client',
+        createdAt: new Date()
+      }));
+      updateData.updates = [...(project.updates || []), ...newUpdates];
     }
 
-    const modifiedCount = (result?.modifiedCount || 0) + (milestoneResult?.modifiedCount || 0);
+    if (Array.isArray(updates.files) && updates.files.length) {
+      const newFiles = updates.files.map((file: any) => ({
+        id: generateId(),
+        fileName: file.fileName,
+        fileUrl: file.fileUrl,
+        fileSize: file.fileSize || 0,
+        fileType: file.fileType || '',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
+      updateData.files = [...(project.files || []), ...newFiles];
+    }
+
+    if (Array.isArray(updates.payments) && updates.payments.length) {
+      const newPayments = updates.payments.map((payment: any) => ({
+        id: generateId(),
+        amount: parseFloat(payment.amount) || 0,
+        date: payment.date ? new Date(payment.date) : new Date(),
+        method: payment.method || 'bank_transfer',
+        status: payment.status || 'pending',
+        submittedBy: payment.submittedBy || 'client',
+        notes: payment.description || payment.notes || '',
+        description: payment.description || payment.notes || '',
+        currency: payment.currency || 'USD',
+        invoiceUrl: payment.invoiceUrl || '',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
+      updateData.payments = [...(project.payments || []), ...newPayments];
+    }
+
+    // Legacy milestone handling for backwards compatibility
+    if (updates.milestones && !updates.operation) {
+      const ms = updates.milestones as any;
+      const currentMilestones = project.milestones || [];
+
+      if (ms.id) {
+        // Update existing milestone
+        const updatedMilestoneArray = updateItemInArray(currentMilestones, ms.id, {
+          title: ms.title,
+          description: ms.description,
+          budget: ms.budget ? parseFloat(ms.budget) : ms.budget,
+          timeline: ms.timeline,
+          status: ms.status,
+          dueDate: ms.dueDate ? new Date(ms.dueDate) : undefined,
+          completedAt: ms.completedAt ? new Date(ms.completedAt) : undefined
+        });
+        updateData.milestones = updatedMilestoneArray;
+      } else {
+        // Create new milestone
+        const newMilestone: ProjectMilestone = {
+          id: generateId(),
+          title: ms.title,
+          description: ms.description || '',
+          budget: ms.budget ? parseFloat(ms.budget) : 0,
+          timeline: ms.timeline || '',
+          status: ms.status || 'pending',
+          dueDate: ms.dueDate ? new Date(ms.dueDate) : undefined,
+          order: ms.order || currentMilestones.length,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        updateData.milestones = [...currentMilestones, newMilestone];
+      }
+    }
+
+    // Update the main project
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: updateData
+    });
 
     return new NextResponse(JSON.stringify({
       success: true,
       message: 'Project updated successfully',
-      modifiedCount: modifiedCount
+      data: updatedProject
     }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
-    // Log error for debugging while providing user-friendly response
     console.error('Error updating project:', error);
     return new NextResponse(
-      JSON.stringify({ 
-        success: false, 
+      JSON.stringify({
+        success: false,
         message: 'Failed to update project',
-        error: error instanceof Error ? error.message : error 
+        error: error instanceof Error ? error.message : error
       }),
       { status: 500, headers: corsHeaders }
     );
@@ -822,15 +754,14 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
-
     let clientUser: any = null;
     if (userRole === 'client') {
-      clientUser = await db.collection('users').findOne({
-        email: userEmail,
-        role: 'client',
-        isActive: true
+      clientUser = await prisma.user.findUnique({
+        where: {
+          email: userEmail,
+          role: 'client',
+          isActive: true
+        }
       });
       if (!clientUser) {
         return new NextResponse(
@@ -849,21 +780,10 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    let project;
-    if (userRole === 'admin') {
-      project = await db.collection('projects').findOne({
-        _id: new ObjectId(projectId)
-      });
-    } else {
-      // Use the same logic as GET handler for consistency
-      project = await db.collection('projects').findOne({
-        _id: new ObjectId(projectId),
-        $or: [
-          { clientId: clientUser._id.toString() },
-          { 'userInfo.email': userEmail }
-        ]
-      });
-    }
+    // Find the project with authorization check
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
+    });
 
     if (!project) {
       return new NextResponse(
@@ -872,33 +792,39 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    // Check authorization
+    if (userRole !== 'admin' && project.clientId !== (clientUser?.id || userEmail)) {
+      return new NextResponse(
+        JSON.stringify({ success: false, message: 'Unauthorized to delete this project' }),
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
     // Delete the project
-    const result = await db.collection('projects').deleteOne({
-      _id: new ObjectId(projectId)
+    await prisma.project.delete({
+      where: { id: projectId }
     });
 
-    // Decrement project count for client user
-    if (userRole === 'client') {
-      await db.collection('users').updateOne(
-        { _id: clientUser._id },
-        { $inc: { projectCount: -1 } }
-      );
+    // Decrement project count for client user if needed
+    if (userRole === 'client' && clientUser) {
+      await prisma.user.update({
+        where: { id: clientUser.id },
+        data: { projectCount: { decrement: 1 } }
+      });
     }
 
     return new NextResponse(JSON.stringify({
       success: true,
-      message: 'Project deleted successfully',
-      deletedCount: result.deletedCount
+      message: 'Project deleted successfully'
     }), { status: 200, headers: corsHeaders });
 
   } catch (error) {
-    // Log error for debugging while providing user-friendly response
     console.error('Error deleting project:', error);
     return new NextResponse(
-      JSON.stringify({ 
-        success: false, 
+      JSON.stringify({
+        success: false,
         message: 'Failed to delete project',
-        error: error instanceof Error ? error.message : error 
+        error: error instanceof Error ? error.message : error
       }),
       { status: 500, headers: corsHeaders }
     );

@@ -1,6 +1,6 @@
 
 import { jwtVerify } from 'jose';
-import clientPromise from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 const allowedOrigins = [
@@ -56,9 +56,9 @@ export async function GET(request: NextRequest) {
     // Get user data from payload
     const userEmail = payload.email as string;
 
-    const client = await clientPromise;
-    const db = client.db();
-    const user = await db.collection('users').findOne({ email: userEmail });
+    const user = await prisma.user.findUnique({ 
+      where: { email: userEmail } 
+    });
 
     if (!user || !user.isActive) {
       return new NextResponse(
@@ -72,12 +72,14 @@ export async function GET(request: NextRequest) {
       JSON.stringify({
         success: true,
         data: {
-          id: user._id.toString(),
+          id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
           isActive: user.isActive,
-          permissions: user.permissions
+          status: user.status,
+          developerProfileStatus: user.developerProfileStatus
         }
       }),
       { status: 200, headers: corsHeaders }

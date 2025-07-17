@@ -17,8 +17,13 @@ datasource db {
 model User {
   id                     String           @id @default(auto()) @map("_id") @db.ObjectId
   email                  String           @unique
+  name                   String?
   firstName              String
   lastName               String
+  password               String?
+  passwordLastChanged    DateTime?
+  loginAttempts          Int              @default(0)
+  accountLocked          Boolean          @default(false)
   role                   String           @default("developer")
   status                 String           @default("pending")
   developerProfileStatus String           @default("pending") // pending, approved, rejected - synced with DeveloperProfile.status
@@ -66,6 +71,40 @@ type Pricing {
     estimatedHours Int?
 }
 
+type ProjectFile {
+  id String
+  fileName String
+  fileUrl String
+  fileSize Float?
+  fileType String?
+  createdAt DateTime
+  updatedAt DateTime?
+}
+
+type ProjectPayment {
+  id String
+  amount Float
+  date DateTime
+  method String
+  status String
+  submittedBy String
+  notes String?
+  description String?
+  currency String?
+  invoiceUrl String?
+  createdAt DateTime?
+  updatedAt DateTime?
+}
+
+type ProjectUpdate {
+  id String
+  title String
+  description String
+  type String
+  author String?
+  createdAt DateTime
+}
+
 model Project {
   id                     String   @id @default(auto()) @map("_id") @db.ObjectId
   title                  String
@@ -85,6 +124,10 @@ model Project {
   assignments            ProjectAssignment[]
   milestones             Milestone[]
   pricing                Pricing?
+  files                  ProjectFile[]
+  payments               ProjectPayment[]
+  updates                ProjectUpdate[]
+  progress               Int      @default(0)
 }
 
 model ProjectAssignment {
@@ -134,4 +177,18 @@ model ChatMessage {
   replyToMessageId  String?    @db.ObjectId
   replyToMessage    ChatMessage? @relation("ReplyTo", fields: [replyToMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies           ChatMessage[] @relation("ReplyTo")
+}
+
+model Developer {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  email             String
+  firstName         String?
+  lastName          String?
+  personalInfo      Json?
+  professionalInfo  Json?
+  technicalSkills   Json?
+  workExperience    Json?
+  projects          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

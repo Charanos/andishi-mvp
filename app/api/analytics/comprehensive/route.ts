@@ -1,7 +1,6 @@
 
-import { Db } from 'mongodb';
 import { toast } from 'react-toastify';
-import clientPromise from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 import { getSession, Session } from '@/lib/getSession';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -88,13 +87,13 @@ function getIconForActivityType(type: string): string {
     }
 }
 
-async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
+async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
     try {
-        // Fetch REAL data from actual MongoDB collections
+        // Fetch REAL data from Prisma
         const [users, projects, developerProfiles] = await Promise.all([
-            db.collection('users').find({}).toArray(),
-            db.collection('projects').find({}).toArray(),
-            db.collection('developerProfiles').find({}).toArray()
+            prisma.user.findMany(),
+            prisma.project.findMany(),
+            prisma.developerProfile.findMany({ include: { user: true } })
         ]);
 
         // Extract payments from all projects
@@ -106,7 +105,7 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
                     console.log(`  Payment found:`, payment);
                     allPayments.push({
                         ...payment,
-                        projectId: project._id,
+                projectId: project.id,
                         clientId: project.clientId
                     });
                 });
@@ -182,7 +181,7 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
             if (clientId) {
                 // Find client user
                 const client = users.find(u =>
-                    u._id?.toString() === clientId ||
+                    u.id === clientId ||
                     u.email === project.userInfo?.email
                 );
 
@@ -288,7 +287,7 @@ async function fetchAnalyticsData(db: Db): Promise<AnalyticsResponse> {
                     completedProjects: Number(stats.completedProjects) || 0,
                     rating: Number(stats.averageRating) || 0,
                     skills: technicalSkills.primarySkills?.map((s: any) => s.name || s) || [],
-                    id: profile._id?.toString() || `dev-${index}`
+                    id: profile.id || `dev-${index}`
                 };
             })
             .sort((a, b) => b.completedProjects - a.completedProjects)
@@ -793,12 +792,8 @@ export async function GET(request: NextRequest) {
             return new NextResponse('Forbidden - Admin access required', { status: 403 });
         }
 
-        // Connect to database
-        const client = await clientPromise;
-        const db = client.db();
-
         // Fetch analytics data
-        const analyticsData = await fetchAnalyticsData(db);
+        const analyticsData = await fetchAnalyticsData();
 
         return NextResponse.json(analyticsData);
 

@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
-import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
-import clientPromise from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 
 // Type definitions for better TypeScript support
-interface User {
-  _id?: ObjectId;
+interface UserData {
+  id?: string;
   email: string;
   password?: string;
   name?: string;
   firstName?: string;
   lastName?: string;
   role: string;
+  status?: string;
   isActive?: boolean;
   accountCreated?: boolean;
   passwordGenerated?: boolean;
@@ -68,9 +68,10 @@ function isValidEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
-// Helper function to validate ObjectId
-function isValidObjectId(id: string): boolean {
-  return ObjectId.isValid(id);
+// Helper function to validate ID format
+function isValidId(id: string): boolean {
+  // For Prisma, we just check if it's a non-empty string
+  return typeof id === 'string' && id.length > 0;
 }
 
 // Helper function to derive firstName/lastName from name
@@ -85,7 +86,7 @@ function deriveNames(user: any) {
 }
 
 // Helper function to create developer profile automatically
-async function createDeveloperProfile(db: any, userId: ObjectId, user: any) {
+async function createDeveloperProfile(userId: string, user: any) {
   const defaultDeveloperProfile = {
     data: {
       personalInfo: {
@@ -153,15 +154,13 @@ async function createDeveloperProfile(db: any, userId: ObjectId, user: any) {
       achievements: [],
       notifications: [],
       timeEntries: []
-    },
+    } as any,
     userId: userId,
-    status: 'pending',
+    status: 'pending' as const,
     isAvailable: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
   };
 
-  const result = await db.collection('developerProfiles').insertOne(defaultDeveloperProfile);
+  const result = await prisma.developerProfile.create({ data: defaultDeveloperProfile });
   return result;
 }
 
@@ -170,219 +169,99 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const refresh = url.searchParams.get('refresh') === 'true';
-    
-    const client = await clientPromise;
-    const db = client.db();
 
     // If refresh is requested, ensure data consistency
     if (refresh) {
-      
-      
-      // Ensure all developers have profiles
-      const developersWithoutProfiles = await db.collection('users').find({
-        role: 'developer',
-        developerProfileStatus: { $in: ['approved', 'pending'] }
-      }).toArray();
-      
+      const developersWithoutProfiles = await prisma.user.findMany({
+        where: {
+          role: 'developer',
+          developerProfile: null,
+        },
+      });
+
       for (const developer of developersWithoutProfiles) {
-        const profileExists = await db.collection('developerProfiles').findOne({ userId: developer._id });
-        if (!profileExists) {
-          
-          // Create a basic profile
-          await db.collection('developerProfiles').insertOne({
-            userId: developer._id,
-            status: 'pending',
-            isAvailable: false,
-            createdAt: new Date(),
-            data: {
-              personalInfo: {
-                firstName: developer.firstName || 'Unknown',
-                lastName: developer.lastName || 'Developer',
-                email: developer.email || '',
-                location: 'Unknown',
-                tagline: 'Full Stack Developer'
-              },
-              professionalInfo: {
-                title: 'Developer',
-                experienceLevel: 'Mid-level',
-                availability: 'Full-time',
-                hourlyRate: 50,
-                languages: [],
-                certifications: [],
-                preferredWorkType: []
-              },
-              technicalSkills: {
-                primarySkills: [
-                  { name: 'JavaScript', level: 0 },
-                  { name: 'React', level: 0 },
-                  { name: 'Node.js', level: 0 }
-                ],
-                frameworks: [],
-                databases: [],
-                tools: [],
-                cloudPlatforms: [],
-                specializations: []
-              },
-              stats: {
-                totalProjects: 0,
-                completedProjects: 0,
-                totalEarnings: 0,
-                averageRating: 0,
-                totalCodeLines: 0,
-                activeDays: 0,
-                clientRetention: 0,
-                totalCommits: 0,
-                bugsFixed: 0,
-                codeReviewsGiven: 0,
-                mentoringSessions: 0
-              },
-              projects: [],
-              recentActivity: [],
-              achievements: [],
-              notifications: [],
-              timeEntries: []
-            }
-          });
-        }
+        await createDeveloperProfile(developer.id, developer);
       }
     }
 
-    // Exclude sensitive fields like password
-    let users = await db
-      .collection('users')
-      .aggregate([
-        {
-          $lookup: {
-            from: 'developerProfiles',
-            localField: '_id',
-            foreignField: 'userId',
-            as: 'developerProfile'
-          }
-        },
-        {
-          $unwind: {
-            path: '$developerProfile',
-            preserveNullAndEmptyArrays: true // Keep users even if they don't have a dev profile
-          }
-        },
-        {
-          $project: {
-            email: 1,
-            firstName: 1,
-            lastName: 1,
-            role: 1,
-            status: 1,
-            isActive: 1,
-            accountCreated: 1,
-            passwordGenerated: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            lastLogin: 1,
-            developerProfileStatus: '$developerProfile.status',
-            developerProfileId: '$developerProfile._id',
-            isAvailable: '$developerProfile.isAvailable',
-            busyUntilDate: '$developerProfile.busyUntilDate',
-            // Extract professional info from developer profile
-            hourlyRate: '$developerProfile.data.professionalInfo.hourlyRate',
-            title: '$developerProfile.data.professionalInfo.title',
-            experienceLevel: '$developerProfile.data.professionalInfo.experienceLevel',
-            // Extract skills from developer profile
-            primarySkills: '$developerProfile.data.technicalSkills.primarySkills',
-            // Extract stats from developer profile  
-            totalProjects: '$developerProfile.data.stats.totalProjects',
-            completedProjects: '$developerProfile.data.stats.completedProjects',
-            totalEarnings: '$developerProfile.data.stats.totalEarnings',
-            averageRating: '$developerProfile.data.stats.averageRating'
-          }
-        },
-        {
-          $sort: { createdAt: -1 } // Sort by newest first
-        }
-      ])
-      .toArray();
+    const users = await prisma.user.findMany({
+      include: {
+        developerProfile: true,
+      },
+    });
 
-    // Get project counts for each user (still needed for clients)
     const projectCounts = await Promise.all(
       users.map(async (user) => {
         if (user.role === 'client') {
-          const count = await db.collection('projects').countDocuments({
-            clientId: user._id
+          const count = await prisma.project.count({
+            where: { clientId: user.id },
           });
-          return { userId: user._id, count };
+          return { userId: user.id, count };
         }
-        return { userId: user._id, count: 0 }; // Developers don't have client projects
+        return { userId: user.id, count: 0 }; // Developers don't have client projects
       })
     );
 
-    // Merge project counts with user data and enhance developer info
-    users = users.map(user => {
-      const projectCount = projectCounts.find(pc => pc.userId.toString() === user._id.toString());
+    const usersWithProjects = users.map(user => {
+      const projectCount = projectCounts.find(pc => pc.userId === user.id);
       const baseUser = {
         ...deriveNames(user),
         projectsCount: projectCount?.count || 0
       };
-      
-      // For developers, transform the profile data and calculate availability
-      if (user.role === 'developer' && user.developerProfileStatus) {
+
+      if (user.role === 'developer' && user.developerProfile) {
         const now = new Date();
-        const busyUntilExpired = !user.busyUntilDate || new Date(user.busyUntilDate) <= now;
-        const isApproved = user.developerProfileStatus === 'approved';
-        
-        // Calculate proper availability status
+        const busyUntilExpired = !user.developerProfile.busyUntilDate || new Date(user.developerProfile.busyUntilDate) <= now;
+        const isApproved = user.developerProfile.status === 'approved';
+
         let availabilityDisplayText = 'Unavailable';
         let isReallyAvailable = false;
-        
+
         if (!isApproved) {
-          availabilityDisplayText = user.developerProfileStatus === 'pending' ? 'Pending Approval' : 'Rejected';
-        } else if (user.isAvailable && busyUntilExpired) {
+          availabilityDisplayText = user.developerProfile.status === 'pending' ? 'Pending Approval' : 'Rejected';
+        } else if (user.developerProfile.isAvailable && busyUntilExpired) {
           availabilityDisplayText = 'Available';
           isReallyAvailable = true;
-        } else if (user.busyUntilDate && !busyUntilExpired) {
-          availabilityDisplayText = `Busy until ${new Date(user.busyUntilDate).toLocaleDateString()}`;
+        } else if (user.developerProfile.busyUntilDate && !busyUntilExpired) {
+          availabilityDisplayText = `Busy until ${new Date(user.developerProfile.busyUntilDate).toLocaleDateString()}`;
         } else {
           availabilityDisplayText = 'Busy';
         }
-        
+
         return {
           ...baseUser,
-          // Enhanced developer fields
           isAvailable: isReallyAvailable,
           availabilityDisplayText,
-          busyUntilDate: user.busyUntilDate,
-          hourlyRate: user.hourlyRate || 0,
-          title: user.title || 'Developer',
-          experienceLevel: user.experienceLevel || 'Not specified',
-          skills: user.primarySkills ? user.primarySkills.map((skill: any) => skill.name || skill) : [],
-          totalProjects: user.totalProjects || 0,
-          completedProjects: user.completedProjects || 0,
-          totalEarnings: user.totalEarnings || 0,
-          averageRating: user.averageRating || 0
+          busyUntilDate: user.developerProfile.busyUntilDate,
+          hourlyRate: (user.developerProfile.data as any)?.professionalInfo?.hourlyRate || 0,
+          title: (user.developerProfile.data as any)?.professionalInfo?.title || 'Developer',
+          experienceLevel: (user.developerProfile.data as any)?.professionalInfo?.experienceLevel || 'Not specified',
+          skills: (user.developerProfile.data as any)?.technicalSkills?.primarySkills?.map((skill: any) => skill.name || skill) || [],
+          totalProjects: (user.developerProfile.data as any)?.stats?.totalProjects || 0,
+          completedProjects: (user.developerProfile.data as any)?.stats?.completedProjects || 0,
+          totalEarnings: (user.developerProfile.data as any)?.stats?.totalEarnings || 0,
+          averageRating: (user.developerProfile.data as any)?.stats?.averageRating || 0
         };
       }
-      
+
       return baseUser;
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      users,
-      count: users.length 
+    return NextResponse.json({
+      success: true,
+      users: usersWithProjects,
+      count: usersWithProjects.length
     });
   } catch (err) {
-    
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch users' }, 
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false, error: 'Failed to fetch users'
+    }, { status: 500 });
   }
 }
 
 // POST - Create new user or generate credentials
 export async function POST(request: Request) {
   try {
-    const client = await clientPromise;
-    const db = client.db();
-    
     let payload: CreateUserPayload | GenerateCredentialsPayload;
     try {
       payload = await request.json();
@@ -395,14 +274,13 @@ export async function POST(request: Request) {
 
     // Check if this is a credential generation request
     if ('userId' in payload) {
-      return await generateUserCredentials(db, payload as GenerateCredentialsPayload);
+      return await generateUserCredentials(payload as GenerateCredentialsPayload);
     }
 
     // Otherwise, handle user creation
-    return await createNewUser(db, payload as CreateUserPayload);
+    return await createNewUser(payload as CreateUserPayload);
     
   } catch (err) {
-    
     return NextResponse.json(
       { success: false, error: 'Failed to process request' }, 
       { status: 500 }
@@ -411,7 +289,7 @@ export async function POST(request: Request) {
 }
 
 // Helper function to create new user
-async function createNewUser(db: any, payload: CreateUserPayload) {
+async function createNewUser(payload: CreateUserPayload) {
   // Enhanced validation
   const errors: string[] = [];
   
@@ -439,8 +317,8 @@ async function createNewUser(db: any, payload: CreateUserPayload) {
 
   // Check if user already exists
   const normalizedEmail = payload.email.toLowerCase().trim();
-  const existingUser = await db.collection('users').findOne({ 
-    email: normalizedEmail 
+  const existingUser = await prisma.user.findUnique({ 
+    where: { email: normalizedEmail }
   });
   
   if (existingUser) {
@@ -450,90 +328,66 @@ async function createNewUser(db: any, payload: CreateUserPayload) {
     );
   }
 
-  // Prepare user document
-  const userDoc: User = {
+  // Prepare user data
+  const userData: any = {
     email: normalizedEmail,
     role: payload.role,
     isActive: true,
-    accountCreated: false, // Account not fully created until password is generated
+    accountCreated: false,
     passwordGenerated: false,
     loginAttempts: 0,
     accountLocked: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   // Add optional fields if provided
-  if (payload.name) userDoc.name = payload.name.trim();
-  if (payload.firstName) userDoc.firstName = payload.firstName.trim();
-  if (payload.lastName) userDoc.lastName = payload.lastName.trim();
+  if (payload.name) userData.name = payload.name.trim();
+  if (payload.firstName) userData.firstName = payload.firstName.trim();
+  if (payload.lastName) userData.lastName = payload.lastName.trim();
 
   // Handle password
+  let generatedPassword: string | undefined;
   if (payload.password) {
-    // Hash provided password
-    userDoc.password = await bcrypt.hash(payload.password, 12);
-    userDoc.accountCreated = true;
-    userDoc.passwordGenerated = true;
-    userDoc.passwordLastChanged = new Date();
+    userData.password = await bcrypt.hash(payload.password, 12);
+    userData.accountCreated = true;
+    userData.passwordGenerated = true;
+    userData.passwordLastChanged = new Date();
   } else if (payload.generatePassword) {
-    // Generate and hash password
-    const generatedPassword = generateSecurePassword();
-    userDoc.password = await bcrypt.hash(generatedPassword, 12);
-    userDoc.accountCreated = true;
-    userDoc.passwordGenerated = true;
-    userDoc.passwordLastChanged = new Date();
-    
-    // Return the plain password for the frontend (only time we do this)
-    const result = await db.collection('users').insertOne(userDoc);
-    const returnUser: any = { ...userDoc, _id: result.insertedId };
-    delete returnUser.password;
-    const userResp = deriveNames(returnUser);
-
-    // Auto-create developer profile if user role is 'developer'
-    if (payload.role === 'developer') {
-      try {
-        await createDeveloperProfile(db, result.insertedId, userResp);
-
-      } catch (error) {
-
-        // Don't fail the user creation, just log the error
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      user: userResp,
-      generatedPassword, // Only returned when password is generated
-      message: `User created successfully with generated password${payload.role === 'developer' ? ' and developer profile' : ''}`
-    }, { status: 201 });
+    generatedPassword = generateSecurePassword();
+    userData.password = await bcrypt.hash(generatedPassword, 12);
+    userData.accountCreated = true;
+    userData.passwordGenerated = true;
+    userData.passwordLastChanged = new Date();
   }
 
-  const result = await db.collection('users').insertOne(userDoc);
+  const newUser = await prisma.user.create({ data: userData });
   
-  const returnUser: any = { ...userDoc, _id: result.insertedId };
-  delete returnUser.password;
-  const userResp = deriveNames(returnUser);
+  const userResp = deriveNames(newUser);
+  const { password, ...userWithoutPassword } = userResp;
 
   // Auto-create developer profile if user role is 'developer'
   if (payload.role === 'developer') {
     try {
-      await createDeveloperProfile(db, result.insertedId, userResp);
-      
+      await createDeveloperProfile(newUser.id, userResp);
     } catch (error) {
-      
       // Don't fail the user creation, just log the error
     }
   }
 
-  return NextResponse.json({
+  const response: any = {
     success: true,
-    user: userResp,
-    message: `User profile created successfully${payload.role === 'developer' ? ' with developer profile' : ''}`
-  }, { status: 201 });
+    user: userWithoutPassword,
+    message: `User ${generatedPassword ? 'created' : 'profile created'} successfully${payload.role === 'developer' ? ' with developer profile' : ''}`
+  };
+  
+  if (generatedPassword) {
+    response.generatedPassword = generatedPassword;
+  }
+
+  return NextResponse.json(response, { status: 201 });
 }
 
 // Helper function to generate credentials for existing user
-async function generateUserCredentials(db: any, payload: GenerateCredentialsPayload) {
+async function generateUserCredentials(payload: GenerateCredentialsPayload) {
   if (!payload.userId) {
     return NextResponse.json(
       { success: false, error: 'User ID is required' }, 
@@ -541,17 +395,18 @@ async function generateUserCredentials(db: any, payload: GenerateCredentialsPayl
     );
   }
 
-  if (!isValidObjectId(payload.userId)) {
+  if (!isValidId(payload.userId)) {
     return NextResponse.json(
       { success: false, error: 'Invalid user ID format' }, 
       { status: 400 }
     );
   }
 
-  const objectId = new ObjectId(payload.userId);
-
   // Check if user exists
-  const existingUser = await db.collection('users').findOne({ _id: objectId });
+  const existingUser = await prisma.user.findUnique({ 
+    where: { id: payload.userId } 
+  });
+  
   if (!existingUser) {
     return NextResponse.json(
       { success: false, error: 'User not found' }, 
@@ -564,39 +419,24 @@ async function generateUserCredentials(db: any, payload: GenerateCredentialsPayl
   const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
   // Update user with new credentials
-  const updateData = {
-    password: hashedPassword,
-    accountCreated: true,
-    passwordGenerated: true,
-    passwordLastChanged: new Date(),
-    updatedAt: new Date(),
-    // Reset login attempts and unlock account if generating new credentials
-    loginAttempts: 0,
-    accountLocked: false
-  };
+  const updatedUser = await prisma.user.update({
+    where: { id: payload.userId },
+    data: {
+      password: hashedPassword,
+      accountCreated: true,
+      passwordGenerated: true,
+      passwordLastChanged: new Date(),
+      loginAttempts: 0,
+      accountLocked: false
+    }
+  });
 
-  const result = await db.collection('users').updateOne(
-    { _id: objectId }, 
-    { $set: updateData }
-  );
-
-  if (result.matchedCount === 0) {
-    return NextResponse.json(
-      { success: false, error: 'User not found' }, 
-      { status: 404 }
-    );
-  }
-
-  // Get updated user (without password)
-  const updatedUser = await db.collection('users').findOne(
-    { _id: objectId },
-    { projection: { password: 0 } }
-  );
+  const { password, ...userWithoutPassword } = deriveNames(updatedUser);
 
   return NextResponse.json({
     success: true,
-    user: deriveNames(updatedUser),
-    generatedPassword, // Only returned when password is generated
+    user: userWithoutPassword,
+    generatedPassword,
     message: payload.regenerate ? 'Credentials regenerated successfully' : 'Credentials generated successfully'
   });
 }
@@ -604,9 +444,6 @@ async function generateUserCredentials(db: any, payload: GenerateCredentialsPayl
 // PATCH - Update user
 export async function PATCH(request: Request) {
   try {
-    const client = await clientPromise;
-    const db = client.db();
-    
     let payload: any;
     try {
       payload = await request.json();
@@ -617,24 +454,26 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const { _id, action, ...updates } = payload;
+    const { id, _id, action, ...updates } = payload;
+    const userId = id || _id;
     
-    if (!_id) {
+    if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'Missing _id field' }, 
+        { success: false, error: 'Missing id field' }, 
         { status: 400 }
       );
     }
 
-    if (!isValidObjectId(_id)) {
+    if (!isValidId(userId)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid _id format' }, 
+        { success: false, error: 'Invalid id format' }, 
         { status: 400 }
       );
     }
 
-    const objectId = new ObjectId(_id);
-    const existingUser = await db.collection('users').findOne({ _id: objectId });
+    const existingUser = await prisma.user.findUnique({ 
+      where: { id: userId } 
+    });
     
     if (!existingUser) {
       return NextResponse.json(
@@ -647,18 +486,15 @@ export async function PATCH(request: Request) {
       const generatedPassword = generateSecurePassword();
       const hashedPassword = await bcrypt.hash(generatedPassword, 12);
       
-      await db.collection('users').updateOne(
-        { _id: objectId },
-        { 
-          $set: {
-            password: hashedPassword,
-            passwordGenerated: true,
-            passwordLastChanged: new Date(),
-            isActive: true,
-            updatedAt: new Date()
-          }
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          password: hashedPassword,
+          passwordGenerated: true,
+          passwordLastChanged: new Date(),
+          isActive: true
         }
-      );
+      });
 
       return NextResponse.json({
         success: true,
@@ -677,18 +513,17 @@ export async function PATCH(request: Request) {
     }
 
     // Handle regular updates
-    const result = await db.collection('users').updateOne(
-      { _id: objectId },
-      { $set: { ...updates, updatedAt: new Date() } }
-    );
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updates
+    });
 
     return NextResponse.json({
       success: true,
       message: 'User updated successfully',
-      modifiedCount: result.modifiedCount
+      modifiedCount: 1
     });
   } catch (err) {
-    
     return NextResponse.json(
       { success: false, error: 'Failed to update user' },
       { status: 500 }
@@ -709,19 +544,19 @@ export async function DELETE(request: Request) {
       );
     }
 
-    if (!isValidObjectId(idParam)) {
+    if (!isValidId(idParam)) {
       return NextResponse.json(
         { success: false, error: 'Invalid id format' }, 
         { status: 400 }
       );
     }
 
-    const objectId = new ObjectId(idParam);
-    const client = await clientPromise;
-    const db = client.db();
-
     // Check if user exists before deletion
-    const existingUser = await db.collection('users').findOne({ _id: objectId });
+    const existingUser = await prisma.user.findUnique({ 
+      where: { id: idParam },
+      include: { developerProfile: true }
+    });
+    
     if (!existingUser) {
       return NextResponse.json(
         { success: false, error: 'User not found' }, 
@@ -731,20 +566,14 @@ export async function DELETE(request: Request) {
 
     // Delete associated developer profile first if exists
     let deletedProfileCount = 0;
-    if (existingUser.role === 'developer') {
-      const deleteProfileResult = await db.collection('developerProfiles').deleteOne({ userId: existingUser._id });
-      deletedProfileCount = deleteProfileResult.deletedCount;
-      
+    if (existingUser.role === 'developer' && existingUser.developerProfile) {
+      await prisma.developerProfile.delete({ 
+        where: { userId: existingUser.id } 
+      });
+      deletedProfileCount = 1;
     }
 
-    const result = await db.collection('users').deleteOne({ _id: objectId });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to delete user' }, 
-        { status: 500 }
-      );
-    }
+    await prisma.user.delete({ where: { id: idParam } });
 
     return NextResponse.json({ 
       success: true,
@@ -753,7 +582,6 @@ export async function DELETE(request: Request) {
     });
     
   } catch (err) {
-    
     return NextResponse.json(
       { success: false, error: 'Failed to delete user' }, 
       { status: 500 }

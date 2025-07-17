@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/getSession';
-import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
 
 const allowedOrigins = [
   'https://andishi-mvp.vercel.app',
@@ -67,12 +66,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db('test');
-
     // Find the project
-    const project = await db.collection('projects').findOne({
-      _id: new ObjectId(projectId)
+    const project = await prisma.project.findUnique({
+      where: { id: projectId }
     });
 
     if (!project) {
@@ -117,16 +113,39 @@ export async function POST(req: NextRequest) {
     }
 
     // Update the payment in the database
-    const query = payment._id 
-      ? { _id: new ObjectId(projectId), 'payments._id': new ObjectId(payment._id) }
-      : { _id: new ObjectId(projectId), 'payments.id': paymentId };
+    const updatedPayments = project.payments?.map((p: any) => {
+      if (p.id === paymentId || p._id?.toString() === paymentId) {
+        const updatedPayment = { ...p };
+        if (action === 'approve') {
+          updatedPayment.status = 'approved';
+          updatedPayment.approvedBy = session.user.id;
+          updatedPayment.approvedAt = currentTime;
+          updatedPayment.updatedAt = currentTime;
+        } else if (action === 'paid') {
+          updatedPayment.status = 'paid';
+          updatedPayment.paidBy = session.user.id;
+          updatedPayment.paidAt = currentTime;
+          updatedPayment.updatedAt = currentTime;
+        } else {
+          updatedPayment.status = 'rejected';
+          updatedPayment.rejectedBy = session.user.id;
+          updatedPayment.rejectedAt = currentTime;
+          updatedPayment.rejectionReason = rejectionReason;
+          updatedPayment.updatedAt = currentTime;
+        }
+        return updatedPayment;
+      }
+      return p;
+    });
 
-    const result = await db.collection('projects').updateOne(
-      query,
-      { $set: updateFields }
-    );
+    const result = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        payments: updatedPayments
+      }
+    });
 
-    if (result.modifiedCount === 0) {
+    if (!result) {
       return NextResponse.json(
         { success: false, error: 'Failed to update payment' },
         { status: 500, headers: corsHeaders }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
 import { getSession } from '@/lib/getSession';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
 
 export interface ActivityItem {
   id: string;
@@ -79,18 +78,11 @@ export async function GET(
     }
 
     let project;
-    let db;
     try {
-      const client = await clientPromise;
-      db = client.db('test');
-      const projectsCollection = db.collection('projects');
-
-      // Try to find project by _id (MongoDB ObjectId)
-      project = await projectsCollection.findOne({
-        _id: new ObjectId(projectId)
+      // Use Prisma to find project by id
+      project = await prisma.project.findUnique({
+        where: { id: projectId }
       });
-
-      
     } catch (dbError) {
       
       return NextResponse.json(
@@ -112,8 +104,7 @@ export async function GET(
     const userId = session.user.id;
     const hasAccess =
       userRole === 'admin' ||
-      project.clientId?.toString() === userId ||
-      project.createdBy?.toString() === userId;
+      project.clientId?.toString() === userId;
 
     
 
@@ -131,7 +122,7 @@ export async function GET(
 
     // 1. Add project creation activity
     activities.push({
-      id: `project-created-${project._id}`,
+      id: `project-created-${project.id}`,
       type: 'system',
       title: 'Project Created',
       description: `Project "${project.title}" was created`,
@@ -144,13 +135,13 @@ export async function GET(
     });
 
     // 2. Add project completion activity if completed
-    if (project.actualCompletionDate) {
+    if (project.estimatedCompletionDate && project.status === 'completed') {
       activities.push({
-        id: `project-completed-${project._id}`,
+        id: `project-completed-${project.id}`,
         type: 'milestone',
         title: 'Project Completed',
         description: `Project "${project.title}" was marked as completed`,
-        createdAt: project.actualCompletionDate,
+        createdAt: project.estimatedCompletionDate,
         actor: {
           id: 'system',
           name: 'System',
@@ -159,33 +150,18 @@ export async function GET(
       });
     }
 
-    // 3. Add project updates
-    if (project.updates && project.updates.length > 0) {
-      project.updates.forEach((update: any) => {
-        activities.push({
-          id: `update-${update.id || update._id}`,
-          type: 'update',
-          title: `Project Update: ${update.title}`,
-          description: update.description,
-          createdAt: update.createdAt,
-          actor: {
-            id: update.authorId || 'system',
-            name: update.author || 'System',
-            role: update.authorRole || 'system'
-          }
-        });
-      });
-    }
+    // 3. Add project updates (if they exist in the project data)
+    // Note: updates are not in the Prisma schema, so we'll skip this for now
 
     // 4. Add milestones
-    if (project.milestones && project.milestones.length > 0) {
+    if (project.milestones && Array.isArray(project.milestones) && project.milestones.length > 0) {
       project.milestones.forEach((milestone: any) => {
         activities.push({
-          id: `milestone-${milestone.id || milestone._id}`,
+          id: `milestone-${milestone.id}`,
           type: 'milestone',
           title: `Milestone: ${milestone.title}`,
           description: `Status: ${milestone.status}`,
-          createdAt: milestone.updatedAt || milestone.createdAt,
+          createdAt: milestone.dueDate || new Date(),
           actor: {
             id: 'system',
             name: 'System',
@@ -195,98 +171,54 @@ export async function GET(
       });
     }
 
-    // 5. Add payments
-    if (project.payments && project.payments.length > 0) {
-      project.payments.forEach((payment: any) => {
-        // Ensure currency is properly set
-        const currency = payment.currency || 'USD';
-        // Use createdAt instead of date field for activity timestamp
-        const activityDate = payment.createdAt || payment.date || new Date();
-        
+    // 5. Add payments (if they exist in the project data)
+    // Note: payments are not in the Prisma schema, so we'll skip this for now
+
+    // 6. Fetch chat messages using Prisma
+    const projectChat = await prisma.projectChat.findFirst({
+      where: { projectId: projectId },
+      include: { messages: { orderBy: { timestamp: 'desc' }, take: 10 } }
+    });
+
+    if (projectChat && projectChat.messages) {
+      projectChat.messages.forEach((message) => {
         activities.push({
-          id: `payment-${payment.id || payment._id}`,
-          type: 'payment',
-          title: `Payment of ${payment.amount} ${currency} received`,
-          description: `Status: ${payment.status}`,
-          createdAt: activityDate,
+          id: `chat-${message.id}`,
+          type: 'chat',
+          title: `${message.senderName || 'User'} sent a message`,
+          description: message.content.length > 100 ?
+            `${message.content.substring(0, 100)}...` :
+            message.content,
+          createdAt: message.timestamp,
           actor: {
-            id: 'system',
-            name: 'System',
-            role: 'system'
-          },
-          metadata: {
-            paymentId: payment.id || payment._id,
-            amount: payment.amount,
-            currency: currency,
-            method: payment.method,
-            status: payment.status,
-            submittedBy: payment.submittedBy
+            id: message.senderId || 'unknown',
+            name: message.senderName || 'Unknown User',
+            role: message.senderRole || 'user'
           }
         });
       });
     }
 
-    // 6. Try to fetch chat messages from MongoDB
-    try {
-      const chatsCollection = db.collection('chats');
-      const chatMessagesCollection = db.collection('chatMessages');
+    // 7. Fetch project assignments using Prisma
+    const assignments = await prisma.projectAssignment.findMany({
+      where: { projectId: projectId },
+      orderBy: { assignedAt: 'desc' }
+    });
 
-      // Find chat for this project
-      const projectChat = await chatsCollection.findOne({
-        projectId: new ObjectId(projectId)
+    assignments.forEach((assignment) => {
+      activities.push({
+        id: `assignment-${assignment.id}`,
+        type: 'assignment',
+        title: `Developer assigned to project`,
+        description: `A developer was assigned to work on this project`,
+        createdAt: assignment.assignedAt,
+        actor: {
+          id: 'system',
+          name: 'System',
+          role: 'system'
+        }
       });
-
-      if (projectChat) {
-        // Find recent messages
-        const recentMessages = await chatMessagesCollection.find({
-          chatId: projectChat._id
-        }).sort({ timestamp: -1 }).limit(10).toArray();
-
-        recentMessages.forEach((message: any) => {
-          activities.push({
-            id: `chat-${message._id}`,
-            type: 'chat',
-            title: `${message.senderName || 'User'} sent a message`,
-            description: message.content.length > 100 ?
-              `${message.content.substring(0, 100)}...` :
-              message.content,
-            createdAt: message.timestamp,
-            actor: {
-              id: message.senderId || 'unknown',
-              name: message.senderName || 'Unknown User',
-              role: message.senderRole || 'user'
-            }
-          });
-        });
-      }
-    } catch (chatError) {
-      
-    }
-
-    // 7. Try to fetch project assignments
-    try {
-      const assignmentsCollection = db.collection('projectAssignments');
-      const assignments = await assignmentsCollection.find({
-        projectId: new ObjectId(projectId)
-      }).sort({ assignedAt: -1 }).toArray();
-
-      assignments.forEach((assignment: any) => {
-        activities.push({
-          id: `assignment-${assignment._id}`,
-          type: 'assignment',
-          title: `Developer assigned to project`,
-          description: `A developer was assigned to work on this project`,
-          createdAt: assignment.assignedAt,
-          actor: {
-            id: 'system',
-            name: 'System',
-            role: 'system'
-          }
-        });
-      });
-    } catch (assignmentError) {
-      
-    }
+    });
 
     // Sort all activities by createdAt (most recent first)
     activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

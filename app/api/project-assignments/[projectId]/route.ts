@@ -150,9 +150,9 @@ export async function POST(
 // DELETE /api/project-assignments/[projectId] - Remove an assignment and update developer availability
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
-  const { projectId } = params;
+  const { projectId } = await params;
 
   if (!projectId) {
     return NextResponse.json({ error: "Project ID is required" }, { status: 400 });

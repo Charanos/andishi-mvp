@@ -25,15 +25,15 @@ import {
   FaPhone,
 } from "react-icons/fa";
 import { UserRole } from "@/types/auth";
+import useToast from "../../hooks/useToast";
 import ScrollToTop from "../components/ScrollToTop";
 import ToastContainer from "../components/ToastContainer";
-import useToast from "../../hooks/useToast";
 import { getComprehensiveAvailabilityStatus } from "@/services/developerAvailabilityService";
 import ConfirmationModal from "../components/ConfirmationModal";
 
 // Type definitions
 interface SystemUser {
-  _id: string;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -85,7 +85,10 @@ interface UserManagementProps {
   setUserStatusFilter: React.Dispatch<React.SetStateAction<string>>;
   refreshUsers?: () => Promise<void>;
   onDeleteUser?: (userId: string) => Promise<void>;
-  onUpdateUser?: (userId: string, updates: Partial<SystemUser>) => Promise<void>;
+  onUpdateUser?: (
+    userId: string,
+    updates: Partial<SystemUser>
+  ) => Promise<void>;
   onCreateUser?: (userData: any) => Promise<void>;
 }
 
@@ -148,9 +151,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-
-
-
   // Form state for create/edit
   const [formData, setFormData] = useState<CreateUserData>({
     email: "",
@@ -190,7 +190,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       const data = await response.json();
 
       if (data.success) {
-        const user = data.users.find((u: any) => u._id === userId);
+        const user = data.users.find((u: any) => u.id === userId);
         if (user && user.passwordGenerated) {
           setAccountExists(true);
           setGeneratedPassword("");
@@ -200,20 +200,23 @@ const UserManagement: React.FC<UserManagementProps> = ({
         }
       }
     } catch (error) {
-      toast.error("Error checking existing account", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Error checking existing account",
+        error instanceof Error ? error.message : "Unknown error"
+      );
       setAccountExists(false);
     }
   };
 
   const generateCredentials = async () => {
-    if (!selectedUser?._id) return;
+    if (!selectedUser?.id) return;
     setIsCreatingAccount(true);
     try {
       const response = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: selectedUser._id,
+          id: selectedUser.id,
           action: "reset_password",
           generatePassword: true,
         }),
@@ -228,7 +231,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       if (data.success) {
         setUsers(
           users.map((user) =>
-            user._id === selectedUser._id
+            user.id === selectedUser.id
               ? { ...user, passwordGenerated: true, isActive: true }
               : user
           )
@@ -287,7 +290,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
         }, 1800);
       }
     } catch (err) {
-      toast.error("Failed to copy to clipboard", err instanceof Error ? err.message : "Unknown error");
+      toast.error(
+        "Failed to copy to clipboard",
+        err instanceof Error ? err.message : "Unknown error"
+      );
 
       // Error toast notification - glassmorphic
       if (typeof window !== "undefined") {
@@ -328,14 +334,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
   };
 
   const sendCredentials = async () => {
-    if (!selectedUser?._id || !generatedPassword) return;
+    if (!selectedUser?.id || !generatedPassword) return;
     try {
       setLoading(true);
       const response = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: selectedUser._id,
+          id: selectedUser.id,
           action: "send_credentials",
           email: selectedUser.email,
           password: generatedPassword,
@@ -475,7 +481,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            _id: userId,
+            id: userId,
             ...userData,
           }),
         });
@@ -488,7 +494,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         // Update local state with the updated user
         setUsers(
           users.map((user) =>
-            user._id === userId ? { ...user, ...userData } : user
+            user.id === userId ? { ...user, ...userData } : user
           )
         );
       }
@@ -525,7 +531,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
           if (!response.ok) {
             throw new Error(data.error || "Failed to delete user");
           }
-          setUsers(users.filter((user) => user._id !== userToDelete));
+          setUsers(users.filter((user) => user.id !== userToDelete));
         }
         setSelectedUser(null);
         setViewMode("list");
@@ -558,7 +564,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: userId,
+          id: userId,
           action: "update_status",
           status: newStatus,
           isActive: newStatus === "active",
@@ -574,12 +580,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
       if (data.success) {
         setUsers(
           users.map((user) =>
-            user._id === userId
+            user.id === userId
               ? { ...user, status: newStatus, isActive: newStatus === "active" }
               : user
           )
         );
-        if (selectedUser?._id === userId) {
+        if (selectedUser?.id === userId) {
           setSelectedUser((prev) =>
             prev
               ? { ...prev, status: newStatus, isActive: newStatus === "active" }
@@ -613,7 +619,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
           totalEarnings: user.totalEarnings || 0,
           developerProfileStatus: user.developerProfileStatus,
           // Ensure busyUntilDate is available to decide availability
-          busyUntilDate: user.busyUntilDate ? new Date(user.busyUntilDate) : null,
+          busyUntilDate: user.busyUntilDate
+            ? new Date(user.busyUntilDate)
+            : null,
           isAvailable: getComprehensiveAvailabilityStatus(
             user.isAvailable ?? false,
             user.busyUntilDate ? new Date(user.busyUntilDate) : null,
@@ -732,8 +740,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
           ? Number(editingUser.hourlyRate)
           : undefined,
       };
-      updateUser(selectedUser._id, updatedData);
+      updateUser(selectedUser.id, updatedData);
       setViewMode("list");
+      toast.success("User updated successfully");
     }
     setIsEditing(false);
   };
@@ -943,7 +952,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   onChange={(e) =>
                     handleInputChange("firstName", e.target.value)
                   }
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
                 />
               </div>
               <div>
@@ -957,7 +966,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   onChange={(e) =>
                     handleInputChange("lastName", e.target.value)
                   }
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
                 />
               </div>
             </div>
@@ -971,7 +980,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 required
                 value={editingUser.email ?? selectedUser.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
               />
             </div>
 
@@ -984,7 +993,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   required
                   value={editingUser.role ?? selectedUser.role}
                   onChange={(e) => handleInputChange("role", e.target.value)}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
                 >
                   <option value="client" className="bg-gray-800">
                     Client
@@ -1005,7 +1014,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   type="text"
                   value={editingUser.company ?? selectedUser.company ?? ""}
                   onChange={(e) => handleInputChange("company", e.target.value)}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
                 />
               </div>
             </div>
@@ -1018,7 +1027,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 type="tel"
                 value={editingUser.phone ?? selectedUser.phone ?? ""}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
               />
             </div>
 
@@ -1029,7 +1038,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
               <select
                 value={editingUser.status ?? selectedUser.status}
                 onChange={(e) => handleInputChange("status", e.target.value)}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
               >
                 <option value="active" className="bg-gray-800">
                   Active
@@ -1047,7 +1056,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors"
+                className="cursor-pointer flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg transition-colors"
               >
                 <FaSave />
                 <span>{loading ? "Updating..." : "Update User"}</span>
@@ -1055,7 +1064,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
               <button
                 type="button"
                 onClick={resetView}
-                className="flex items-center space-x-2 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="cursor-pointer flex items-center space-x-2 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
               >
                 <FaTimes />
                 <span>Cancel</span>
@@ -1446,16 +1455,18 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         </h4>
                         <div className="flex items-center space-x-2">
                           <div
-                            className={`w-2 h-2 rounded-full ${getAccountStatusInfo().isActive
-                              ? "bg-green-400"
-                              : "bg-red-400"
-                              }`}
+                            className={`w-2 h-2 rounded-full ${
+                              getAccountStatusInfo().isActive
+                                ? "bg-green-400"
+                                : "bg-red-400"
+                            }`}
                           ></div>
                           <span
-                            className={`text-xs  monty uppercase ${getAccountStatusInfo().isActive
-                              ? "text-green-400"
-                              : "text-red-400"
-                              }`}
+                            className={`text-xs  monty uppercase ${
+                              getAccountStatusInfo().isActive
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
                           >
                             {getAccountStatusInfo().isActive
                               ? "Active"
@@ -1477,12 +1488,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           {generatedPassword
                             ? "Just Generated"
                             : getAccountStatusInfo().lastPasswordChange
-                              ? `Changed ${formatDate(
+                            ? `Changed ${formatDate(
                                 getAccountStatusInfo().lastPasswordChange || ""
                               )}`
-                              : accountExists
-                                ? "Existing Password"
-                                : "Not Generated"}
+                            : accountExists
+                            ? "Existing Password"
+                            : "Not Generated"}
                         </span>
                       </div>
                       <div className="flex items-center space-x-3">
@@ -1548,14 +1559,15 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
                   {/* Enhanced Account Status Alert */}
                   <div
-                    className={`${generatedPassword
-                      ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
-                      : accountExists
+                    className={`${
+                      generatedPassword
+                        ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20"
+                        : accountExists
                         ? getAccountStatusInfo().isActive
                           ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20"
                           : "bg-gradient-to-r from-red-500/10 to-rose-500/10 border-red-500/20"
                         : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
-                      } border rounded-xl p-6`}
+                    } border rounded-xl p-6`}
                   >
                     <div className="flex items-start space-x-3">
                       {generatedPassword ? (
@@ -1571,34 +1583,36 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       )}
                       <div>
                         <h4
-                          className={`${generatedPassword
-                            ? "text-green-300"
-                            : accountExists
+                          className={`${
+                            generatedPassword
+                              ? "text-green-300"
+                              : accountExists
                               ? getAccountStatusInfo().isActive
                                 ? "text-blue-300"
                                 : "text-red-300"
                               : "text-amber-300"
-                            } font-semibold mb-2`}
+                          } font-semibold mb-2`}
                         >
                           {generatedPassword
                             ? accountExists
                               ? "Account Updated"
                               : "Account Created"
                             : accountExists
-                              ? getAccountStatusInfo().isActive
-                                ? "Existing Account"
-                                : "Account Disabled"
-                              : "No Account"}
+                            ? getAccountStatusInfo().isActive
+                              ? "Existing Account"
+                              : "Account Disabled"
+                            : "No Account"}
                         </h4>
                         <div
-                          className={`space-y-2 text-sm ${generatedPassword
-                            ? "text-green-200"
-                            : accountExists
+                          className={`space-y-2 text-sm ${
+                            generatedPassword
+                              ? "text-green-200"
+                              : accountExists
                               ? getAccountStatusInfo().isActive
                                 ? "text-blue-200"
                                 : "text-red-200"
                               : "text-amber-200"
-                            }`}
+                          }`}
                         >
                           {generatedPassword ? (
                             <>
@@ -1633,8 +1647,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                   • Last login:{" "}
                                   {getAccountStatusInfo().lastLogin
                                     ? formatDate(
-                                      getAccountStatusInfo().lastLogin || ""
-                                    )
+                                        getAccountStatusInfo().lastLogin || ""
+                                      )
                                     : "Never logged in"}
                                 </p>
                                 <p>
@@ -1661,8 +1675,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                   • Last login:{" "}
                                   {getAccountStatusInfo().lastLogin
                                     ? formatDate(
-                                      getAccountStatusInfo().lastLogin || ""
-                                    )
+                                        getAccountStatusInfo().lastLogin || ""
+                                      )
                                     : "Never logged in"}
                                 </p>
                                 <p className="text-red-300">
@@ -1735,10 +1749,11 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             ? revokeAccess
                             : restoreAccess
                         }
-                        className={`cursor-pointer px-4 py-3 bg-gradient-to-r ${getAccountStatusInfo().isActive
-                          ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
-                          : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600"
-                          } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
+                        className={`cursor-pointer px-4 py-3 bg-gradient-to-r ${
+                          getAccountStatusInfo().isActive
+                            ? "from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
+                            : "from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-600"
+                        } text-white rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg`}
                       >
                         {getAccountStatusInfo().isActive ? (
                           <FaBan className="text-sm" />
@@ -1849,8 +1864,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
     );
   };
 
-
-
   useEffect(() => {
     if (selectedUser && viewMode === "edit") {
       setEditingUser({
@@ -1898,15 +1911,15 @@ const UserManagement: React.FC<UserManagementProps> = ({
             {activeTab === "clients"
               ? "Client Management"
               : activeTab === "dev profiles"
-                ? "Developer Management"
-                : "User Management"}
+              ? "Developer Management"
+              : "User Management"}
           </h2>
           <p className="text-gray-400 mt-1">
             {activeTab === "clients"
               ? "Manage client accounts and information"
               : activeTab === "dev profiles"
-                ? "Manage developer accounts and profiles"
-                : "Manage all user accounts and permissions"}
+              ? "Manage developer accounts and profiles"
+              : "Manage all user accounts and permissions"}
           </p>
         </div>
         <button
@@ -1936,7 +1949,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 placeholder="Search users..."
                 value={userSearchTerm}
                 onChange={(e) => setUserSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
               />
             </div>
           </div>
@@ -1945,7 +1958,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
               <select
                 value={userRoleFilter}
                 onChange={(e) => setUserRoleFilter(e.target.value)}
-                className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
               >
                 <option value="all" className="bg-gray-800">
                   All Roles
@@ -1964,7 +1977,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
             <select
               value={userStatusFilter}
               onChange={(e) => setUserStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+              className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
             >
               <option value="all" className="bg-gray-800">
                 All Status
@@ -1995,7 +2008,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
             <div className="block lg:hidden">
               <div className="divide-y divide-white/10">
                 {paginatedUsers.map((user) => (
-                  <div key={user._id} className="p-4 hover:bg-white/5 transition-colors">
+                  <div
+                    key={user.id}
+                    className="p-4 hover:bg-white/5 transition-colors"
+                  >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm monty font-medium text-white">
@@ -2043,11 +2059,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           <FaEdit className="w-3 h-3" />
                         </button>
                         <button
-                          onClick={() => toggleUserStatus(user._id, user.status)}
-                          className={`cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors ${user.status === "active"
-                            ? "text-yellow-400/70 hover:text-yellow-300/70"
-                            : "text-lime-400/70 hover:text-lime-300/80"
-                            }`}
+                          onClick={() => toggleUserStatus(user.id, user.status)}
+                          className={`cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors ${
+                            user.status === "active"
+                              ? "text-yellow-400/70 hover:text-yellow-300/70"
+                              : "text-lime-400/70 hover:text-lime-300/80"
+                          }`}
                           title={
                             user.status === "active"
                               ? "Deactivate User"
@@ -2055,11 +2072,15 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           }
                           disabled={loading}
                         >
-                          {user.status === "active" ? <FaLock className="w-3 h-3" /> : <FaUnlock className="w-3 h-3" />}
+                          {user.status === "active" ? (
+                            <FaLock className="w-3 h-3" />
+                          ) : (
+                            <FaUnlock className="w-3 h-3" />
+                          )}
                         </button>
                         <button
                           onClick={() => {
-                            setUserToDelete(user._id);
+                            setUserToDelete(user.id);
                             setDeleteModalOpen(true);
                           }}
                           className="text-red-400/70 hover:text-red-300/80 cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
@@ -2075,7 +2096,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       <div>
                         <span className="text-gray-500 block mb-1">Role</span>
                         <span
-                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(user.role)}`}
+                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(
+                            user.role
+                          )}`}
                         >
                           {user.role}
                         </span>
@@ -2085,7 +2108,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(user.status)}
                           <span
-                            className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(user.status)}`}
+                            className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(
+                              user.status
+                            )}`}
                           >
                             {user.status}
                           </span>
@@ -2093,32 +2118,46 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       </div>
                       {user.role === "developer" && (
                         <div>
-                          <span className="text-gray-500 block mb-1">Approved</span>
+                          <span className="text-gray-500 block mb-1">
+                            Approved
+                          </span>
                           {user.developerProfileStatus === "approved" ? (
                             <div className="flex items-center space-x-1">
                               <FaCheckCircle className="text-green-500 w-3 h-3" />
-                              <span className="text-xs text-green-400">Approved</span>
+                              <span className="text-xs text-green-400">
+                                Approved
+                              </span>
                             </div>
                           ) : user.developerProfileStatus === "rejected" ? (
                             <div className="flex items-center space-x-1">
                               <FaTimesCircle className="text-red-500 w-3 h-3" />
-                              <span className="text-xs text-red-400">Rejected</span>
+                              <span className="text-xs text-red-400">
+                                Rejected
+                              </span>
                             </div>
                           ) : (
                             <div className="flex items-center space-x-1">
                               <FaUserTimes className="text-yellow-500 w-3 h-3" />
-                              <span className="text-xs text-yellow-400">Pending</span>
+                              <span className="text-xs text-yellow-400">
+                                Pending
+                              </span>
                             </div>
                           )}
                         </div>
                       )}
                       <div>
-                        <span className="text-gray-500 block mb-1">Company</span>
-                        <span className="text-gray-300">{user.company || "-"}</span>
+                        <span className="text-gray-500 block mb-1">
+                          Company
+                        </span>
+                        <span className="text-gray-300">
+                          {user.company || "-"}
+                        </span>
                       </div>
                       <div className="col-span-2">
                         <span className="text-gray-500 block mb-1">Joined</span>
-                        <span className="text-gray-300">{formatDate(user.createdAt)}</span>
+                        <span className="text-gray-300">
+                          {formatDate(user.createdAt)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -2157,7 +2196,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 <tbody className="divide-y divide-white/10">
                   {paginatedUsers.map((user) => (
                     <tr
-                      key={user._id}
+                      key={user.id}
                       className="hover:bg-white/5 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -2177,7 +2216,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(user.role)}`}
+                          className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(
+                            user.role
+                          )}`}
                         >
                           {user.role}
                         </span>
@@ -2186,7 +2227,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(user.status)}
                           <span
-                            className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(user.status)}`}
+                            className={`px-2 monty uppercase py-1 rounded text-xs border ${getStatusColor(
+                              user.status
+                            )}`}
                           >
                             {user.status}
                           </span>
@@ -2197,17 +2240,23 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           user.developerProfileStatus === "approved" ? (
                             <div className="flex items-center space-x-2">
                               <FaCheckCircle className="text-green-500" />
-                              <span className="text-xs text-green-400 monty uppercase">Approved</span>
+                              <span className="text-xs text-green-400 monty uppercase">
+                                Approved
+                              </span>
                             </div>
                           ) : user.developerProfileStatus === "rejected" ? (
                             <div className="flex items-center space-x-2">
                               <FaTimesCircle className="text-red-500" />
-                              <span className="text-xs text-red-400 monty uppercase">Rejected</span>
+                              <span className="text-xs text-red-400 monty uppercase">
+                                Rejected
+                              </span>
                             </div>
                           ) : (
                             <div className="flex items-center space-x-2">
                               <FaUserTimes className="text-yellow-500" />
-                              <span className="text-xs text-yellow-400 monty uppercase">Pending</span>
+                              <span className="text-xs text-yellow-400 monty uppercase">
+                                Pending
+                              </span>
                             </div>
                           )
                         ) : (
@@ -2217,29 +2266,40 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         {user.role === "developer" ? (
                           (() => {
-                            const availabilityStatus = getComprehensiveAvailabilityStatus(
-                              user.isAvailable || false,
-                              user.busyUntilDate,
-                              user.developerProfileStatus
-                            );
+                            const availabilityStatus =
+                              getComprehensiveAvailabilityStatus(
+                                user.isAvailable || false,
+                                user.busyUntilDate,
+                                user.developerProfileStatus
+                              );
                             return (
                               <div className="flex items-center space-x-2">
-                                <div className={`w-2 h-2 rounded-full ${availabilityStatus.status === 'available'
-                                  ? 'bg-green-400'
-                                  : availabilityStatus.status === 'busy_until_date'
-                                    ? 'bg-orange-400'
-                                    : availabilityStatus.status === 'pending_approval'
-                                      ? 'bg-yellow-400'
-                                      : 'bg-red-400'
-                                  }`}></div>
-                                <span className={`text-xs monty uppercase ${availabilityStatus.status === 'available'
-                                  ? 'text-green-400'
-                                  : availabilityStatus.status === 'busy_until_date'
-                                    ? 'text-orange-400'
-                                    : availabilityStatus.status === 'pending_approval'
-                                      ? 'text-yellow-400'
-                                      : 'text-red-400'
-                                  }`}>
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    availabilityStatus.status === "available"
+                                      ? "bg-green-400"
+                                      : availabilityStatus.status ===
+                                        "busy_until_date"
+                                      ? "bg-orange-400"
+                                      : availabilityStatus.status ===
+                                        "pending_approval"
+                                      ? "bg-yellow-400"
+                                      : "bg-red-400"
+                                  }`}
+                                ></div>
+                                <span
+                                  className={`text-xs monty uppercase ${
+                                    availabilityStatus.status === "available"
+                                      ? "text-green-400"
+                                      : availabilityStatus.status ===
+                                        "busy_until_date"
+                                      ? "text-orange-400"
+                                      : availabilityStatus.status ===
+                                        "pending_approval"
+                                      ? "text-yellow-400"
+                                      : "text-red-400"
+                                  }`}
+                                >
                                   {availabilityStatus.displayText}
                                 </span>
                               </div>
@@ -2286,11 +2346,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             <FaEdit />
                           </button>
                           <button
-                            onClick={() => toggleUserStatus(user._id, user.status)}
-                            className={`cursor-pointer p-1 rounded hover:bg-white/10 transition-colors ${user.status === "active"
-                              ? "text-yellow-400/70 hover:text-yellow-300/70"
-                              : "text-lime-400/70 hover:text-lime-300/80"
-                              }`}
+                            onClick={() =>
+                              toggleUserStatus(user.id, user.status)
+                            }
+                            className={`cursor-pointer p-1 rounded hover:bg-white/10 transition-colors ${
+                              user.status === "active"
+                                ? "text-yellow-400/70 hover:text-yellow-300/70"
+                                : "text-lime-400/70 hover:text-lime-300/80"
+                            }`}
                             title={
                               user.status === "active"
                                 ? "Deactivate User"
@@ -2298,11 +2361,15 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             }
                             disabled={loading}
                           >
-                            {user.status === "active" ? <FaLock /> : <FaUnlock />}
+                            {user.status === "active" ? (
+                              <FaLock />
+                            ) : (
+                              <FaUnlock />
+                            )}
                           </button>
                           <button
                             onClick={() => {
-                              setUserToDelete(user._id);
+                              setUserToDelete(user.id);
                               setDeleteModalOpen(true);
                             }}
                             className="cursor-pointer text-red-400/70 hover:text-red-300/80 p-1 rounded hover:bg-white/10 transition-colors"
@@ -2328,10 +2395,11 @@ const UserManagement: React.FC<UserManagementProps> = ({
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${currentPage === 1
-                ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
-                : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
-                }`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
+                currentPage === 1
+                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
+                  : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+              }`}
             >
               Previous
             </button>
@@ -2343,10 +2411,11 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 setCurrentPage((prev) => Math.min(totalPages, prev + 1))
               }
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${currentPage === totalPages
-                ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
-                : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
-                }`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
+                currentPage === totalPages
+                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
+                  : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+              }`}
             >
               Next
             </button>
@@ -2357,7 +2426,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
           </div>
         </div>
       )}
-
 
       {/* User Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -2390,6 +2458,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
         notifications={notifications}
         onRemoveNotification={removeNotification}
       />
+
+      <ScrollToTop />
     </div>
   );
 };

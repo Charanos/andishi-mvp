@@ -245,6 +245,8 @@ export async function POST(req: NextRequest) {
       pricing: {
         ...pricing,
         fixedBudget: Number(pricing?.fixedBudget) || null,
+        hourlyRate: Number(pricing?.hourlyRate) || null,
+        estimatedHours: Number(pricing?.estimatedHours) || null,
       }
     };
 
@@ -327,4 +329,3 @@ export async function POST(req: NextRequest) {
     }, { status: 500, headers: corsHeaders });
   }
 }
-

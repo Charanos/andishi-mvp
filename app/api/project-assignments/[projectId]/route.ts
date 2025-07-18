@@ -145,7 +145,74 @@ export async function POST(
 }
 
 
-// PATCH /api/project-assignments/[projectId] - Update an assignment
+
+
+// DELETE /api/project-assignments/[projectId] - Remove an assignment and update developer availability
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { projectId: string } }
+) {
+  const { projectId } = params;
+
+  if (!projectId) {
+    return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
+  }
+
+  try {
+    const body = await req.json();
+    const { developerId } = body;
+
+    if (!developerId) {
+      return NextResponse.json(
+        { error: "Developer ID is required in request body" },
+        { status: 400 }
+      );
+    }
+
+    // Use a transaction to ensure atomicity
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete the assignment
+      await tx.projectAssignment.delete({
+        where: {
+          projectId_developerId: {
+            projectId,
+            developerId,
+          },
+        },
+      });
+
+      // 2. Check for other active assignments for the developer
+      const remainingActiveAssignments = await tx.projectAssignment.count({
+        where: {
+          developerId,
+          status: { notIn: ["completed", "cancelled"] },
+        },
+      });
+
+      // 3. If no active assignments remain, update developer's availability
+      if (remainingActiveAssignments === 0) {
+        await tx.developerProfile.update({
+          where: { userId: developerId },
+          data: { isAvailable: true, busyUntilDate: null },
+        });
+
+        await tx.user.update({
+          where: { id: developerId },
+          data: { status: "active" },
+        });
+      }
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
+    }
+    console.error("[PROJECT_ASSIGNMENT_DELETE]", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
@@ -245,66 +312,3 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/project-assignments/[projectId] - Remove an assignment
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
-  const { projectId } = await params;
-  if (!projectId) {
-    return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
-  }
-
-  try {
-    const { developerId } = await req.json();
-
-    if (!developerId) {
-      return NextResponse.json({ error: 'Developer ID is required in the request body' }, { status: 400 });
-    }
-
-    await prisma.projectAssignment.delete({
-      where: {
-        projectId_developerId: {
-          projectId,
-          developerId,
-        },
-      },
-    });
-
-    const otherAssignments = await prisma.projectAssignment.count({
-      where: {
-        developerId,
-        status: { not: 'completed' }
-      }
-    });
-
-    if (otherAssignments === 0) {
-      // Update developer profile to available
-      await prisma.developerProfile.update({
-        where: { id: developerId },
-        data: { isAvailable: true },
-      });
-      
-      // Update user status to active
-      const developerProfile = await prisma.developerProfile.findUnique({
-        where: { id: developerId },
-        select: { userId: true },
-      });
-      
-      if (developerProfile?.userId) {
-        await prisma.user.update({
-          where: { id: developerProfile.userId },
-          data: { status: "active" },
-        });
-      }
-    }
-
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
-    }
-    
-    return new NextResponse('Internal Server Error', { status: 500 });
-  }
-}

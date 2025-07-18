@@ -1,4 +1,4 @@
-import useSWR from 'swr';
+import useSWR, { mutate as globalMutate } from 'swr';
 import type { Assignment } from '@/types/project';
 import type { DeveloperProfile as Developer } from '@/lib/types';
 
@@ -55,14 +55,19 @@ export function useProjectAssignments(projectId: string) {
     };
 
     // Remove assignment
-    const removeAssignment = async (developerId: string) => {
-        const res = await fetch(`/api/project-assignments/${projectId}`, {
+    const removeAssignment = async (assignmentId: string) => {
+        const res = await fetch(`/api/project-assignments/${assignmentId}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ developerId }),
         });
         if (!res.ok) throw new Error(await res.text());
-        await mutate();
+
+        // After a successful deletion, refetch all relevant data to sync the UI
+        await Promise.all([
+            mutate(), // Refreshes the assignments list for the current project
+            globalMutate('/api/project-assignments/available'), // Refreshes the available developers list
+            globalMutate('/api/users'), // Refreshes the main users table
+        ]);
+
         return res.json();
     };
 

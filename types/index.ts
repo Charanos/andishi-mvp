@@ -151,8 +151,8 @@ export interface BaseProjectWithDetails {
 }
 
 // Extend base interface for optional fields
-export interface SystemUser {
-  _id: string;
+export type SystemUser = {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;

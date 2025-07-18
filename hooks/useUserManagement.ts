@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 interface SystemUser {
-  _id: string;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -66,8 +66,12 @@ export const useUserManagement = () => {
 
   const deleteUser = useCallback(async (userId: string) => {
     try {
-      const response = await fetch(`/api/users?id=${userId}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/users`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: userId }),
       });
       
       if (!response.ok) {
@@ -97,7 +101,7 @@ export const useUserManagement = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          _id: userId,
+          id: userId,
           ...updates
         })
       });

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/getSession";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 // GET /api/project-assignments - Get all project assignments
@@ -25,125 +26,128 @@ export async function GET() {
 // POST /api/project-assignments - Create new project assignments for multiple developers
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession(req);
+
+    if (!session?.user) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
     const body = await req.json();
-    const { projectId, developerIds: rawDeveloperIds, role = "Developer" } = body;
-    // Sanitize developerIds: remove null/undefined/empty strings and deduplicate
+    const { projectId, developerIds: rawDeveloperIds, role } = body;
+
+    if (!projectId || !rawDeveloperIds || !Array.isArray(rawDeveloperIds)) {
+      return new NextResponse("Missing required fields", { status: 400 });
+    }
+
+    // Sanitize and deduplicate developer IDs
     const developerIds: string[] = Array.from(
       new Set(
-        (rawDeveloperIds as any[]).map((d) => {
-          if (typeof d === 'string') return d.trim();
-          if (d && typeof d === 'object') {
-            return (
-              d._id ?? d.id ?? d.value ?? (typeof d.toString === 'function' ? d.toString() : '')
-            ).toString();
-          }
-          return String(d);
-        }).filter((id: string) => id)
+        (rawDeveloperIds as any[])
+          .map((d) => {
+            if (typeof d === "string") return d.trim();
+            if (d && typeof d === "object") {
+              return (
+                d._id ??
+                d.id ??
+                d.value ??
+                (typeof d.toString === "function" ? d.toString() : "")
+              ).toString();
+            }
+            return String(d);
+          })
+          .filter((id: string) => id)
       )
     );
 
-    if (!projectId || developerIds.length === 0) {
-      return new NextResponse("Project ID and a non-empty array of developer IDs are required", { status: 400 });
+    if (developerIds.length === 0) {
+      return new NextResponse("No valid developer IDs provided", {
+        status: 400,
+      });
     }
 
-    const assignmentsToCreate = developerIds.map((developerId: string) => ({
-      projectId,
-      developerId,
-      role,
-      status: "pending",
-    }));
-
-    // Use a transaction to ensure all or nothing is created
-    const createdAssignments = await prisma.$transaction(async (tx: any ) => {
-      // Find existing assignments to prevent duplicates
-      const existingAssignments = await tx.projectAssignment.findMany({
-        where: {
-          projectId,
-          developerId: { in: developerIds },
-        },
-        select: {
-          developerId: true,
-        },
+    const createdAssignments = await prisma.$transaction(async (prisma) => {
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { estimatedCompletionDate: true, timeline: true },
       });
 
-      const existingDeveloperIds = new Set(existingAssignments.map((a: { developerId: string }) => a.developerId));
+      if (!project) {
+        throw new Error(`Project with ID ${projectId} not found.`);
+      }
 
-      const assignmentsToActuallyCreate = assignmentsToCreate.filter(
-        (assignment) => !existingDeveloperIds.has(assignment.developerId)
-      );
+      // Derive busyUntil date from project data (estimatedCompletionDate or timeline)
+      let busyUntil: Date | null = null;
 
-      if (assignmentsToActuallyCreate.length > 0) {
-        await tx.projectAssignment.createMany({
-          data: assignmentsToActuallyCreate,
-        });
-
-        // Determine busy-until date from project estimated completion
-        const project = await tx.project.findUnique({
-          where: { id: projectId },
-          select: { estimatedCompletionDate: true, timeline: true },
-        });
-
-        let busyUntil: Date | undefined = project?.estimatedCompletionDate;
-        // fallback: if project timeline is an object with endDate or number of days
-        if (!busyUntil && (project as any)?.timeline?.endDate) {
-          busyUntil = new Date((project as any).timeline.endDate);
-        }
-
-        await tx.developerProfile.updateMany({
-          where: {
-            id: { in: assignmentsToActuallyCreate.map(a => a.developerId) },
-          },
-          data: {
-            isAvailable: false,
-            busyUntil,
-          },
-        });
-        
-        // Update user status to busy for all assigned developers
-        const developerProfiles = await tx.developerProfile.findMany({
-          where: {
-            id: { in: assignmentsToActuallyCreate.map(a => a.developerId) },
-          },
-          select: {
-            id: true,
-            userId: true,
-          },
-        });
-        
-        const userIds = developerProfiles
-          .filter((profile: { userId: string }) => profile.userId)
-          .map((profile: { userId: string }) => profile.userId!);
-        
-        if (userIds.length > 0) {
-          await tx.user.updateMany({
-            where: {
-              id: { in: userIds },
-            },
-            data: {
-              status: "busy",
-            },
-          });
+      if (project.estimatedCompletionDate) {
+        busyUntil = new Date(project.estimatedCompletionDate);
+      } else if (project.timeline) {
+        /*
+          The `timeline` field may be:
+          1. A simple ISO date string representing the project end date.
+          2. A JSON-encoded array of milestone dates (legacy format).
+        */
+        try {
+          const parsed = JSON.parse(project.timeline as unknown as string);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            busyUntil = new Date(parsed[parsed.length - 1]);
+          }
+        } catch (_) {
+          // Not JSON – treat as single date string
+          busyUntil = new Date(project.timeline as unknown as string);
         }
       }
 
-      // Fetch the created assignments to return them (including any that already existed but were not re-created)
-      return tx.projectAssignment.findMany({
-        where: {
-          projectId,
-          developerId: { in: developerIds },
-        },
-      });
+      // Validate the date before using it
+      if (busyUntil && isNaN(busyUntil.getTime())) {
+        console.warn(
+          `Invalid busyUntil date for project ${projectId}. Falling back to null.`
+        );
+        busyUntil = null; // proceed without blocking the assignment
+      }
+
+      const newAssignments = [];
+      for (const developerId of developerIds) {
+        const assignment = await prisma.projectAssignment.create({
+          data: {
+            projectId,
+            developerId,
+            role: role || "Developer", // Default role if not provided
+          },
+        });
+
+        // Mark developer as busy
+        await prisma.developerProfile.update({
+          where: { userId: developerId },
+          data: {
+            isAvailable: false,
+            busyUntilDate: busyUntil,
+          },
+        });
+
+        // Also update the user's general status if applicable
+        await prisma.user.update({
+          where: { id: developerId },
+          data: { status: "busy" },
+        });
+
+        newAssignments.push(assignment);
+      }
+
+      return newAssignments;
     });
 
     return NextResponse.json(createdAssignments, { status: 201 });
-
   } catch (error) {
+    console.error("[PROJECT_ASSIGNMENT_POST]", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2003') {
-            return NextResponse.json({ error: 'One or more projectId or developerId is invalid' }, { status: 404 });
-        }
+      if (error.code === 'P2003') {
+        return NextResponse.json({ error: 'One or more projectId or developerId is invalid' }, { status: 404 });
+      }
     }
-    console.error("POST /api/project-assignments", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

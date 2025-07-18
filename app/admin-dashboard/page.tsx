@@ -87,7 +87,7 @@ import ConfirmationModal from "../components/ConfirmationModal";
 
 // Types
 interface SystemUser {
-  _id: string;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -732,7 +732,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       } else if (project.clientId) {
         // Try to find user info from usersData if we have clientId
         const clientUser = usersData.find(
-          (user) => user._id === project.clientId
+          (user) => user.id === project.clientId
         );
         if (clientUser) {
           clientName = `${clientUser.firstName} ${clientUser.lastName}`;
@@ -857,7 +857,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         rating: 4.5, // Default rating if not available
         completedProjects: dev.projectsCount || 0, // New API format
         skills: dev.skills || [], // New API format
-        id: dev._id || `dev-${index}`, // New API format
+        id: dev.id || `dev-${index}`, // New API format
       }))
       .sort((a, b) => b.projects - a.projects)
       .slice(0, 5);
@@ -1923,31 +1923,35 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   </div>
 
                   {/* Tech Stack */}
-                  {project?.projectDetails?.techStack && (
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-1">
-                        {(project.projectDetails.techStack || [])
-                          .slice(0, 3)
-                          .map((tech: string, index: number) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
-                            >
-                              {tech}
+                  {(() => {
+                    const techStack =
+                      project.techStack && project.techStack.length > 0
+                        ? project.techStack
+                        : project.projectDetails?.techStack || [];
+                    if (techStack.length === 0) return null;
+
+                    return (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {techStack
+                            .slice(0, 3)
+                            .map((tech: string, index: number) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                          {techStack.length > 3 && (
+                            <span className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30">
+                              +{techStack.length - 3} more
                             </span>
-                          ))}
-                        {(project.projectDetails.techStack || []).length >
-                          3 && (
-                          <span className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30">
-                            +
-                            {(project.projectDetails.techStack || []).length -
-                              3}{" "}
-                            more
-                          </span>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Project Info */}
                   <div className="space-y-2 mb-4">
@@ -2574,7 +2578,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       const res = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: userId, ...userData }),
+        body: JSON.stringify({ id: userId, ...userData }),
       });
 
       const data: UpdateUserResponse = await res.json();
@@ -2582,7 +2586,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (data.success) {
         setUsers((prev) =>
           prev.map((user) =>
-            user._id === userId
+            user.id === userId
               ? {
                   ...user,
                   ...userData,
@@ -2634,7 +2638,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       const data: DeleteUserResponse = await res.json();
 
       if (data.success) {
-        setUsers((prev) => prev.filter((user) => user._id !== userId));
+        setUsers((prev) => prev.filter((user) => user.id !== userId));
         toast.success("User deleted successfully!");
         return data;
       } else {
@@ -2664,7 +2668,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: userId,
+          id: userId,
           status: newStatus,
         }),
       });
@@ -2674,7 +2678,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       if (data.success) {
         setUsers((prev) =>
           prev.map((user) =>
-            user._id === userId ? { ...user, status: newStatus } : user
+            user.id === userId ? { ...user, status: newStatus } : user
           )
         );
         toast.success(
@@ -2779,7 +2783,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       // Update local state
       if (successfulDeletions.length > 0) {
         setUsers((prev) =>
-          prev.filter((user) => !successfulDeletions.includes(user._id))
+          prev.filter((user) => !successfulDeletions.includes(user.id))
         );
         toast.success(
           `${successfulDeletions.length} user(s) deleted successfully!`
@@ -3283,7 +3287,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
   // Check if account already exists when component loads or user changes
   useEffect(() => {
     if (selectedUser) {
-      checkExistingAccount(selectedUser._id);
+      checkExistingAccount(selectedUser.id);
     }
   }, [selectedUser]);
 
@@ -3401,7 +3405,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: selectedUser._id,
+          userId: selectedUser.id,
           regenerate: accountExists, // Flag to indicate if this is a password reset
         }),
       });
@@ -3417,7 +3421,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
           email: data.user.email,
           action: accountExists ? "password_reset" : "account_created",
           role: data.user.role,
-          userId: data.user._id,
+          userId: data.user.id,
         });
 
         // Optionally refresh the user list to get updated data
@@ -3496,7 +3500,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          _id: selectedUser?._id,
+          id: selectedUser?.id,
           isActive: !disable,
           accountLocked: disable,
           // Reset login attempts when enabling
@@ -3557,15 +3561,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
         selectedUser?.email ?? "Unknown"
       }:
 
-Email: ${selectedUser?.email ?? "Unknown"}
-Password: ${generatedPassword}
-Login URL: ${window.location.origin}/login
+        Email: ${selectedUser?.email ?? "Unknown"}
+        Password: ${generatedPassword}
+        Login URL: ${window.location.origin}/login
 
-This ${
-        statusInfo.hasAccount ? "updates their existing" : "creates a new"
-      } account.
-Role: ${selectedUser?.role ?? "Unknown"}
-Status: Active`;
+        This ${
+          statusInfo.hasAccount ? "updates their existing" : "creates a new"
+        } account.
+        Role: ${selectedUser?.role ?? "Unknown"}
+        Status: Active`;
 
       alert(message);
     } else if (accountExists) {
@@ -3621,7 +3625,7 @@ Generate new credentials to reset password.`;
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/users?id=${selectedUser?._id}`, {
+      const response = await fetch(`/api/users?id=${selectedUser?.id}`, {
         method: "DELETE",
       });
 

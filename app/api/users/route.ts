@@ -27,6 +27,8 @@ interface CreateUserPayload {
   email: string;
   password?: string;
   role: string;
+  company?: string;
+  phone?: string;
   name?: string;
   firstName?: string;
   lastName?: string;
@@ -206,6 +208,7 @@ export async function GET(request: Request) {
       const projectCount = projectCounts.find(pc => pc.userId === user.id);
       const baseUser = {
         ...deriveNames(user),
+        _id: user.id, // alias for frontend backward compatibility
         projectsCount: projectCount?.count || 0
       };
 
@@ -346,6 +349,13 @@ async function createNewUser(payload: CreateUserPayload) {
 
   // Handle password
   let generatedPassword: string | undefined;
+  if (payload.company) {
+    userData.company = payload.company;
+  }
+  if (payload.phone) {
+    userData.phone = payload.phone;
+  }
+
   if (payload.password) {
     userData.password = await bcrypt.hash(payload.password, 12);
     userData.accountCreated = true;
@@ -441,89 +451,109 @@ async function generateUserCredentials(payload: GenerateCredentialsPayload) {
   });
 }
 
-// PATCH - Update user
+// PATCH - Update user data
 export async function PATCH(request: Request) {
   try {
-    let payload: any;
-    try {
-      payload = await request.json();
-    } catch {
+    const payload = await request.json();
+    const { id: rawId, _id, action, ...updates } = payload;
+    const id = rawId || _id;
+
+    if (!id || !isValidId(id)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid JSON payload' }, 
+        { success: false, error: 'Valid user ID is required' },
         { status: 400 }
       );
     }
 
-    const { id, _id, action, ...updates } = payload;
-    const userId = id || _id;
-    
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Missing id field' }, 
-        { status: 400 }
-      );
-    }
-
-    if (!isValidId(userId)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid id format' }, 
-        { status: 400 }
-      );
-    }
-
-    const existingUser = await prisma.user.findUnique({ 
-      where: { id: userId } 
-    });
-    
-    if (!existingUser) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' }, 
-        { status: 404 }
-      );
-    }
-
+    // Handle specific actions
     if (action === 'reset_password') {
       const generatedPassword = generateSecurePassword();
       const hashedPassword = await bcrypt.hash(generatedPassword, 12);
-      
+
       await prisma.user.update({
-        where: { id: userId },
+        where: { id },
         data: {
           password: hashedPassword,
           passwordGenerated: true,
           passwordLastChanged: new Date(),
-          isActive: true
-        }
+          isActive: true,
+        },
       });
 
       return NextResponse.json({
         success: true,
         generatedPassword,
-        message: 'Password reset successfully'
+        message: 'Password reset successfully',
       });
     }
 
-    if (action === 'send_credentials') {
-      // Here you would implement your email sending logic
-      // For now, we'll just simulate success
-      return NextResponse.json({
-        success: true,
-        message: 'Credentials sent successfully'
-      });
+    // Handle generic updates
+    const userAllowedFields = [
+      'firstName',
+      'lastName',
+      'role',
+      'status',
+      'isActive',
+      'accountLocked',
+      'developerProfileStatus',
+      'company',
+      'phone',
+    ] as const;
+
+    const userData: any = {};
+    for (const key of userAllowedFields) {
+      if (key in updates) userData[key] = (updates as any)[key];
     }
 
-    // Handle regular updates
+    const devProfileData: any = {};
+    if ('hourlyRate' in updates) {
+      const hr = Number((updates as any).hourlyRate);
+      if (!Number.isNaN(hr)) {
+        devProfileData.data = {
+          professionalInfo: {
+            hourlyRate: hr,
+          },
+        };
+      }
+    }
+    if ('skills' in updates && Array.isArray((updates as any).skills)) {
+      devProfileData.data = {
+        ...(devProfileData.data || {}),
+        technicalSkills: {
+          primarySkills: (updates as any).skills,
+        },
+      };
+    }
+
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: updates
+      where: { id },
+      data: userData,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'User updated successfully',
-      modifiedCount: 1
-    });
+    // If there's developer profile data, update it separately
+    if (Object.keys(devProfileData).length > 0) {
+      const userWithProfile = await prisma.user.findUnique({
+        where: { id },
+        include: { developerProfile: true },
+      });
+
+      if (userWithProfile?.developerProfile) {
+        await prisma.developerProfile.update({
+          where: { id: userWithProfile.developerProfile.id },
+          data: devProfileData.data, // Use the nested 'data' object
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true, user: updatedUser });
   } catch (err) {
+    const error = err as Error;
+    if (error.name === 'PrismaClientKnownRequestError') {
+      return NextResponse.json(
+        { success: false, error: 'User not found or invalid data' },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(
       { success: false, error: 'Failed to update user' },
       { status: 500 }
@@ -531,59 +561,37 @@ export async function PATCH(request: Request) {
   }
 }
 
-// DELETE - Delete user
+// DELETE - Delete a user
 export async function DELETE(request: Request) {
   try {
-    const url = new URL(request.url);
-    const idParam = url.searchParams.get('id');
-    
-    if (!idParam) {
+    const { id: rawId, _id } = await request.json();
+    const id = rawId || _id;
+
+    if (!id || !isValidId(id)) {
       return NextResponse.json(
-        { success: false, error: 'Missing id parameter' }, 
+        { success: false, error: 'Valid user ID is required' },
         { status: 400 }
       );
     }
 
-    if (!isValidId(idParam)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid id format' }, 
-        { status: 400 }
-      );
-    }
+    // Use a transaction to ensure atomicity
+    const [deletedUser] = await prisma.$transaction([
+      prisma.user.delete({ where: { id } }),
+      prisma.developerProfile.deleteMany({ where: { userId: id } }),
+      // Add other related data deletions here if necessary
+    ]);
 
-    // Check if user exists before deletion
-    const existingUser = await prisma.user.findUnique({ 
-      where: { id: idParam },
-      include: { developerProfile: true }
-    });
-    
-    if (!existingUser) {
+    return NextResponse.json({ success: true, message: 'User deleted successfully' });
+  } catch (err) {
+    const error = err as Error;
+    if (error.name === 'PrismaClientKnownRequestError') {
       return NextResponse.json(
-        { success: false, error: 'User not found' }, 
+        { success: false, error: 'User not found' },
         { status: 404 }
       );
     }
-
-    // Delete associated developer profile first if exists
-    let deletedProfileCount = 0;
-    if (existingUser.role === 'developer' && existingUser.developerProfile) {
-      await prisma.developerProfile.delete({ 
-        where: { userId: existingUser.id } 
-      });
-      deletedProfileCount = 1;
-    }
-
-    await prisma.user.delete({ where: { id: idParam } });
-
-    return NextResponse.json({ 
-      success: true,
-      message: `User deleted successfully${deletedProfileCount > 0 ? ' along with associated developer profile' : ''}`,
-      deletedProfileCount
-    });
-    
-  } catch (err) {
     return NextResponse.json(
-      { success: false, error: 'Failed to delete user' }, 
+      { success: false, error: 'Failed to delete user' },
       { status: 500 }
     );
   }

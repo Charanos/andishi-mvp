@@ -126,7 +126,7 @@ export interface RevenueData {
   }
   
   export interface SystemUser {
-    _id: string;
+    id: string;
     firstName: string;
     lastName: string;
     role: string;
@@ -297,7 +297,7 @@ export const calculateProjectBudget = (project: ProjectData): number => {
     }
     
     if (project.clientId) {
-      const clientUser = usersData.find(user => user._id === project.clientId);
+      const clientUser = usersData.find(user => user.id === project.clientId);
       if (clientUser?.firstName && clientUser?.lastName) {
         return `${clientUser.firstName} ${clientUser.lastName}`;
       }

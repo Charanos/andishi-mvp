@@ -491,11 +491,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {getAssignedDevelopers().map((developer) => {
               const enhancedDev = getEnhancedDeveloper(developer);
-              const isUnassigning = unassigning === developer._id;
+              const isUnassigning = unassigning === developer.id;
 
               return (
                 <div
-                  key={developer._id}
+                  key={developer.id}
                   className="bg-black/50 rounded-xl p-4 border border-gray-700/50 hover:border-green-500/30 transition-all duration-200 relative"
                 >
                   {/* Unassign Button */}
@@ -503,7 +503,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     <button
                       onClick={() =>
                         handleUnassignDeveloper(
-                          developer._id,
+                          developer.id,
                           `${developer.firstName} ${developer.lastName}`
                         )
                       }
@@ -549,9 +549,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     {(() => {
                       const isBusy =
                         !enhancedDev.isAvailableProfile ||
-                        assignments.some(
-                          (a) => a.developerId === developer._id
-                        );
+                        assignments.some((a) => a.developerId === developer.id);
                       const busyUntil = (enhancedDev as any).busyUntil as
                         | string
                         | undefined;
@@ -585,7 +583,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           handleUnassignDeveloper(
-                            developer._id,
+                            developer.id,
                             `${developer.firstName} ${developer.lastName}`
                           );
                         }}

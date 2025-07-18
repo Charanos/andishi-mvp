@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { getSession, Session } from '@/lib/getSession';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -742,7 +743,7 @@ export async function GET(request: NextRequest) {
         console.error('Analytics API error:', error);
 
         // Return appropriate error response
-        if (error instanceof prisma.PrismaClientKnownRequestError) {
+        if (error instanceof PrismaClientKnownRequestError) {
             return NextResponse.json({ error: 'Database error' }, { status: 500 });
         }
 

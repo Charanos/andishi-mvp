@@ -419,9 +419,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
   }, []);
 
   const handleProjectDeleteConfirm = async () => {
-    if (projectToDelete) {
+    if (!projectToDelete) return;
+    try {
       await apiDeleteProject(projectToDelete);
       setProjects((prev) => prev.filter((p) => p._id !== projectToDelete));
+      toast.success("Project deleted successfully");
+    } catch (error: any) {
+      toast.error("Failed to delete project", error?.message);
+    } finally {
       setProjectDeleteModalOpen(false);
       setProjectToDelete(null);
     }

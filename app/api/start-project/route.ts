@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { startProjectFormSchema, authenticatedStartProjectFormSchema } from '@/lib/formSchema';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { startProjectFormSchema, authenticatedStartProjectFormSchema } from '@/lib/formSchema';
+
 
 // CORS headers for production
 const corsHeaders = {
@@ -221,8 +222,15 @@ export async function POST(req: NextRequest) {
     const pricing = isAuthenticated ? parsed.data.pricing : (parsed.data as any).pricing;
     
     const projectToSave: any = {
-      title: projectDetails.title,
-      description: projectDetails.description,
+      // Store key descriptive fields inside the JSON column `projectDetails`
+      projectDetails: {
+        title: projectDetails.title,
+        description: projectDetails.description,
+        category: projectDetails.category,
+        requirements: projectDetails.requirements,
+        priority: projectDetails.priority || 'low',
+        timeline: projectDetails.timeline
+      },
       clientId: existingUser.id,
       status: 'pending',
       priority: projectDetails.priority || 'low',

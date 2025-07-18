@@ -1,11 +1,9 @@
 import prisma from '@/lib/prisma';
 import { getSession, Session } from '@/lib/getSession';
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
 
 // Enhanced type definitions
 interface UserInfo {
-    email?: string;
     firstName?: string;
     lastName?: string;
 }
@@ -333,12 +331,12 @@ class AnalyticsService {
 
         projects.forEach(project => {
             const userInfo = isValidObject(project.userInfo) ? project.userInfo as UserInfo : {};
-            const clientId = project.clientId || userInfo.email || 'unknown';
+            const clientId = project.clientId || 'unknown';
 
-            const client = users.find(u => u.id === clientId || u.email === userInfo.email);
+            const client = users.find(u => u.id === clientId);
             const clientName = client
-                ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email
-                : `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() || userInfo.email || `Client ${String(clientId).slice(-6)}`;
+                ? `${client.firstName || ''} ${client.lastName || ''}`.trim()
+                : `Client ${String(clientId).slice(-6)}`;
 
             if (!clientMap.has(clientId)) {
                 clientMap.set(clientId, {
@@ -655,13 +653,13 @@ class AnalyticsService {
             const activities = this.generateActivityFeed(projects, payments, users);
 
             // Calculate project and user breakdowns
-            const projectsByStatus = projects.reduce((acc, project) => {
+            const projectsByStatus = projects.reduce((acc: Record<string, number>, project: any) => {
                 const status = project.status || 'pending';
                 acc[status] = (acc[status] || 0) + 1;
                 return acc;
             }, {} as Record<string, number>);
 
-            const usersByRole = users.reduce((acc, user) => {
+            const usersByRole = users.reduce((acc: Record<string, number>, user: any) => {
                 const role = user.role || 'client';
                 acc[role] = (acc[role] || 0) + 1;
                 return acc;
@@ -731,7 +729,7 @@ export async function GET(request: NextRequest) {
         console.error('Analytics API error:', error);
 
         // Return appropriate error response
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error instanceof prisma.PrismaClientKnownRequestError) {
             return NextResponse.json({ error: 'Database error' }, { status: 500 });
         }
 

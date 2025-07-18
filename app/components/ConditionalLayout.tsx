@@ -8,8 +8,8 @@ import Footer from "../layout/Footer";
 import PageTransition from "./PageTransition";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "./LoadingSpinner";
-import DevLoginHelper from "./DevLoginHelper";
 import { UserRole } from "@/types/auth";
+import { FaUserLock } from "react-icons/fa";
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -167,7 +167,7 @@ export default function ConditionalLayout({
 
           {message && <p className="text-gray-300 animate-pulse">{message}</p>}
 
-          <div className="flex justify-center space-x-1 mt-4">
+          {/* <div className="flex justify-center space-x-1 mt-4">
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
@@ -183,7 +183,7 @@ export default function ConditionalLayout({
                 className="w-2 h-2 rounded-full bg-slate-500"
               />
             ))}
-          </div>
+          </div> */}
         </motion.div>
       </div>
     </motion.div>
@@ -197,17 +197,17 @@ export default function ConditionalLayout({
       exit={{ opacity: 0, y: -50 }}
       className="min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center"
     >
-      <div className="text-center space-y-6 p-8 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 max-w-md mx-4">
+      <div className="text-center space-y-6 p-8 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 max-w-md mx-4 flex flex-col items-center justify-center">
         <motion.div
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ duration: 0.5, repeat: 3 }}
           className="text-6xl mb-4"
         >
-          🔒
+          <FaUserLock className="text-white" size={64} />
         </motion.div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-white">Access Restricted</h2>
+          <h2 className="text-2xl font-bold text-white">Unauthorized Access</h2>
           <p className="text-gray-300">
             Please log in to continue to this page
           </p>

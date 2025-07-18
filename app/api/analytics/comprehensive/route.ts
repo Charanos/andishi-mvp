@@ -1,12 +1,65 @@
-import { toast } from 'react-toastify';
 import prisma from '@/lib/prisma';
 import { getSession, Session } from '@/lib/getSession';
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
+
+// Enhanced type definitions
+interface UserInfo {
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+}
+
+interface ProjectDetails {
+    title?: string;
+    description?: string;
+    category?: string;
+}
+
+interface Pricing {
+    type: 'fixed' | 'hourly' | 'milestone';
+    currency: 'USD' | 'KES';
+    fixedBudget?: number;
+    hourlyRate?: number;
+    estimatedHours?: number;
+    milestones?: Array<{
+        id: string;
+        title: string;
+        budget: number;
+        status: string;
+    }>;
+}
+
+interface ProjectPayment {
+    id: string;
+    amount: number;
+    date: Date;
+    method: string;
+    status: 'pending' | 'approved' | 'completed' | 'rejected' | 'failed';
+    currency?: string;
+    createdAt?: Date;
+}
+
+interface DeveloperProfileData {
+    personalInfo?: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+    };
+    technicalSkills?: {
+        primarySkills?: Array<{ name: string } | string>;
+    };
+    stats?: {
+        completedProjects?: number;
+        averageRating?: number;
+        totalProjects?: number;
+    };
+}
 
 interface Activity {
     timestamp: Date;
     description: string;
-    type: string;
+    type: 'project_created' | 'payment_received' | 'user_registered' | 'developer_approved' | 'project_completed';
     userId?: string;
     projectId?: string;
 }
@@ -19,14 +72,43 @@ interface AnalyticsOverview {
     projectsByStatus: Record<string, number>;
     usersByRole: Record<string, number>;
     revenueByMonth: Array<{ month: string; revenue: number }>;
-    topClients: Array<{ name: string; projectCount: number; totalSpent: number; pendingAmount: number; totalValue: number; id: string }>;
-    topDevelopers: Array<{ name: string; completedProjects: number; rating: number; skills: string[]; id: string }>;
+    topClients: Array<{
+        name: string;
+        projectCount: number;
+        totalSpent: number;
+        pendingAmount: number;
+        totalValue: number;
+        id: string;
+    }>;
+    topDevelopers: Array<{
+        name: string;
+        completedProjects: number;
+        rating: number;
+        skills: string[];
+        id: string;
+    }>;
 }
 
 interface AnalyticsFinancial {
-    paymentStatus: Array<{ status: string; count: number; amount: number; color: string }>;
-    monthlyTrends: Array<{ month: string; pending: number; approved: number; completed: number; rejected: number; outstanding: number }>;
-    paymentMethods: Array<{ method: string; amount: number; percentage: number }>;
+    paymentStatus: Array<{
+        status: string;
+        count: number;
+        amount: number;
+        color: string;
+    }>;
+    monthlyTrends: Array<{
+        month: string;
+        pending: number;
+        approved: number;
+        completed: number;
+        rejected: number;
+        outstanding: number;
+    }>;
+    paymentMethods: Array<{
+        method: string;
+        amount: number;
+        percentage: number;
+    }>;
     kpis: {
         avgPaymentValue: number;
         successRate: number;
@@ -36,8 +118,16 @@ interface AnalyticsFinancial {
 }
 
 interface AnalyticsPerformance {
-    skills: Array<{ skill: string; demand: number; developers: number }>;
-    metrics: Array<{ metric: string; value: number; target: number }>;
+    skills: Array<{
+        skill: string;
+        demand: number;
+        developers: number;
+    }>;
+    metrics: Array<{
+        metric: string;
+        value: number;
+        target: number;
+    }>;
 }
 
 interface AnalyticsResponse {
@@ -46,787 +136,605 @@ interface AnalyticsResponse {
     overview: AnalyticsOverview;
     financial: AnalyticsFinancial;
     performance: AnalyticsPerformance;
-    activities: Array<{ type: string; message: string; time: string; icon: string }>;
+    activities: Array<{
+        type: string;
+        message: string;
+        time: string;
+        icon: string;
+    }>;
 }
 
-interface UserInfo {
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-}
-
-// Type guards for better type safety
-function isUserInfo(obj: any): obj is UserInfo {
-    return obj && typeof obj === 'object';
-}
-
-function isValidJsonObject(obj: any): obj is Record<string, any> {
-    return obj && typeof obj === 'object' && !Array.isArray(obj);
-}
-
-// Helper functions
-// Exchange rates (should match the main dashboard)
-const EXCHANGE_RATES: Record<"USD" | "KES", number> = {
+// Constants
+const EXCHANGE_RATES = {
     USD: 1,
-    KES: 0.0077, // updated rate for 130 KES ≈ 1 USD
+    KES: 0.0077, // 130 KES ≈ 1 USD
+} as const;
+
+const PAYMENT_STATUS_COLORS = {
+    pending: '#F59E0B',
+    approved: '#3B82F6',
+    completed: '#3B82F6',
+    rejected: '#EF4444',
+    failed: '#EF4444',
+    outstanding: '#8B5CF6',
+} as const;
+
+const ACTIVITY_ICONS = {
+    project_created: 'Briefcase',
+    payment_received: 'DollarSign',
+    developer_approved: 'Users',
+    project_completed: 'Target',
+    user_registered: 'Users',
+} as const;
+
+// Utility functions
+const toUSD = (amount: number, currency: 'USD' | 'KES' = 'USD'): number => {
+    return amount * EXCHANGE_RATES[currency];
 };
 
-/**
- * Converts an amount to USD based on the currency provided.
- */
-const toUSD = (amount: number, currency: "USD" | "KES" | undefined = "USD"): number => {
-    const validCurrency = currency === "KES" ? "KES" : "USD";
-    const rate = EXCHANGE_RATES[validCurrency];
-    return amount * rate;
-};
-
-function getTimeAgo(timestamp: Date): string {
+const getTimeAgo = (timestamp: Date): string => {
     const now = new Date();
     const diffMs = now.getTime() - timestamp.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 60) {
-        return `${diffMins} minutes ago`;
-    } else if (diffHours < 24) {
-        return `${diffHours} hours ago`;
-    } else {
-        return `${diffDays} days ago`;
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    return `${diffDays} days ago`;
+};
+
+const getIconForActivityType = (type: string): string => {
+    return ACTIVITY_ICONS[type as keyof typeof ACTIVITY_ICONS] || 'Briefcase';
+};
+
+const isValidObject = (obj: unknown): obj is Record<string, unknown> => {
+    return obj !== null && typeof obj === 'object' && !Array.isArray(obj);
+};
+
+// Data fetching functions
+class AnalyticsService {
+    private static async fetchBaseData() {
+        try {
+            const [users, projects, developerProfiles] = await Promise.all([
+                prisma.user.findMany({
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                        isActive: true,
+                        createdAt: true,
+                    },
+                }),
+                prisma.project.findMany({
+                    select: {
+                        id: true,
+                        projectDetails: true,
+                        status: true,
+                        budget: true,
+                        currency: true,
+                        pricing: true,
+                        payments: true,
+                        userInfo: true,
+                        clientId: true,
+                        createdAt: true,
+                        actualCompletionDate: true,
+                        estimatedCompletionDate: true,
+                    },
+                }),
+                prisma.developerProfile.findMany({
+                    select: {
+                        id: true,
+                        data: true,
+                        user: {
+                            select: {
+                                id: true,
+                                email: true,
+                                firstName: true,
+                                lastName: true,
+                            },
+                        },
+                    },
+                }),
+            ]);
+
+            return { users, projects, developerProfiles };
+        } catch (error) {
+            console.error('Error fetching base data:', error);
+            throw new Error('Failed to fetch analytics data');
+        }
     }
-}
 
-function getIconForActivityType(type: string): string {
-    switch (type) {
-        case 'project_created': return 'Briefcase';
-        case 'payment_received': return 'DollarSign';
-        case 'developer_approved': return 'Users';
-        case 'project_completed': return 'Target';
-        case 'user_registered': return 'Users';
-        default: return 'Briefcase';
-    }
-}
+    private static extractPaymentsFromProjects(projects: any[]): ProjectPayment[] {
+        const allPayments: ProjectPayment[] = [];
 
-async function fetchAnalyticsData(): Promise<AnalyticsResponse> {
-    try {
-        // Fetch REAL data from Prisma
-        const [users, projects, developerProfiles] = await Promise.all([
-            prisma.user.findMany(),
-            prisma.project.findMany(),
-            prisma.developerProfile.findMany({ include: { user: true } })
-        ]);
-
-        // Extract payments from all projects
-        const allPayments: any[] = [];
-        projects.forEach((project, idx) => {
-            console.log(`Project ${idx}: ${project.title || 'Untitled'}, payments:`, project.payments);
-            if (project.payments && Array.isArray(project.payments)) {
-                project.payments.forEach(payment => {
-                    console.log(`  Payment found:`, payment);
+        projects.forEach(project => {
+            if (Array.isArray(project.payments)) {
+                project.payments.forEach((payment: any) => {
                     allPayments.push({
-                        ...payment,
-                        projectId: project.id,
-                        clientId: project.clientId
+                        id: payment.id || `${project.id}-${Date.now()}`,
+                        amount: Number(payment.amount) || 0,
+                        date: new Date(payment.date || payment.createdAt || Date.now()),
+                        method: payment.method || 'bank_transfer',
+                        status: payment.status || 'pending',
+                        currency: payment.currency || 'USD',
+                        createdAt: payment.createdAt ? new Date(payment.createdAt) : new Date(),
                     });
                 });
             }
         });
 
-        // Calculate real revenues from project payments (include approved, completed)
-        let revenues = allPayments
-            .filter(payment => payment.status === 'completed' || payment.status === 'approved')
-            .reduce((sum, payment) => {
-                const amount = Number(payment.amount) || 0;
-                const currency = payment.currency || 'USD';
-                const amountInUSD = toUSD(amount, currency as "USD" | "KES");
-                return sum + amountInUSD;
-            }, 0);
+        return allPayments;
+    }
 
-        // If no payments found, calculate revenues from project budgets
-        if (revenues === 0 || allPayments.length === 0) {
-            revenues = projects.reduce((sum, project) => {
-                let projectBudget = 0;
+    private static calculateProjectBudget(project: any): number {
+        let budget = 0;
+        const pricing = project.pricing as Pricing | null;
 
-                // Try to get budget from pricing
-                if (project.pricing && isValidJsonObject(project.pricing)) {
-                    const pricing = project.pricing as any;
-                    const currency = pricing.currency || 'USD';
+        if (pricing && isValidObject(pricing)) {
+            const currency = pricing.currency || 'USD';
 
-                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
-                        projectBudget = toUSD(Number(pricing.fixedBudget) || 0, currency as "USD" | "KES");
-                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
-                        projectBudget = pricing.milestones.reduce((milestoneSum: number, m: any) => {
-                            return milestoneSum + toUSD(Number(m.budget) || 0, currency as "USD" | "KES");
-                        }, 0);
-                    } else if (pricing.type === 'hourly') {
-                        projectBudget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency as "USD" | "KES");
-                    }
-                }
-
-                // Fallback to legacy budget field if exists
-                if (projectBudget === 0 && project.budget) {
-                    projectBudget = toUSD(Number(project.budget) || 0, (project.currency || 'USD') as "USD" | "KES");
-                }
-
-                // If still no budget, use a reasonable default for completed projects
-                if (projectBudget === 0 && project.status === 'completed') {
-                    projectBudget = 15000; // Default $15k for completed projects
-                }
-
-                return sum + projectBudget;
-            }, 0);
+            switch (pricing.type) {
+                case 'fixed':
+                    budget = toUSD(pricing.fixedBudget || 0, currency);
+                    break;
+                case 'hourly':
+                    budget = toUSD(
+                        (pricing.hourlyRate || 0) * (pricing.estimatedHours || 0),
+                        currency
+                    );
+                    break;
+                case 'milestone':
+                    budget = pricing.milestones?.reduce(
+                        (sum, milestone) => sum + toUSD(milestone.budget || 0, currency),
+                        0
+                    ) || 0;
+                    break;
+            }
         }
 
-        // Real project statuses
-        const projectStatuses = projects.reduce((acc, project) => {
-            const status = project.status || 'pending';
-            acc[status] = (acc[status] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
+        // Fallback to legacy budget
+        if (budget === 0 && project.budget) {
+            budget = toUSD(project.budget, project.currency || 'USD');
+        }
 
-        // Real user roles
-        const userRoles = users.reduce((acc, user) => {
-            const role = user.role || 'client';
-            acc[role] = (acc[role] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
+        // Default budget for completed projects with no pricing
+        if (budget === 0 && project.status === 'completed') {
+            budget = 15000;
+        }
 
-        // Real top clients (by project count and spending) - COMPREHENSIVE CALCULATION
-        const clientSpending = new Map<string, { name: string; projects: number; total: number; pending: number; id: string }>();
+        return budget;
+    }
+
+    private static calculateTotalRevenue(projects: any[], payments: ProjectPayment[]): number {
+        // Calculate from actual payments first
+        const paymentRevenue = payments
+            .filter(p => p.status === 'completed' || p.status === 'approved')
+            .reduce((sum, payment) => sum + toUSD(payment.amount, payment.currency as 'USD' | 'KES'), 0);
+
+        // If no payments, calculate from project budgets
+        if (paymentRevenue === 0) {
+            return projects.reduce((sum, project) => sum + this.calculateProjectBudget(project), 0);
+        }
+
+        return paymentRevenue;
+    }
+
+    private static calculateClientSpending(projects: any[], users: any[]) {
+        const clientMap = new Map<string, {
+            name: string;
+            projectCount: number;
+            totalSpent: number;
+            pendingAmount: number;
+            id: string;
+        }>();
 
         projects.forEach(project => {
-            const userInfo = project.userInfo;
-            const projectUserInfo: UserInfo = isUserInfo(userInfo) ? userInfo : {};
-            const clientId = project.clientId || projectUserInfo.email;
+            const userInfo = isValidObject(project.userInfo) ? project.userInfo as UserInfo : {};
+            const clientId = project.clientId || userInfo.email || 'unknown';
 
-            if (clientId) {
-                // Find client user
-                const client = users.find(u =>
-                    u.id === clientId ||
-                    u.email === projectUserInfo.email
-                );
+            const client = users.find(u => u.id === clientId || u.email === userInfo.email);
+            const clientName = client
+                ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email
+                : `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() || userInfo.email || `Client ${String(clientId).slice(-6)}`;
 
-                const clientName = client
-                    ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email
-                    : projectUserInfo.firstName && projectUserInfo.lastName
-                        ? `${projectUserInfo.firstName} ${projectUserInfo.lastName}`
-                        : projectUserInfo.email || `Client ${String(clientId).slice(-6)}`;
+            if (!clientMap.has(clientId)) {
+                clientMap.set(clientId, {
+                    name: clientName,
+                    projectCount: 0,
+                    totalSpent: 0,
+                    pendingAmount: 0,
+                    id: clientId,
+                });
+            }
 
-                const key = String(clientId);
-                if (!clientSpending.has(key)) {
-                    clientSpending.set(key, { name: clientName, projects: 0, total: 0, pending: 0, id: key });
-                }
+            const clientData = clientMap.get(clientId)!;
+            clientData.projectCount += 1;
 
-                const clientData = clientSpending.get(key)!;
-                clientData.projects += 1;
+            // Calculate payments
+            if (Array.isArray(project.payments)) {
+                const paidTotal = project.payments
+                    .filter((p: any) => p.status === 'completed' || p.status === 'approved')
+                    .reduce((sum: number, p: any) => sum + toUSD(p.amount || 0, p.currency || 'USD'), 0);
 
-                // Calculate TOTAL payments (approved + completed) and pending
-                if (project.payments && Array.isArray(project.payments)) {
-                    const paidTotal = project.payments
-                        .filter(p => p.status === 'completed' || p.status === 'approved')
-                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, (p.currency || 'USD') as "USD" | "KES"), 0);
+                const pendingTotal = project.payments
+                    .filter((p: any) => p.status === 'pending')
+                    .reduce((sum: number, p: any) => sum + toUSD(p.amount || 0, p.currency || 'USD'), 0);
 
-                    const pendingTotal = project.payments
-                        .filter(p => p.status === 'pending')
-                        .reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, (p.currency || 'USD') as "USD" | "KES"), 0);
-
-                    clientData.total += paidTotal;
-                    clientData.pending += pendingTotal;
-                }
-
-                // Also include project budget if no payments but project has pricing
-                let projectBudget = 0;
-
-                if (project.pricing && isValidJsonObject(project.pricing)) {
-                    const pricing = project.pricing as any;
-                    const currency = pricing.currency || 'USD';
-
-                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
-                        projectBudget = toUSD(Number(pricing.fixedBudget) || 0, currency);
-                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
-                        projectBudget = pricing.milestones.reduce((sum: number, m: any) =>
-                            sum + toUSD(Number(m.budget) || 0, currency), 0);
-                    } else if (pricing.type === 'hourly') {
-                        projectBudget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency);
-                    }
-                }
-
-                // Fallback to legacy budget field
-                if (projectBudget === 0 && project.budget) {
-                    projectBudget = toUSD(Number(project.budget) || 0, (project.currency || 'USD') as "USD" | "KES");
-                }
-
-                // If still no budget found and no payments, use default values based on project status
-                if (projectBudget === 0 && (!project.payments || project.payments.length === 0)) {
-                    // Use reasonable defaults based on project type/status
-                    if (project.status === 'completed') {
-                        projectBudget = 15000; // $15k for completed projects
-                    } else if (project.status === 'in-progress') {
-                        projectBudget = 12000; // $12k for in-progress projects
-                    } else {
-                        projectBudget = 8000; // $8k for pending projects
-                    }
-                }
-
-                // Add budget to client totals only if no payments exist for this project
-                if (!project.payments || project.payments.length === 0) {
-                    // If project is not completed, consider budget as pending
-                    if (project.status !== 'completed') {
-                        clientData.pending += projectBudget;
-                    } else {
-                        clientData.total += projectBudget;
-                    }
+                clientData.totalSpent += paidTotal;
+                clientData.pendingAmount += pendingTotal;
+            } else {
+                // Use project budget as fallback
+                const budget = this.calculateProjectBudget(project);
+                if (project.status === 'completed') {
+                    clientData.totalSpent += budget;
+                } else {
+                    clientData.pendingAmount += budget;
                 }
             }
         });
 
-        const topClients = Array.from(clientSpending.values())
-            .sort((a, b) => (b.total + b.pending) - (a.total + a.pending))
-            .slice(0, 5)
+        return Array.from(clientMap.values())
             .map(client => ({
-                name: client.name,
-                projectCount: client.projects,
-                totalSpent: client.total,
-                pendingAmount: client.pending,
-                totalValue: client.total + client.pending,
-                id: client.id
-            }));
+                ...client,
+                totalValue: client.totalSpent + client.pendingAmount,
+            }))
+            .sort((a, b) => b.totalValue - a.totalValue)
+            .slice(0, 5);
+    }
 
-        // Real top developers from developer profiles
-        const topDevelopers = developerProfiles
+    private static calculateTopDevelopers(developerProfiles: any[]) {
+        return developerProfiles
             .map((profile, index) => {
-                const data = profile.data || {};
-                const profileData = isValidJsonObject(data) ? data : {};
-                const personalInfo = isValidJsonObject((profileData as any).personalInfo) ? (profileData as any).personalInfo : {};
-                const stats = isValidJsonObject((profileData as any).stats) ? (profileData as any).stats : {};
-                const technicalSkills = isValidJsonObject((profileData as any).technicalSkills) ? (profileData as any).technicalSkills : {};
+                const data = isValidObject(profile.data) ? profile.data as DeveloperProfileData : {};
+                const personalInfo = data.personalInfo || {};
+                const stats = data.stats || {};
+                const technicalSkills = data.technicalSkills || {};
 
-                const devName = personalInfo.firstName && personalInfo.lastName
+                const name = personalInfo.firstName && personalInfo.lastName
                     ? `${personalInfo.firstName} ${personalInfo.lastName}`
-                    : personalInfo.email || `Developer ${index + 1}`;
+                    : profile.user?.firstName && profile.user?.lastName
+                        ? `${profile.user.firstName} ${profile.user.lastName}`
+                        : personalInfo.email || profile.user?.email || `Developer ${index + 1}`;
 
                 const skills = Array.isArray(technicalSkills.primarySkills)
-                    ? technicalSkills.primarySkills.map((s: any) => s.name || s)
+                    ? technicalSkills.primarySkills.map(s => typeof s === 'string' ? s : s.name).filter(Boolean)
                     : [];
 
                 return {
-                    name: devName,
-                    completedProjects: Number(stats.completedProjects) || 0,
-                    rating: Number(stats.averageRating) || 0,
-                    skills: skills,
-                    id: profile.id || `dev-${index}`
+                    name,
+                    completedProjects: stats.completedProjects || 0,
+                    rating: stats.averageRating || 0,
+                    skills,
+                    id: profile.id,
                 };
             })
             .sort((a, b) => b.completedProjects - a.completedProjects)
             .slice(0, 5);
+    }
 
-        // Real payment status breakdown
-        const paymentStatusBreakdown = allPayments.reduce((acc, payment) => {
-            const status = payment.status || 'pending';
-            acc[status] = (acc[status] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
+    private static calculatePaymentStatusBreakdown(payments: ProjectPayment[]) {
+        const breakdown: Record<string, { count: number; amount: number }> = {};
 
-        // Real monthly payment trends (last 12 months)
-        const monthlyPaymentTrends: Record<string, number[]> = {};
+        payments.forEach(payment => {
+            const status = payment.status;
+            if (!breakdown[status]) {
+                breakdown[status] = { count: 0, amount: 0 };
+            }
+            breakdown[status].count += 1;
+            breakdown[status].amount += toUSD(payment.amount, payment.currency as 'USD' | 'KES');
+        });
+
+        return Object.entries(breakdown).map(([status, data]) => ({
+            status,
+            count: data.count,
+            amount: data.amount,
+            color: PAYMENT_STATUS_COLORS[status as keyof typeof PAYMENT_STATUS_COLORS] || '#6B7280',
+        }));
+    }
+
+    private static calculateMonthlyTrends(payments: ProjectPayment[]) {
+        const trends: Record<string, {
+            pending: number;
+            approved: number;
+            completed: number;
+            rejected: number;
+            outstanding: number;
+        }> = {};
         const now = new Date();
+
+        // Initialize last 12 months
         for (let i = 11; i >= 0; i--) {
             const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const monthKey = month.toISOString().slice(0, 7);
-
-            const monthPayments = allPayments.filter(p => {
-                const paymentDate = p.date ? new Date(p.date) : (p.createdAt ? new Date(p.createdAt) : null);
-                return paymentDate &&
-                    paymentDate.getFullYear() === month.getFullYear() &&
-                    paymentDate.getMonth() === month.getMonth();
-            });
-
-            const monthRevenue = monthPayments.reduce((sum, p) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
-
-            monthlyPaymentTrends[monthKey] = [
-                monthPayments.length,
-                monthRevenue
-            ];
-        }
-
-        // Real performance metrics
-        const completedProjects = projects.filter(p => p.status === 'completed').length;
-        const activeUsers = users.filter(u => u.isActive !== false).length;
-
-        const completedProjectsWithDates = projects.filter(p =>
-            p.status === 'completed' && p.createdAt && p.actualCompletionDate
-        );
-
-        const averageProjectDuration = completedProjectsWithDates.length > 0
-            ? completedProjectsWithDates.reduce((sum, p) => {
-                const start = new Date(p.createdAt!);
-                const end = new Date(p.actualCompletionDate!);
-                const duration = end.getTime() - start.getTime();
-                return sum + (duration / (1000 * 60 * 60 * 24)); // Convert to days
-            }, 0) / completedProjectsWithDates.length
-            : 0;
-
-        // Real skills demand from developer profiles
-        const skillCounts = new Map<string, number>();
-        let totalSkills = 0;
-
-        developerProfiles.forEach(profile => {
-            const data = profile.data || {};
-            const profileData = isValidJsonObject(data) ? data : {};
-            const technicalSkills = isValidJsonObject((profileData as any).technicalSkills) ? (profileData as any).technicalSkills : {};
-            const primarySkills = Array.isArray(technicalSkills.primarySkills) ? technicalSkills.primarySkills : [];
-
-            primarySkills.forEach((skill: any) => {
-                const skillName = skill.name || skill;
-                if (skillName) {
-                    skillCounts.set(skillName, (skillCounts.get(skillName) || 0) + 1);
-                    totalSkills++;
-                }
-            });
-        });
-
-        const skillsDemand = Array.from(skillCounts.entries())
-            .map(([skill, count]) => ({
-                skill,
-                count,
-                percentage: totalSkills > 0 ? Math.round((count / totalSkills) * 100) : 0
-            }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 10);
-
-        // Real activity feed from recent data
-        const activityFeed: Activity[] = [];
-
-        // Add recent projects
-        const recentProjects = projects
-            .filter(p => p.createdAt)
-            .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
-            .slice(0, 3);
-
-        recentProjects.forEach(project => {
-            activityFeed.push({
-                timestamp: new Date(project.createdAt!),
-                description: `New project "${project.title || 'Untitled Project'}" was created`,
-                type: 'project_created'
-            });
-        });
-
-        // Add recent payments
-        const recentPayments = allPayments
-            .filter(p => p.createdAt || p.date)
-            .sort((a, b) => {
-                const dateA = new Date(a.createdAt || a.date).getTime();
-                const dateB = new Date(b.createdAt || b.date).getTime();
-                return dateB - dateA;
-            })
-            .slice(0, 2);
-
-        recentPayments.forEach(payment => {
-            if (payment.status !== 'paid') {
-                activityFeed.push({
-                    timestamp: new Date(payment.createdAt || payment.date),
-                    description: `Payment of $${payment.amount || 0} was received`,
-                    type: 'payment_received'
-                });
-            }
-        });
-
-        // Add recent user registrations
-        const recentUsers = users
-            .filter(u => u.createdAt)
-            .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
-            .slice(0, 2);
-
-        recentUsers.forEach(user => {
-            activityFeed.push({
-                timestamp: new Date(user.createdAt!),
-                description: `New ${user.role} "${user.firstName || user.email}" registered`,
-                type: 'user_registered'
-            });
-        });
-
-        // Sort by timestamp descending
-        activityFeed.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-        // Take only the most recent 8 activities
-        const finalActivityFeed = activityFeed.slice(0, 8);
-
-        // Transform data to match frontend expectations with REAL payment status distribution
-        const monthlyPaymentTrendsArray = Object.entries(monthlyPaymentTrends).map(([month, data]) => {
-            const monthRevenue = data[1];
-            const monthCount = data[0];
-
-            // Calculate real distribution based on actual payment statuses for this month
-            const monthStart = new Date(month + '-01');
-            const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
-
-            const monthPayments = allPayments.filter(p => {
-                const paymentDate = p.date ? new Date(p.date) : (p.createdAt ? new Date(p.createdAt) : null);
-                return paymentDate && paymentDate >= monthStart && paymentDate <= monthEnd;
-            });
-
-            const statusBreakdown = monthPayments.reduce((acc, p) => {
-                const status = p.status || 'pending';
-                const currency = p.currency || 'USD';
-                acc[status] = (acc[status] || 0) + (status === 'rejected' && currency === 'KES' ? Number(p.amount) : toUSD(Number(p.amount) || 0, currency));
-                return acc;
-            }, {} as Record<string, number>);
-
-            // Calculate outstanding amount for this month (projects that were pending/incomplete)
-            const monthProjects = projects.filter(p => {
-                const projectDate = p.createdAt ? new Date(p.createdAt) : null;
-                return projectDate && projectDate >= monthStart && projectDate <= monthEnd;
-            });
-
-            const monthOutstanding = monthProjects.reduce((sum, project) => {
-                if (project.status !== 'completed' && project.pricing && isValidJsonObject(project.pricing)) {
-                    const pricing = project.pricing as any;
-                    const currency = pricing.currency || 'USD';
-                    let budget = 0;
-
-                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
-                        budget = toUSD(Number(pricing.fixedBudget) || 0, currency);
-                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
-                        budget = pricing.milestones.reduce((sum: number, m: any) =>
-                            sum + toUSD(Number(m.budget) || 0, currency), 0);
-                    } else if (pricing.type === 'hourly') {
-                        budget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency);
-                    }
-
-                    return sum + budget;
-                }
-                return sum;
-            }, 0);
-
-            return {
-                month,
-                pending: statusBreakdown.pending || 0,
-                approved: statusBreakdown.approved || 0,
-                completed: statusBreakdown.completed || 0,
-                rejected: (statusBreakdown.rejected || 0) + (statusBreakdown.failed || 0),
-                outstanding: monthOutstanding
+            trends[monthKey] = {
+                pending: 0,
+                approved: 0,
+                completed: 0,
+                rejected: 0,
+                outstanding: 0,
             };
-        });
-
-        const successfulPayments = allPayments.filter((p: any) => p.status === 'completed' || p.status === 'approved');
-
-        // Calculate TOTAL outstanding amount (pending payments + project budgets for incomplete projects)
-        const pendingPayments = allPayments.filter((p: any) => p.status === 'pending').reduce((sum: number, p: any) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
-        const totalPendingFromClients = Array.from(clientSpending.values()).reduce((sum, client) => sum + client.pending, 0);
-        const totalOutstanding = Math.max(pendingPayments, totalPendingFromClients);
-
-        // Calculate REAL amounts for each payment status with proper currency conversion
-        const paymentStatusData = Object.entries(paymentStatusBreakdown).map(([status, count]) => {
-            const statusPayments = allPayments.filter(p => p.status === status);
-
-            console.log(`Processing ${status} payments:`, statusPayments.map(p => ({
-                amount: p.amount,
-                currency: p.currency,
-                converted: toUSD(Number(p.amount) || 0, p.currency || 'USD')
-            })));
-
-            const realAmount = statusPayments.reduce((sum, p) => {
-                const amount = Number(p.amount) || 0;
-                const currency = p.currency || 'USD';
-                const convertedAmount = toUSD(amount, currency);
-
-                console.log(`Converting ${amount} ${currency} to ${convertedAmount} USD`);
-
-                return sum + convertedAmount;
-            }, 0);
-
-            let color = '#6B7280';
-            switch (status) {
-                case 'pending': color = '#F59E0B'; break;        // Amber - warning
-                case 'completed':
-                case 'approved': color = '#3B82F6'; break;       // Blue - primary
-                case 'failed':
-                case 'rejected': color = '#EF4444'; break;       // Red - danger
-                default: color = '#6B7280';                      // Gray - neutral
-            }
-            return { status, count: Number(count), amount: realAmount, color };
-        });
-
-        // Only add outstanding amounts if there are actual pending payments
-        // Don't inflate outstanding with calculated project budgets when no payments exist
-        if (totalOutstanding > 0 && allPayments.length > 0) {
-            const outstandingIndex = paymentStatusData.findIndex(p => p.status === 'outstanding');
-            if (outstandingIndex >= 0) {
-                paymentStatusData[outstandingIndex].amount = totalOutstanding;
-            } else {
-                paymentStatusData.push({
-                    status: 'outstanding',
-                    count: Math.ceil(totalOutstanding / 1000), // Approximate count
-                    amount: totalOutstanding,
-                    color: '#8B5CF6'  // Purple - info
-                });
-            }
-        } else if (allPayments.length === 0) {
-            // If no payments exist at all, add an outstanding entry with total project budgets
-            const totalProjectBudgets = projects.reduce((sum, project) => {
-                let projectBudget = 0;
-
-                if (project.pricing && isValidJsonObject(project.pricing)) {
-                    const pricing = project.pricing as any;
-                    const currency = pricing.currency || 'USD';
-
-                    if (pricing.type === 'fixed' && pricing.fixedBudget) {
-                        projectBudget = toUSD(Number(pricing.fixedBudget) || 0, currency);
-                    } else if (pricing.type === 'milestone' && pricing.milestones && Array.isArray(pricing.milestones)) {
-                        projectBudget = pricing.milestones.reduce((milestoneSum: number, m: any) =>
-                            milestoneSum + toUSD(Number(m.budget) || 0, currency), 0);
-                    } else if (pricing.type === 'hourly') {
-                        projectBudget = toUSD((Number(pricing.hourlyRate) || 0) * (Number(pricing.estimatedHours) || 0), currency);
-                    }
-                }
-
-                // Fallback to legacy budget field
-                if (projectBudget === 0 && project.budget) {
-                    projectBudget = toUSD(Number(project.budget) || 0, (project.currency || 'USD') as "USD" | "KES");
-                }
-
-                return sum + projectBudget;
-            }, 0);
-
-            if (totalProjectBudgets > 0) {
-                paymentStatusData.push({
-                    status: 'outstanding',
-                    count: projects.length,
-                    amount: totalProjectBudgets,
-                    color: '#8B5CF6'  // Purple - info
-                });
-            }
         }
 
-        // Ensure we have at least basic payment statuses even if no payments exist
-        const expectedStatuses = ['pending', 'approved', 'completed', 'rejected', 'outstanding'];
-        expectedStatuses.forEach(status => {
-            if (!paymentStatusData.find(p => p.status === status)) {
-                let color = '#6B7280';
-                switch (status) {
-                    case 'pending': color = '#F59E0B'; break;        // Amber - warning
-                    case 'approved':
-                    case 'completed': color = '#3B82F6'; break;      // Blue - primary
-                    case 'rejected': color = '#EF4444'; break;       // Red - danger
-                    case 'outstanding': color = '#8B5CF6'; break;    // Purple - info
-                    default: color = '#6B7280';                      // Gray - neutral
+        // Populate with actual data
+        payments.forEach(payment => {
+            const monthKey = payment.date.toISOString().slice(0, 7);
+            if (trends[monthKey]) {
+                const amount = toUSD(payment.amount, payment.currency as 'USD' | 'KES');
+                const status = payment.status === 'failed' ? 'rejected' : payment.status;
+                if (status === 'pending' || status === 'approved' || status === 'completed' || status === 'rejected') {
+                    trends[monthKey][status] = (trends[monthKey][status] || 0) + amount;
                 }
-                paymentStatusData.push({ status, count: 0, amount: status === 'outstanding' ? totalOutstanding : 0, color });
             }
         });
 
-        // Calculate real payment methods from actual payment data
-        const paymentMethodCounts = allPayments.reduce((acc: any, payment) => {
-            const method = payment.method || 'bank_transfer';
-            const amount = Number(payment.amount) || 0;
-            if (!acc[method]) {
-                acc[method] = { count: 0, total: 0 };
+        return Object.entries(trends).map(([month, data]) => ({
+            month,
+            ...data,
+        }));
+    }
+
+    private static calculatePaymentMethods(payments: ProjectPayment[]) {
+        const methods: Record<string, { count: number; total: number }> = {};
+
+        payments.forEach(payment => {
+            const method = payment.method;
+            if (!methods[method]) {
+                methods[method] = { count: 0, total: 0 };
             }
-            acc[method].count++;
-            acc[method].total += toUSD(amount, payment.currency || 'USD');
-            return acc;
-        }, {});
+            methods[method].count += 1;
+            methods[method].total += toUSD(payment.amount, payment.currency as 'USD' | 'KES');
+        });
 
-        const totalMethodAmount = Object.values(paymentMethodCounts).reduce((sum: number, data: any) => sum + data.total, 0);
+        const totalAmount = Object.values(methods).reduce((sum, m) => sum + m.total, 0);
 
-        const paymentMethods = Object.entries(paymentMethodCounts).map(([method, data]: [string, any]) => ({
+        return Object.entries(methods).map(([method, data]) => ({
             method,
             amount: data.total,
-            percentage: totalMethodAmount > 0 ? Math.round((data.total / totalMethodAmount) * 100) : 0
+            percentage: totalAmount > 0 ? Math.round((data.total / totalAmount) * 100) : 0,
         }));
+    }
 
-        // Only show payment methods if there are actual payments - no fallback fake data
-        // If no real payment methods exist, leave the array empty to show "No payment methods yet"
+    private static calculateKPIs(payments: ProjectPayment[]) {
+        const successfulPayments = payments.filter(p => p.status === 'completed' || p.status === 'approved');
+        const totalAmount = successfulPayments.reduce((sum, p) => sum + toUSD(p.amount, p.currency as 'USD' | 'KES'), 0);
 
-        // Calculate real average processing time from payment dates
-        const realAvgProcessingTime = allPayments.length > 0 ?
-            allPayments.reduce((sum, p) => {
-                if (p.createdAt && p.date) {
-                    const created = new Date(p.createdAt).getTime();
-                    const processed = new Date(p.date).getTime();
-                    return sum + Math.abs(processed - created) / (1000 * 60 * 60 * 24); // days
+        const avgProcessingTime = payments.length > 0
+            ? payments.reduce((sum, p) => {
+                if (p.createdAt) {
+                    const processTime = Math.abs(p.date.getTime() - p.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+                    return sum + processTime;
                 }
-                return sum + 3; // default 3 days if no dates
-            }, 0) / allPayments.length : 3;
+                return sum + 3; // Default 3 days
+            }, 0) / payments.length
+            : 3;
 
-        // Calculate success rate as approved payments vs outstanding payments
-        const approvedPayments = allPayments.filter((p: any) => p.status === 'approved');
-        const approvedAmount = approvedPayments.reduce((sum: number, p: any) => sum + toUSD(Number(p.amount) || 0, p.currency || 'USD'), 0);
-        const successRate = totalOutstanding > 0 ? (approvedAmount / totalOutstanding) * 100 : 0;
+        const outstandingAmount = payments
+            .filter(p => p.status === 'pending')
+            .reduce((sum, p) => sum + toUSD(p.amount, p.currency as 'USD' | 'KES'), 0);
 
-        const kpis = {
-            avgPaymentValue: successfulPayments.length > 0 ? revenues / successfulPayments.length : 0,
-            successRate: successRate,
-            avgProcessingTime: realAvgProcessingTime,
-            outstandingAmount: totalOutstanding
+        return {
+            avgPaymentValue: successfulPayments.length > 0 ? totalAmount / successfulPayments.length : 0,
+            successRate: payments.length > 0 ? (successfulPayments.length / payments.length) * 100 : 0,
+            avgProcessingTime,
+            outstandingAmount,
         };
+    }
 
-        // Calculate real revenue growth from last two months
-        const monthKeys = Object.keys(monthlyPaymentTrends).sort();
-        const currentMonth = monthKeys[monthKeys.length - 1];
-        const prevMonth = monthKeys[monthKeys.length - 2];
-        const currentRevenue = monthlyPaymentTrends[currentMonth]?.[1] || 0;
-        const prevRevenue = monthlyPaymentTrends[prevMonth]?.[1] || 0;
-        const realRevenueGrowth = prevRevenue > 0 ? ((currentRevenue - prevRevenue) / prevRevenue) * 100 : 0;
+    private static calculateSkillsDemand(developerProfiles: any[]) {
+        const skillCounts = new Map<string, number>();
 
-        // Calculate real performance metrics based on actual data
-        const avgProjectDurationDays = averageProjectDuration;
-        const clientSatisfaction = Math.max(50, Math.min(100, 100 - (avgProjectDurationDays > 30 ? (avgProjectDurationDays - 30) * 2 : 0)));
+        developerProfiles.forEach(profile => {
+            const data = isValidObject(profile.data) ? profile.data as DeveloperProfileData : {};
+            const skills = data.technicalSkills?.primarySkills || [];
 
-        const activeDevelopers = developerProfiles.filter(profile => {
-            const data = profile.data || {};
-            const stats = isValidJsonObject((data as any).stats) ? (data as any).stats : {};
-            return (Number(stats.completedProjects) || 0) > 0 || (Number(stats.totalProjects) || 0) > 0;
+            skills.forEach(skill => {
+                const skillName = typeof skill === 'string' ? skill : skill.name;
+                if (skillName) {
+                    skillCounts.set(skillName, (skillCounts.get(skillName) || 0) + 1);
+                }
+            });
+        });
+
+        return Array.from(skillCounts.entries())
+            .map(([skill, count]) => ({
+                skill,
+                demand: Math.round((count / Math.max(developerProfiles.length, 1)) * 100),
+                developers: count,
+            }))
+            .sort((a, b) => b.developers - a.developers)
+            .slice(0, 10);
+    }
+
+    private static calculatePerformanceMetrics(projects: any[], developerProfiles: any[]) {
+        const completedProjects = projects.filter(p => p.status === 'completed').length;
+        const totalProjects = projects.length;
+        const activeDevelopers = developerProfiles.filter(p => {
+            const data = isValidObject(p.data) ? p.data as DeveloperProfileData : {};
+            return (data.stats?.completedProjects || 0) > 0;
         }).length;
 
-        const developerUtilization = developerProfiles.length > 0 ? (activeDevelopers / developerProfiles.length) * 100 : 0;
-
-        const cancelledProjects = projects.filter(p => p.status === 'cancelled').length;
-        const totalNonPendingProjects = projects.filter(p => p.status !== 'pending').length;
-        const projectSuccessRate = totalNonPendingProjects > 0
-            ? ((totalNonPendingProjects - cancelledProjects) / totalNonPendingProjects) * 100
-            : 100;
-
         const onTimeProjects = projects.filter(p => {
-            if (p.status === 'completed' && p.createdAt && p.actualCompletionDate && p.estimatedCompletionDate) {
-                const actual = new Date(p.actualCompletionDate).getTime();
-                const estimated = new Date(p.estimatedCompletionDate).getTime();
-                return actual <= estimated;
+            if (p.status === 'completed' && p.actualCompletionDate && p.estimatedCompletionDate) {
+                return new Date(p.actualCompletionDate) <= new Date(p.estimatedCompletionDate);
             }
             return false;
         }).length;
 
-        const deliveryPerformance = completedProjects > 0 ? (onTimeProjects / completedProjects) * 100 : 0;
-
-        const performanceMetricsFormatted = [
-            { metric: 'Project Completion', value: Math.round((completedProjects / Math.max(projects.length, 1)) * 100), target: 90 },
-            { metric: 'Developer Utilization', value: Math.round(developerUtilization), target: 85 },
-            { metric: 'Project Success Rate', value: Math.round(projectSuccessRate), target: 95 },
-            { metric: 'Delivery Performance', value: Math.round(deliveryPerformance), target: 80 },
-            { metric: 'Client Satisfaction', value: Math.round(clientSatisfaction), target: 85 }
+        return [
+            {
+                metric: 'Project Completion',
+                value: Math.round((completedProjects / Math.max(totalProjects, 1)) * 100),
+                target: 90,
+            },
+            {
+                metric: 'Developer Utilization',
+                value: Math.round((activeDevelopers / Math.max(developerProfiles.length, 1)) * 100),
+                target: 85,
+            },
+            {
+                metric: 'On-Time Delivery',
+                value: Math.round((onTimeProjects / Math.max(completedProjects, 1)) * 100),
+                target: 80,
+            },
         ];
+    }
 
-        const skillsFormatted = skillsDemand.map(skill => ({
-            skill: skill.skill,
-            demand: skill.percentage,
-            developers: skill.count
-        }));
+    private static generateActivityFeed(projects: any[], payments: ProjectPayment[], users: any[]) {
+        const activities: Activity[] = [];
 
-        return {
-            version: '2.0.0',
-            timestamp: new Date().toISOString(),
-            overview: {
-                totalUsers: users.length,
-                totalProjects: projects.length,
-                totalRevenue: revenues,
-                monthlyGrowth: realRevenueGrowth,
-                projectsByStatus: {
-                    completed: completedProjects,
-                    'in-progress': projectStatuses['in-progress'] || projectStatuses['active'] || 0,
-                    pending: projectStatuses.pending || 0
-                },
-                usersByRole: {
-                    client: userRoles.client || 0,
-                    developer: userRoles.developer || 0,
-                    admin: userRoles.admin || 0
-                },
-                revenueByMonth: Object.entries(monthlyPaymentTrends).map(([month, data]) => ({
-                    month,
-                    revenue: data[1]
-                })),
-                topClients: topClients.map(client => ({
-                    name: client.name,
-                    projectCount: client.projectCount,
-                    totalSpent: client.totalSpent,
-                    pendingAmount: client.pendingAmount,
-                    totalValue: client.totalValue,
-                    id: client.id
-                })),
-                topDevelopers: topDevelopers.map(dev => ({
-                    name: dev.name,
-                    completedProjects: dev.completedProjects,
-                    rating: dev.rating,
-                    skills: dev.skills,
-                    id: dev.id
-                }))
-            },
-            financial: {
-                paymentStatus: paymentStatusData,
-                monthlyTrends: monthlyPaymentTrendsArray,
-                paymentMethods,
-                kpis
-            },
-            performance: {
-                skills: skillsFormatted,
-                metrics: performanceMetricsFormatted
-            },
-            activities: finalActivityFeed.map(activity => ({
+        // Recent projects
+        projects
+            .filter(p => p.createdAt)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 3)
+            .forEach(project => {
+                const projectDetails = isValidObject(project.projectDetails) ? project.projectDetails as ProjectDetails : {};
+                activities.push({
+                    timestamp: new Date(project.createdAt),
+                    description: `New project "${projectDetails.title || 'Untitled Project'}" was created`,
+                    type: 'project_created',
+                    projectId: project.id,
+                });
+            });
+
+        // Recent payments
+        payments
+            .sort((a, b) => b.date.getTime() - a.date.getTime())
+            .slice(0, 2)
+            .forEach(payment => {
+                activities.push({
+                    timestamp: payment.date,
+                    description: `Payment of $${payment.amount.toFixed(2)} was received`,
+                    type: 'payment_received',
+                });
+            });
+
+        // Recent users
+        users
+            .filter(u => u.createdAt)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 2)
+            .forEach(user => {
+                activities.push({
+                    timestamp: new Date(user.createdAt),
+                    description: `New ${user.role} "${user.firstName || user.email}" registered`,
+                    type: 'user_registered',
+                    userId: user.id,
+                });
+            });
+
+        return activities
+            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+            .slice(0, 8)
+            .map(activity => ({
                 type: activity.type,
                 message: activity.description,
                 time: getTimeAgo(activity.timestamp),
-                icon: getIconForActivityType(activity.type)
-            }))
-        };
+                icon: getIconForActivityType(activity.type),
+            }));
+    }
 
-    } catch (error) {
-        console.error('Error fetching analytics data:', error);
-        toast.error('Failed to fetch analytics data');
-        return {
-            version: '2.0.0',
-            timestamp: new Date().toISOString(),
-            overview: {
-                totalUsers: 0,
-                totalProjects: 0,
-                totalRevenue: 0,
-                monthlyGrowth: 0,
-                projectsByStatus: { 'active': 0, 'completed': 0, 'pending': 0 },
-                usersByRole: { 'admin': 0, 'client': 0, 'developer': 0 },
-                revenueByMonth: [],
-                topClients: [],
-                topDevelopers: []
-            },
-            financial: {
-                paymentStatus: [],
-                monthlyTrends: [],
-                paymentMethods: [],
-                kpis: {
-                    avgPaymentValue: 0,
-                    successRate: 0,
-                    avgProcessingTime: 0,
-                    outstandingAmount: 0
-                }
-            },
-            performance: {
-                skills: [],
-                metrics: []
-            },
-            activities: []
-        };
+    static async fetchAnalyticsData(): Promise<AnalyticsResponse> {
+        try {
+            const { users, projects, developerProfiles } = await this.fetchBaseData();
+            const payments = this.extractPaymentsFromProjects(projects);
+
+            // Calculate all metrics
+            const totalRevenue = this.calculateTotalRevenue(projects, payments);
+            const topClients = this.calculateClientSpending(projects, users);
+            const topDevelopers = this.calculateTopDevelopers(developerProfiles);
+            const paymentStatusData = this.calculatePaymentStatusBreakdown(payments);
+            const monthlyTrends = this.calculateMonthlyTrends(payments);
+            const paymentMethods = this.calculatePaymentMethods(payments);
+            const kpis = this.calculateKPIs(payments);
+            const skillsDemand = this.calculateSkillsDemand(developerProfiles);
+            const performanceMetrics = this.calculatePerformanceMetrics(projects, developerProfiles);
+            const activities = this.generateActivityFeed(projects, payments, users);
+
+            // Calculate project and user breakdowns
+            const projectsByStatus = projects.reduce((acc, project) => {
+                const status = project.status || 'pending';
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+
+            const usersByRole = users.reduce((acc, user) => {
+                const role = user.role || 'client';
+                acc[role] = (acc[role] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+
+            // Calculate monthly revenue trends
+            const revenueByMonth = monthlyTrends.map(trend => ({
+                month: trend.month,
+                revenue: (trend.completed || 0) + (trend.approved || 0),
+            }));
+
+            // Calculate monthly growth
+            const currentMonth = revenueByMonth[revenueByMonth.length - 1]?.revenue || 0;
+            const previousMonth = revenueByMonth[revenueByMonth.length - 2]?.revenue || 0;
+            const monthlyGrowth = previousMonth > 0 ? ((currentMonth - previousMonth) / previousMonth) * 100 : 0;
+
+            return {
+                version: '3.0.0',
+                timestamp: new Date().toISOString(),
+                overview: {
+                    totalUsers: users.length,
+                    totalProjects: projects.length,
+                    totalRevenue,
+                    monthlyGrowth,
+                    projectsByStatus,
+                    usersByRole,
+                    revenueByMonth,
+                    topClients,
+                    topDevelopers,
+                },
+                financial: {
+                    paymentStatus: paymentStatusData,
+                    monthlyTrends,
+                    paymentMethods,
+                    kpis,
+                },
+                performance: {
+                    skills: skillsDemand,
+                    metrics: performanceMetrics,
+                },
+                activities,
+            };
+        } catch (error) {
+            console.error('Error in fetchAnalyticsData:', error);
+            throw error;
+        }
     }
 }
 
 export async function GET(request: NextRequest) {
     try {
-        // Authenticate user session
+        // Authenticate and authorize
         const session: Session | null = await getSession(request);
         if (!session) {
-            return new NextResponse('Unauthorized', { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Check admin role
         if (session.user.role !== 'admin') {
-            return new NextResponse('Forbidden - Admin access required', { status: 403 });
+            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
         }
 
-        // Fetch the analytics data
-        const analyticsData = await fetchAnalyticsData();
+        // Fetch analytics data
+        const analyticsData = await AnalyticsService.fetchAnalyticsData();
 
-        // Return data as JSON response
         return NextResponse.json(analyticsData);
-
     } catch (error) {
         console.error('Analytics API error:', error);
-        toast.error('Failed to fetch analytics data');
-        return new NextResponse('Internal Server Error', { status: 500 });
+
+        // Return appropriate error response
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        }
+
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

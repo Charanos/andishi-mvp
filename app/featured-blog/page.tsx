@@ -35,7 +35,7 @@ export default function SingleArticleView() {
     subtitle:
       "Exploring the transformative impact of artificial intelligence on remote recruitment processes",
     author: {
-      name: "Sarah Mitchell",
+      name: "Dennis Munge",
       title: "Senior Tech Recruiter & AI Specialist",
       avatar: "/author-avatar.jpg",
       bio: "Sarah has been leading tech recruitment transformations for over 8 years, specializing in AI-driven hiring solutions.",
@@ -130,7 +130,7 @@ export default function SingleArticleView() {
     {
       id: 2,
       title: "Building High-Performance Remote Development Teams",
-      author: "Michael Rodriguez",
+      author: "Yvette Asewe",
       date: "June 5, 2025",
       readTime: "8 min read",
       category: "Team Leadership",
@@ -138,7 +138,7 @@ export default function SingleArticleView() {
     {
       id: 3,
       title: "Web3 Development: Skills in High Demand",
-      author: "Alex Chen",
+      author: "Ian Mwangi",
       date: "June 2, 2025",
       readTime: "6 min read",
       category: "Web3 & Blockchain",
@@ -559,7 +559,7 @@ export default function SingleArticleView() {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h5 className="text-white font-semibold text-sm">
-                          Sarah Mitchell
+                          Dennis Munge
                         </h5>
                         <span className="text-yellow-400 text-xs">Author</span>
                         <span className="text-gray-400 text-xs">

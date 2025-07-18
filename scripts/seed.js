@@ -1,101 +1,107 @@
-const { MongoClient } = require('mongodb');
+const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
+const prisma = new PrismaClient();
+
 async function run() {
-  const uri = process.env.DATABASE_URL;
-  if (!uri) {
-    console.error('DATABASE_URL env var not set');
-    process.exit(1);
-  }
-
-  const client = new MongoClient(uri);
   try {
-    await client.connect();
-    const db = client.db();
-    const users = db.collection('users');
-    const developerProfiles = db.collection('developerProfile');
+    // Clear existing developer profiles first to avoid foreign key constraint issues
+    await prisma.developerProfile.deleteMany({});
+    console.log('Cleared existing developer profiles.');
 
-    // Patch existing developer profiles to ensure status and isAvailable are set
-    await developerProfiles.updateMany(
-      { $or: [{ status: { $exists: false } }, { isAvailable: { $exists: false } }] },
-      { $set: { status: "pending", isAvailable: false } }
-    );
-
-    // Clear existing
-    await users.deleteMany({});
+    // Clear existing users
+    await prisma.user.deleteMany({});
+    console.log('Cleared existing users.');
 
     // Seed sample users
-    const passwordHash1 = await bcrypt.hash('oyvJ0S+DVPuK', 10);
-    const passwordHash2 = await bcrypt.hash('u15r4ge63RKt', 10);
-    const passwordHash3 = await bcrypt.hash('XGyZ5DA@YPiv', 10);
-    const passwordHash4 = await bcrypt.hash('N5R9nqMX!Vv1', 10);
-    const passwordHash5 = await bcrypt.hash('EhmmK4vNQ$%D', 10);
-
-    await users.insertMany([
+    const usersToCreate = [
       {
-        id: '1',
         email: 'dennis@andishi.dev',
-        name: 'Dennis Munge',
+        firstName: 'Dennis',
+        lastName: 'Munge',
         role: 'admin',
-        password: passwordHash1,
-        permissions: [],
+        password: await bcrypt.hash('oyvJ0S+DVPuK', 10),
         isActive: true,
-        createdAt: new Date(),
-        lastLogin: null,
+        accountCreated: true,
+        passwordGenerated: true,
       },
       {
-        id: '2',
         email: 'ian@andishi.dev',
-        name: 'Ian Mwangi',
+        firstName: 'Ian',
+        lastName: 'Mwangi',
         role: 'admin',
-        password: passwordHash2,
-        permissions: [],
+        password: await bcrypt.hash('u15r4ge63RKt', 10),
         isActive: true,
-        createdAt: new Date(),
-        lastLogin: null,
+        accountCreated: true,
+        passwordGenerated: true,
       },
       {
-        id: '3',
         email: 'yvette@andishi.dev',
-        name: 'Yvette Asewe',
+        firstName: 'Yvette',
+        lastName: 'Asewe',
         role: 'admin',
-        password: passwordHash3,
-        permissions: [],
+        password: await bcrypt.hash('XGyZ5DA@YPiv', 10),
         isActive: true,
-        createdAt: new Date(),
-        lastLogin: null,
+        accountCreated: true,
+        passwordGenerated: true,
       },
       {
-        id: '4',
         email: 'eric@andishi.dev',
-        name: 'Eric Kibuchi',
+        firstName: 'Eric',
+        lastName: 'Kibuchi',
         role: 'admin',
-        password: passwordHash4,
-        permissions: [],
+        password: await bcrypt.hash('N5R9nqMX!Vv1', 10),
         isActive: true,
-        createdAt: new Date(),
-        lastLogin: null,
+        accountCreated: true,
+        passwordGenerated: true,
       },
       {
-        id: '5',
         email: 'isaac@andishi.dev',
-        name: 'Isaac John',
+        firstName: 'Isaac',
+        lastName: 'John',
         role: 'admin',
-        password: passwordHash5,
-        permissions: [],
+        password: await bcrypt.hash('EhmmK4vNQ$%D', 10),
         isActive: true,
-        createdAt: new Date(),
-        lastLogin: null,
+        accountCreated: true,
+        passwordGenerated: true,
       },
-    ]);
+      {
+        email: 'jojocarter@gmail.com',
+        firstName: 'Jordan',
+        lastName: 'Carter',
+        role: 'developer',
+        password: await bcrypt.hash('password123', 10),
+        isActive: true,
+        accountCreated: true,
+        passwordGenerated: true,
+      },
+      {
+        email: 'gideonkngetich86@gmail.com',
+        firstName: 'Gideon',
+        lastName: 'Ngetich',
+        role: 'developer',
+        password: await bcrypt.hash('password123', 10),
+        isActive: true,
+        accountCreated: true,
+        passwordGenerated: true,
+      },
+    ];
 
-    console.log('Database seeded ✅');
+    for (const userData of usersToCreate) {
+      await prisma.user.upsert({
+        where: { email: userData.email },
+        update: userData,
+        create: userData,
+      });
+    }
+
+    console.log('Users seeded ✅');
+
   } catch (err) {
     console.error(err);
   } finally {
-    await client.close();
-    process.exit(0);
+    await prisma.$disconnect();
   }
 }
 

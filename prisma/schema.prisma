@@ -108,8 +108,7 @@ type ProjectUpdate {
 
 model Project {
   id                     String   @id @default(auto()) @map("_id") @db.ObjectId
-  title                  String
-  description            String?
+  projectDetails         Json?    // Contains title, description, category, techStack, requirements, timeline, priority
   status                 String   @default("pending")
   priority               String   @default("medium")
   budget                 Float    @default(0)

@@ -22,7 +22,7 @@ export default function BlogsSection() {
       "The Future of Remote Work: How AI is Revolutionizing Tech Hiring in 2025",
     excerpt:
       "Dive deep into the transformative power of artificial intelligence in remote hiring. From automated candidate screening to predictive analytics, discover how AI is reshaping the entire recruitment landscape and what it means for developers worldwide.",
-    author: "Sarah Mitchell",
+    author: "Dennis Munge",
     date: "June 8, 2025",
     readTime: "12 min read",
     views: "2.1K",
@@ -39,7 +39,7 @@ export default function BlogsSection() {
       title: "Building High-Performance Remote Development Teams",
       excerpt:
         "Master the art of creating cohesive remote teams that deliver exceptional results through proven strategies and modern collaboration tools.",
-      author: "Michael Rodriguez",
+      author: "Yvette Asewe",
       date: "June 5, 2025",
       readTime: "8 min read",
       views: "1.8K",
@@ -54,7 +54,7 @@ export default function BlogsSection() {
       title: "Web3 Skills in High Demand",
       excerpt:
         "The blockchain revolution continues. Here are the most sought-after Web3 development skills for 2025.",
-      author: "Alex Chen",
+      author: "Ian Mwangi",
       date: "June 2, 2025",
       readTime: "6 min read",
       views: "3.2K",

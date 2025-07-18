@@ -42,7 +42,10 @@ export async function POST(req: NextRequest) {
     // Get project details using Prisma
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      include: {
+      select: {
+        id: true,
+        clientId: true,
+        projectDetails: true,
         assignments: {
           include: {
             developer: true
@@ -88,9 +91,9 @@ export async function POST(req: NextRequest) {
       userDetails,
       project: {
         id: project.id,
-        title: project.title,
+        title: (project.projectDetails as any)?.title || 'Untitled Project',
         clientId: project.clientId,
-        assignments: project.assignments.map(a => ({
+        assignments: project.assignments.map((a: any) => ({
           id: a.id,
           status: a.status,
           developerId: a.developerId,

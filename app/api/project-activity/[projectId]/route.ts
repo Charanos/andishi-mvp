@@ -125,7 +125,7 @@ export async function GET(
       id: `project-created-${project.id}`,
       type: 'system',
       title: 'Project Created',
-      description: `Project "${project.title}" was created`,
+      description: `Project "${(project.projectDetails as any)?.title || 'Untitled Project'}" was created`,
       createdAt: project.createdAt,
       actor: {
         id: 'system',
@@ -140,7 +140,7 @@ export async function GET(
         id: `project-completed-${project.id}`,
         type: 'milestone',
         title: 'Project Completed',
-        description: `Project "${project.title}" was marked as completed`,
+        description: `Project "${(project.projectDetails as any)?.title || 'Untitled Project'}" was marked as completed`,
         createdAt: project.estimatedCompletionDate,
         actor: {
           id: 'system',

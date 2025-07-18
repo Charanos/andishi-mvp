@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       userRole: session.user.role,
       project: {
         id: project.id,
-        title: project.title,
+        title: (project.projectDetails as any)?.title || 'Untitled Project',
         clientId: project.clientId,
         assignments: project.assignments.map(a => ({
           developerId: a.developer?.userId,

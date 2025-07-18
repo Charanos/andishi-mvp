@@ -10,14 +10,19 @@ const allowedOrigins = [
   'http://localhost:3001',
 ];
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': allowedOrigins.join(','),
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+const getCorsHeaders = (request: NextRequest) => {
+  const origin = request.headers.get('origin');
+  const isAllowed = origin && allowedOrigins.includes(origin);
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : '',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
+  };
 };
 
 export async function OPTIONS(request: NextRequest) {
-  return new NextResponse(null, { headers: corsHeaders });
+  return new NextResponse(null, { headers: getCorsHeaders(request) });
 }
 
 // Add type definitions
@@ -123,7 +128,7 @@ export async function GET(req: NextRequest) {
     if (!userEmail || !userRole) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Authentication required' }),
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: getCorsHeaders(req) }
       );
     }
 
@@ -140,7 +145,7 @@ export async function GET(req: NextRequest) {
       if (!project || (userRole !== 'admin' && project.clientId !== userEmail)) {
         return new NextResponse(
           JSON.stringify({ success: false, message: 'Project not found' }),
-          { status: 404, headers: corsHeaders }
+          { status: 404, headers: getCorsHeaders(req) }
         );
       }
       projects = [project];
@@ -159,7 +164,7 @@ export async function GET(req: NextRequest) {
       if (!user) {
         return new NextResponse(
           JSON.stringify({ success: false, message: 'User not found or not authorized' }),
-          { status: 404, headers: corsHeaders }
+          { status: 404, headers: getCorsHeaders(req) }
         );
       }
 
@@ -191,19 +196,19 @@ export async function GET(req: NextRequest) {
       return new NextResponse(JSON.stringify({
         success: true,
         data: transformedProjects[0] || null
-      }), { status: 200, headers: corsHeaders });
+      }), { status: 200, headers: getCorsHeaders(req) });
     } else {
       return new NextResponse(JSON.stringify({
         success: true,
         data: transformedProjects
-      }), { status: 200, headers: corsHeaders });
+      }), { status: 200, headers: getCorsHeaders(req) });
     }
 
   } catch (error) {
     console.error('Error fetching client projects:', error);
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Failed to fetch projects', error: error instanceof Error ? error.message : error }),
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: getCorsHeaders(req) }
     );
   }
 }
@@ -216,7 +221,7 @@ export async function POST(req: NextRequest) {
     if (!userEmail) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Authentication required' }),
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: getCorsHeaders(req) }
       );
     }
 
@@ -229,7 +234,7 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Unauthorized access' }),
-        { status: 403, headers: corsHeaders }
+        { status: 403, headers: getCorsHeaders(req) }
       );
     }
 
@@ -237,16 +242,21 @@ export async function POST(req: NextRequest) {
 
     // Check for duplicate submission
     if (projectData.clientSubmissionId) {
-      const existingProject = await prisma.project.findFirst({
-        where: { title: projectData.title, clientId: user.id }
+      const existingProjects = await prisma.project.findMany({
+        where: { clientId: user.id },
+        select: { projectDetails: true, id: true }
       });
+
+      const existingProject = existingProjects.find(p =>
+        (p.projectDetails as any)?.title === projectData.projectDetails.title
+      );
 
       if (existingProject) {
         return new NextResponse(JSON.stringify({
           success: false,
           message: 'Duplicate submission detected. Project already exists.',
           existingProjectId: existingProject.id
-        }), { status: 409, headers: corsHeaders });
+        }), { status: 409, headers: getCorsHeaders(req) });
       }
     }
 
@@ -268,8 +278,11 @@ export async function POST(req: NextRequest) {
 
     const createdProject = await prisma.project.create({
       data: {
-        title: projectData.title,
-        description: projectData.description || '',
+        projectDetails: {
+          title: projectData.projectDetails.title,
+          description: projectData.projectDetails.description || '',
+          category: projectData.projectDetails.category || '',
+        },
         status: 'pending',
         priority: projectData.priority || 'medium',
         budget: projectData.budget || 0,
@@ -297,7 +310,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'Project created successfully',
       project: createdProject
-    }), { status: 200, headers: corsHeaders });
+    }), { status: 200, headers: getCorsHeaders(req) });
 
   } catch (error) {
     console.error('Error creating project:', error);
@@ -307,7 +320,7 @@ export async function POST(req: NextRequest) {
         message: 'Failed to create project',
         error: error instanceof Error ? error.message : error
       }),
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: getCorsHeaders(req) }
     );
   }
 }
@@ -320,7 +333,7 @@ export async function PATCH(req: NextRequest) {
     if (!userEmail || !userRole) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Authentication required' }),
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: getCorsHeaders(req) }
       );
     }
 
@@ -337,7 +350,7 @@ export async function PATCH(req: NextRequest) {
       if (!clientUser) {
         return new NextResponse(
           JSON.stringify({ success: false, message: 'Unauthorized access' }),
-          { status: 403, headers: corsHeaders }
+          { status: 403, headers: getCorsHeaders(req) }
         );
       }
     }
@@ -351,7 +364,7 @@ export async function PATCH(req: NextRequest) {
           success: false,
           message: 'Project ID and at least one update field are required',
         }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: getCorsHeaders(req) }
       );
     }
 
@@ -362,7 +375,7 @@ export async function PATCH(req: NextRequest) {
 
     if (!project || (userRole !== 'admin' && project?.clientId !== userEmail)) {
       return new NextResponse(JSON.stringify({ success: false, message: 'Project not found' }),
-        { status: 404, headers: corsHeaders });
+        { status: 404, headers: getCorsHeaders(req) });
     }
 
     // Handle different CRUD operations based on request type
@@ -396,7 +409,7 @@ export async function PATCH(req: NextRequest) {
               success: true,
               message: 'Milestone created successfully',
               data: newMilestone
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'milestone_update':
             const currentMilestones = project.milestones || [];
@@ -424,7 +437,7 @@ export async function PATCH(req: NextRequest) {
               success: true,
               message: 'Milestone updated successfully',
               data: updatedMilestone
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'milestone_delete':
             const milestonesAfterDelete = removeItemFromArray(project.milestones || [], itemId);
@@ -437,7 +450,7 @@ export async function PATCH(req: NextRequest) {
             return new NextResponse(JSON.stringify({
               success: true,
               message: 'Milestone deleted successfully'
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'file_create':
             const newFile = {
@@ -461,7 +474,7 @@ export async function PATCH(req: NextRequest) {
               success: true,
               message: 'File created successfully',
               data: newFile
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'file_update':
             const currentFiles = project.files || [];
@@ -487,7 +500,7 @@ export async function PATCH(req: NextRequest) {
               success: true,
               message: 'File updated successfully',
               data: updatedFile
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'file_delete':
             const filesAfterDelete = removeItemFromArray(project.files || [], itemId);
@@ -500,7 +513,7 @@ export async function PATCH(req: NextRequest) {
             return new NextResponse(JSON.stringify({
               success: true,
               message: 'File deleted successfully'
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'payment_create':
             const newPayment = {
@@ -529,7 +542,7 @@ export async function PATCH(req: NextRequest) {
               success: true,
               message: 'Payment created successfully',
               data: newPayment
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'payment_update':
             const currentPayments = project.payments || [];
@@ -557,7 +570,7 @@ export async function PATCH(req: NextRequest) {
               success: true,
               message: 'Payment updated successfully',
               data: updatedPayment
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'payment_delete':
             const paymentsAfterDelete = removeItemFromArray(project.payments || [], itemId);
@@ -570,7 +583,7 @@ export async function PATCH(req: NextRequest) {
             return new NextResponse(JSON.stringify({
               success: true,
               message: 'Payment deleted successfully'
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'update_create':
             const newUpdate = {
@@ -593,7 +606,7 @@ export async function PATCH(req: NextRequest) {
               success: true,
               message: 'Update created successfully',
               data: newUpdate
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           case 'update_delete':
             const updatesAfterDelete = removeItemFromArray(project.updates || [], itemId);
@@ -606,7 +619,7 @@ export async function PATCH(req: NextRequest) {
             return new NextResponse(JSON.stringify({
               success: true,
               message: 'Update deleted successfully'
-            }), { status: 200, headers: corsHeaders });
+            }), { status: 200, headers: getCorsHeaders(req) });
 
           default:
             throw new Error(`Unknown operation: ${operation}`);
@@ -620,7 +633,7 @@ export async function PATCH(req: NextRequest) {
             message: `Failed to ${operation}`,
             error: operationError instanceof Error ? operationError.message : operationError
           }),
-          { status: 500, headers: corsHeaders }
+          { status: 500, headers: getCorsHeaders(req) }
         );
       }
     }
@@ -727,7 +740,7 @@ export async function PATCH(req: NextRequest) {
       success: true,
       message: 'Project updated successfully',
       data: updatedProject
-    }), { status: 200, headers: corsHeaders });
+    }), { status: 200, headers: getCorsHeaders(req) });
 
   } catch (error) {
     console.error('Error updating project:', error);
@@ -737,7 +750,7 @@ export async function PATCH(req: NextRequest) {
         message: 'Failed to update project',
         error: error instanceof Error ? error.message : error
       }),
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: getCorsHeaders(req) }
     );
   }
 }
@@ -750,7 +763,7 @@ export async function DELETE(req: NextRequest) {
     if (!userEmail || !userRole) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Authentication required' }),
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: getCorsHeaders(req) }
       );
     }
 
@@ -766,7 +779,7 @@ export async function DELETE(req: NextRequest) {
       if (!clientUser) {
         return new NextResponse(
           JSON.stringify({ success: false, message: 'Unauthorized access' }),
-          { status: 403, headers: corsHeaders }
+          { status: 403, headers: getCorsHeaders(req) }
         );
       }
     }
@@ -776,7 +789,7 @@ export async function DELETE(req: NextRequest) {
     if (!projectId) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Project ID is required' }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: getCorsHeaders(req) }
       );
     }
 
@@ -788,7 +801,7 @@ export async function DELETE(req: NextRequest) {
     if (!project) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Project not found' }),
-        { status: 404, headers: corsHeaders }
+        { status: 404, headers: getCorsHeaders(req) }
       );
     }
 
@@ -796,7 +809,7 @@ export async function DELETE(req: NextRequest) {
     if (userRole !== 'admin' && project.clientId !== (clientUser?.id || userEmail)) {
       return new NextResponse(
         JSON.stringify({ success: false, message: 'Unauthorized to delete this project' }),
-        { status: 403, headers: corsHeaders }
+        { status: 403, headers: getCorsHeaders(req) }
       );
     }
 
@@ -816,7 +829,7 @@ export async function DELETE(req: NextRequest) {
     return new NextResponse(JSON.stringify({
       success: true,
       message: 'Project deleted successfully'
-    }), { status: 200, headers: corsHeaders });
+    }), { status: 200, headers: getCorsHeaders(req) });
 
   } catch (error) {
     console.error('Error deleting project:', error);
@@ -826,7 +839,7 @@ export async function DELETE(req: NextRequest) {
         message: 'Failed to delete project',
         error: error instanceof Error ? error.message : error
       }),
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: getCorsHeaders(req) }
     );
   }
 }

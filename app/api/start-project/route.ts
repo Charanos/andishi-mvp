@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
       clientId: existingUser.id,
       status: 'pending',
       priority: projectDetails.priority || 'low',
-      budget: pricing?.fixedBudget || 0,
+      budget: Number(pricing?.fixedBudget) || 0,
       timeline: projectDetails.timeline,
       techStack: projectDetails.techStack || [],
       requiredSkills: projectDetails.requiredSkills || [],
@@ -234,7 +234,10 @@ export async function POST(req: NextRequest) {
       maxTeamSize: projectDetails.maxTeamSize || 1,
       estimatedCompletionDate: projectDetails.estimatedCompletionDate ? new Date(projectDetails.estimatedCompletionDate) : null,
       milestones: pricing?.milestones || [],
-      pricing: pricing
+      pricing: {
+        ...pricing,
+        fixedBudget: Number(pricing?.fixedBudget) || null,
+      }
     };
 
     // Save the project

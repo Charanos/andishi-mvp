@@ -52,7 +52,7 @@ export async function getProjectDetails(projectId: string) {
     if (project) {
       console.log(`Found Prisma project:`, {
         id: project.id,
-        title: project.title,
+        title: (project.projectDetails as any)?.title || 'Untitled Project',
         clientId: project.clientId,
         maxTeamSize: project.maxTeamSize
       });
@@ -75,7 +75,7 @@ export async function getProjectDetails(projectId: string) {
 
 // Helper function to create proper chat participants for a project
 export async function createChatParticipants(project: any) {
-  const participants = [];
+  const participants: any[] = [];
 
   // 1. Add client as participant if clientId exists
   if (project.clientId) {

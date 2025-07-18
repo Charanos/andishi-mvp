@@ -1,6 +1,6 @@
 
 import { SignJWT } from 'jose';
-import { User } from '@/types/auth';
+import { User, UserRole } from '@/types/auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
@@ -66,12 +66,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create JWT token with permissions (empty array for now)
-    const userWithPermissions = {
-      ...user,
-      permissions: [] // Add empty permissions array to satisfy User type
+    const userForToken: User = {
+      id: user.id,
+      email: user.email,
+      name: user.name || `${user.firstName} ${user.lastName}`.trim(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role as UserRole,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      permissions: [],
     };
-    const token = await createJWTToken(userWithPermissions as User);
+    const token = await createJWTToken(userForToken);
 
     // Create response
     const response = new NextResponse(JSON.stringify({

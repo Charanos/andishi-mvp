@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+
 
 const allowedOrigins = [
   'https://andishi-mvp.vercel.app',
@@ -136,10 +136,14 @@ export async function GET(req: NextRequest) {
     const projectId = searchParams.get('id');
     let projects: any[] = [];
 
+    // Collect client user info separately to avoid relying on Prisma relations
+    // (Project model currently lacks explicit client relation)
+
+
     // Fetch a single project by ID
     if (projectId) {
       const project = await prisma.project.findUnique({
-        where: { id: projectId }
+        where: { id: projectId },
       });
 
       if (!project || (userRole !== 'admin' && project.clientId !== userEmail)) {
@@ -152,13 +156,13 @@ export async function GET(req: NextRequest) {
     } else if (userRole === 'admin') {
       // Admins have access to all projects
       projects = await prisma.project.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
     } else {
       // Fetch projects for a client
       const user = await prisma.user.findUnique({
         where: { email: userEmail },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!user) {
@@ -170,27 +174,59 @@ export async function GET(req: NextRequest) {
 
       projects = await prisma.project.findMany({
         where: { clientId: user.id },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
     }
 
-    // Transform projects to ensure consistent structure
-    const transformedProjects = projects.map(project => ({
-      id: project.id,
-      title: project.title || '',
-      description: project.description || '',
-      status: project.status || 'pending',
-      priority: project.priority || 'low',
-      progress: project.progress || 0,
-      techStack: project.techStack || [],
-      createdAt: project.createdAt,
-      updatedAt: project.updatedAt,
-      milestones: project.milestones || [],
-      updates: project.updates || [],
-      files: project.files || [],
-      payments: project.payments || [],
-      pricing: project.pricing
-    }));
+    // Deduplicate in case of accidental duplicates (e.g., repeated seeding)
+    const uniqueProjectsMap = new Map<string, typeof projects[0]>();
+    for (const proj of projects) {
+      if (!uniqueProjectsMap.has(proj.id)) uniqueProjectsMap.set(proj.id, proj);
+    }
+
+    // Transform projects to ensure consistent structure and keep nested details
+    // Fetch user info for all unique clientIds
+    const clientIds = Array.from(uniqueProjectsMap.values()).map(p => p.clientId).filter(Boolean);
+    const clientUsers = clientIds.length ? await prisma.user.findMany({
+      where: { id: { in: clientIds } },
+      select: { id: true, firstName: true, lastName: true, email: true }
+    }) : [];
+    const clientMap: Record<string, any> = {};
+    clientUsers.forEach((u: any) => { clientMap[u.id] = u; });
+
+    const transformedProjects = Array.from(uniqueProjectsMap.values()).map((project: any) => {
+      const details = project.projectDetails || {};
+      const derivedTitle = project.title || details.title || '';
+      const derivedDescription = project.description || details.description || '';
+      const clientInfo = clientMap[project.clientId] ? {
+        id: clientMap[project.clientId].id,
+        firstName: clientMap[project.clientId].firstName,
+        lastName: clientMap[project.clientId].lastName,
+        email: clientMap[project.clientId].email,
+      } : {};
+      // Merge existing embedded userInfo (if any) to keep phone, company, etc.
+      const userInfo = { ...project.userInfo, ...clientInfo };
+
+      return {
+        _id: project.id, // Keep Mongo-style _id for front-end compatibility
+        id: project.id,
+        title: derivedTitle,
+        description: derivedDescription,
+        projectDetails: details,
+        userInfo: userInfo,
+        status: project.status || 'pending',
+        priority: project.priority || 'low',
+        progress: project.progress || 0,
+        techStack: project.techStack || details.techStack || [],
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        milestones: project.milestones || [],
+        updates: project.updates || [],
+        files: project.files || [],
+        payments: project.payments || [],
+        pricing: project.pricing
+      };
+    });
 
     if (projectId) {
       return new NextResponse(JSON.stringify({
@@ -247,7 +283,7 @@ export async function POST(req: NextRequest) {
         select: { projectDetails: true, id: true }
       });
 
-      const existingProject = existingProjects.find(p =>
+      const existingProject = existingProjects.find((p: any) =>
         (p.projectDetails as any)?.title === projectData.projectDetails.title
       );
 

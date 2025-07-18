@@ -83,6 +83,7 @@ import {
   ProjectStatus,
 } from "@/types";
 import SearchFilter from "./SearchFilter";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 // Types
 interface SystemUser {
@@ -123,7 +124,11 @@ type ActiveTab =
 
 export default function EnhancedAdminDashboard(): ReactNode {
   // Toast notifications
-  const { notifications: toastNotifications, removeNotification: removeToastNotification, toast } = useToast();
+  const {
+    notifications: toastNotifications,
+    removeNotification: removeToastNotification,
+    toast,
+  } = useToast();
 
   // State Management
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
@@ -134,7 +139,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     approveProfile,
     rejectProfile,
     deleteProfile: deleteDevProfile,
-    refetch: refetchProfiles
+    refetch: refetchProfiles,
   } = useDeveloperProfiles();
   const {
     users,
@@ -143,7 +148,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     deleteUser: deleteUserFromHook,
     updateUser: updateUserFromHook,
     createUser: createUserFromHook,
-    setUsers
+    setUsers,
   } = useUserManagement();
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const emptyAnalytics: EnhancedAnalyticsData = {
@@ -191,23 +196,25 @@ export default function EnhancedAdminDashboard(): ReactNode {
     let filtered = [...projects];
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter(project => project.status === statusFilter);
+      filtered = filtered.filter((project) => project.status === statusFilter);
     }
 
     if (priorityFilter !== "all") {
-      filtered = filtered.filter(project => project.priority === priorityFilter);
+      filtered = filtered.filter(
+        (project) => project.priority === priorityFilter
+      );
     }
 
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase();
       filtered = filtered.filter(
-        project =>
+        (project) =>
           project.projectDetails?.title?.toLowerCase().includes(query) ||
           project.projectDetails?.description?.toLowerCase().includes(query) ||
           project.userInfo?.firstName?.toLowerCase().includes(query) ||
           project.userInfo?.lastName?.toLowerCase().includes(query) ||
           project.userInfo?.company?.toLowerCase().includes(query) ||
-          project.projectDetails?.techStack?.some(tech =>
+          project.projectDetails?.techStack?.some((tech) =>
             tech.toLowerCase().includes(query)
           )
       );
@@ -216,11 +223,19 @@ export default function EnhancedAdminDashboard(): ReactNode {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+          return (
+            new Date(b.createdAt || 0).getTime() -
+            new Date(a.createdAt || 0).getTime()
+          );
         case "oldest":
-          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+          return (
+            new Date(a.createdAt || 0).getTime() -
+            new Date(b.createdAt || 0).getTime()
+          );
         case "name":
-          return (a.projectDetails?.title || "").localeCompare(b.projectDetails?.title || "");
+          return (a.projectDetails?.title || "").localeCompare(
+            b.projectDetails?.title || ""
+          );
         case "budget":
           const budgetA = calculateProjectBudget(a);
           const budgetB = calculateProjectBudget(b);
@@ -249,7 +264,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
   };
 
   const hasActiveFilters = Boolean(
-    searchTerm.trim() || statusFilter !== "all" || priorityFilter !== "all" || sortBy !== "newest"
+    searchTerm.trim() ||
+      statusFilter !== "all" ||
+      priorityFilter !== "all" ||
+      sortBy !== "newest"
   );
 
   // Reset to first page when filters change
@@ -295,7 +313,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
               project.status === "in-progress" ? "in-progress" : project.status,
             priority: project.priority || "low",
             milestones: project.milestones || project.pricing?.milestones || [],
-            pricing: project.pricing || { type: "fixed", currency: "USD", fixedBudget: "0" },
+            pricing: project.pricing || {
+              type: "fixed",
+              currency: "USD",
+              fixedBudget: "0",
+            },
           })
         );
         setProjects(transformedProjects);
@@ -304,8 +326,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
         const usersArray = Array.isArray(usersData)
           ? usersData
           : Array.isArray(usersData?.users)
-            ? usersData.users
-            : [];
+          ? usersData.users
+          : [];
         setUsers(usersArray);
 
         // Use real analytics from API instead of generated mock data
@@ -318,9 +340,13 @@ export default function EnhancedAdminDashboard(): ReactNode {
             monthlyGrowth: analyticsResponse.overview.monthlyGrowth || 0,
             successRate: 0, // Calculate from projects if needed
             projectsByStatus: {
-              completed: analyticsResponse.overview.projectsByStatus?.completed || 0,
-              "in-progress": analyticsResponse.overview.projectsByStatus?.["in-progress"] || 0,
-              pending: analyticsResponse.overview.projectsByStatus?.pending || 0,
+              completed:
+                analyticsResponse.overview.projectsByStatus?.completed || 0,
+              "in-progress":
+                analyticsResponse.overview.projectsByStatus?.["in-progress"] ||
+                0,
+              pending:
+                analyticsResponse.overview.projectsByStatus?.pending || 0,
             },
             usersByRole: {
               client: analyticsResponse.overview.usersByRole?.client || 0,
@@ -333,9 +359,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
             skillsInDemand: analyticsResponse.performance?.skills || [],
             performanceMetrics: analyticsResponse.performance?.metrics || [],
             recentActivities: analyticsResponse.activities || [],
-            avgProjectValue: analyticsResponse.overview.totalProjects > 0
-              ? analyticsResponse.overview.totalRevenue / analyticsResponse.overview.totalProjects
-              : 0,
+            avgProjectValue:
+              analyticsResponse.overview.totalProjects > 0
+                ? analyticsResponse.overview.totalRevenue /
+                  analyticsResponse.overview.totalProjects
+                : 0,
             clientRetentionRate: 85, // Default or calculate from data
             avgDeliveryTime: 25, // Default or calculate from data
             qualityScore: 92, // Default or calculate from data
@@ -343,10 +371,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
           setAnalytics(realAnalytics);
         } else {
           // Fallback to generated analytics if API fails
-          const analyticsData = generateAdvancedAnalytics(transformedProjects, usersArray);
+          const analyticsData = generateAdvancedAnalytics(
+            transformedProjects,
+            usersArray
+          );
           setAnalytics(analyticsData);
         }
-
       } catch (err) {
         console.error("Error loading dashboard data:", err);
         // Fallback to generated analytics on error
@@ -358,19 +388,28 @@ export default function EnhancedAdminDashboard(): ReactNode {
           const transformedProjects = (projectsData || []).map(
             (project: any) => ({
               ...project,
-              status: project.status === "in-progress" ? "in-progress" : project.status,
+              status:
+                project.status === "in-progress"
+                  ? "in-progress"
+                  : project.status,
               priority: project.priority || "low",
             })
           );
           const usersArray = Array.isArray(usersData)
             ? usersData
             : Array.isArray(usersData?.users)
-              ? usersData.users
-              : [];
-          const analyticsData = generateAdvancedAnalytics(transformedProjects, usersArray);
+            ? usersData.users
+            : [];
+          const analyticsData = generateAdvancedAnalytics(
+            transformedProjects,
+            usersArray
+          );
           setAnalytics(analyticsData);
         } catch (fallbackErr) {
-          toast.error("Error loading dashboard data", "Failed to load dashboard data");
+          toast.error(
+            "Error loading dashboard data",
+            "Failed to load dashboard data"
+          );
         }
       } finally {
         setLoading(false);
@@ -378,8 +417,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
     };
     loadDashboardData();
   }, []);
-
-
 
   const handleProjectDeleteConfirm = async () => {
     if (projectToDelete) {
@@ -402,7 +439,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
   const [isProjectDeleteModalOpen, setProjectDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
-  const [projectViewMode, setProjectViewMode] = useState<"list" | "detail" | "edit">("list");
+  const [projectViewMode, setProjectViewMode] = useState<
+    "list" | "detail" | "edit"
+  >("list");
   // Inline create project form
   const [showCreateProjectForm, setShowCreateProjectForm] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -454,12 +493,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
       const syncResponse = await fetch("/api/developer-profiles?action=sync", {
         method: "GET",
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       if (!syncResponse.ok) {
-        throw new Error(`Sync request failed with status: ${syncResponse.status}`);
+        throw new Error(
+          `Sync request failed with status: ${syncResponse.status}`
+        );
       }
 
       const syncResult = await syncResponse.json();
@@ -487,7 +528,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       await Promise.all([
         refreshUsers(),
         refetchProfiles(),
-        syncDeveloperData()
+        syncDeveloperData(),
       ]);
 
       // Trigger developer profile refresh
@@ -519,7 +560,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
     try {
       await rejectProfile(profileId);
       await refreshAllData();
-      toast.success("Profile rejected successfully", "Developer has been deactivated");
+      toast.success(
+        "Profile rejected successfully",
+        "Developer has been deactivated"
+      );
     } catch (error) {
       console.error("Error rejecting profile:", error);
       toast.error("Failed to reject profile", "Please try again");
@@ -531,7 +575,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
     try {
       await deleteDevProfile(profileId);
       await refreshAllData();
-      toast.success("Profile deleted successfully", "Developer profile has been removed");
+      toast.success(
+        "Profile deleted successfully",
+        "Developer profile has been removed"
+      );
     } catch (error) {
       console.error("Error deleting profile:", error);
       toast.error("Failed to delete profile", "Please try again");
@@ -543,7 +590,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
     try {
       await deleteUserFromHook(userId);
       await refreshAllData();
-      toast.success("User deleted successfully", "User and associated profiles have been removed");
+      toast.success(
+        "User deleted successfully",
+        "User and associated profiles have been removed"
+      );
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user", "Please try again");
@@ -574,7 +624,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       if (usersData.success && Array.isArray(usersData.users)) {
         usersArray = usersData.users;
-        console.log(`Loaded ${usersArray.length} users with enhanced profile data`);
+        console.log(
+          `Loaded ${usersArray.length} users with enhanced profile data`
+        );
       } else if (Array.isArray(usersData)) {
         // Fallback if usersData itself is the array
         usersArray = usersData;
@@ -596,8 +648,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
               monthlyGrowth: analyticsData.overview.monthlyGrowth || 0,
               successRate: 0, // Calculate from projects if needed
               projectsByStatus: {
-                completed: analyticsData.overview.projectsByStatus?.completed || 0,
-                "in-progress": analyticsData.overview.projectsByStatus?.["in-progress"] || 0,
+                completed:
+                  analyticsData.overview.projectsByStatus?.completed || 0,
+                "in-progress":
+                  analyticsData.overview.projectsByStatus?.["in-progress"] || 0,
                 pending: analyticsData.overview.projectsByStatus?.pending || 0,
               },
               usersByRole: {
@@ -611,9 +665,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
               skillsInDemand: analyticsData.performance?.skills || [],
               performanceMetrics: analyticsData.performance?.metrics || [],
               recentActivities: analyticsData.activities || [],
-              avgProjectValue: analyticsData.overview.totalProjects > 0
-                ? analyticsData.overview.totalRevenue / analyticsData.overview.totalProjects
-                : 0,
+              avgProjectValue:
+                analyticsData.overview.totalProjects > 0
+                  ? analyticsData.overview.totalRevenue /
+                    analyticsData.overview.totalProjects
+                  : 0,
               clientRetentionRate: 85, // Default or calculate from data
               avgDeliveryTime: 25, // Default or calculate from data
               qualityScore: 92, // Default or calculate from data
@@ -621,21 +677,32 @@ export default function EnhancedAdminDashboard(): ReactNode {
             setAnalytics(realAnalytics);
           } else {
             // Fallback to generated analytics if API response is invalid
-            const analyticsData = generateAdvancedAnalytics(transformedProjects, usersArray);
+            const analyticsData = generateAdvancedAnalytics(
+              transformedProjects,
+              usersArray
+            );
             setAnalytics(analyticsData);
           }
         } else {
           // Fallback to generated analytics if API call fails
-          const analyticsData = generateAdvancedAnalytics(transformedProjects, usersArray);
+          const analyticsData = generateAdvancedAnalytics(
+            transformedProjects,
+            usersArray
+          );
           setAnalytics(analyticsData);
         }
       } catch (analyticsError) {
-        console.warn("Failed to fetch comprehensive analytics, using fallback:", analyticsError);
+        console.warn(
+          "Failed to fetch comprehensive analytics, using fallback:",
+          analyticsError
+        );
         // Fallback to generated analytics if API fails
-        const analyticsData = generateAdvancedAnalytics(transformedProjects, usersArray);
+        const analyticsData = generateAdvancedAnalytics(
+          transformedProjects,
+          usersArray
+        );
         setAnalytics(analyticsData);
       }
-
     } catch (err) {
       setError("Failed to fetch data");
     } finally {
@@ -678,7 +745,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
     });
 
     // Calculate total revenue and project/user status counts
-    const totalRevenue = projectStats.reduce((sum, project) => sum + (project.budget || 0), 0);
+    const totalRevenue = projectStats.reduce(
+      (sum, project) => sum + (project.budget || 0),
+      0
+    );
 
     // Ensure mandatory keys are present before aggregation
     const initialProjectsByStatus: EnhancedAnalyticsData["projectsByStatus"] = {
@@ -794,7 +864,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       revenueMonthly[revenueMonthly.length - 2]?.revenue || 0;
     const monthlyGrowth = previousMonthRevenue
       ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) *
-      100
+        100
       : 0;
 
     setAnalytics({
@@ -850,7 +920,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     } else {
       return toUSD(
         parseFloat(project.pricing.hourlyRate || "0") *
-        parseFloat(project.pricing.estimatedHours || "0"),
+          parseFloat(project.pricing.estimatedHours || "0"),
         project.pricing.currency
       );
     }
@@ -859,7 +929,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
   // Project functions
 
   // Helper function to update developers when project is completed
-  const updateDevelopersOnProjectCompletion = async (projectId: string, project: ProjectData) => {
+  const updateDevelopersOnProjectCompletion = async (
+    projectId: string,
+    project: ProjectData
+  ) => {
     try {
       // Get all assigned developers for this project
       const response = await fetch(`/api/project-assignments/${projectId}`);
@@ -871,25 +944,30 @@ export default function EnhancedAdminDashboard(): ReactNode {
         const updatePromises = assignments.map(async (assignment: any) => {
           try {
             await fetch(`/api/developer/${assignment.developerId}/update`, {
-              method: 'PATCH',
+              method: "PATCH",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({
                 projectComplete: true,
-                projectId: projectId
+                projectId: projectId,
               }),
             });
           } catch (error) {
-            console.error(`Failed to update developer ${assignment.developerId} on project completion:`, error);
+            console.error(
+              `Failed to update developer ${assignment.developerId} on project completion:`,
+              error
+            );
           }
         });
 
         await Promise.all(updatePromises);
-        console.log(`Updated ${assignments.length} developers for completed project ${projectId}`);
+        console.log(
+          `Updated ${assignments.length} developers for completed project ${projectId}`
+        );
       }
     } catch (error) {
-      console.error('Error updating developers on project completion:', error);
+      console.error("Error updating developers on project completion:", error);
     }
   };
 
@@ -998,15 +1076,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
           // Ensure pricing is always a valid PricingOption
           pricing: project.pricing
             ? {
-              ...project.pricing,
-              milestones: updatedMilestones,
-            }
+                ...project.pricing,
+                milestones: updatedMilestones,
+              }
             : {
-              // Provide default values that match PricingOption type
-              type: "fixed", // or whatever default makes sense
-              currency: "USD",
-              milestones: updatedMilestones,
-            },
+                // Provide default values that match PricingOption type
+                type: "fixed", // or whatever default makes sense
+                currency: "USD",
+                milestones: updatedMilestones,
+              },
           updatedAt: new Date().toISOString(),
         };
 
@@ -1201,10 +1279,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
         prevProjects.map((project) =>
           project._id === projectId
             ? {
-              ...project,
-              payments: [newPayment, ...(project.payments || [])],
-              updatedAt: new Date().toISOString(),
-            }
+                ...project,
+                payments: [newPayment, ...(project.payments || [])],
+                updatedAt: new Date().toISOString(),
+              }
             : project
         )
       );
@@ -1216,7 +1294,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
       });
 
       toast.success(
-        `Payment of ${payment.amount} ${payment.currency || "USD"} recorded successfully`
+        `Payment of ${payment.amount} ${
+          payment.currency || "USD"
+        } recorded successfully`
       );
     } catch (error) {
       // Revert on error
@@ -1251,25 +1331,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
     } catch (error: any) {
       setProjects((prev) => prev.filter((p) => p._id !== tempId));
       toast.error("Failed to create project", error?.message);
-    }
-  };
-
-  // 8. Delete Project
-  const deleteProject = async (projectId: string) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this project?"
-    );
-    if (!confirmed) return;
-
-    const prevProjects = [...projects];
-    setProjects((prev) => prev.filter((p) => p._id !== projectId));
-
-    try {
-      await apiDeleteProject(projectId);
-      toast.success("Project deleted successfully!");
-    } catch (error: any) {
-      setProjects(prevProjects);
-      toast.error("Failed to delete project", error?.message);
     }
   };
 
@@ -1462,8 +1523,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <FaSortAmountDown className="text-red-400 mr-1" />
                   )}
                   <span
-                    className={`text-sm ${metric.trend === "up" ? "text-green-400" : "text-red-400"
-                      }`}
+                    className={`text-sm ${
+                      metric.trend === "up" ? "text-green-400" : "text-red-400"
+                    }`}
                   >
                     {metric.change}
                   </span>
@@ -1591,7 +1653,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   </div>
                 </div>
                 <p className="text-green-400 font-medium">
-                  {formatCurrency(client.totalSpent || client.revenue || client.totalValue || 0)}
+                  {formatCurrency(
+                    client.totalSpent ||
+                      client.revenue ||
+                      client.totalValue ||
+                      0
+                  )}
                 </p>
               </div>
             ))}
@@ -1624,7 +1691,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 </div>
                 <div className="flex items-center space-x-1">
                   <span className="text-yellow-400">★</span>
-                  <span className="text-white">{(dev.rating || 0).toFixed(1)}</span>
+                  <span className="text-white">
+                    {(dev.rating || 0).toFixed(1)}
+                  </span>
                 </div>
               </div>
             ))}
@@ -1633,7 +1702,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
       </div>
     </div>
   );
-
 
   const renderProjects = (): ReactNode => {
     if (showCreateProjectForm) {
@@ -1680,7 +1748,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
             /* kept original stub structure */
             await recordProjectPayment(projectId, payment);
           }}
-          developers={users.filter(user => user.role === "developer" && user.developerProfileStatus === "approved")}
+          developers={users.filter(
+            (user) =>
+              user.role === "developer" &&
+              user.developerProfileStatus === "approved"
+          )}
           refreshDevelopers={refreshAllData}
         />
       );
@@ -1760,11 +1832,13 @@ export default function EnhancedAdminDashboard(): ReactNode {
           />
 
           {/* Enhanced Projects Grid */}
-          <div className={
-            viewMode === "grid"
-              ? "grid grid-cols-1 lg:grid-cols-3 gap-6"
-              : "space-y-4"
-          }>
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 lg:grid-cols-3 gap-6"
+                : "space-y-4"
+            }
+          >
             {filteredAndSortedProjects.map((project) => {
               const progress = project?.progress || 0;
               const status = project?.status || "pending";
@@ -1782,12 +1856,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         {project?.projectDetails?.title ?? "Untitled Project"}
                       </h3>
                       <p className="text-slate-400 text-sm mt-1 line-clamp-2">
-                        {project?.projectDetails?.description ?? "No description"}
+                        {project?.projectDetails?.description ??
+                          "No description"}
                       </p>
                       <div className="flex items-center gap-4 mt-2">
                         <p className="text-sm text-slate-400 flex items-center gap-2">
                           <FaUser className="text-slate-300" />
-                          {project?.userInfo?.firstName ?? "Unknown"} {project?.userInfo?.lastName ?? ""}
+                          {project?.userInfo?.firstName ?? "Unknown"}{" "}
+                          {project?.userInfo?.lastName ?? ""}
                         </p>
                         {project?.userInfo?.company && (
                           <p className="text-sm text-slate-400 flex items-center gap-2">
@@ -1807,7 +1883,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   {/* Status and Priority Badges */}
                   <div className="flex items-center space-x-2 mb-4">
                     <span
-                      className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(status)}`}
+                      className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(
+                        status
+                      )}`}
                     >
                       {getStatusIcon(status)}
                       <span className="capitalize">
@@ -1815,7 +1893,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       </span>
                     </span>
                     <span
-                      className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(priority)}`}
+                      className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(
+                        priority
+                      )}`}
                     >
                       {(priority || "low").toUpperCase()}
                     </span>
@@ -1841,17 +1921,23 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   {project?.projectDetails?.techStack && (
                     <div className="mb-4">
                       <div className="flex flex-wrap gap-1">
-                        {(project.projectDetails.techStack || []).slice(0, 3).map((tech: string, index: number) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                        {(project.projectDetails.techStack || []).length > 3 && (
+                        {(project.projectDetails.techStack || [])
+                          .slice(0, 3)
+                          .map((tech: string, index: number) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                        {(project.projectDetails.techStack || []).length >
+                          3 && (
                           <span className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30">
-                            +{(project.projectDetails.techStack || []).length - 3} more
+                            +
+                            {(project.projectDetails.techStack || []).length -
+                              3}{" "}
+                            more
                           </span>
                         )}
                       </div>
@@ -1860,115 +1946,163 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
                   {/* Project Info */}
                   <div className="space-y-2 mb-4">
-                    {project?.pricing && (() => {
-                      const getProjectStatusInfo = (project: ProjectData) => {
-                        // Calculate budget in original currency for display
-                        let totalBudgetOriginal = 0;
-                        if (project.pricing.type === "fixed") {
-                          totalBudgetOriginal = parseFloat(project.pricing.fixedBudget || "0");
-                        } else if (project.pricing.type === "milestone") {
-                          const milestonesArr = project.milestones && project.milestones.length
-                            ? project.milestones
-                            : project.pricing.milestones || [];
-                          totalBudgetOriginal = milestonesArr.reduce(
-                            (sum, m) => sum + parseFloat(m.budget || "0"),
-                            0
-                          );
-                        } else {
-                          totalBudgetOriginal = parseFloat(project.pricing.hourlyRate || "0") *
-                            parseFloat(project.pricing.estimatedHours || "0");
-                        }
+                    {project?.pricing &&
+                      (() => {
+                        const getProjectStatusInfo = (project: ProjectData) => {
+                          // Calculate budget in original currency for display
+                          let totalBudgetOriginal = 0;
+                          if (project.pricing.type === "fixed") {
+                            totalBudgetOriginal = parseFloat(
+                              project.pricing.fixedBudget || "0"
+                            );
+                          } else if (project.pricing.type === "milestone") {
+                            const milestonesArr =
+                              project.milestones && project.milestones.length
+                                ? project.milestones
+                                : project.pricing.milestones || [];
+                            totalBudgetOriginal = milestonesArr.reduce(
+                              (sum, m) => sum + parseFloat(m.budget || "0"),
+                              0
+                            );
+                          } else {
+                            totalBudgetOriginal =
+                              parseFloat(project.pricing.hourlyRate || "0") *
+                              parseFloat(project.pricing.estimatedHours || "0");
+                          }
 
-                        const totalPaid = project.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-                        const remaining = totalBudgetOriginal - totalPaid;
+                          const totalPaid =
+                            project.payments?.reduce(
+                              (sum, p) => sum + (p.amount || 0),
+                              0
+                            ) || 0;
+                          const remaining = totalBudgetOriginal - totalPaid;
 
-                        return {
-                          budgetDisplay: formatCurrency(totalBudgetOriginal, project.pricing.currency),
-                          paidDisplay: formatCurrency(totalPaid, project.pricing.currency),
-                          remainingDisplay: formatCurrency(remaining, project.pricing.currency),
-                          totalBudget: totalBudgetOriginal,
-                          totalPaid,
-                          remaining,
+                          return {
+                            budgetDisplay: formatCurrency(
+                              totalBudgetOriginal,
+                              project.pricing.currency
+                            ),
+                            paidDisplay: formatCurrency(
+                              totalPaid,
+                              project.pricing.currency
+                            ),
+                            remainingDisplay: formatCurrency(
+                              remaining,
+                              project.pricing.currency
+                            ),
+                            totalBudget: totalBudgetOriginal,
+                            totalPaid,
+                            remaining,
+                          };
                         };
-                      };
 
-                      const statusInfo = getProjectStatusInfo(project);
-                      return (
-                        <>
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-2">
-                              <DollarSign className="w-4 h-4 text-emerald-400" />
-                              <span className="text-slate-400">Budget:</span>
-                            </div>
-                            <span className="text-white font-medium">
-                              {statusInfo.budgetDisplay}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
-                                <div className="w-2 h-2 rounded-full bg-sky-400"></div>
+                        const statusInfo = getProjectStatusInfo(project);
+                        return (
+                          <>
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                <DollarSign className="w-4 h-4 text-emerald-400" />
+                                <span className="text-slate-400">Budget:</span>
                               </div>
-                              <span className="text-slate-400">Paid:</span>
-                            </div>
-                            <span className="text-sky-400 font-medium">
-                              {statusInfo.paidDisplay}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
-                                <div className="w-2 h-2 rounded-full bg-amber-400"></div>
-                              </div>
-                              <span className="text-slate-400">Remaining:</span>
-                            </div>
-                            <span className={`font-medium ${statusInfo.remaining > 0 ? "text-amber-400" : "text-emerald-400"
-                              }`}>
-                              {statusInfo.remainingDisplay}
-                            </span>
-                          </div>
-
-                          {/* Budget Progress Bar */}
-                          <div className="mt-2">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs text-slate-500">Budget Progress</span>
-                              <span className="text-xs text-slate-400">
-                                {statusInfo.totalBudget > 0
-                                  ? Math.min(Math.round((statusInfo.totalPaid / statusInfo.totalBudget) * 100), 100)
-                                  : 0}%
+                              <span className="text-white font-medium">
+                                {statusInfo.budgetDisplay}
                               </span>
                             </div>
-                            <div className="w-full bg-slate-700 rounded-full h-1.5">
-                              <div
-                                className="bg-gradient-to-r from-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${statusInfo.totalBudget > 0
-                                    ? Math.min((statusInfo.totalPaid / statusInfo.totalBudget) * 100, 100)
-                                    : 0}%`
-                                }}
-                              ></div>
+
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
+                                  <div className="w-2 h-2 rounded-full bg-sky-400"></div>
+                                </div>
+                                <span className="text-slate-400">Paid:</span>
+                              </div>
+                              <span className="text-sky-400 font-medium">
+                                {statusInfo.paidDisplay}
+                              </span>
                             </div>
-                          </div>
-                        </>
-                      );
-                    })()}
+
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
+                                  <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                                </div>
+                                <span className="text-slate-400">
+                                  Remaining:
+                                </span>
+                              </div>
+                              <span
+                                className={`font-medium ${
+                                  statusInfo.remaining > 0
+                                    ? "text-amber-400"
+                                    : "text-emerald-400"
+                                }`}
+                              >
+                                {statusInfo.remainingDisplay}
+                              </span>
+                            </div>
+
+                            {/* Budget Progress Bar */}
+                            <div className="mt-2">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs text-slate-500">
+                                  Budget Progress
+                                </span>
+                                <span className="text-xs text-slate-400">
+                                  {statusInfo.totalBudget > 0
+                                    ? Math.min(
+                                        Math.round(
+                                          (statusInfo.totalPaid /
+                                            statusInfo.totalBudget) *
+                                            100
+                                        ),
+                                        100
+                                      )
+                                    : 0}
+                                  %
+                                </span>
+                              </div>
+                              <div className="w-full bg-slate-700 rounded-full h-1.5">
+                                <div
+                                  className="bg-gradient-to-r from-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
+                                  style={{
+                                    width: `${
+                                      statusInfo.totalBudget > 0
+                                        ? Math.min(
+                                            (statusInfo.totalPaid /
+                                              statusInfo.totalBudget) *
+                                              100,
+                                            100
+                                          )
+                                        : 0
+                                    }%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
 
                     {/* Milestone Progress for milestone-based projects */}
-                    {project?.pricing?.type === "milestone" && project?.milestones && (
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-violet-400"></div>
+                    {project?.pricing?.type === "milestone" &&
+                      project?.milestones && (
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-violet-400"></div>
+                            </div>
+                            <span className="text-slate-400">Milestones:</span>
                           </div>
-                          <span className="text-slate-400">Milestones:</span>
+                          <span className="text-violet-400 font-medium">
+                            {
+                              project.milestones.filter(
+                                (m: any) => m.status === "completed"
+                              ).length
+                            }{" "}
+                            / {project.milestones.length}
+                          </span>
                         </div>
-                        <span className="text-violet-400 font-medium">
-                          {project.milestones.filter((m: any) => m.status === "completed").length} / {project.milestones.length}
-                        </span>
-                      </div>
-                    )}
+                      )}
 
                     {project?.createdAt && (
                       <div className="flex items-center space-x-2 text-sm">
@@ -2022,7 +2156,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         {project?.files && project.files.length > 0 && (
                           <div className="flex items-center space-x-1 text-xs text-emerald-400">
                             <div className="w-3 h-3 rounded bg-emerald-400 flex items-center justify-center">
-                              <span className="text-xs font-bold text-emerald-900">{project.files.length}</span>
+                              <span className="text-xs font-bold text-emerald-900">
+                                {project.files.length}
+                              </span>
                             </div>
                             <span>Files</span>
                           </div>
@@ -2031,7 +2167,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         {project?.payments && project.payments.length > 0 && (
                           <div className="flex items-center space-x-1 text-xs text-amber-400">
                             <div className="w-3 h-3 rounded bg-amber-400 flex items-center justify-center">
-                              <span className="text-xs font-bold text-amber-900">{project.payments.length}</span>
+                              <span className="text-xs font-bold text-amber-900">
+                                {project.payments.length}
+                              </span>
                             </div>
                             <span>Payments</span>
                           </div>
@@ -2039,13 +2177,20 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       </div>
 
                       <div className="text-xs text-slate-500">
-                        Updated {project?.updatedAt ? formatDate(project.updatedAt) : 'N/A'}
+                        Updated{" "}
+                        {project?.updatedAt
+                          ? formatDate(project.updatedAt)
+                          : "N/A"}
                       </div>
-                      {project?.pricing?.type === "milestone" && project?.milestones && (
-                        <div className="text-xs text-violet-400 mt-1">
-                          Next: {project.milestones.find((m: any) => m.status === "pending")?.title || "None"}
-                        </div>
-                      )}
+                      {project?.pricing?.type === "milestone" &&
+                        project?.milestones && (
+                          <div className="text-xs text-violet-400 mt-1">
+                            Next:{" "}
+                            {project.milestones.find(
+                              (m: any) => m.status === "pending"
+                            )?.title || "None"}
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -2062,14 +2207,16 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         {project?.projectDetails?.title ?? "Untitled Project"}
                       </h3>
                       <p className="text-slate-400 text-sm mt-1 line-clamp-2">
-                        {project?.projectDetails?.description ?? "No description"}
+                        {project?.projectDetails?.description ??
+                          "No description"}
                       </p>
 
                       {/* Client Info */}
                       <div className="flex items-center gap-4 mt-2">
                         <p className="text-sm text-slate-400 flex items-center gap-2">
                           <FaUser className="text-slate-300" />
-                          {project?.userInfo?.firstName ?? "Unknown"} {project?.userInfo?.lastName ?? ""}
+                          {project?.userInfo?.firstName ?? "Unknown"}{" "}
+                          {project?.userInfo?.lastName ?? ""}
                         </p>
                         {project?.userInfo?.company && (
                           <p className="text-sm text-slate-400 flex items-center gap-2">
@@ -2083,7 +2230,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     {/* Status and Priority */}
                     <div className="flex items-center space-x-2">
                       <span
-                        className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(status)}`}
+                        className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(
+                          status
+                        )}`}
                       >
                         {getStatusIcon(status)}
                         <span className="capitalize">
@@ -2091,7 +2240,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         </span>
                       </span>
                       <span
-                        className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(priority)}`}
+                        className={`px-2 py-1 rounded-md text-xs font-medium border ${getPriorityColor(
+                          priority
+                        )}`}
                       >
                         {(priority || "low").toUpperCase()}
                       </span>
@@ -2143,53 +2294,73 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   </div>
 
                   {/* Budget Info */}
-                  {project?.pricing && (() => {
-                    const getProjectStatusInfo = (project: ProjectData) => {
-                      const totalBudget = calculateProjectBudget(project);
-                      const totalPaid = project.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-                      const remaining = totalBudget - totalPaid;
+                  {project?.pricing &&
+                    (() => {
+                      const getProjectStatusInfo = (project: ProjectData) => {
+                        const totalBudget = calculateProjectBudget(project);
+                        const totalPaid =
+                          project.payments?.reduce(
+                            (sum, p) => sum + (p.amount || 0),
+                            0
+                          ) || 0;
+                        const remaining = totalBudget - totalPaid;
 
-                      return {
-                        budgetDisplay: formatCurrency(totalBudget, project.pricing.currency),
-                        paidDisplay: formatCurrency(totalPaid, project.pricing.currency),
-                        remainingDisplay: formatCurrency(remaining, project.pricing.currency),
-                        totalBudget,
-                        totalPaid,
-                        remaining,
+                        return {
+                          budgetDisplay: formatCurrency(
+                            totalBudget,
+                            project.pricing.currency
+                          ),
+                          paidDisplay: formatCurrency(
+                            totalPaid,
+                            project.pricing.currency
+                          ),
+                          remainingDisplay: formatCurrency(
+                            remaining,
+                            project.pricing.currency
+                          ),
+                          totalBudget,
+                          totalPaid,
+                          remaining,
+                        };
                       };
-                    };
 
-                    const statusInfo = getProjectStatusInfo(project);
-                    return (
-                      <div className="flex items-center space-x-6 mt-4 text-sm">
-                        <div className="flex items-center space-x-2">
-                          <DollarSign className="w-4 h-4 text-emerald-400" />
-                          <span className="text-slate-400">Budget:</span>
-                          <span className="text-white font-medium">
-                            {statusInfo.budgetDisplay}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-sky-400"></div>
+                      const statusInfo = getProjectStatusInfo(project);
+                      return (
+                        <div className="flex items-center space-x-6 mt-4 text-sm">
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="w-4 h-4 text-emerald-400" />
+                            <span className="text-slate-400">Budget:</span>
+                            <span className="text-white font-medium">
+                              {statusInfo.budgetDisplay}
+                            </span>
                           </div>
-                          <span className="text-slate-400">Paid:</span>
-                          <span className="text-sky-400 font-medium">
-                            {statusInfo.paidDisplay}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-sky-400"></div>
+                            </div>
+                            <span className="text-slate-400">Paid:</span>
+                            <span className="text-sky-400 font-medium">
+                              {statusInfo.paidDisplay}
+                            </span>
                           </div>
-                          <span className="text-slate-400">Remaining:</span>
-                          <span className={`font-medium ${statusInfo.remaining > 0 ? "text-amber-400" : "text-emerald-400"}`}>
-                            {statusInfo.remainingDisplay}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                            </div>
+                            <span className="text-slate-400">Remaining:</span>
+                            <span
+                              className={`font-medium ${
+                                statusInfo.remaining > 0
+                                  ? "text-amber-400"
+                                  : "text-emerald-400"
+                              }`}
+                            >
+                              {statusInfo.remainingDisplay}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
                 </div>
               );
             })}
@@ -2227,10 +2398,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer
-            ${currentPage === page
-                          ? "bg-blue-500/20 border border-blue-400/50 text-gray-300"
-                          : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
-                        }`}
+            ${
+              currentPage === page
+                ? "bg-blue-500/20 border border-blue-400/50 text-gray-300"
+                : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+            }`}
                     >
                       {page}
                     </button>
@@ -2266,24 +2438,18 @@ export default function EnhancedAdminDashboard(): ReactNode {
           {/* Empty State */}
           {isProjectDeleteModalOpen && (
             <div className="fixed min-h-screen inset-0 bg-black/5 backdrop-blur-md bg-opacity-50 z-50 flex justify-center items-center">
-              <div className="bg-indigo-900/80 backdrop-blur-md p-6 rounded-lg shadow-xl">
-                <h2 className="text-lg font-bold mb-4">Confirm Deletion</h2>
-                <p>Are you sure you want to delete this project?</p>
-                <div className="mt-6 flex justify-end gap-4">
-                  <button
-                    onClick={handleProjectDeleteCancel}
-                    className="cursor-pointer px-4 py-2 monty rounded-md bg-transparent border border-white/10 hover:bg-gray-700/10 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleProjectDeleteConfirm}
-                    className="cursor-pointer px-4 py-2 monty rounded-md bg-red-600 hover:bg-red-700 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+              <ConfirmationModal
+                isOpen={isProjectDeleteModalOpen}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this project?"
+                onConfirm={() => {
+                  handleProjectDeleteConfirm();
+                }}
+                onCancel={handleProjectDeleteCancel}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+              />
             </div>
           )}
 
@@ -2296,8 +2462,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 </h3>
                 <p className="text-gray-400">
                   {searchTerm ||
-                    statusFilter !== "all" ||
-                    priorityFilter !== "all"
+                  statusFilter !== "all" ||
+                  priorityFilter !== "all"
                     ? "Try adjusting your filters to see more projects."
                     : "Start by creating your first project to see it here."}
                 </p>
@@ -2350,7 +2516,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       if (data.success) {
         setUsers((prev) => [...prev, data.user]);
-        toast.success("User created successfully!", data.generatedPassword ? `Password: ${data.generatedPassword}` : undefined);
+        toast.success(
+          "User created successfully!",
+          data.generatedPassword
+            ? `Password: ${data.generatedPassword}`
+            : undefined
+        );
 
         // If a password was generated, you might want to show it to the admin
         if (data.generatedPassword) {
@@ -2408,24 +2579,24 @@ export default function EnhancedAdminDashboard(): ReactNode {
           prev.map((user) =>
             user._id === userId
               ? {
-                ...user,
-                ...userData,
-                skills:
-                  typeof userData.skills === "string"
-                    ? userData.skills
-                      .split(",")
-                      .map((s: string) => s.trim())
-                      .filter(Boolean)
-                    : userData.skills ?? user.skills,
-                hourlyRate:
-                  userData.hourlyRate !== undefined
-                    ? typeof userData.hourlyRate === "string"
-                      ? userData.hourlyRate === ""
-                        ? undefined
-                        : Number(userData.hourlyRate)
-                      : userData.hourlyRate
-                    : user.hourlyRate,
-              }
+                  ...user,
+                  ...userData,
+                  skills:
+                    typeof userData.skills === "string"
+                      ? userData.skills
+                          .split(",")
+                          .map((s: string) => s.trim())
+                          .filter(Boolean)
+                      : userData.skills ?? user.skills,
+                  hourlyRate:
+                    userData.hourlyRate !== undefined
+                      ? typeof userData.hourlyRate === "string"
+                        ? userData.hourlyRate === ""
+                          ? undefined
+                          : Number(userData.hourlyRate)
+                        : userData.hourlyRate
+                      : user.hourlyRate,
+                }
               : user
           )
         );
@@ -2445,7 +2616,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
     error?: string;
   }
 
-  const deleteUserLocal = async (userId: string): Promise<DeleteUserResponse> => {
+  const deleteUserLocal = async (
+    userId: string
+  ): Promise<DeleteUserResponse> => {
     try {
       // Fixed: Use query parameter instead of body for DELETE request
       const res: Response = await fetch(`/api/users?id=${userId}`, {
@@ -2500,7 +2673,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
           )
         );
         toast.success(
-          `User ${newStatus === "active" ? "activated" : "deactivated"} successfully!`
+          `User ${
+            newStatus === "active" ? "activated" : "deactivated"
+          } successfully!`
         );
         return data;
       } else {
@@ -2612,7 +2787,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       return { successfulDeletions, failedDeletions };
     } catch (error) {
-      toast.error("Failed to delete users", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Failed to delete users",
+        error instanceof Error ? error.message : "Unknown error"
+      );
       throw error;
     }
   };
@@ -2685,8 +2863,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <FaSortAmountDown className="text-red-400 mr-1" />
                   )}
                   <span
-                    className={`text-sm ${metric.trend === "up" ? "text-green-400" : "text-red-400"
-                      }`}
+                    className={`text-sm ${
+                      metric.trend === "up" ? "text-green-400" : "text-red-400"
+                    }`}
                   >
                     {metric.change}
                   </span>
@@ -2728,9 +2907,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{
-                          width: `${((count ?? 0) / (analytics?.totalProjects ?? 1)) *
+                          width: `${
+                            ((count ?? 0) / (analytics?.totalProjects ?? 1)) *
                             100
-                            }%`,
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -3293,10 +3473,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
     const action = disable ? "disable" : "enable";
     const confirmMessage = disable
-      ? `Are you sure you want to disable access for ${selectedUser?.email ?? "Unknown"
-      }? This will prevent them from logging in.`
-      : `Are you sure you want to enable access for ${selectedUser?.email ?? "Unknown"
-      }?`;
+      ? `Are you sure you want to disable access for ${
+          selectedUser?.email ?? "Unknown"
+        }? This will prevent them from logging in.`
+      : `Are you sure you want to enable access for ${
+          selectedUser?.email ?? "Unknown"
+        }?`;
 
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
@@ -3366,23 +3548,26 @@ export default function EnhancedAdminDashboard(): ReactNode {
     // For MVP, show different messages based on account status
     if (generatedPassword) {
       // Newly generated password
-      const message = `Login Credentials for ${selectedUser?.email ?? "Unknown"
-        }:
+      const message = `Login Credentials for ${
+        selectedUser?.email ?? "Unknown"
+      }:
 
 Email: ${selectedUser?.email ?? "Unknown"}
 Password: ${generatedPassword}
 Login URL: ${window.location.origin}/login
 
-This ${statusInfo.hasAccount ? "updates their existing" : "creates a new"
-        } account.
+This ${
+        statusInfo.hasAccount ? "updates their existing" : "creates a new"
+      } account.
 Role: ${selectedUser?.role ?? "Unknown"}
 Status: Active`;
 
       alert(message);
     } else if (accountExists) {
       // Existing account
-      const message = `Account Information for ${selectedUser?.email ?? "Unknown"
-        }:
+      const message = `Account Information for ${
+        selectedUser?.email ?? "Unknown"
+      }:
 
 Email: ${selectedUser?.email ?? "Unknown"}
 Password: [Hidden for security - generate new to reset]
@@ -3390,19 +3575,22 @@ Login URL: ${window.location.origin}/login
 
 Account Status: ${statusInfo.isActive ? "Active" : "Inactive"}
 Role: ${statusInfo.role}
-Last Login: ${statusInfo.lastLogin
+Last Login: ${
+        statusInfo.lastLogin
           ? new Date(statusInfo.lastLogin).toLocaleDateString()
           : "Never"
-        }
-Account Created: ${statusInfo.accountCreated
+      }
+Account Created: ${
+        statusInfo.accountCreated
           ? new Date(statusInfo.accountCreated).toLocaleDateString()
           : "Unknown"
-        }
+      }
 
-${statusInfo.isActive
-          ? "User can log in with existing password."
-          : "Account is disabled - enable to allow login."
-        }
+${
+  statusInfo.isActive
+    ? "User can log in with existing password."
+    : "Account is disabled - enable to allow login."
+}
 Generate new credentials to reset password.`;
 
       alert(message);
@@ -3415,8 +3603,9 @@ Generate new credentials to reset password.`;
   const deleteUserAccount = async () => {
     if (!selectedUser) return;
 
-    const confirmMessage = `Are you sure you want to permanently delete the account for ${selectedUser?.email ?? "Unknown"
-      }? This action cannot be undone.`;
+    const confirmMessage = `Are you sure you want to permanently delete the account for ${
+      selectedUser?.email ?? "Unknown"
+    }? This action cannot be undone.`;
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
 
@@ -3460,8 +3649,9 @@ Generate new credentials to reset password.`;
   const copyCredentials = async () => {
     if (!selectedUser || !generatedPassword) return;
 
-    const credentials = `Email: ${selectedUser?.email ?? "Unknown"
-      }\nPassword: ${generatedPassword}`;
+    const credentials = `Email: ${
+      selectedUser?.email ?? "Unknown"
+    }\nPassword: ${generatedPassword}`;
 
     try {
       await navigator.clipboard.writeText(credentials);
@@ -3552,10 +3742,11 @@ Generate new credentials to reset password.`;
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as ActiveTab)}
-                      className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${activeTab === tab.id
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-white/10 hover:text-white"
-                        }`}
+                      className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        activeTab === tab.id
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-white/10 hover:text-white"
+                      }`}
                     >
                       <tab.icon className="text-sm" />
                       <span>{tab.label}</span>
@@ -3593,10 +3784,11 @@ Generate new credentials to reset password.`;
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as ActiveTab)}
-                className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${activeTab === tab.id
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:bg-white/10 hover:text-white"
-                  }`}
+                className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:bg-white/10 hover:text-white"
+                }`}
               >
                 <tab.icon className="text-lg" />
                 <span className="text-xs">{tab.label}</span>

@@ -166,8 +166,11 @@ const ACTIVITY_ICONS = {
 } as const;
 
 // Utility functions
-const toUSD = (amount: number, currency: 'USD' | 'KES' = 'USD'): number => {
-    return amount * EXCHANGE_RATES[currency];
+const toUSD = (amountInput: any, currency: string = 'USD'): number => {
+    const amount = Number(amountInput) || 0;
+    const currencyCode = (currency || 'USD').toUpperCase() as 'USD' | 'KES';
+    const rate = EXCHANGE_RATES[currencyCode] ?? 1;
+    return amount * rate;
 };
 
 const getTimeAgo = (timestamp: Date): string => {
@@ -333,10 +336,19 @@ class AnalyticsService {
             const userInfo = isValidObject(project.userInfo) ? project.userInfo as UserInfo : {};
             const clientId = project.clientId || 'unknown';
 
-            const client = users.find(u => u.id === clientId);
-            const clientName = client
-                ? `${client.firstName || ''} ${client.lastName || ''}`.trim()
-                : `Client ${String(clientId).slice(-6)}`;
+            let clientName = '';
+            if (userInfo.firstName || userInfo.lastName) {
+                clientName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
+            }
+            if (!clientName) {
+                const client = users.find(u => u.id === clientId);
+                if (client) {
+                    clientName = `${client.firstName || ''} ${client.lastName || ''}`.trim();
+                }
+            }
+            if (!clientName) {
+                clientName = `Client ${String(clientId).slice(-6)}`;
+            }
 
             if (!clientMap.has(clientId)) {
                 clientMap.set(clientId, {
@@ -377,6 +389,7 @@ class AnalyticsService {
         return Array.from(clientMap.values())
             .map(client => ({
                 ...client,
+                totalSpent: client.totalSpent + client.pendingAmount, // include pending in displayed spend
                 totalValue: client.totalSpent + client.pendingAmount,
             }))
             .sort((a, b) => b.totalValue - a.totalValue)

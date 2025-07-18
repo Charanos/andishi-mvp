@@ -19,6 +19,68 @@ async function run() {
     await prisma.developer.deleteMany({});
     console.log('Cleared existing Developer collection (if any).');
 
+    // Seed users (clients and developers)
+    const usersToCreate = [
+      {
+        id: '686cc750a146f88ed818689a',
+        email: 'abdirisak11@gmail.com',
+        firstName: 'Abdirisak',
+        lastName: 'Abdi',
+        role: 'client',
+        password: await bcrypt.hash('password123', 10),
+      },
+      {
+        id: '686e4c19a146f88ed81868a0',
+        email: 'ericgithaiga007@gmail.com',
+        firstName: 'Eric',
+        lastName: 'Kibuchi',
+        role: 'client',
+        password: await bcrypt.hash('password123', 10),
+      },
+      {
+        id: '68792570cbd5ca01266a4e2c',
+        email: 'business@test.com',
+        firstName: 'Business',
+        lastName: 'Owner',
+        role: 'client',
+        password: await bcrypt.hash('password123', 10),
+      },
+      {
+        email: 'jojocarter@gmail.com',
+        firstName: 'Jordan',
+        lastName: 'Carter',
+        role: 'developer',
+        password: await bcrypt.hash('password123', 10),
+      },
+      {
+        email: 'gideonkngetich86@gmail.com',
+        firstName: 'Gideon',
+        lastName: 'Ngetich',
+        role: 'developer',
+        password: await bcrypt.hash('password123', 10),
+      },
+    ];
+
+    console.log('Creating users...');
+    const userMap = {};
+    for (const userData of usersToCreate) {
+      const user = await prisma.user.upsert({
+        where: { email: userData.email },
+        update: {},
+        create: {
+          id: userData.id, // may be undefined – Prisma will auto-generate
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role,
+          password: userData.password,
+          status: 'active',
+          developerProfileStatus: 'pending',
+        },
+      });
+      userMap[user.email] = user;
+    }
+
     // Create proper dates
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -223,47 +285,74 @@ async function run() {
       },
     ];
 
-    // Create projects - ONLY ONCE
-    console.log('Creating projects...');
-    for (const projectData of projectsToCreate) {
-      try {
-        const project = await prisma.project.create({ data: projectData });
-        console.log(`✅ Created project: ${project.projectDetails.title}`);
-      } catch (error) {
-        console.error(`❌ Error creating project ${projectData.projectDetails.title}:`, error.message);
-      }
-    }
+// Create projects - ONLY ONCE
+console.log('Creating projects...');
+const projectPromises = projectsToCreate.map(async (project) => {
+  const clientUser = userMap[project.userInfo.email];
+  if (!clientUser) {
+    console.warn(`Client user with email ${project.userInfo.email} not found for project '${project.projectDetails.title}'. Skipping project.`);
+    return null;
+  }
 
-    console.log('Projects seeded ✅');
+  // Attach correct clientId and keep userInfo so the dashboard has immediate access
+  const projectData = {
+    ...project,
+    clientId: clientUser.id,
+  };
 
-    // Seed sample developer profiles
-    const developerProfilesToCreate = [
-      {
+  // Check if a project with the same title already exists for this client to avoid duplicates
+  const existingForClient = await prisma.project.findMany({
+    where: { clientId: clientUser.id },
+  });
+  const existing = existingForClient.find((p) => p.projectDetails?.title === project.projectDetails.title);
+
+  if (existing) {
+    // Update existing project to keep the seed idempotent
+    return prisma.project.update({
+      where: { id: existing.id },
+      data: projectData,
+    });
+  }
+
+  // Otherwise create a fresh project
+  return prisma.project.create({ data: projectData });
+}).filter(Boolean);
+
+Promise.all(projectPromises)
+  .then((projects) => {
+    console.log(`✅ Upserted ${projects.length} projects`);
+  })
+  .catch((error) => {
+    console.error(`❌ Error upserting projects:`, error.message);
+  });
+
+console.log('Projects seeded ✅');
+
+// Seed sample developer profiles
+const developerProfilesToCreate = [
+  {
+    email: 'jojocarter@gmail.com',
+    data: {
+      personalInfo: {
+        firstName: 'Jordan',
+        lastName: 'Carter',
         email: 'jojocarter@gmail.com',
-        data: {
-          personalInfo: {
-            firstName: 'Jordan',
-            lastName: 'Carter',
-            email: 'jojocarter@gmail.com',
-            phone: '+1 (512) 555-0147',
-            location: 'Austin, Texas, USA',
-            timeZone: 'UTC-6',
-            linkedin: 'linkedin.com/in/jordancarter-ai',
-            github: 'github.com/jordancarter-ai',
-            portfolio: 'www.jordancarter.dev'
-          },
-          professionalInfo: {
-            title: 'Senior AI Engineer',
-            experienceLevel: 'Senior Level (6-10 years)',
-            yearsOfExperience: '8',
-            currentRole: 'Lead AI Engineer',
-            currentCompany: 'NeuroSpark HealthTech',
-            availability: '2weeks',
-            workType: ['Full-time Remote'],
-            languages: ['English', 'Spanish'],
-            bio: "I'm a Senior AI Engineer with 8+ years of experience building and deploying real-world machine learning systems that scale. My focus lies in NLP, computer vision, and custom LLM development — helping companies turn raw data into smart, usable products."
-          },
-          technicalSkills: {
+        phone: '+1 (512) 555-0147',
+        location: 'Austin, Texas, USA',
+        timeZone: 'UTC-6',
+        linkedin: 'linkedin.com/in/jordancarter-ai',
+        github: 'github.com/jordancarter-ai',
+        portfolio: 'www.jordancarter.dev',
+        experienceLevel: 'Senior Level (6-10 years)',
+        yearsOfExperience: '8',
+        currentRole: 'Lead AI Engineer',
+        currentCompany: 'NeuroSpark HealthTech',
+        availability: '2weeks',
+        workType: ['Full-time Remote'],
+        languages: ['English', 'Spanish'],
+        bio: "I'm a Senior AI Engineer with 8+ years of experience building and deploying real-world machine learning systems that scale. My focus lies in NLP, computer vision, and custom LLM development — helping companies turn raw data into smart, usable products."
+      },
+      technicalSkills: {
             primarySkills: ['Python', 'C++', 'TypeScript'],
             secondarySkills: ['Java', 'Go'],
             frameworks: ['TensorFlow', 'PyTorch', 'FastAPI', 'React'],

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 // GET /api/project-assignments - Get all project assignments
 export async function GET() {
@@ -26,9 +26,23 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { projectId, developerIds, role = "Developer" } = body;
+    const { projectId, developerIds: rawDeveloperIds, role = "Developer" } = body;
+    // Sanitize developerIds: remove null/undefined/empty strings and deduplicate
+    const developerIds: string[] = Array.from(
+      new Set(
+        (rawDeveloperIds as any[]).map((d) => {
+          if (typeof d === 'string') return d.trim();
+          if (d && typeof d === 'object') {
+            return (
+              d._id ?? d.id ?? d.value ?? (typeof d.toString === 'function' ? d.toString() : '')
+            ).toString();
+          }
+          return String(d);
+        }).filter((id: string) => id)
+      )
+    );
 
-    if (!projectId || !developerIds || !Array.isArray(developerIds) || developerIds.length === 0) {
+    if (!projectId || developerIds.length === 0) {
       return new NextResponse("Project ID and a non-empty array of developer IDs are required", { status: 400 });
     }
 
@@ -40,7 +54,7 @@ export async function POST(req: NextRequest) {
     }));
 
     // Use a transaction to ensure all or nothing is created
-    const createdAssignments = await prisma.$transaction(async (tx) => {
+    const createdAssignments = await prisma.$transaction(async (tx: any ) => {
       // Find existing assignments to prevent duplicates
       const existingAssignments = await tx.projectAssignment.findMany({
         where: {
@@ -52,7 +66,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      const existingDeveloperIds = new Set(existingAssignments.map(a => a.developerId));
+      const existingDeveloperIds = new Set(existingAssignments.map((a: { developerId: string }) => a.developerId));
 
       const assignmentsToActuallyCreate = assignmentsToCreate.filter(
         (assignment) => !existingDeveloperIds.has(assignment.developerId)
@@ -63,13 +77,25 @@ export async function POST(req: NextRequest) {
           data: assignmentsToActuallyCreate,
         });
 
-        // Update developer profiles to mark as unavailable
+        // Determine busy-until date from project estimated completion
+        const project = await tx.project.findUnique({
+          where: { id: projectId },
+          select: { estimatedCompletionDate: true, timeline: true },
+        });
+
+        let busyUntil: Date | undefined = project?.estimatedCompletionDate;
+        // fallback: if project timeline is an object with endDate or number of days
+        if (!busyUntil && (project as any)?.timeline?.endDate) {
+          busyUntil = new Date((project as any).timeline.endDate);
+        }
+
         await tx.developerProfile.updateMany({
           where: {
             id: { in: assignmentsToActuallyCreate.map(a => a.developerId) },
           },
           data: {
             isAvailable: false,
+            busyUntil,
           },
         });
         
@@ -85,8 +111,8 @@ export async function POST(req: NextRequest) {
         });
         
         const userIds = developerProfiles
-          .filter(profile => profile.userId)
-          .map(profile => profile.userId!);
+          .filter((profile: { userId: string }) => profile.userId)
+          .map((profile: { userId: string }) => profile.userId!);
         
         if (userIds.length > 0) {
           await tx.user.updateMany({
@@ -112,7 +138,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(createdAssignments, { status: 201 });
 
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2003') {
             return NextResponse.json({ error: 'One or more projectId or developerId is invalid' }, { status: 404 });
         }

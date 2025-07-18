@@ -510,7 +510,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </div>
                 <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
                   <h3 className="text-lg font-medium text-gray-800">Technology Stack</h3>
-                  <p>{projectData.projectDetails.techStack.join(', ')}</p>
+                  <p>{(projectData.projectDetails?.techStack || []).join(', ') || 'N/A'}</p>
                 </div>
                 <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
                   <h3 className="text-lg font-medium text-gray-800">Client Information</h3>
@@ -1527,13 +1527,13 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
 
                   {/* Technology Stack */}
-                  {selectedProject.projectDetails.techStack.length > 0 && (
+                  {(selectedProject.projectDetails?.techStack || []).length > 0 && (
                     <div>
                       <h4 className="text-lg font-medium text-white mb-3">
                         Technology Stack
                       </h4>
                       <div className="flex flex-wrap gap-2">
-                        {selectedProject.projectDetails.techStack.map(
+                        {(selectedProject.projectDetails?.techStack || []).map(
                           (tech, index) => (
                             <span
                               key={index}

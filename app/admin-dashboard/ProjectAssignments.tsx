@@ -33,7 +33,6 @@ import useToast from "../../hooks/useToast";
 import type { Assignment } from "@/types/project";
 import { SystemUser } from "~/types";
 
-
 interface ProjectAssignmentsProps {
   projectId: string;
   projectTitle: string;
@@ -53,7 +52,14 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   readOnly = false,
   refreshDevelopers,
 }) => {
-  const { assignments, loading: loadingAssignments, refetch, assignDevelopers, updateAssignment, removeAssignment } = useProjectAssignments(projectId);
+  const {
+    assignments,
+    loading: loadingAssignments,
+    refetch,
+    assignDevelopers,
+    updateAssignment,
+    removeAssignment,
+  } = useProjectAssignments(projectId);
   const { notifications, removeNotification, toast } = useToast();
 
   const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
@@ -68,18 +74,20 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [unassigning, setUnassigning] = useState<string | null>(null);
 
-
   // Fetch developer profiles to get detailed information
   const fetchDeveloperProfiles = async () => {
     setLoadingProfiles(true);
     try {
-      const response = await fetch('/api/developer-profiles');
+      const response = await fetch("/api/developer-profiles");
       if (response.ok) {
         const profiles = await response.json();
         setDeveloperProfiles(profiles);
       }
     } catch (error) {
-      toast.error("Error fetching developer profiles", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Error fetching developer profiles",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     } finally {
       setLoadingProfiles(false);
     }
@@ -98,8 +106,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
   // Get enhanced developer data by merging SystemUser with DeveloperProfile
   const getEnhancedDeveloper = (developer: SystemUser) => {
-    const profile = developerProfiles.find(p =>
-      p.personalInfo?.email?.toLowerCase() === developer.email.toLowerCase()
+    const profile = developerProfiles.find(
+      (p) =>
+        p.personalInfo?.email?.toLowerCase() === developer.email.toLowerCase()
     );
 
     return {
@@ -109,10 +118,13 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       title: profile?.professionalInfo?.title || developer.role,
       skills: profile?.technicalSkills?.primarySkills || [],
       rating: profile?.stats?.averageRating || 0,
-      hourlyRateProfile: profile?.professionalInfo?.hourlyRate || developer.hourlyRate,
-      totalProjectsProfile: profile?.stats?.totalProjects || developer.completedProjects,
+      hourlyRateProfile:
+        profile?.professionalInfo?.hourlyRate || developer.hourlyRate,
+      totalProjectsProfile:
+        profile?.stats?.totalProjects || developer.completedProjects,
       isAvailableProfile: profile?.isAvailable ?? true,
-      experienceLevel: profile?.professionalInfo?.experienceLevel || 'Mid-level'
+      experienceLevel:
+        profile?.professionalInfo?.experienceLevel || "Mid-level",
     };
   };
 
@@ -125,13 +137,16 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
     // Skill matching
     const devSkills = developer.skills.map((skill: any) =>
-      typeof skill === 'string' ? skill.toLowerCase() : skill.name?.toLowerCase() || ''
+      typeof skill === "string"
+        ? skill.toLowerCase()
+        : skill.name?.toLowerCase() || ""
     );
     const projectSkills = projectTechStack.map((skill) => skill.toLowerCase());
 
     const matchingSkills = projectSkills.filter((skill) =>
       devSkills.some(
-        (devSkill: string) => devSkill.includes(skill) || skill.includes(devSkill)
+        (devSkill: string) =>
+          devSkill.includes(skill) || skill.includes(devSkill)
       )
     );
 
@@ -140,34 +155,37 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     return Math.round(score);
   };
 
-  // Filter and sort developers
+  // Get assigned developers for this project
+  const getAssignedDevelopers = (): SystemUser[] => {
+    if (!Array.isArray(assignments) || !Array.isArray(developers)) return [];
+    const assignedDeveloperIds = new Set(assignments.map((a) => a.developerId));
+    return developers.filter((dev) =>
+      assignedDeveloperIds.has((dev as any)._id ?? (dev as any).id)
+    );
+  };
+
+  // Get developers available for assignment
   const getFilteredDevelopers = (): SystemUser[] => {
     if (!Array.isArray(developers)) return [];
 
+    const assignedDeveloperIds = new Set(assignments.map((a) => a.developerId));
+
     let filtered: SystemUser[] = developers.filter(
-      dev => dev.role === "developer" && dev.developerProfileStatus === "approved"
+      (dev) =>
+        dev.role === "developer" &&
+        dev.developerProfileStatus === "approved" &&
+        !assignedDeveloperIds.has((dev as any)._id ?? (dev as any).id)
     );
 
     if (searchTerm) {
       filtered = filtered.filter(
-        (dev: SystemUser) =>
+        (dev) =>
           `${dev.firstName} ${dev.lastName}`
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          dev.email
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          (dev.company && dev.company
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    if (filterAvailable) {
-      // Filter out developers who are already assigned to any project
-      const assignedDeveloperIds = assignments.map(a => a.developerId);
-      filtered = filtered.filter((dev: SystemUser) =>
-        dev.status === "active" && !assignedDeveloperIds.includes(dev._id)
+          dev.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (dev.company &&
+            dev.company.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -175,14 +193,16 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     filtered.sort((a: SystemUser, b: SystemUser) => {
       switch (sortBy) {
         case "compatibility":
-          return 0;
+          return 0; // Placeholder for compatibility logic
         case "rating":
-          const aRating = a.completedProjects && a.completedProjects > 0 && a.totalEarnings
-            ? a.totalEarnings / a.completedProjects
-            : 0;
-          const bRating = b.completedProjects && b.completedProjects > 0 && b.totalEarnings
-            ? b.totalEarnings / b.completedProjects
-            : 0;
+          const aRating =
+            a.completedProjects && a.completedProjects > 0 && a.totalEarnings
+              ? a.totalEarnings / a.completedProjects
+              : 0;
+          const bRating =
+            b.completedProjects && b.completedProjects > 0 && b.totalEarnings
+              ? b.totalEarnings / b.completedProjects
+              : 0;
           return bRating - aRating;
         case "projects":
           return (b.completedProjects || 0) - (a.completedProjects || 0);
@@ -207,7 +227,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
   // Assign developers to project with graceful error handling
   const handleAssignDevelopers = async () => {
-    if (selectedDevelopers.length === 0) {
+    // snapshot current selection to avoid race conditions with state updates
+    const ids = [...selectedDevelopers];
+    if (ids.length === 0) {
       toast.error("Please select at least one developer");
       return;
     }
@@ -215,30 +237,30 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     setAssigning(true);
     const assignmentResults = {
       successful: [] as string[],
-      failed: [] as { developerId: string; error: string }[]
+      failed: [] as { developerId: string; error: string }[],
     };
 
     try {
       // Step 1: First, create the project assignments
-      console.log('Creating project assignments...');
-      await assignDevelopers(selectedDevelopers);
+      console.log("Creating project assignments...");
+      await assignDevelopers(ids);
 
       // Step 2: Then update developer profiles sequentially with proper error handling
-      console.log('Updating developer profiles...');
-      for (const developerId of selectedDevelopers) {
+      console.log("Updating developer profiles...");
+      for (const developerId of ids) {
         try {
           const response = await fetch(`/api/developer/${developerId}/update`, {
-            method: 'PATCH',
+            method: "PATCH",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               assignedProject: {
                 projectId,
                 title: projectTitle,
                 techStack: projectTechStack,
-                experienceLevel: projectExperienceLevel
-              }
+                experienceLevel: projectExperienceLevel,
+              },
             }),
           });
 
@@ -249,14 +271,18 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
           const result = await response.json();
           if (!result.success) {
-            throw new Error(result.message || 'Update failed');
+            throw new Error(result.message || "Update failed");
           }
 
           assignmentResults.successful.push(developerId);
           console.log(`Successfully updated developer ${developerId}`);
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          console.error(`Error updating developer ${developerId}:`, errorMessage);
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
+          console.error(
+            `Error updating developer ${developerId}:`,
+            errorMessage
+          );
           assignmentResults.failed.push({ developerId, error: errorMessage });
         }
       }
@@ -276,7 +302,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           `${assignmentResults.failed.length} developer(s) had profile update issues`,
           "They are still assigned to the project, but their profiles may not reflect the assignment."
         );
-        console.warn('Failed developer updates:', assignmentResults.failed);
+        console.warn("Failed developer updates:", assignmentResults.failed);
       }
 
       setSelectedDevelopers([]);
@@ -286,10 +312,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       if (refreshDevelopers) {
         refreshDevelopers();
       }
-
+      await fetchDeveloperProfiles();
+      await refetch(); // Refetch assignments to update the UI
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error('Assignment error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.error("Assignment error:", error);
 
       // If the main assignment failed, try to clean up any partial assignments
       if (assignmentResults.successful.length > 0) {
@@ -308,8 +336,15 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   };
 
   // Unassign developer from project
-  const handleUnassignDeveloper = async (developerId: string, developerName: string) => {
-    if (!confirm(`Are you sure you want to unassign ${developerName} from this project?`)) {
+  const handleUnassignDeveloper = async (
+    developerId: string,
+    developerName: string
+  ) => {
+    if (
+      !confirm(
+        `Are you sure you want to unassign ${developerName} from this project?`
+      )
+    ) {
       return;
     }
 
@@ -319,17 +354,19 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       const updateDeveloperUponUnassignment = async () => {
         try {
           const response = await fetch(`/api/developer/${developerId}/update`, {
-            method: 'PATCH',
+            method: "PATCH",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               unassign: true,
-              projectId
+              projectId,
             }),
           });
           if (!response.ok) {
-            throw new Error('Failed to update developer profile upon unassignment.');
+            throw new Error(
+              "Failed to update developer profile upon unassignment."
+            );
           }
         } catch (error) {
           console.error(`Error unassigning developer ${developerId}:`, error);
@@ -339,34 +376,34 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       // Unassign and update
       await removeAssignment(developerId);
       await updateDeveloperUponUnassignment();
-      toast.success(`Successfully unassigned ${developerName} from ${projectTitle}`);
+      toast.success(
+        `Successfully unassigned ${developerName} from ${projectTitle}`
+      );
       refetch();
 
       // Refresh the developer data to reflect availability changes
       if (refreshDevelopers) {
         refreshDevelopers();
       }
+      await fetchDeveloperProfiles();
+      await refetch(); // Refetch assignments to update the UI
     } catch (error) {
-      toast.error("Failed to unassign developer", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Failed to unassign developer",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     } finally {
       setUnassigning(null);
     }
-  };
-
-  // Get assigned developers for this project
-  const getAssignedDevelopers = (): SystemUser[] => {
-    if (!Array.isArray(assignments) || !Array.isArray(developers)) return [];
-
-    const assignedDeveloperIds = assignments.map(a => a.developerId);
-    return developers.filter((dev: SystemUser) => assignedDeveloperIds.includes(dev._id));
   };
 
   // Safe rating calculation
   const calculateAverageRating = (developer: SystemUser): string => {
     const enhanced = getEnhancedDeveloper(developer);
     if (enhanced.rating > 0) return enhanced.rating.toFixed(1);
-    if (!developer.completedProjects || developer.completedProjects === 0) return 'N/A';
-    if (!developer.totalEarnings) return 'N/A';
+    if (!developer.completedProjects || developer.completedProjects === 0)
+      return "N/A";
+    if (!developer.totalEarnings) return "N/A";
 
     const rating = developer.totalEarnings / developer.completedProjects;
     return rating.toFixed(1);
@@ -378,7 +415,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
         <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
           <span className="text-white font-medium">
-            {loadingAssignments ? 'Loading Project Assignments...' : 'Loading Developer Profiles...'}
+            {loadingAssignments
+              ? "Loading Project Assignments..."
+              : "Loading Developer Profiles..."}
           </span>
         </div>
       </div>
@@ -462,7 +501,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                   {/* Unassign Button */}
                   {!readOnly && (
                     <button
-                      onClick={() => handleUnassignDeveloper(developer._id, `${developer.firstName} ${developer.lastName}`)}
+                      onClick={() =>
+                        handleUnassignDeveloper(
+                          developer._id,
+                          `${developer.firstName} ${developer.lastName}`
+                        )
+                      }
                       disabled={isUnassigning}
                       className="absolute top-3 cursor-pointer right-3 p-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 hover:text-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Unassign from project"
@@ -493,37 +537,79 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     <div className="flex items-center space-x-1">
                       <FaStar className="text-yellow-400 w-4 h-4" />
                       <span className="text-sm text-gray-300 font-medium">
-                        {enhancedDev.rating > 0 ? enhancedDev.rating.toFixed(1) : 'N/A'}
+                        {enhancedDev.rating > 0
+                          ? enhancedDev.rating.toFixed(1)
+                          : "N/A"}
                       </span>
                     </div>
                   </div>
 
                   {/* Status Badges */}
                   <div className="flex items-center space-x-2 mb-3">
-                    {/* Availability Status */}
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                      Busy
-                    </span>
+                    {(() => {
+                      const isBusy =
+                        !enhancedDev.isAvailableProfile ||
+                        assignments.some(
+                          (a) => a.developerId === developer._id
+                        );
+                      const busyUntil = (enhancedDev as any).busyUntil as
+                        | string
+                        | undefined;
+                      if (isBusy) {
+                        return (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                            {busyUntil
+                              ? `Busy until ${new Date(
+                                  busyUntil
+                                ).toLocaleDateString()}`
+                              : "Busy"}
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                          Available
+                        </span>
+                      );
+                    })()}
 
                     {/* Assignment Status */}
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
                       <FaCheckCircle className="inline mr-1" />
                       Assigned
                     </span>
+
+                    {!readOnly && (
+                      <button
+                        title="Unassign"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUnassignDeveloper(
+                            developer._id,
+                            `${developer.firstName} ${developer.lastName}`
+                          );
+                        }}
+                        className="ml-2 px-1.5 py-0.5 text-xs bg-red-500/20 border border-red-500/40 text-red-300 rounded hover:bg-red-500/30"
+                      >
+                        Unassign
+                      </button>
+                    )}
                   </div>
 
                   {/* Skills */}
                   <div className="mb-3">
                     <p className="text-xs text-gray-400 mb-2">Primary Skills</p>
                     <div className="flex flex-wrap gap-1">
-                      {(developer.skills || []).slice(0, 3).map((skill: any, index: number) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-600/30 rounded text-xs text-gray-300 border border-gray-600/30"
-                        >
-                          {typeof skill === 'string' ? skill : skill.name}
-                        </span>
-                      ))}
+                      {(developer.skills || [])
+                        .slice(0, 3)
+                        .map((skill: any, index: number) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-gray-600/30 rounded text-xs text-gray-300 border border-gray-600/30"
+                          >
+                            {typeof skill === "string" ? skill : skill.name}
+                          </span>
+                        ))}
                       {(developer.skills?.length || 0) > 3 && (
                         <span className="px-2 py-1 bg-gray-600/30 rounded text-xs text-gray-400 border border-gray-600/30">
                           +{(developer.skills?.length || 0) - 3} more
@@ -547,7 +633,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                       <div className="flex items-center justify-center space-x-1 mb-1">
                         <FaClock className="text-green-400 w-3 h-3" />
                         <span className="text-white font-semibold text-sm">
-                          ${enhancedDev.hourlyRateProfile || 'N/A'}
+                          ${enhancedDev.hourlyRateProfile || "N/A"}
                         </span>
                       </div>
                       <p className="text-xs text-gray-400">Per Hour</p>
@@ -616,8 +702,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
               >
                 <FaFilter />
                 <FaChevronDown
-                  className={`transform transition-transform ${showFilters ? "rotate-180" : ""
-                    }`}
+                  className={`transform transition-transform ${
+                    showFilters ? "rotate-180" : ""
+                  }`}
                 />
               </button>
             </div>
@@ -633,7 +720,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     onChange={(e) => setFilterAvailable(e.target.checked)}
                     className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-white">Available only (exclude assigned)</span>
+                  <span className="text-white">
+                    Available only (exclude assigned)
+                  </span>
                 </label>
 
                 <div className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl">
@@ -643,15 +732,24 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     onChange={(e) => setSortBy(e.target.value as any)}
                     className="bg-transparent text-white focus:outline-none"
                   >
-                    <option value="compatibility" className="bg-black/50">Sort by Compatibility</option>
-                    <option value="rating" className="bg-black/50">Sort by Rating</option>
-                    <option value="projects" className="bg-black/50">Sort by Projects</option>
-                    <option value="rate" className="bg-black/50">Sort by Rate</option>
+                    <option value="compatibility" className="bg-black/50">
+                      Sort by Compatibility
+                    </option>
+                    <option value="rating" className="bg-black/50">
+                      Sort by Rating
+                    </option>
+                    <option value="projects" className="bg-black/50">
+                      Sort by Projects
+                    </option>
+                    <option value="rate" className="bg-black/50">
+                      Sort by Rate
+                    </option>
                   </select>
                 </div>
 
                 <div className="flex items-center justify-center p-3 bg-gray-700/30 rounded-xl text-gray-400">
-                  {getFilteredDevelopers().length} developers found
+                  Showing {getFilteredDevelopers().length} of{" "}
+                  {getFilteredDevelopers().length} available
                 </div>
               </div>
             </div>
@@ -670,7 +768,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
               </h4>
               <div className="text-sm text-gray-400">
                 Showing {getFilteredDevelopers().length} of{" "}
-                {developers.filter((d) => d.role === "developer" && d.developerProfileStatus === "approved").length} available
+                {getFilteredDevelopers().length} available
               </div>
             </div>
 
@@ -690,23 +788,26 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                 {getFilteredDevelopers().map((developer) => {
                   const enhancedDev = getEnhancedDeveloper(developer);
-                  const compatibilityScore = calculateCompatibilityScore(enhancedDev);
+                  const compatibilityScore =
+                    calculateCompatibilityScore(enhancedDev);
+                  const devId = (developer as any)._id ?? (developer as any).id;
                   const isAssigned: boolean = assignments.some(
                     (a: Assignment) =>
-                      a.projectId === projectId && a.developerId === developer._id
+                      a.projectId === projectId && a.developerId === devId
                   );
-                  const isSelected = selectedDevelopers.includes(developer._id);
+                  const isSelected = selectedDevelopers.includes(devId);
 
                   return (
                     <div
-                      key={developer._id}
-                      onClick={() => toggleDeveloperSelection(developer._id)}
-                      className={`group w-full relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] cursor-pointer ${isSelected
-                        ? "border-blue-500 bg-black/30 shadow-lg"
-                        : isAssigned
+                      key={devId}
+                      onClick={() => toggleDeveloperSelection(devId)}
+                      className={`group w-full relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] cursor-pointer ${
+                        isSelected
+                          ? "border-blue-500 bg-black/30 shadow-lg"
+                          : isAssigned
                           ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
                           : "border-gray-700 hover:border-gray-600 bg-black/50"
-                        }`}
+                      }`}
                     >
                       {/* Compatibility Score Badge */}
                       {/* <div className="absolute top-4 right-4">
@@ -743,14 +844,31 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
                           {/* Status Badges */}
                           <div className="flex items-center space-x-2 mb-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${developer.status === "active"
-                                ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                : "bg-red-500/20 text-red-400 border border-red-500/30"
-                                }`}
-                            >
-                              {developer.status === "active" ? "Available" : "Unavailable"}
-                            </span>
+                            {(() => {
+                              const isBusy =
+                                !enhancedDev.isAvailableProfile ||
+                                assignments.some(
+                                  (a) => a.developerId === devId
+                                );
+                              const busyUntil = (enhancedDev as any)
+                                .busyUntil as string | undefined;
+                              if (isBusy) {
+                                return (
+                                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                                    {busyUntil
+                                      ? `Busy until ${new Date(
+                                          busyUntil
+                                        ).toLocaleDateString()}`
+                                      : "Busy"}
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                                  Available
+                                </span>
+                              );
+                            })()}
 
                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-600/30 text-gray-300 border border-gray-600/30">
                               {developer.role}
@@ -777,7 +895,9 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                     key={index}
                                     className="px-2 py-1 bg-gray-600/30 rounded-lg text-xs text-gray-300 border border-gray-600/30"
                                   >
-                                    {typeof skill === 'string' ? skill : skill.name}
+                                    {typeof skill === "string"
+                                      ? skill
+                                      : skill.name}
                                   </span>
                                 ))}
                               {(developer.skills?.length || 0) > 4 && (
@@ -794,10 +914,14 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                               <div className="flex items-center justify-center space-x-1 mb-1">
                                 <FaStar className="text-yellow-400 w-4 h-4" />
                                 <span className="text-white font-semibold">
-                                  {enhancedDev.rating > 0 ? enhancedDev.rating.toFixed(1) : 'N/A'}
+                                  {enhancedDev.rating > 0
+                                    ? enhancedDev.rating.toFixed(1)
+                                    : "N/A"}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-400">Avg. Rating</p>
+                              <p className="text-xs text-gray-400">
+                                Avg. Rating
+                              </p>
                             </div>
 
                             <div className="text-center">
@@ -817,14 +941,16 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                   {enhancedDev.experienceLevel}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-400">Experience</p>
+                              <p className="text-xs text-gray-400">
+                                Experience
+                              </p>
                             </div>
 
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-1 mb-1">
                                 <FaClock className="text-green-400 w-4 h-4" />
                                 <span className="text-white font-semibold">
-                                  ${enhancedDev.hourlyRateProfile || 'N/A'}
+                                  ${enhancedDev.hourlyRateProfile || "N/A"}
                                 </span>
                               </div>
                               <p className="text-xs text-gray-400">Per Hour</p>

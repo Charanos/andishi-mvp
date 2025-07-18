@@ -20,10 +20,22 @@ export function useProjectAssignments(projectId: string) {
 
     // Assign developers
     const assignDevelopers = async (developerIds: string[], role = 'Developer') => {
+        const cleanIds = Array.from(
+            new Set(
+                developerIds
+                    .map((d: any) =>
+                        typeof d === 'string'
+                            ? d
+                            : d?.id || d?._id || d?.value || ''
+                    )
+                    .filter((id: string) => id && id.trim())
+            )
+        );
+        console.log('AssignDevelopers payload', { projectId, developerIds: cleanIds, role });
         const res = await fetch('/api/project-assignments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ projectId, developerIds, role }),
+            body: JSON.stringify({ projectId, developerIds: cleanIds, role }),
         });
         if (!res.ok) throw new Error(await res.text());
         await mutate();

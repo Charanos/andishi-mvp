@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       );
     
     console.log('User has access:', hasAccess);
-    console.log('User role:', session.user.role);
+    console.log('User role:', session.user.role); 
     console.log('Project client ID:', project.clientId);
     console.log('User ID:', session.user.id);
     console.log('Active assignments:', project.assignments.length);

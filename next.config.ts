@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: 'standalone',
+  // Remove standalone output for Vercel deployment
+  // output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -12,7 +13,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-    unoptimized: true,
+    // Enable optimization for Vercel deployment
+    unoptimized: false,
     formats: ['image/webp', 'image/avif'],
   },
   eslint: {

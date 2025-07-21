@@ -7,10 +7,10 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-const uri = process.env.DATABASE_URL;
+const uri = process.env.DATABASE_URI || process.env.MONGODB_URI || process.env.DATABASE_URL;
 
 if (!uri) {
-  throw new Error("❌ DATABASE_URL environment variable is not defined");
+  throw new Error("❌ DATABASE_URI, MONGODB_URI, or DATABASE_URL environment variable is not defined");
 }
 
 const options = {};

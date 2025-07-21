@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const hasAccess = 
       session.user.role === "admin" || 
       project.clientId === session.user.id ||
-      project.assignments.some(assignment => 
+      project.assignments.some((assignment: any) => 
         assignment.developerId === session.user.id && 
         ['pending', 'accepted'].includes(assignment.status)
       );

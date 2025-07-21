@@ -181,7 +181,7 @@ export async function GET(
     });
 
     if (projectChat && projectChat.messages) {
-      projectChat.messages.forEach((message) => {
+      projectChat.messages.forEach((message: any) => {
         activities.push({
           id: `chat-${message.id}`,
           type: 'chat',
@@ -205,7 +205,7 @@ export async function GET(
       orderBy: { assignedAt: 'desc' }
     });
 
-    assignments.forEach((assignment) => {
+    assignments.forEach((assignment: any) => {
       activities.push({
         id: `assignment-${assignment.id}`,
         type: 'assignment',

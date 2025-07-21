@@ -273,7 +273,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       
     }
 
-    const profiles: DeveloperProfile[] = records.map((profile) => {
+    const profiles: DeveloperProfile[] = records.map((profile: any) => {
       const data = (profile.data as any) || {};
       return {
         id: profile.id,

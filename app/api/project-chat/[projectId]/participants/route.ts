@@ -55,132 +55,97 @@ export async function POST(
       );
     }
 
-    // Get existing chat for this project
-    let projectChat = await prisma.projectChat.findFirst({
+    // Step 1: Find the chat, or create it if it doesn't exist.
+    let chat = await prisma.projectChat.findFirst({
       where: { projectId },
       include: { participants: true },
     });
 
-    // Create chat if it doesn't exist
-    if (!projectChat) {
+    if (!chat) {
       console.log(`Creating new chat for project ${projectId}`);
-      
-      // Build initial participants list
-      const participants: any[] = [];
+      const initialParticipants: any[] = [];
 
-      // Add client if exists
+      // Add client
       if (project.clientId) {
         const clientUser = await getUserDetails(project.clientId);
         if (clientUser) {
-          participants.push({
+          initialParticipants.push({
             userId: clientUser.id,
             name: `${clientUser.firstName} ${clientUser.lastName}`.trim() || clientUser.email || "Client",
             role: "client",
-            isOnline: false,
           });
         }
       }
 
-      // Add all admins
-      const adminUsers = await prisma.user.findMany({
-        where: { role: "admin" },
-        select: { id: true, firstName: true, lastName: true, email: true, role: true },
-      });
-
-      for (const admin of adminUsers) {
-        participants.push({
-          userId: admin.id,
-          name: `${admin.firstName} ${admin.lastName}`.trim() || admin.email || "Admin",
-          role: "admin",
-          isOnline: false,
-        });
-      }
+      // Add admins
+      const adminUsers = await prisma.user.findMany({ where: { role: "admin" } });
+      adminUsers.forEach(admin => initialParticipants.push({
+        userId: admin.id,
+        name: `${admin.firstName} ${admin.lastName}`.trim() || admin.email || "Admin",
+        role: "admin",
+      }));
 
       // Add existing assigned developers
       for (const assignment of project.assignments) {
         if (assignment.developer && assignment.developer.userId) {
-          const developerUser = await getUserDetails(assignment.developer.userId);
-          if (developerUser) {
-            const developerData = assignment.developer.data as any;
-            const developerName = developerData?.personalInfo?.firstName && developerData?.personalInfo?.lastName
-              ? `${developerData.personalInfo.firstName} ${developerData.personalInfo.lastName}`
-              : `${developerUser.firstName} ${developerUser.lastName}`.trim() || developerUser.email || "Developer";
-
-            participants.push({
-              userId: developerUser.id,
-              name: developerName,
+          const devUser = await getUserDetails(assignment.developer.userId);
+          if (devUser) {
+            initialParticipants.push({
+              userId: devUser.id,
+              name: `${devUser.firstName} ${devUser.lastName}`.trim() || devUser.email || "Developer",
               role: "developer",
-              isOnline: false,
             });
           }
         }
       }
 
-      // Create the chat
-      projectChat = await prisma.projectChat.create({
+      chat = await prisma.projectChat.create({
         data: {
           projectId,
-          participants: {
-            createMany: {
-              data: participants,
-            },
-          },
-          messages: {
-            create: [],
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          lastActivity: new Date(),
+          participants: { create: initialParticipants },
         },
         include: { participants: true },
       });
-
-      console.log(`Created chat for project ${projectId} with ${participants.length} participants`);
+      console.log(`Created chat for project ${projectId} with ${initialParticipants.length} participants`);
     }
 
-    // Add new developers to existing chat
-    const existingParticipants = (projectChat.participants as any[]) || [];
-    const existingUserIds = new Set(existingParticipants.map(p => p.userId));
-    const newParticipants = [...existingParticipants];
+    // Step 2: Prepare the list of new developers to add.
+    const existingUserIds = new Set((chat?.participants ?? []).map((p: any) => p.userId));
+    const newParticipantData: any[] = [];
 
     for (const developerId of developerIds) {
-      // Find the developer profile
-      const developerProfile = await prisma.developerProfile.findUnique({
-        where: { id: developerId },
-      });
-
-      if (developerProfile && developerProfile.userId && !existingUserIds.has(developerProfile.userId)) {
+      const developerProfile = await prisma.developerProfile.findUnique({ where: { id: developerId } });
+      if (developerProfile?.userId && !existingUserIds.has(developerProfile.userId)) {
         const developerUser = await getUserDetails(developerProfile.userId);
         if (developerUser) {
-          const developerData = developerProfile.data as any;
-          const developerName = developerData?.personalInfo?.firstName && developerData?.personalInfo?.lastName
-            ? `${developerData.personalInfo.firstName} ${developerData.personalInfo.lastName}`
-            : `${developerUser.firstName} ${developerUser.lastName}`.trim() || developerUser.email || "Developer";
-
-          newParticipants.push({
+          newParticipantData.push({
+            chatId: chat.id, // Explicitly link to the chat
             userId: developerUser.id,
-            name: developerName,
+            name: `${developerUser.firstName} ${developerUser.lastName}`.trim() || developerUser.email || "Developer",
             role: "developer",
-            isOnline: false,
           });
-
-          existingUserIds.add(developerUser.id);
-          console.log(`Added developer ${developerName} to chat participants`);
+          existingUserIds.add(developerUser.id); // Prevent duplicates in the same batch
         }
       }
     }
 
-    // Update the chat with new participants
-    await prisma.projectChat.update({
-      where: { id: projectChat.id },
-      data: {
-        participants: {
-          createMany: {
-            data: newParticipants,
-            skipDuplicates: true,
-          },
-        },
-        updatedAt: new Date(),
-      },
+    // Step 3: Add the new developers to the chat if any exist.
+    if (newParticipantData.length > 0) {
+      await prisma.chatParticipant.createMany({
+        data: newParticipantData,
+      });
+      console.log(`Added ${newParticipantData.length} new developers to chat for project ${projectId}`);
+      // Update last activity timestamp
+      await prisma.projectChat.update({
+          where: { id: chat.id },
+          data: { lastActivity: new Date() },
+      });
+    }
+
+    const finalChat = await prisma.projectChat.findFirst({
+        where: { id: chat.id },
+        include: { participants: true },
     });
 
     return NextResponse.json(
@@ -189,7 +154,7 @@ export async function POST(
         message: `Successfully updated chat participants`,
         data: {
           projectId,
-          participantCount: newParticipants.length,
+          participantCount: (finalChat?.participants ?? []).length,
           addedDevelopers: developerIds.length,
         },
       },

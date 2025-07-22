@@ -56,8 +56,9 @@ export async function POST(
     }
 
     // Get existing chat for this project
-    let projectChat = await prisma.projectChat.findUnique({
+    let projectChat = await prisma.projectChat.findFirst({
       where: { projectId },
+      include: { participants: true },
     });
 
     // Create chat if it doesn't exist
@@ -119,11 +120,18 @@ export async function POST(
       projectChat = await prisma.projectChat.create({
         data: {
           projectId,
-          participants,
-          messages: [],
+          participants: {
+            createMany: {
+              data: participants,
+            },
+          },
+          messages: {
+            create: [],
+          },
           createdAt: new Date(),
           updatedAt: new Date(),
         },
+        include: { participants: true },
       });
 
       console.log(`Created chat for project ${projectId} with ${participants.length} participants`);
@@ -165,7 +173,12 @@ export async function POST(
     await prisma.projectChat.update({
       where: { id: projectChat.id },
       data: {
-        participants: newParticipants,
+        participants: {
+          createMany: {
+            data: newParticipants,
+            skipDuplicates: true,
+          },
+        },
         updatedAt: new Date(),
       },
     });

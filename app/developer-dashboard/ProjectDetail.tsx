@@ -2,17 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import { ProjectAssignment } from "@/types/project";
-import { FaArrowLeft, FaComments, FaCode, FaCalendarAlt, FaDollarSign, FaUsers, FaChartLine } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaComments,
+  FaCode,
+  FaCalendarAlt,
+  FaDollarSign,
+  FaUsers,
+  FaChartLine,
+} from "react-icons/fa";
 import ProjectChatComponent from "../admin-dashboard/ProjectChat";
 import ProjectAssignmentsComponent from "../admin-dashboard/ProjectAssignments";
 import { useAuth } from "@/hooks/useAuth";
 import { SystemUser } from "~/types";
 import useSWR from "swr";
-import {
-  Activity,
-  CheckCircle,
-  MessageSquare,
-} from "lucide-react";
+import { Activity, CheckCircle, MessageSquare } from "lucide-react";
 import ToastContainer from "../components/ToastContainer";
 import { ToastNotification } from "../components/ToastNotification";
 
@@ -37,7 +41,9 @@ const fetcher = async (url: string) => {
   });
 
   if (!res.ok) {
-    const error: FetcherError = new Error("An error occurred while fetching the data.");
+    const error: FetcherError = new Error(
+      "An error occurred while fetching the data."
+    );
     // Attach extra info to the error object.
     error.info = await res.json();
     error.status = res.status;
@@ -47,7 +53,6 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-
 const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
   const [activeView, setActiveView] = useState<DetailView>("overview");
   const [developers, setDevelopers] = useState<SystemUser[]>([]);
@@ -55,40 +60,43 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
-  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
+  const addNotification = (notification: Omit<ToastNotification, "id">) => {
     const id = Date.now().toString();
-    setNotifications(prev => [...prev, { ...notification, id }]);
+    setNotifications((prev) => [...prev, { ...notification, id }]);
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id)
+    );
   };
 
-  const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
-    project ? `/api/project-activity/${project.id}` : null,
-    fetcher
-  );
+  const {
+    data: activityData,
+    error: activityError,
+    isLoading: activityLoading,
+  } = useSWR(project ? `/api/project-activity/${project.id}` : null, fetcher);
 
   // Fetch developers for assignments
   useEffect(() => {
     const fetchDevelopers = async () => {
       setLoadingDevelopers(true);
       try {
-        const response = await fetch('/api/users', {
+        const response = await fetch("/api/users", {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            "Content-Type": "application/json",
           },
         });
         if (response.ok) {
           const data = await response.json();
-          setDevelopers(data.filter((user: any) => user.role === 'developer'));
+          setDevelopers(data.filter((user: any) => user.role === "developer"));
         }
       } catch (error) {
-        addNotification({ 
-          type: "error", 
-          title: "Failed to Load Developers", 
-          message: "Could not fetch developer list. Please try again."
+        addNotification({
+          type: "error",
+          title: "Failed to Load Developers",
+          message: "Could not fetch developer list. Please try again.",
         });
       } finally {
         setLoadingDevelopers(false);
@@ -103,14 +111,20 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
         return (
           <div className="space-y-6">
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Project Overview</h3>
+              <h3 className="text-xl font-semibold text-white mb-4">
+                Project Overview
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-400 mb-2">Description</h4>
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">
+                    Description
+                  </h4>
                   <p className="text-white">{project.description}</p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-400 mb-2">Technologies</h4>
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">
+                    Technologies
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {project.technologies.map((tech, index) => (
                       <span
@@ -123,7 +137,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-400 mb-2">Progress</h4>
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">
+                    Progress
+                  </h4>
                   <div className="flex items-center space-x-3">
                     <div className="flex-1 bg-gray-700 rounded-full h-2">
                       <div
@@ -131,12 +147,18 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
                         style={{ width: `${project.progress}%` }}
                       ></div>
                     </div>
-                    <span className="text-white font-medium">{project.progress}%</span>
+                    <span className="text-white font-medium">
+                      {project.progress}%
+                    </span>
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-400 mb-2">Budget</h4>
-                  <p className="text-white font-semibold">${project.budget.toLocaleString()}</p>
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">
+                    Budget
+                  </h4>
+                  <p className="text-white font-semibold">
+                    ${project.budget.toLocaleString()}
+                  </p>
                 </div>
               </div>
             </div>
@@ -164,7 +186,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
             {loadingDevelopers ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-                <span className="ml-3 text-gray-400">Loading developers...</span>
+                <span className="ml-3 text-gray-400">
+                  Loading developers...
+                </span>
               </div>
             ) : (
               <ProjectAssignmentsComponent
@@ -180,7 +204,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
       case "activity":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">
+            <h2 className="text-2xl font-semibold text-white mb-6">
               Recent Activity
             </h2>
             <div className="space-y-4">
@@ -223,7 +247,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-white font-medium">{activity.title}</h3>
+                      <h3 className="text-white font-medium">
+                        {activity.title}
+                      </h3>
                       <p className="text-gray-400 text-sm">
                         {activity.description}
                       </p>
@@ -235,7 +261,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
                 ))
               )}
 
-              {(activityData?.data.length === 0) && (
+              {activityData?.data.length === 0 && (
                 <div className="text-center py-12">
                   <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -271,7 +297,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
               </button>
               <div className="h-6 w-px bg-white/20"></div>
               <div>
-                <h1 className="text-2xl font-bold text-white">{project.title}</h1>
+                <h1 className="text-2xl font-semibold text-white">
+                  {project.title}
+                </h1>
                 <p className="text-gray-400">{project.client}</p>
               </div>
             </div>
@@ -284,7 +312,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
               </div>
               <div className="flex items-center space-x-2">
                 <FaDollarSign className="text-gray-400" />
-                <span className="text-gray-300 text-sm">${project.budget.toLocaleString()}</span>
+                <span className="text-gray-300 text-sm">
+                  ${project.budget.toLocaleString()}
+                </span>
               </div>
             </div>
           </div>
@@ -294,40 +324,44 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
         <div className="flex space-x-1 mb-8">
           <button
             onClick={() => setActiveView("overview")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "overview"
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeView === "overview"
                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
+            }`}
           >
             <FaCode className="inline mr-2" />
             Overview
           </button>
           <button
             onClick={() => setActiveView("chat")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "chat"
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeView === "chat"
                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
+            }`}
           >
             <FaComments className="inline mr-2" />
             Chat
           </button>
           <button
             onClick={() => setActiveView("assignments")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "assignments"
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeView === "assignments"
                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
+            }`}
           >
             <FaUsers className="inline mr-2" />
             Team Assignments
           </button>
           <button
             onClick={() => setActiveView("activity")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${activeView === "activity"
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeView === "activity"
                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
+            }`}
           >
             <FaChartLine className="inline mr-2" />
             Activity
@@ -337,7 +371,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
         {/* Content */}
         {renderContent()}
       </div>
-      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+      />
     </div>
   );
 };

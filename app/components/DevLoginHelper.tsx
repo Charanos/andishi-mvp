@@ -34,7 +34,7 @@ export default function DevLoginHelper() {
 
   return (
     <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg max-w-sm">
-      <h3 className="text-lg font-bold mb-2">🔧 Dev Login Helper</h3>
+      <h3 className="text-lg font-semibold mb-2">🔧 Dev Login Helper</h3>
       <p className="text-sm text-gray-300 mb-3">Quick login for development</p>
 
       {error && (

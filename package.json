@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "NODE_ENV=production node .next/standalone/server.js",
+    "postinstall": "npx prisma generate",
     "lint": "next lint"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@sentry/nextjs": "^9.40.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "@types/bcryptjs": "^2.4.6",

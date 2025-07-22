@@ -180,17 +180,21 @@ export default function ClientReviews() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 text-center">
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-blue-400 monty">500+</div>
+            <div className="text-3xl font-semibold text-blue-400 monty">
+              500+
+            </div>
             <div className="text-gray-400 monty uppercase">Happy Clients</div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-purple-400 monty">
+            <div className="text-3xl font-semibold text-purple-400 monty">
               4.9/5
             </div>
             <div className="text-gray-400 monty uppercase">Average Rating</div>
           </div>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-pink-400 monty">98%</div>
+            <div className="text-3xl font-semibold text-pink-400 monty">
+              98%
+            </div>
             <div className="text-gray-400 monty uppercase">
               Client Retention
             </div>

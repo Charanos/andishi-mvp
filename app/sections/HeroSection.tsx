@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full min-h-screen overflow-hidden flex items-center py-16 sm:py:0">
+    <section className="relative w-full min-h-screen overflow-hidden flex items-center py-12 sm:py:0  px-6 lg:px-0">
       {/* Background gradient layers */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900/50 to-purple-900/50"></div>
       <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/30 via-transparent to-blue-900/30"></div>
@@ -156,7 +156,7 @@ export default function HeroSection() {
         </div>
 
         {/* Right column: illustration with glassmorphic frame */}
-        <div className="w-full lg:w-1/3 mb-12 lg:mb-0 hidden md:flex justify-center">
+        <div className="w-full lg:w-1/3 mb-12 lg:mb-0 hidden lg:flex justify-center">
           <div className="relative group">
             {/* Glassmorphic frame */}
             <div className="absolute inset-0 rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500"></div>

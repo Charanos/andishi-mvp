@@ -15,7 +15,7 @@ export default function EditDeveloperProfilePage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-6">
+      <h1 className="text-2xl font-semibold text-white mb-6">
         Edit Developer Profile
       </h1>
       <DeveloperProfileEditor profileId={id} />

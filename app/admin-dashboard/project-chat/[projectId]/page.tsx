@@ -14,7 +14,7 @@ const ProjectChatPage = () => {
   const {
     projectDetails,
     loading: projectLoading,
-    error: projectError
+    error: projectError,
   } = useProjectDetails(projectId);
 
   if (authLoading || projectLoading) {
@@ -32,8 +32,10 @@ const ProjectChatPage = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-red-500 mb-2">Error</h2>
-          <p className="text-gray-400">Could not load project details. Please try again later.</p>
+          <h2 className="text-xl font-semibold text-red-500 mb-2">Error</h2>
+          <p className="text-gray-400">
+            Could not load project details. Please try again later.
+          </p>
         </div>
       </div>
     );

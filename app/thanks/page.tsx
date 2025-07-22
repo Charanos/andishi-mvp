@@ -71,7 +71,7 @@ export default function ThankYouExistingClientNewProject() {
             <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
           </div>
 
-          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h1 className="text-4xl lg:text-5xl font-semibold text-white mb-6">
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
               New Project Started!
             </span>
@@ -99,7 +99,7 @@ export default function ThankYouExistingClientNewProject() {
               <FaTachometerAlt className="text-2xl text-white" />
             </div>
 
-            <h2 className="text-2xl font-bold text-white mb-4">
+            <h2 className="text-2xl font-semibold text-white mb-4">
               Back to Your <span className="text-blue-400">Dashboard</span>
             </h2>
 
@@ -134,7 +134,7 @@ export default function ThankYouExistingClientNewProject() {
 
         {/* What Happens Next */}
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center flex items-center justify-center">
+          <h2 className="text-2xl font-semibold text-white mb-8 text-center flex items-center justify-center">
             <FaUsers className="mr-3 text-blue-400" />
             What Happens Next?
           </h2>

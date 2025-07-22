@@ -42,7 +42,7 @@ export default function UnauthorizedPage() {
 
           {/* Error Code */}
           <div className="mb-6">
-            <h1 className="text-6xl lg:text-8xl font-bold text-white/20 mb-2">
+            <h1 className="text-6xl lg:text-8xl font-semibold text-white/20 mb-2">
               401
             </h1>
             <h2 className="text-3xl lg:text-4xl font-medium text-white mb-4">

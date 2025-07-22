@@ -159,7 +159,7 @@ export default function ConditionalLayout({
           transition={{ delay: 0.5 }}
           className="space-y-3"
         >
-          <h2 className="text-2xl font-bold uppercase text-white">
+          <h2 className="text-2xl font-semibold uppercase text-white">
             {state === LoadingStates.AUTHENTICATING && "Authenticating..."}
             {state === LoadingStates.REDIRECTING && "Access Required"}
             {state === LoadingStates.INITIAL && "Loading..."}
@@ -207,7 +207,9 @@ export default function ConditionalLayout({
         </motion.div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-white">Unauthorized Access</h2>
+          <h2 className="text-2xl font-semibold text-white">
+            Unauthorized Access
+          </h2>
           <p className="text-gray-300">
             Please log in to continue to this page
           </p>
@@ -300,7 +302,9 @@ export default function ConditionalLayout({
         <div className="text-center space-y-6 p-8 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 max-w-md mx-4">
           <div className="text-6xl mb-4">⚠️</div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white">Wrong Dashboard</h2>
+            <h2 className="text-2xl font-semibold text-white">
+              Wrong Dashboard
+            </h2>
             <p className="text-gray-300">
               You don't have access to this dashboard
             </p>

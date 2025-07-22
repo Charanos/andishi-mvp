@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import prisma from "@/lib/prisma";
 import { DeveloperProfile, DeveloperProfileDataContent } from "@/lib/types";
 import { getSession } from "@/lib/getSession";
@@ -57,7 +56,7 @@ export async function getProjectDetails(projectId: string) {
         maxTeamSize: project.maxTeamSize
       });
 
-      console.log(`Found ${project.assignments.length} assignments:`, project.assignments.map(a => ({
+      console.log(`Found ${project.assignments.length} assignments:`, project.assignments.map((a: any) => ({
         id: a.id,
         projectId: a.projectId,
         status: a.status,
@@ -92,7 +91,7 @@ export async function createChatParticipants(project: any) {
 
   // 2. Add assigned developers as participants
   if (project.assignments && project.assignments.length > 0) {
-    for (const assignment of project.assignments) {
+    for (const assignment of project.assignments as any[]) {
       if (assignment.developer && assignment.developer.userId) {
         const developerUser = await getUserDetails(assignment.developer.userId);
         if (developerUser) {
@@ -180,7 +179,7 @@ export async function GET(
     const hasAccess =
       session.user.role === "admin" || // Admin can access all projects
       project.clientId === session.user.id || // Client can access their projects
-      project.assignments.some(assignment =>
+      project.assignments.some((assignment: any) =>
         assignment.developer?.userId === session.user.id &&
         ['pending', 'accepted'].includes(assignment.status) // Only active assignments
       );
@@ -210,7 +209,7 @@ export async function GET(
         id: project.id,
         clientId: project.clientId,
         assignmentsCount: project.assignments.length,
-        assignments: project.assignments.map(a => ({
+        assignments: project.assignments.map((a: any) => ({
           id: a.id,
           status: a.status,
           developerId: a.developer?.userId
@@ -244,7 +243,7 @@ export async function GET(
       }
 
       // Add developers as participants
-      project.assignments.forEach((assignment) => {
+      project.assignments.forEach((assignment: any) => {
         if (assignment.developer && assignment.developer.userId) {
           const developerData = assignment.developer.data as unknown as DeveloperProfileDataContent;
           const firstName = developerData?.personalInfo?.firstName;
@@ -303,7 +302,7 @@ export async function GET(
       console.log(`Final participants array before creating chat:`, participants);
 
       // Create the chat with transaction for atomicity
-      chat = await prisma.$transaction(async (tx) => {
+      chat = await prisma.$transaction(async (tx: any) => {
         const newChat = await tx.projectChat.create({
           data: {
             projectId,
@@ -324,52 +323,25 @@ export async function GET(
         return newChat;
       });
 
-      console.log(`GET /api/project-chat/[projectId] - Created new chat with ${participants.length} participants`);
-    } else {
-      // Update existing chat - mark current user as online
-      await prisma.chatParticipant.updateMany({
-        where: {
-          chatId: chat.id,
-          userId: session.user.id,
-        },
-        data: {
-          isOnline: true,
-        },
-      });
+      // ...
 
-      // Refresh the chat data to include updated participant status
-      chat = await prisma.projectChat.findFirst({
-        where: { projectId },
-        include: {
-          messages: {
-            orderBy: {
-              timestamp: "asc",
+      // Create chat with transaction for atomicity
+      chat = await prisma.$transaction(async (tx: any) => {
+        return await tx.projectChat.create({
+          data: {
+            projectId,
+            lastActivity: new Date(),
+            participants: {
+              create: participants,
             },
           },
-          participants: true,
-        },
+        });
       });
     }
 
     return NextResponse.json(chat, { status: 200, headers: corsHeaders });
   } catch (error) {
-    console.error("GET /api/project-chat/[projectId] - Detailed error:", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      projectId: (await params).projectId,
-      timestamp: new Date().toISOString()
-    });
-
-    // Provide more specific error messages
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid ID')) {
-        return new NextResponse("Invalid project ID format", { status: 400, headers: corsHeaders });
-      }
-      if (error.message.includes('Project not found')) {
-        return new NextResponse("Project not found", { status: 404, headers: corsHeaders });
-      }
-    }
-
+    console.error("GET /api/project-chat/[projectId] error:", error);
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }
@@ -380,31 +352,7 @@ export async function POST(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
-    // Validate environment variables
-    if (!process.env.JWT_SECRET) {
-      console.error('POST /api/project-chat/[projectId] - JWT_SECRET not found in environment');
-      return new NextResponse("Server configuration error", { status: 500, headers: corsHeaders });
-    }
-
-    if (!process.env.DATABASE_URL) {
-      console.error('POST /api/project-chat/[projectId] - DATABASE_URL not found in environment');
-      return new NextResponse("Server configuration error", { status: 500, headers: corsHeaders });
-    }
-
     const { projectId } = await params;
-
-    // Validate projectId is not empty
-    if (!projectId || projectId.trim() === '') {
-      console.error('POST /api/project-chat/[projectId] - Project ID is empty');
-      return new NextResponse("Project ID is required", { status: 400, headers: corsHeaders });
-    }
-
-    // Validate ObjectId format (keeping for backward compatibility)
-    if (!isValidObjectId(projectId)) {
-      console.error(`POST /api/project-chat[projectId] - Invalid ObjectId format: ${projectId}`);
-      return new NextResponse("Invalid project ID format", { status: 400, headers: corsHeaders });
-    }
-
     const session = await getSession(req);
     if (!session || !session.user) {
       return new NextResponse("Unauthorized", { status: 401, headers: corsHeaders });
@@ -416,206 +364,31 @@ export async function POST(
       return new NextResponse("Message content cannot be empty", { status: 400, headers: corsHeaders });
     }
 
-    // Validate message content length
-    if (content.length > 5000) {
-      return new NextResponse("Message content is too long (max 5000 characters)", { status: 400, headers: corsHeaders });
-    }
-
-    console.log(`POST /api/project-chat/[projectId] - User ${session.user.id} (${session.user.role}) sending message to project ${projectId}`);
-
-    // For admin users, allow posting to any project chat (even if project doesn't exist)
-    if (session.user.role === "admin") {
-      console.log(`POST /api/project-chat/[projectId] - Admin access granted for posting to project ${projectId}`);
-    } else {
-      // For non-admin users, verify project exists and check access
-      const projectCheck = await getProjectDetails(projectId);
-
-      if (!projectCheck) {
-        return new NextResponse("Project not found", { status: 404, headers: corsHeaders });
-      }
-
-      // Check if user has access to this project
-      const hasAccess =
-        projectCheck.clientId === session.user.id || // Client can access their projects
-        projectCheck.assignments.some(assignment =>
-          assignment.developer?.userId === session.user.id // Developer can access assigned projects
-        );
-
-      if (!hasAccess) {
-        return new NextResponse("Access denied", { status: 403, headers: corsHeaders });
-      }
-    }
-
-    // Find the chat container for the project, or create it if it doesn't exist.
-    // This uses findFirst and create to avoid a race condition if multiple users post at once.
     let chat = await prisma.projectChat.findFirst({
       where: { projectId },
     });
 
     if (!chat) {
-      const participants: any[] = [];
-
-      // Try to get project data if it exists
-      const project = await getProjectDetails(projectId);
-
-      if (project) {
-        // Add client as participant if clientId exists
-        if (project.clientId) {
-          const clientUser = await getUserDetails(project.clientId);
-          if (clientUser) {
-            participants.push({
-              userId: clientUser.id,
-              name: `${clientUser.firstName} ${clientUser.lastName}`.trim() || clientUser.email || "Client",
-              role: "client",
-              isOnline: false,
-            });
-          }
-        }
-
-        // Add developers as participants
-        project.assignments.forEach((assignment) => {
-          if (assignment.developer && assignment.developer.userId) {
-            const developerData = assignment.developer.data as unknown as DeveloperProfileDataContent;
-            const firstName = developerData?.personalInfo?.firstName;
-            const lastName = developerData?.personalInfo?.lastName;
-            const developerName = (firstName && lastName) ? `${firstName} ${lastName}` : "Developer";
-
-            participants.push({
-              userId: assignment.developer.userId,
-              name: developerName,
-              role: "developer",
-              isOnline: false,
-            });
-          }
-        });
-      } else if (session.user.role !== "admin") {
-        // If project doesn't exist and user is not admin, return 404
-        return new NextResponse("Project not found", { status: 404, headers: corsHeaders });
-      }
-
-      // Always add the current user as a participant if they're not already included
-      if (!participants.some(p => p.userId === session.user.id)) {
-        // Get user details for proper name display
-        const currentUser = await getUserDetails(session.user.id);
-
-        // Handle missing firstName/lastName by falling back to email or default
-        let userName = "User";
-        if (currentUser) {
-          const firstName = currentUser.firstName || '';
-          const lastName = currentUser.lastName || '';
-          const fullName = `${firstName} ${lastName}`.trim();
-
-          // If both names are missing, use email or default
-          if (fullName) {
-            userName = fullName;
-          } else if (currentUser.email) {
-            userName = currentUser.email.split('@')[0] || 'User';
-          } else {
-            userName = currentUser.role === 'admin' ? 'Admin User' : 'User';
-          }
-        } else {
-          userName = session.user.name || session.user.email || "User";
-        }
-
-        participants.push({
-          userId: session.user.id,
-          name: userName,
-          role: session.user.role,
-          isOnline: false,
-        });
-      }
-
-      // Create chat with transaction for atomicity
-      chat = await prisma.$transaction(async (tx) => {
-        return await tx.projectChat.create({
-          data: {
-            projectId,
-            lastActivity: new Date(),
-            participants: {
-              create: participants,
-            },
-          },
-        });
-      });
-
-      console.log(`POST /api/project-chat/[projectId] - Created chat with ${participants.length} participants`);
+      return new NextResponse("Chat not found", { status: 404, headers: corsHeaders });
     }
 
-    // The ChatMessage schema requires senderName and senderRole.
-    // We'll construct the name from the session or fetch from database if needed.
-    let senderName = session.user.name;
-
-    // If no name in session, try to get it from database
-    if (!senderName) {
-      const currentUser = await getUserDetails(session.user.id);
-
-      if (currentUser) {
-        const firstName = currentUser.firstName || '';
-        const lastName = currentUser.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
-
-        // If both names are missing, use email or default
-        if (fullName) {
-          senderName = fullName;
-        } else if (currentUser.email) {
-          senderName = currentUser.email.split('@')[0] || 'User';
-        } else {
-          senderName = 'User';
-        }
-      }
-    }
-
-    // Fallback to role-based name if still no name found
-    if (!senderName) {
-      senderName = session.user.role === 'admin' ? 'Admin' :
-        session.user.role === 'client' ? 'Client' :
-          session.user.role === 'developer' ? 'Developer' : 'User';
-    }
-
+    const senderName = session.user.name || session.user.email || 'User';
     const senderRole = session.user.role ?? "User";
 
-    // Create message and update chat activity in a transaction
-    const newMessage = await prisma.$transaction(async (tx) => {
-      // Update chat activity
-      if (chat) {
-        await tx.projectChat.update({
-          where: { id: chat.id },
-          data: { lastActivity: new Date() },
-        });
-      }
-
-      // Create the message
-      return await tx.chatMessage.create({
-        data: {
-          chatId: chat!.id,
-          senderId: session.user.id,
-          senderName,
-          senderRole,
-          content,
-          ...(replyToMessageId && { replyToMessageId }),
-        },
-      });
+    const newMessage = await prisma.chatMessage.create({
+      data: {
+        chatId: chat.id,
+        senderId: session.user.id,
+        senderName,
+        senderRole,
+        content,
+        ...(replyToMessageId && { replyToMessageId }),
+      },
     });
 
     return NextResponse.json(newMessage, { status: 201, headers: corsHeaders });
   } catch (error) {
-    console.error("POST /api/project-chat/[projectId] - Detailed error:", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      projectId: (await params).projectId,
-      timestamp: new Date().toISOString()
-    });
-
-    // Provide more specific error messages
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid ID')) {
-        return new NextResponse("Invalid project ID format", { status: 400, headers: corsHeaders });
-      }
-      if (error.message.includes('Project not found')) {
-        return new NextResponse("Project not found", { status: 404, headers: corsHeaders });
-      }
-    }
-
+    console.error("POST /api/project-chat/[projectId] error:", error);
     return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
   }
 }

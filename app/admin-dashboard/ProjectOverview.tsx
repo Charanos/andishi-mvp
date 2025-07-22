@@ -71,7 +71,7 @@ import {
   getPaymentMethodsForCurrency,
   formatPaymentMethodLabel,
   DEFAULT_PAYMENT_METHOD,
-  PaymentMethodType
+  PaymentMethodType,
 } from "@/lib/paymentMethods";
 import ToastContainer from "../components/ToastContainer";
 import { ToastNotification } from "../components/ToastNotification";
@@ -83,7 +83,14 @@ interface FetcherError extends Error {
 
 export interface ActivityItem {
   id: string;
-  type: 'chat' | 'assignment' | 'milestone' | 'payment' | 'update' | 'system' | 'file';
+  type:
+    | "chat"
+    | "assignment"
+    | "milestone"
+    | "payment"
+    | "update"
+    | "system"
+    | "file";
   title: string;
   description: string;
   createdAt: Date | string;
@@ -106,7 +113,9 @@ const fetcher = async (url: string) => {
   });
 
   if (!res.ok) {
-    const error: FetcherError = new Error("An error occurred while fetching the data.");
+    const error: FetcherError = new Error(
+      "An error occurred while fetching the data."
+    );
     // Attach extra info to the error object.
     error.info = await res.json();
     error.status = res.status;
@@ -116,9 +125,7 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-
 import { SystemUser } from "~/types";
-
 
 interface ProjectOverviewProps {
   selectedProject: ProjectData | null;
@@ -163,7 +170,15 @@ type MilestoneStatus =
   | "in-progress"
   | "completed"
   | "cancelled";
-type PaymentStatus = "pending" | "approved" | "completed" | "rejected" | "outstanding" | "paid" | "overdue" | "partial";
+type PaymentStatus =
+  | "pending"
+  | "approved"
+  | "completed"
+  | "rejected"
+  | "outstanding"
+  | "paid"
+  | "overdue"
+  | "partial";
 type FileType = "document" | "image" | "video" | "other";
 type UpdateType =
   | "general"
@@ -237,7 +252,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   refreshDevelopers,
 }) => {
   const [trackingView, setTrackingView] = useState<TrackingView>("overview");
-  const [projectData, setProjectData] = useState<ProjectData>(selectedProject || {} as ProjectData);
+  const [projectData, setProjectData] = useState<ProjectData>(
+    selectedProject || ({} as ProjectData)
+  );
 
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [newFile, setNewFile] = useState<Partial<ProjectFile>>({});
@@ -263,7 +280,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [activePaymentTab, setActivePaymentTab] = useState<'pending' | 'history'>('pending');
+  const [activePaymentTab, setActivePaymentTab] = useState<
+    "pending" | "history"
+  >("pending");
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
   const [progressValue, setProgressValue] = useState(
@@ -288,18 +307,25 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   };
 
   const toast = {
-    success: (title: string, message?: string) => addNotification("success", title, message),
-    error: (title: string, message?: string) => addNotification("error", title, message),
-    info: (title: string, message?: string) => addNotification("info", title, message),
-    warning: (title: string, message?: string) => addNotification("warning", title, message),
+    success: (title: string, message?: string) =>
+      addNotification("success", title, message),
+    error: (title: string, message?: string) =>
+      addNotification("error", title, message),
+    info: (title: string, message?: string) =>
+      addNotification("info", title, message),
+    warning: (title: string, message?: string) =>
+      addNotification("warning", title, message),
   };
 
   // Fetch activity data using SWR
-  const { data: activityData, error: activityError, isLoading: activityLoading } = useSWR(
+  const {
+    data: activityData,
+    error: activityError,
+    isLoading: activityLoading,
+  } = useSWR(
     selectedProject ? `/api/project-activity/${selectedProject._id}` : null,
     fetcher
   );
-
 
   const [updateForm, setUpdateForm] = useState({
     title: "",
@@ -347,11 +373,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               return data.milestones.map((m) => ({
                 ...m,
                 dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-                completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-                budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
-                title: m.title || 'Untitled Milestone',
-                description: m.description || 'No description provided',
-                status: m.status || 'pending'
+                completedAt: m.completedAt
+                  ? new Date(m.completedAt)
+                  : undefined,
+                budget:
+                  typeof m.budget === "string"
+                    ? m.budget
+                    : String(m.budget || "0"),
+                title: m.title || "Untitled Milestone",
+                description: m.description || "No description provided",
+                status: m.status || "pending",
               }));
             }
 
@@ -360,50 +391,58 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               return data.pricing.milestones.map((m) => ({
                 ...m,
                 dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
-                completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-                budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
-                title: m.title || 'Untitled Milestone',
-                description: m.description || 'No description provided',
-                status: m.status || 'pending'
+                completedAt: m.completedAt
+                  ? new Date(m.completedAt)
+                  : undefined,
+                budget:
+                  typeof m.budget === "string"
+                    ? m.budget
+                    : String(m.budget || "0"),
+                title: m.title || "Untitled Milestone",
+                description: m.description || "No description provided",
+                status: m.status || "pending",
               }));
             }
 
             // If pricing type is milestone but no milestones exist, create default ones
-            if (data.pricing?.type === 'milestone') {
+            if (data.pricing?.type === "milestone") {
               return [
                 {
-                  id: 'default-milestone-1',
-                  title: 'Project Planning & Setup',
-                  description: 'Initial project setup, requirements gathering, and planning phase',
-                  budget: '0',
-                  timeline: '1 week',
-                  status: 'pending' as const,
+                  id: "default-milestone-1",
+                  title: "Project Planning & Setup",
+                  description:
+                    "Initial project setup, requirements gathering, and planning phase",
+                  budget: "0",
+                  timeline: "1 week",
+                  status: "pending" as const,
                   dueDate: undefined,
                   completedAt: undefined,
-                  order: 1
+                  order: 1,
                 },
                 {
-                  id: 'default-milestone-2',
-                  title: 'Development Phase',
-                  description: 'Core development work and feature implementation',
-                  budget: '0',
-                  timeline: '2-3 weeks',
-                  status: 'pending' as const,
+                  id: "default-milestone-2",
+                  title: "Development Phase",
+                  description:
+                    "Core development work and feature implementation",
+                  budget: "0",
+                  timeline: "2-3 weeks",
+                  status: "pending" as const,
                   dueDate: undefined,
                   completedAt: undefined,
-                  order: 2
+                  order: 2,
                 },
                 {
-                  id: 'default-milestone-3',
-                  title: 'Testing & Deployment',
-                  description: 'Quality assurance, testing, and final deployment',
-                  budget: '0',
-                  timeline: '1 week',
-                  status: 'pending' as const,
+                  id: "default-milestone-3",
+                  title: "Testing & Deployment",
+                  description:
+                    "Quality assurance, testing, and final deployment",
+                  budget: "0",
+                  timeline: "1 week",
+                  status: "pending" as const,
                   dueDate: undefined,
                   completedAt: undefined,
-                  order: 3
-                }
+                  order: 3,
+                },
               ];
             }
 
@@ -437,19 +476,24 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
 
   const totalBudget = (() => {
-    if (projectData.pricing?.type === "fixed" && projectData.pricing.fixedBudget) {
+    if (
+      projectData.pricing?.type === "fixed" &&
+      projectData.pricing.fixedBudget
+    ) {
       return parseFloat(projectData.pricing.fixedBudget) || 0;
     }
 
-    const milestones = projectData.milestones || projectData.pricing?.milestones || [];
+    const milestones =
+      projectData.milestones || projectData.pricing?.milestones || [];
     return milestones.reduce((sum, m) => {
-      const budget = typeof m.budget === 'string' ? parseFloat(m.budget) : (m.budget || 0);
+      const budget =
+        typeof m.budget === "string" ? parseFloat(m.budget) : m.budget || 0;
       return sum + (isNaN(budget) ? 0 : budget);
     }, 0);
   })();
 
   const spentBudget = (projectData.payments || [])
-    .filter(p => p.status === 'approved' || p.status === 'completed')
+    .filter((p) => p.status === "approved" || p.status === "completed")
     .reduce((sum, p) => sum + p.amount, 0);
   const budgetProgress =
     totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
@@ -460,26 +504,26 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     projectData.actualCompletionDate || projectData.estimatedCompletionDate;
   const daysPassed = startDate
     ? Math.floor(
-      (Date.now() -
-        (typeof startDate === "string"
-          ? new Date(startDate).getTime()
-          : startDate.getTime())) /
-      (1000 * 3600 * 24)
-    )
+        (Date.now() -
+          (typeof startDate === "string"
+            ? new Date(startDate).getTime()
+            : startDate.getTime())) /
+          (1000 * 3600 * 24)
+      )
     : 0;
   const totalDays =
     startDate && endDate
       ? Math.floor(
-        ((typeof endDate === "string"
-          ? new Date(endDate)
-          : endDate
-        ).getTime() -
-          (typeof startDate === "string"
-            ? new Date(startDate)
-            : startDate
-          ).getTime()) /
-        (1000 * 3600 * 24)
-      )
+          ((typeof endDate === "string"
+            ? new Date(endDate)
+            : endDate
+          ).getTime() -
+            (typeof startDate === "string"
+              ? new Date(startDate)
+              : startDate
+            ).getTime()) /
+            (1000 * 3600 * 24)
+        )
       : 0;
 
   if (!selectedProject) return null;
@@ -495,31 +539,71 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             <div className="bg-white p-4 rounded-b-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border p-4 rounded-lg shadow-sm">
-                  <h3 className="text-lg font-medium text-gray-800">Timeline</h3>
-                  <p>Start Date: {projectData.startDate ? new Date(projectData.startDate).toLocaleDateString() : 'N/A'}</p>
-                  <p>Estimated Completion: {projectData.estimatedCompletionDate ? new Date(projectData.estimatedCompletionDate).toLocaleDateString() : 'N/A'}</p>
+                  <h3 className="text-lg font-medium text-gray-800">
+                    Timeline
+                  </h3>
+                  <p>
+                    Start Date:{" "}
+                    {projectData.startDate
+                      ? new Date(projectData.startDate).toLocaleDateString()
+                      : "N/A"}
+                  </p>
+                  <p>
+                    Estimated Completion:{" "}
+                    {projectData.estimatedCompletionDate
+                      ? new Date(
+                          projectData.estimatedCompletionDate
+                        ).toLocaleDateString()
+                      : "N/A"}
+                  </p>
                   <p>Days Active: {daysPassed}</p>
                 </div>
                 <div className="border p-4 rounded-lg shadow-sm">
-                  <h3 className="text-lg font-medium text-gray-800">Budget Utilization</h3>
-                  <p>Total Budget: {formatCurrency(totalBudget, projectData.pricing?.currency || "USD")}</p>
-                  <p>Spent: {formatCurrency(spentBudget, projectData.pricing?.currency || "USD")}</p>
+                  <h3 className="text-lg font-medium text-gray-800">
+                    Budget Utilization
+                  </h3>
+                  <p>
+                    Total Budget:{" "}
+                    {formatCurrency(
+                      totalBudget,
+                      projectData.pricing?.currency || "USD"
+                    )}
+                  </p>
+                  <p>
+                    Spent:{" "}
+                    {formatCurrency(
+                      spentBudget,
+                      projectData.pricing?.currency || "USD"
+                    )}
+                  </p>
                   <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                    <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${budgetProgress}%` }}></div>
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full"
+                      style={{ width: `${budgetProgress}%` }}
+                    ></div>
                   </div>
                 </div>
                 <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
-                  <h3 className="text-lg font-medium text-gray-800">Technology Stack</h3>
-                  <p>{(projectData.projectDetails?.techStack || []).join(', ') || 'N/A'}</p>
+                  <h3 className="text-lg font-medium text-gray-800">
+                    Technology Stack
+                  </h3>
+                  <p>
+                    {(projectData.projectDetails?.techStack || []).join(", ") ||
+                      "N/A"}
+                  </p>
                 </div>
                 <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
-                  <h3 className="text-lg font-medium text-gray-800">Client Information</h3>
+                  <h3 className="text-lg font-medium text-gray-800">
+                    Client Information
+                  </h3>
                   <p>Client ID: {projectData.clientId}</p>
                   <p>Status: {projectData.status}</p>
                 </div>
               </div>
               <div className="flex justify-end mt-4">
-                <button className="bg-blue-600 text-white px-3 py-2 rounded-lg shadow-md focus:outline-none">Manage Project</button>
+                <button className="bg-blue-600 text-white px-3 py-2 rounded-lg shadow-md focus:outline-none">
+                  Manage Project
+                </button>
               </div>
             </div>
           </div>
@@ -527,7 +611,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       case "milestones":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Milestones</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">
+              Milestones
+            </h2>
             <div className="space-y-4">
               {(projectData.milestones || []).map((milestone) => (
                 <div
@@ -556,7 +642,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     >
                       {milestone.status.replace("_", " ")}
                     </div>
-                    <div className="text-lg font-bold text-white mt-2">
+                    <div className="text-lg font-semibold text-white mt-2">
                       {formatCurrency(
                         parseFloat(milestone.budget),
                         projectData.pricing?.currency || "USD"
@@ -582,7 +668,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       case "budget":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Payments</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">Payments</h2>
             <div className="space-y-4">
               {(projectData.payments || []).map((payment) => (
                 <div
@@ -594,10 +680,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {payment.description || "Payment"}
                     </h3>
                     <p className="text-sm text-gray-400">
-                      Method: {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
+                      Method:{" "}
+                      {formatPaymentMethodLabel(
+                        payment.method as PaymentMethodType
+                      )}
                     </p>
                     <div className="text-xs text-gray-500 mt-2">
-                      Date: {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
+                      Date:{" "}
+                      {payment.date
+                        ? new Date(payment.date).toLocaleDateString()
+                        : "N/A"}
                     </div>
                   </div>
                   <div className="text-right">
@@ -608,7 +700,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     >
                       {payment.status?.replace("_", " ") || "pending"}
                     </div>
-                    <div className="text-lg font-bold text-white mt-2">
+                    <div className="text-lg font-semibold text-white mt-2">
                       {formatCurrency(
                         payment.amount,
                         payment.currency || "USD"
@@ -654,15 +746,21 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               projectId={selectedProject._id}
               projectTitle={selectedProject.projectDetails.title}
               currentUserId={currentUser!.id}
-              currentUserRole={currentUser!.role as "admin" | "client" | "developer"}
-              currentUserName={currentUser!.name || currentUser!.email || "Anonymous"}
+              currentUserRole={
+                currentUser!.role as "admin" | "client" | "developer"
+              }
+              currentUserName={
+                currentUser!.name || currentUser!.email || "Anonymous"
+              }
             />
           </div>
         );
       case "activity":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Recent Activity</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">
+              Recent Activity
+            </h2>
 
             <div className="space-y-4">
               {activityLoading ? (
@@ -679,14 +777,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     Error Loading Activity
                   </h3>
                   <p className="text-gray-400">
-                    There was an error loading the activity. Please try again later.
+                    There was an error loading the activity. Please try again
+                    later.
                   </p>
                   <p className="text-red-400 text-sm mt-2">
-                    {activityError.message || 'Unknown error occurred'}
+                    {activityError.message || "Unknown error occurred"}
                   </p>
                 </div>
               ) : activityData && activityData.data ? (
-                (console.log('Rendering activities:', activityData.data.length), activityData.data.map((activity: ActivityItem) => (
+                (console.log("Rendering activities:", activityData.data.length),
+                activityData.data.map((activity: ActivityItem) => (
                   <div
                     key={`${activity.type}-${activity.id}`}
                     className="flex items-start space-x-4 p-4 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
@@ -715,8 +815,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-white font-medium">{activity.title}</h3>
-                      <p className="text-gray-400 text-sm">{activity.description}</p>
+                      <h3 className="text-white font-medium">
+                        {activity.title}
+                      </h3>
+                      <p className="text-gray-400 text-sm">
+                        {activity.description}
+                      </p>
                       <div className="flex items-center space-x-4 mt-2">
                         <p className="text-gray-500 text-xs">
                           {(typeof activity.createdAt === "string"
@@ -791,18 +895,19 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     }
   };
 
-
   // Budget calculation functions
   const getTotalBudget = () => {
-    if (selectedProject.pricing?.type === 'fixed') {
-      return parseFloat(selectedProject.pricing.fixedBudget || '0');
-    } else if (selectedProject.pricing?.type === 'hourly') {
-      const hourlyRate = parseFloat(selectedProject.pricing.hourlyRate || '0');
-      const estimatedHours = parseFloat(selectedProject.pricing.estimatedHours || '0');
+    if (selectedProject.pricing?.type === "fixed") {
+      return parseFloat(selectedProject.pricing.fixedBudget || "0");
+    } else if (selectedProject.pricing?.type === "hourly") {
+      const hourlyRate = parseFloat(selectedProject.pricing.hourlyRate || "0");
+      const estimatedHours = parseFloat(
+        selectedProject.pricing.estimatedHours || "0"
+      );
       return hourlyRate * estimatedHours;
-    } else if (selectedProject.pricing?.type === 'milestone') {
+    } else if (selectedProject.pricing?.type === "milestone") {
       return (selectedProject.milestones || []).reduce((total, milestone) => {
-        return total + parseFloat(milestone.budget || '0');
+        return total + parseFloat(milestone.budget || "0");
       }, 0);
     }
     return 0;
@@ -810,7 +915,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
   const getTotalPaid = () => {
     return (projectData.payments || []).reduce((total, payment) => {
-      if (payment.status === 'approved' || payment.status === 'completed' || payment.status === 'paid') {
+      if (
+        payment.status === "approved" ||
+        payment.status === "completed" ||
+        payment.status === "paid"
+      ) {
         return total + payment.amount;
       }
       return total;
@@ -834,7 +943,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     ) {
       return (
         parseFloat(project.pricing.hourlyRate) *
-        (project.pricing.estimatedHours ? parseFloat(project.pricing.estimatedHours) : 0)
+        (project.pricing.estimatedHours
+          ? parseFloat(project.pricing.estimatedHours)
+          : 0)
       );
     }
     return 0;
@@ -846,7 +957,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       await onProgressUpdate(selectedProject._id, progressValue);
       setShowProgressModal(false);
     } catch (error) {
-      toast.error("Failed to update progress", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Failed to update progress",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   };
 
@@ -856,7 +970,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       setUpdateForm({ title: "", description: "", type: "general" });
       setShowUpdateModal(false);
     } catch (error) {
-      toast.error("Failed to add update", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Failed to add update",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   };
 
@@ -911,22 +1028,25 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const handleAddFile = async () => {
     if (newFile.fileName && newFile.fileUrl) {
       try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`/api/projects/${selectedProject._id}/files`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            fileName: newFile.fileName,
-            fileUrl: newFile.fileUrl,
-            fileType: newFile.fileType || 'document',
-            uploadedBy: 'admin',
-            ...(newFile.fileSize && { fileSize: newFile.fileSize }),
-            ...(newFile.description && { description: newFile.description }),
-          }),
-        });
+        const token = localStorage.getItem("auth_token");
+        const response = await fetch(
+          `/api/projects/${selectedProject._id}/files`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              fileName: newFile.fileName,
+              fileUrl: newFile.fileUrl,
+              fileType: newFile.fileType || "document",
+              uploadedBy: "admin",
+              ...(newFile.fileSize && { fileSize: newFile.fileSize }),
+              ...(newFile.description && { description: newFile.description }),
+            }),
+          }
+        );
 
         const result = await response.json();
 
@@ -936,8 +1056,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             fileName: newFile.fileName,
             fileUrl: newFile.fileUrl,
             createdAt: new Date(),
-            fileType: (newFile.fileType || 'document') as FileType,
-            uploadedBy: 'admin',
+            fileType: (newFile.fileType || "document") as FileType,
+            uploadedBy: "admin",
             ...(newFile.fileSize && { fileSize: newFile.fileSize }),
             ...(newFile.description && { description: newFile.description }),
           };
@@ -951,47 +1071,63 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           toast.error("Failed to add file", result.error);
         }
       } catch (error) {
-        toast.error("Error adding file", error instanceof Error ? error.message : "Unknown error");
+        toast.error(
+          "Error adding file",
+          error instanceof Error ? error.message : "Unknown error"
+        );
       }
     }
   };
 
-  const handleUpdateFile = async (id: string, updatedFile: Partial<ProjectFile>) => {
+  const handleUpdateFile = async (
+    id: string,
+    updatedFile: Partial<ProjectFile>
+  ) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/projects/${selectedProject._id}/files/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedFile),
-      });
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(
+        `/api/projects/${selectedProject._id}/files/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatedFile),
+        }
+      );
 
       if (response.ok) {
         setProjectData((prevData) => ({
           ...prevData,
-          files: prevData.files?.map((file) =>
-            file.id === id ? { ...file, ...updatedFile } : file
-          ) || [],
+          files:
+            prevData.files?.map((file) =>
+              file.id === id ? { ...file, ...updatedFile } : file
+            ) || [],
         }));
       } else {
         toast.error("Failed to update file");
       }
     } catch (error) {
-      toast.error("Error updating file", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Error updating file",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   };
 
   const handleDeleteFile = async (id: string) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/projects/${selectedProject._id}/files/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(
+        `/api/projects/${selectedProject._id}/files/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         setProjectData((prevData) => ({
@@ -1002,7 +1138,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         toast.error("Failed to delete file");
       }
     } catch (error) {
-      toast.error("Error deleting file", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Error deleting file",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   };
 
@@ -1035,9 +1174,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   ) => {
     setProjectData((prevData) => ({
       ...prevData,
-      milestones: prevData.milestones?.map((milestone) =>
-        milestone.id === id ? { ...milestone, ...updatedMilestone } : milestone
-      ) || [],
+      milestones:
+        prevData.milestones?.map((milestone) =>
+          milestone.id === id
+            ? { ...milestone, ...updatedMilestone }
+            : milestone
+        ) || [],
     }));
     setEditingMilestone(null);
   };
@@ -1045,7 +1187,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   const handleDeleteMilestone = (id: string) => {
     setProjectData((prevData) => ({
       ...prevData,
-      milestones: prevData.milestones?.filter((milestone) => milestone.id !== id) || [],
+      milestones:
+        prevData.milestones?.filter((milestone) => milestone.id !== id) || [],
     }));
   };
 
@@ -1082,9 +1225,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   ) => {
     setProjectData((prevData) => ({
       ...prevData,
-      payments: prevData.payments?.map((payment) =>
-        payment.id === id ? { ...payment, ...updatedPayment } : payment
-      ) || [],
+      payments:
+        prevData.payments?.map((payment) =>
+          payment.id === id ? { ...payment, ...updatedPayment } : payment
+        ) || [],
     }));
     setEditingPayment(null);
   };
@@ -1099,15 +1243,15 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   // Payment approval functions
   const approvePayment = async (paymentId: string) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/payment-actions', {
-        method: 'POST',
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch("/api/payment-actions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          action: 'approve',
+          action: "approve",
           projectId: selectedProject._id,
           paymentId: paymentId,
         }),
@@ -1129,21 +1273,24 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         toast.error("Failed to approve payment", result.error);
       }
     } catch (error) {
-      toast.error("Error approving payment", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Error approving payment",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   };
 
   const rejectPayment = async (paymentId: string, reason: string) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/payment-actions', {
-        method: 'POST',
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch("/api/payment-actions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          action: 'reject',
+          action: "reject",
           projectId: selectedProject._id,
           paymentId: paymentId,
           rejectionReason: reason,
@@ -1167,7 +1314,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         toast.error("Failed to reject payment", result.error);
       }
     } catch (error) {
-      toast.error("Error rejecting payment", error instanceof Error ? error.message : "Unknown error");
+      toast.error(
+        "Error rejecting payment",
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   };
 
@@ -1233,119 +1383,135 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     }
   };
   // Get project-specific activity data
-  const recentActivity = activityData?.activities || [
-    // Project updates
-    ...(projectData.updates || []).map((u) => ({
-      id: u.id,
-      type: "update" as const,
-      title: u.title,
-      description: u.description,
-      createdAt: u.createdAt,
-      actor: {
-        id: "admin",
-        name: u.author || "Admin",
-        role: "admin"
-      },
-      activityType: "update"
-    })),
-    // Completed milestones
-    ...(projectData.milestones || [])
-      .filter((m) => m.completedAt)
-      .map((m) => ({
-        id: m.id,
-        type: "milestone" as const,
-        title: `Milestone Completed: ${m.title}`,
-        description: m.description || "Milestone completed successfully",
-        createdAt: m.completedAt!,
+  const recentActivity =
+    activityData?.activities ||
+    [
+      // Project updates
+      ...(projectData.updates || []).map((u) => ({
+        id: u.id,
+        type: "update" as const,
+        title: u.title,
+        description: u.description,
+        createdAt: u.createdAt,
         actor: {
-          id: "system",
-          name: "System",
-          role: "system"
+          id: "admin",
+          name: u.author || "Admin",
+          role: "admin",
         },
-        activityType: "milestone"
+        activityType: "update",
       })),
-    // Payment records
-    ...(projectData.payments || [])
-      .filter((p) => p.status === "approved" || p.status === "completed")
-      .map((p) => ({
-        id: p.id,
-        type: "payment" as const,
-        title: `Payment ${p.status === "completed" ? "Completed" : "Approved"}`,
-        description: `Payment of ${formatCurrencyLocal(p.amount, (p.currency || "USD") as "USD" | "KES")} via ${p.method}`,
-        createdAt: p.date || new Date().toISOString(),
+      // Completed milestones
+      ...(projectData.milestones || [])
+        .filter((m) => m.completedAt)
+        .map((m) => ({
+          id: m.id,
+          type: "milestone" as const,
+          title: `Milestone Completed: ${m.title}`,
+          description: m.description || "Milestone completed successfully",
+          createdAt: m.completedAt!,
+          actor: {
+            id: "system",
+            name: "System",
+            role: "system",
+          },
+          activityType: "milestone",
+        })),
+      // Payment records
+      ...(projectData.payments || [])
+        .filter((p) => p.status === "approved" || p.status === "completed")
+        .map((p) => ({
+          id: p.id,
+          type: "payment" as const,
+          title: `Payment ${
+            p.status === "completed" ? "Completed" : "Approved"
+          }`,
+          description: `Payment of ${formatCurrencyLocal(
+            p.amount,
+            (p.currency || "USD") as "USD" | "KES"
+          )} via ${p.method}`,
+          createdAt: p.date || new Date().toISOString(),
+          actor: {
+            id: "admin",
+            name: "Admin",
+            role: "admin",
+          },
+          activityType: "payment",
+        })),
+      // Project status changes
+      // File uploads
+      ...(projectData.files || []).map((file) => ({
+        id: file.id,
+        type: "file" as const,
+        title: "File Uploaded",
+        description: `File "${file.fileName}" was uploaded to the project`,
+        createdAt: file.createdAt,
+        actor: {
+          id: "admin",
+          name: file.uploadedBy || "Admin",
+          role: "admin",
+        },
+        activityType: "file",
+      })),
+      // Chat messages (fetch from project chat data if available)
+      ...((projectData as any).chats || []).map((chat: any) => ({
+        id: chat.id,
+        type: "chat" as const,
+        title: "New Message in Chat",
+        description: chat.message,
+        createdAt: chat.createdAt,
+        actor: chat.sender,
+        activityType: "chat",
+      })),
+      // Assignment activities (if there are any developer assignments)
+      ...((projectData as any).assignments || []).map((assignment: any) => ({
+        id: assignment.id,
+        type: "assignment" as const,
+        title: "Developer Assigned",
+        description: `${
+          assignment.developerName || "Developer"
+        } was assigned to the project`,
+        createdAt: assignment.assignedAt || assignment.createdAt,
         actor: {
           id: "admin",
           name: "Admin",
-          role: "admin"
+          role: "admin",
         },
-        activityType: "payment"
+        activityType: "assignment",
       })),
-    // Project status changes
-    // File uploads
-    ...(projectData.files || []).map((file) => ({
-      id: file.id,
-      type: "file" as const,
-      title: "File Uploaded",
-      description: `File "${file.fileName}" was uploaded to the project`,
-      createdAt: file.createdAt,
-      actor: {
-        id: "admin",
-        name: file.uploadedBy || "Admin",
-        role: "admin"
-      },
-      activityType: "file"
-    })),
-    // Chat messages (fetch from project chat data if available)
-    ...((projectData as any).chats || []).map((chat: any) => ({
-      id: chat.id,
-      type: "chat" as const,
-      title: "New Message in Chat",
-      description: chat.message,
-      createdAt: chat.createdAt,
-      actor: chat.sender,
-      activityType: "chat"
-    })),
-    // Assignment activities (if there are any developer assignments)
-    ...((projectData as any).assignments || []).map((assignment: any) => ({
-      id: assignment.id,
-      type: "assignment" as const,
-      title: "Developer Assigned",
-      description: `${assignment.developerName || 'Developer'} was assigned to the project`,
-      createdAt: assignment.assignedAt || assignment.createdAt,
-      actor: {
-        id: "admin",
-        name: "Admin",
-        role: "admin"
-      },
-      activityType: "assignment"
-    })),
-    // Project status changes
-    ...(selectedProject.status !== "pending" ? [{
-      id: `status-${selectedProject._id}`,
-      type: "system" as const,
-      title: `Project Status Updated`,
-      description: `Project status changed to ${selectedProject.status.replace("_", " ")}`,
-      createdAt: selectedProject.updatedAt || selectedProject.createdAt,
-      actor: {
-        id: "system",
-        name: "System",
-        role: "system"
-      },
-      activityType: "system"
-    }] : [])
-  ]
-    .sort(
-      (a, b) =>
-        (typeof b.createdAt === "string"
-          ? new Date(b.createdAt)
-          : b.createdAt
-        ).getTime() -
-        (typeof a.createdAt === "string"
-          ? new Date(a.createdAt)
-          : a.createdAt
-        ).getTime()
-    )
-    .slice(0, 10); // Show more activities for better project tracking
+      // Project status changes
+      ...(selectedProject.status !== "pending"
+        ? [
+            {
+              id: `status-${selectedProject._id}`,
+              type: "system" as const,
+              title: `Project Status Updated`,
+              description: `Project status changed to ${selectedProject.status.replace(
+                "_",
+                " "
+              )}`,
+              createdAt: selectedProject.updatedAt || selectedProject.createdAt,
+              actor: {
+                id: "system",
+                name: "System",
+                role: "system",
+              },
+              activityType: "system",
+            },
+          ]
+        : []),
+    ]
+      .sort(
+        (a, b) =>
+          (typeof b.createdAt === "string"
+            ? new Date(b.createdAt)
+            : b.createdAt
+          ).getTime() -
+          (typeof a.createdAt === "string"
+            ? new Date(a.createdAt)
+            : a.createdAt
+          ).getTime()
+      )
+      .slice(0, 10); // Show more activities for better project tracking
 
   return (
     <div className="bg-black/5 min-h-screen rounded-lg">
@@ -1424,13 +1590,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setTrackingView(tab.id as TrackingView)}
-                  className={`cursor-pointer flex items-center space-x-2 px-5 py-3 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${trackingView === tab.id
-                    ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25 scale-105"
-                    : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:scale-105"
-                    }`}
+                  className={`cursor-pointer flex items-center space-x-2 px-5 py-3 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                    trackingView === tab.id
+                      ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25 scale-105"
+                      : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:scale-105"
+                  }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="font-medium text-xs monty uppercase">{tab.label}</span>
+                  <span className="font-medium text-xs monty uppercase">
+                    {tab.label}
+                  </span>
                 </button>
               );
             })}
@@ -1527,7 +1696,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
 
                   {/* Technology Stack */}
-                  {(selectedProject.projectDetails?.techStack || []).length > 0 && (
+                  {(selectedProject.projectDetails?.techStack || []).length >
+                    0 && (
                     <div>
                       <h4 className="text-lg font-medium text-white mb-3">
                         Technology Stack
@@ -1885,33 +2055,29 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {/* Pending/Reviewed State Actions */}
                       {(selectedProject.status === "pending" ||
                         selectedProject.status === "reviewed") && (
-                          <>
-                            {/* Approve Button */}
-                            <button
-                              onClick={() =>
-                                onStatusUpdate(selectedProject._id, "in-progress")
-                              }
-                              className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-green-600/20 text-gray-300 hover:text-green-400 cursor-pointer border border-gray-600/50 hover:border-green-500/50"
-                            >
-                              <FaCheckCircle className="text-sm" />
-                              <span className="font-medium">
-                                Approve Project
-                              </span>
-                            </button>
-                            {/* Reject Button */}
-                            <button
-                              onClick={() =>
-                                onStatusUpdate(selectedProject._id, "rejected")
-                              }
-                              className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
-                            >
-                              <FaTimesCircle className="text-sm" />
-                              <span className="font-medium">
-                                Reject Project
-                              </span>
-                            </button>
-                          </>
-                        )}
+                        <>
+                          {/* Approve Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "in-progress")
+                            }
+                            className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-green-600/20 text-gray-300 hover:text-green-400 cursor-pointer border border-gray-600/50 hover:border-green-500/50"
+                          >
+                            <FaCheckCircle className="text-sm" />
+                            <span className="font-medium">Approve Project</span>
+                          </button>
+                          {/* Reject Button */}
+                          <button
+                            onClick={() =>
+                              onStatusUpdate(selectedProject._id, "rejected")
+                            }
+                            className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
+                          >
+                            <FaTimesCircle className="text-sm" />
+                            <span className="font-medium">Reject Project</span>
+                          </button>
+                        </>
+                      )}
 
                       {/* In Progress State Actions */}
                       {selectedProject.status === "in-progress" && (
@@ -1937,9 +2103,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-orange-600/20 text-gray-300 hover:text-orange-400 cursor-pointer border border-gray-600/50 hover:border-orange-500/50"
                           >
                             <FaClock className="text-sm" />
-                            <span className="font-medium">
-                              Put On Hold
-                            </span>
+                            <span className="font-medium">Put On Hold</span>
                           </button>
                           {/* Cancel Button */}
                           <button
@@ -1949,9 +2113,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
                           >
                             <FaTimesCircle className="text-sm" />
-                            <span className="font-medium">
-                              Cancel Project
-                            </span>
+                            <span className="font-medium">Cancel Project</span>
                           </button>
                         </>
                       )}
@@ -1967,9 +2129,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-green-600/20 text-gray-300 hover:text-green-400 cursor-pointer border border-gray-600/50 hover:border-green-500/50"
                           >
                             <FaPlay className="text-sm" />
-                            <span className="font-medium">
-                              Resume Project
-                            </span>
+                            <span className="font-medium">Resume Project</span>
                           </button>
                           {/* Cancel Button */}
                           <button
@@ -1979,9 +2139,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
                           >
                             <FaTimesCircle className="text-sm" />
-                            <span className="font-medium">
-                              Cancel Project
-                            </span>
+                            <span className="font-medium">Cancel Project</span>
                           </button>
                         </>
                       )}
@@ -1990,10 +2148,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {(selectedProject.status === "completed" ||
                         selectedProject.status === "cancelled" ||
                         selectedProject.status === "rejected") && (
-                          <div className="text-center text-gray-400 p-4 bg-black/20 rounded-2xl border border-white/10">
-                            <p>No further actions available for this project.</p>
-                          </div>
-                        )}
+                        <div className="text-center text-gray-400 p-4 bg-black/20 rounded-2xl border border-white/10">
+                          <p>No further actions available for this project.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2062,8 +2220,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 <p className="text-white font-medium">
                                   {milestone.dueDate
                                     ? new Date(
-                                      milestone.dueDate
-                                    ).toLocaleDateString()
+                                        milestone.dueDate
+                                      ).toLocaleDateString()
                                     : "N/A"}
                                 </p>
                               </div>
@@ -2122,14 +2280,15 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 {milestone.title}
                               </h3>
                               <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${milestone.status === "completed"
-                                  ? "bg-green-500/20 text-green-300"
-                                  : milestone.status === "in-progress"
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  milestone.status === "completed"
+                                    ? "bg-green-500/20 text-green-300"
+                                    : milestone.status === "in-progress"
                                     ? "bg-blue-500/20 text-blue-300"
                                     : milestone.status === "cancelled"
-                                      ? "bg-red-500/20 text-red-300"
-                                      : "bg-gray-500/20 text-gray-300"
-                                  }`}
+                                    ? "bg-red-500/20 text-red-300"
+                                    : "bg-gray-500/20 text-gray-300"
+                                }`}
                               >
                                 {(milestone.status ?? "pending").replace(
                                   "_",
@@ -2245,7 +2404,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </h2>
               <button
                 onClick={() => setShowUpdateModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-300"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-300"
               >
                 <FaPlus />
                 <span>Add Update</span>
@@ -2306,7 +2465,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               </h2>
               <button
                 onClick={() => setShowFileUploadModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-300"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-300"
               >
                 <FaPlus />
                 <span>Upload File</span>
@@ -2374,14 +2533,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           </div>
         )}
 
-
         {trackingView === "activity" && (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-semibold text-white mb-2">
               Recent Activity
             </h2>
             <p className="text-gray-400 text-sm mb-6">
-              All project activities including updates, milestones, payments, file uploads, chat messages, and assignments.
+              All project activities including updates, milestones, payments,
+              file uploads, chat messages, and assignments.
             </p>
 
             {/* Loading State */}
@@ -2554,7 +2713,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <div className="w-full bg-gray-700/50 rounded-full h-3">
                   <div
                     className="bg-gradient-to-r from-green-500 to-green-400 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((getTotalPaid() / getTotalBudget()) * 100, 100)}%` }}
+                    style={{
+                      width: `${Math.min(
+                        (getTotalPaid() / getTotalBudget()) * 100,
+                        100
+                      )}%`,
+                    }}
                   ></div>
                 </div>
               </div>
@@ -2563,7 +2727,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             {/* Payments Section */}
             <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-semibold text-white">Payments & Approvals</h2>
+                <h2 className="text-2xl font-semibold text-white">
+                  Payments & Approvals
+                </h2>
                 <button
                   onClick={() => setShowPaymentModal(true)}
                   className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-xl transition-all duration-200"
@@ -2577,29 +2743,36 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               <div className="mb-6">
                 <div className="flex space-x-1 bg-white/5 p-1 rounded-xl">
                   <button
-                    onClick={() => setActivePaymentTab('pending')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${activePaymentTab === 'pending'
-                      ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
+                    onClick={() => setActivePaymentTab("pending")}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      activePaymentTab === "pending"
+                        ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
                   >
                     Pending Approvals
                     {(projectData.payments || []).filter(
-                      (p: Payment) => p.status === "pending" && p.submittedBy === "client"
+                      (p: Payment) =>
+                        p.status === "pending" && p.submittedBy === "client"
                     ).length > 0 && (
-                        <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-yellow-500 text-black rounded-full">
-                          {(projectData.payments || []).filter(
-                            (p: Payment) => p.status === "pending" && p.submittedBy === "client"
-                          ).length}
-                        </span>
-                      )}
+                      <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-yellow-500 text-black rounded-full">
+                        {
+                          (projectData.payments || []).filter(
+                            (p: Payment) =>
+                              p.status === "pending" &&
+                              p.submittedBy === "client"
+                          ).length
+                        }
+                      </span>
+                    )}
                   </button>
                   <button
-                    onClick={() => setActivePaymentTab('history')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${activePaymentTab === 'history'
-                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
+                    onClick={() => setActivePaymentTab("history")}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      activePaymentTab === "history"
+                        ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
                   >
                     Payment History
                     {(projectData.payments || []).length > 0 && (
@@ -2613,16 +2786,18 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
               {/* Tab Content */}
               <div className="min-h-[400px]">
-                {activePaymentTab === 'pending' && (
+                {activePaymentTab === "pending" && (
                   <div>
                     {(projectData.payments || []).filter(
-                      (p: Payment) => p.status === "pending" && p.submittedBy === "client"
+                      (p: Payment) =>
+                        p.status === "pending" && p.submittedBy === "client"
                     ).length > 0 ? (
                       <div className="space-y-4">
                         {(projectData.payments || [])
                           .filter(
                             (p: Payment) =>
-                              p.status === "pending" && p.submittedBy === "client"
+                              p.status === "pending" &&
+                              p.submittedBy === "client"
                           )
                           .map((payment: Payment) => (
                             <div
@@ -2644,7 +2819,9 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                   </div>
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
                                     <div>
-                                      <span className="text-gray-400">Amount:</span>
+                                      <span className="text-gray-400">
+                                        Amount:
+                                      </span>
                                       <p className="text-white font-medium">
                                         {formatCurrencyLocal(
                                           payment.amount,
@@ -2653,21 +2830,35 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                       </p>
                                     </div>
                                     <div>
-                                      <span className="text-gray-400">Date:</span>
+                                      <span className="text-gray-400">
+                                        Date:
+                                      </span>
                                       <p className="text-white font-medium">
-                                        {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
+                                        {payment.date
+                                          ? new Date(
+                                              payment.date
+                                            ).toLocaleDateString()
+                                          : "N/A"}
                                       </p>
                                     </div>
                                     <div>
-                                      <span className="text-gray-400">Method:</span>
+                                      <span className="text-gray-400">
+                                        Method:
+                                      </span>
                                       <p className="text-white font-medium capitalize">
                                         {payment.method}
                                       </p>
                                     </div>
                                     <div>
-                                      <span className="text-gray-400">Submitted:</span>
+                                      <span className="text-gray-400">
+                                        Submitted:
+                                      </span>
                                       <p className="text-white font-medium">
-                                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
+                                        {payment.createdAt
+                                          ? new Date(
+                                              payment.createdAt
+                                            ).toLocaleDateString()
+                                          : "N/A"}
                                       </p>
                                     </div>
                                   </div>
@@ -2721,92 +2912,111 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
                 )}
 
-                {activePaymentTab === 'history' && (
+                {activePaymentTab === "history" && (
                   <div>
                     {(projectData.payments || []).length > 0 ? (
                       <div className="space-y-4">
-                        {(projectData.payments || []).map((payment: Payment) => (
-                          <div
-                            key={payment.id}
-                            className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-3 mb-2">
-                                  <h3 className="text-lg font-semibold text-white">
-                                    {payment.description || "Payment"}
-                                  </h3>
-                                  <span
-                                    className={`px-3 py-1 rounded-full text-xs font-medium border ${payment.status === "approved"
-                                      ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                      : payment.status === "rejected"
-                                        ? "bg-red-500/20 text-red-300 border-red-500/30"
-                                        : payment.status === "pending"
+                        {(projectData.payments || []).map(
+                          (payment: Payment) => (
+                            <div
+                              key={payment.id}
+                              className="p-6 bg-white/[0.03] rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-3 mb-2">
+                                    <h3 className="text-lg font-semibold text-white">
+                                      {payment.description || "Payment"}
+                                    </h3>
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                                        payment.status === "approved"
+                                          ? "bg-green-500/20 text-green-300 border-green-500/30"
+                                          : payment.status === "rejected"
+                                          ? "bg-red-500/20 text-red-300 border-red-500/30"
+                                          : payment.status === "pending"
                                           ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
                                           : "bg-gray-500/20 text-gray-300 border-gray-500/30"
                                       }`}
-                                  >
-                                    {payment.status || "pending"}
-                                  </span>
-                                  {payment.submittedBy && (
-                                    <span className="text-xs text-gray-400">
-                                      by {payment.submittedBy}
+                                    >
+                                      {payment.status || "pending"}
                                     </span>
+                                    {payment.submittedBy && (
+                                      <span className="text-xs text-gray-400">
+                                        by {payment.submittedBy}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                                    <div>
+                                      <span className="text-gray-400">
+                                        Amount:
+                                      </span>
+                                      <p className="text-white font-medium">
+                                        {formatCurrencyLocal(
+                                          payment.amount,
+                                          payment.currency || "USD"
+                                        )}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">
+                                        Date:
+                                      </span>
+                                      <p className="text-white font-medium">
+                                        {payment.date
+                                          ? new Date(
+                                              payment.date
+                                            ).toLocaleDateString()
+                                          : "N/A"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">
+                                        Method:
+                                      </span>
+                                      <p className="text-white font-medium capitalize">
+                                        {payment.method}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">
+                                        Created:
+                                      </span>
+                                      <p className="text-white font-medium">
+                                        {payment.createdAt
+                                          ? new Date(
+                                              payment.createdAt
+                                            ).toLocaleDateString()
+                                          : "N/A"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {payment.rejectionReason && (
+                                    <div className="mt-2 p-3 bg-red-500/10 rounded-lg border border-red-500/30">
+                                      <span className="text-red-400 text-sm font-medium">
+                                        Rejection Reason:
+                                      </span>
+                                      <p className="text-red-300 text-sm mt-1">
+                                        {payment.rejectionReason}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {payment.notes && (
+                                    <div className="mt-2 p-3 bg-gray-500/10 rounded-lg border border-gray-500/30">
+                                      <span className="text-gray-400 text-sm font-medium">
+                                        Notes:
+                                      </span>
+                                      <p className="text-gray-300 text-sm mt-1">
+                                        {payment.notes}
+                                      </p>
+                                    </div>
                                   )}
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
-                                  <div>
-                                    <span className="text-gray-400">Amount:</span>
-                                    <p className="text-white font-medium">
-                                      {formatCurrencyLocal(
-                                        payment.amount,
-                                        payment.currency || "USD"
-                                      )}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-400">Date:</span>
-                                    <p className="text-white font-medium">
-                                      {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-400">Method:</span>
-                                    <p className="text-white font-medium capitalize">
-                                      {payment.method}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-400">Created:</span>
-                                    <p className="text-white font-medium">
-                                      {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "N/A"}
-                                    </p>
-                                  </div>
-                                </div>
-                                {payment.rejectionReason && (
-                                  <div className="mt-2 p-3 bg-red-500/10 rounded-lg border border-red-500/30">
-                                    <span className="text-red-400 text-sm font-medium">
-                                      Rejection Reason:
-                                    </span>
-                                    <p className="text-red-300 text-sm mt-1">
-                                      {payment.rejectionReason}
-                                    </p>
-                                  </div>
-                                )}
-                                {payment.notes && (
-                                  <div className="mt-2 p-3 bg-gray-500/10 rounded-lg border border-gray-500/30">
-                                    <span className="text-gray-400 text-sm font-medium">
-                                      Notes:
-                                    </span>
-                                    <p className="text-gray-300 text-sm mt-1">
-                                      {payment.notes}
-                                    </p>
-                                  </div>
-                                )}
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        )}
                       </div>
                     ) : (
                       <div className="text-center py-12">
@@ -2845,8 +3055,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             projectId={selectedProject._id}
             projectTitle={selectedProject.projectDetails.title}
             currentUserId={currentUser.id}
-            currentUserRole={currentUser.role as "admin" | "client" | "developer"}
-            currentUserName={currentUser.name || currentUser.email || 'Anonymous'}
+            currentUserRole={
+              currentUser.role as "admin" | "client" | "developer"
+            }
+            currentUserName={
+              currentUser.name || currentUser.email || "Anonymous"
+            }
           />
         )}
       </div>
@@ -2885,11 +3099,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <select
                   value={paymentForm.method}
                   onChange={(e) =>
-                    setPaymentForm({ ...paymentForm, method: e.target.value as PaymentMethodType })
+                    setPaymentForm({
+                      ...paymentForm,
+                      method: e.target.value as PaymentMethodType,
+                    })
                   }
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  {getPaymentMethodsForCurrency(selectedProject?.pricing?.currency || "USD").map((method) => (
+                  {getPaymentMethodsForCurrency(
+                    selectedProject?.pricing?.currency || "USD"
+                  ).map((method) => (
                     <option key={method.value} value={method.value}>
                       {method.icon} {method.label}
                     </option>
@@ -2906,7 +3125,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg"
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
                 >
                   Record Payment
                 </button>
@@ -2945,7 +3164,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg"
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
                   disabled={!selectedFile}
                 >
                   Upload
@@ -3013,7 +3232,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg"
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
                 >
                   Add
                 </button>
@@ -3272,10 +3491,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   />
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <div
-                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${updateForm.title
-                        ? "bg-blue-400 animate-pulse"
-                        : "bg-gray-500"
-                        }`}
+                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                        updateForm.title
+                          ? "bg-blue-400 animate-pulse"
+                          : "bg-gray-500"
+                      }`}
                     ></div>
                   </div>
                 </div>
@@ -3330,27 +3550,28 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 {/* Type indicator */}
                 <div className="mt-2 flex items-center space-x-2">
                   <div
-                    className={`w-3 h-3 rounded-full ${updateForm.type === "general"
-                      ? "bg-gray-400"
-                      : updateForm.type === "progress"
+                    className={`w-3 h-3 rounded-full ${
+                      updateForm.type === "general"
+                        ? "bg-gray-400"
+                        : updateForm.type === "progress"
                         ? "bg-blue-400"
                         : updateForm.type === "milestone"
-                          ? "bg-purple-400"
-                          : updateForm.type === "issue"
-                            ? "bg-orange-400"
-                            : "bg-green-400"
-                      }`}
+                        ? "bg-purple-400"
+                        : updateForm.type === "issue"
+                        ? "bg-orange-400"
+                        : "bg-green-400"
+                    }`}
                   ></div>
                   <span className="text-gray-400 text-xs font-medium">
                     {updateForm.type === "general"
                       ? "Standard project update"
                       : updateForm.type === "progress"
-                        ? "Progress tracking update"
-                        : updateForm.type === "milestone"
-                          ? "Important milestone achievement"
-                          : updateForm.type === "issue"
-                            ? "Issue or challenge notification"
-                            : "Task completion notification"}
+                      ? "Progress tracking update"
+                      : updateForm.type === "milestone"
+                      ? "Important milestone achievement"
+                      : updateForm.type === "issue"
+                      ? "Issue or challenge notification"
+                      : "Task completion notification"}
                   </span>
                 </div>
               </div>
@@ -3399,26 +3620,27 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-xl p-4">
                   <div className="flex items-start space-x-3">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm ${updateForm.type === "general"
-                        ? "bg-gray-500"
-                        : updateForm.type === "progress"
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm ${
+                        updateForm.type === "general"
+                          ? "bg-gray-500"
+                          : updateForm.type === "progress"
                           ? "bg-blue-500"
                           : updateForm.type === "milestone"
-                            ? "bg-purple-500"
-                            : updateForm.type === "issue"
-                              ? "bg-orange-500"
-                              : "bg-green-500"
-                        }`}
+                          ? "bg-purple-500"
+                          : updateForm.type === "issue"
+                          ? "bg-orange-500"
+                          : "bg-green-500"
+                      }`}
                     >
                       {updateForm.type === "general"
                         ? "📝"
                         : updateForm.type === "progress"
-                          ? "📈"
-                          : updateForm.type === "milestone"
-                            ? "🎯"
-                            : updateForm.type === "issue"
-                              ? "⚠️"
-                              : "✅"}
+                        ? "📈"
+                        : updateForm.type === "milestone"
+                        ? "🎯"
+                        : updateForm.type === "issue"
+                        ? "⚠️"
+                        : "✅"}
                     </div>
                     <div className="flex-1">
                       <h4 className="text-white font-medium text-sm">
@@ -3442,10 +3664,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </button>
                 <button
                   onClick={handleAddUpdate}
-                  className={`flex-1 px-6 py-3 rounded-xl transition-all duration-200 font-semibold shadow-lg transform ${!updateForm.title || !updateForm.description
-                    ? "bg-gray-600/50 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                    }`}
+                  className={`flex-1 px-6 py-3 rounded-xl transition-all duration-200 font-semibold shadow-lg transform ${
+                    !updateForm.title || !updateForm.description
+                      ? "bg-gray-600/50 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                  }`}
                   disabled={!updateForm.title || !updateForm.description}
                 >
                   <div className="flex items-center justify-center space-x-2">
@@ -3471,7 +3694,6 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         </div>
       )}
 
-
       {/* Payment Rejection Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -3481,8 +3703,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <span className="text-red-400 text-xl">✗</span>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">Reject Payment</h2>
-                <p className="text-gray-400 text-sm">Please provide a reason for rejection</p>
+                <h2 className="text-xl font-semibold text-white">
+                  Reject Payment
+                </h2>
+                <p className="text-gray-400 text-sm">
+                  Please provide a reason for rejection
+                </p>
               </div>
             </div>
 
@@ -3520,10 +3746,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   }
                 }}
                 disabled={!rejectionReason.trim()}
-                className={`flex-1 px-6 py-3 rounded-xl transition-all duration-200 font-semibold cursor-pointer ${rejectionReason.trim()
+                className={`flex-1 px-6 py-3 rounded-xl transition-all duration-200 font-semibold cursor-pointer ${
+                  rejectionReason.trim()
                     ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg"
                     : "bg-gray-600/50 text-gray-400 cursor-not-allowed"
-                  }`}
+                }`}
               >
                 Reject Payment
               </button>
@@ -3561,8 +3788,3 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 };
 
 export default ProjectOverview;
-
-
-
-
-

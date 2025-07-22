@@ -54,7 +54,6 @@ export default function WhyAndishi() {
 
   return (
     <section id="why" className="py-32 mt-0 relative overflow-hidden">
-
       <div className="max-w-7xl mx-auto flex flex-col items-center px-6 space-y-8 text-center relative z-10">
         <h2 className="text-3xl lg:text-4xl font-medium text-white">
           Why Choose <span className="text-purple-400">Andishi</span> for Remote
@@ -97,7 +96,7 @@ export default function WhyAndishi() {
                   <stat.icon className="relative z-10 text-blue-400" />
                   <stat.icon className="absolute inset-0 blur-lg text-blue-400 opacity-50" />
                 </div>
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white group-hover:text-blue-300 transition-colors duration-300">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white group-hover:text-blue-300 transition-colors duration-300">
                   {stat.value}
                 </div>
                 <div className="monty text-base sm:text-lg font-semibold text-purple-300 group-hover:text-purple-200 transition-colors duration-300">

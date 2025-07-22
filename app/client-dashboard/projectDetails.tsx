@@ -43,12 +43,12 @@ import {
   getPaymentMethodsForCurrency,
   formatPaymentMethodLabel,
   DEFAULT_PAYMENT_METHOD,
-  PaymentMethodType
+  PaymentMethodType,
 } from "@/lib/paymentMethods";
 
 export interface ActivityItem {
   id: string;
-  type: 'chat' | 'assignment' | 'milestone' | 'payment' | 'update' | 'system';
+  type: "chat" | "assignment" | "milestone" | "payment" | "update" | "system";
   title: string;
   description: string;
   createdAt: Date | string;
@@ -74,7 +74,9 @@ const calculateDueDate = (startDate: Date, timeline: string): Date | null => {
   const cleanTimeline = timeline.toLowerCase().trim();
 
   // Extract number and unit using regex
-  const match = cleanTimeline.match(/(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months|year|years|d|w|m|y)/i);
+  const match = cleanTimeline.match(
+    /(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months|year|years|d|w|m|y)/i
+  );
 
   if (!match) return null;
 
@@ -92,7 +94,7 @@ const calculateDueDate = (startDate: Date, timeline: string): Date | null => {
     case "week":
     case "weeks":
     case "w":
-      resultDate.setDate(resultDate.getDate() + (timeValue * 7));
+      resultDate.setDate(resultDate.getDate() + timeValue * 7);
       break;
     case "month":
     case "months":
@@ -112,8 +114,12 @@ const calculateDueDate = (startDate: Date, timeline: string): Date | null => {
 };
 
 // Function to calculate project completion date based on project type
-const calculateProjectCompletionDate = (projectData: ProjectData): Date | null => {
-  const startDate = projectData.startDate ? new Date(projectData.startDate) : new Date();
+const calculateProjectCompletionDate = (
+  projectData: ProjectData
+): Date | null => {
+  const startDate = projectData.startDate
+    ? new Date(projectData.startDate)
+    : new Date();
 
   // If already has estimated completion date, use it
   if (projectData.estimatedCompletionDate) {
@@ -129,7 +135,10 @@ const calculateProjectCompletionDate = (projectData: ProjectData): Date | null =
           if (milestone.timeline) {
             const dueDate = calculateDueDate(startDate, milestone.timeline);
             if (dueDate) {
-              const days = Math.ceil((dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+              const days = Math.ceil(
+                (dueDate.getTime() - startDate.getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
               return total + days;
             }
           }
@@ -171,8 +180,14 @@ const calculateProjectCompletionDate = (projectData: ProjectData): Date | null =
 };
 
 // Function to calculate milestone due date considering project start and previous milestones
-const calculateMilestoneDueDate = (projectData: ProjectData, milestone: Milestone, milestoneIndex: number): Date | null => {
-  const projectStart = projectData.startDate ? new Date(projectData.startDate) : new Date();
+const calculateMilestoneDueDate = (
+  projectData: ProjectData,
+  milestone: Milestone,
+  milestoneIndex: number
+): Date | null => {
+  const projectStart = projectData.startDate
+    ? new Date(projectData.startDate)
+    : new Date();
 
   // If milestone already has a due date, use it
   if (milestone.dueDate) {
@@ -189,7 +204,11 @@ const calculateMilestoneDueDate = (projectData: ProjectData, milestone: Mileston
     // For subsequent milestones, calculate from previous milestone's due date
     const previousMilestone = projectData.milestones?.[milestoneIndex - 1];
     if (previousMilestone) {
-      const previousDueDate = calculateMilestoneDueDate(projectData, previousMilestone, milestoneIndex - 1);
+      const previousDueDate = calculateMilestoneDueDate(
+        projectData,
+        previousMilestone,
+        milestoneIndex - 1
+      );
       if (previousDueDate) {
         return calculateDueDate(previousDueDate, milestone.timeline);
       }
@@ -331,10 +350,13 @@ export default function EnhancedProjectTracking({
     {
       onError: (error) => {
         // Notify user of general activity fetch error
-        toast.error('Activity Fetch Error', 'An error occurred while fetching activity data. Please try again later.');
+        toast.error(
+          "Activity Fetch Error",
+          "An error occurred while fetching activity data. Please try again later."
+        );
         // Notify user of unexpected errors other than 404
         if (error?.status !== 404) {
-          toast.error('Unexpected Error', 'An unexpected error occurred.');
+          toast.error("Unexpected Error", "An unexpected error occurred.");
         }
       },
       revalidateOnFocus: false,
@@ -343,7 +365,7 @@ export default function EnhancedProjectTracking({
         return error?.status !== 404;
       },
       errorRetryCount: 2, // Reduce retry count
-      errorRetryInterval: 2000 // Wait 2 seconds between retries
+      errorRetryInterval: 2000, // Wait 2 seconds between retries
     }
   );
 
@@ -383,34 +405,42 @@ export default function EnhancedProjectTracking({
     const fetchDevelopers = async () => {
       setLoadingDevelopers(true);
       try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem("auth_token");
         if (!token) {
-          console.warn('No auth token found, skipping developers fetch');
+          console.warn("No auth token found, skipping developers fetch");
           return;
         }
 
-        const response = await fetch('/api/users', {
+        const response = await fetch("/api/users", {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         });
 
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.users) {
-            setDevelopers(data.users.filter((user: any) => user.role === 'developer'));
+            setDevelopers(
+              data.users.filter((user: any) => user.role === "developer")
+            );
           } else {
-            toast.warning('No Data', 'No user data was found in the response.');
+            toast.warning("No Data", "No user data was found in the response.");
           }
         } else {
-          toast.error('Fetch Error', 'Failed to fetch developer data.');
+          toast.error("Fetch Error", "Failed to fetch developer data.");
         }
       } catch (error) {
-        toast.error('Developer Fetch Error', 'An error occurred while retrieving developer data.');
+        toast.error(
+          "Developer Fetch Error",
+          "An error occurred while retrieving developer data."
+        );
         // Notify user of unexpected errors other than 404
-        if (error instanceof Error && !error.message.includes('404')) {
-          toast.error('Unexpected Error', 'An unexpected error occurred while fetching developers.');
+        if (error instanceof Error && !error.message.includes("404")) {
+          toast.error(
+            "Unexpected Error",
+            "An unexpected error occurred while fetching developers."
+          );
         }
       } finally {
         setLoadingDevelopers(false);
@@ -418,7 +448,7 @@ export default function EnhancedProjectTracking({
     };
 
     // Only fetch if we're on the assignments view to avoid unnecessary API calls
-    if (trackingView === 'assignments') {
+    if (trackingView === "assignments") {
       fetchDevelopers();
     }
   }, [trackingView]);
@@ -443,10 +473,13 @@ export default function EnhancedProjectTracking({
               ...m,
               dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
               completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-              budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
-              title: m.title || 'Untitled Milestone',
-              description: m.description || 'No description provided',
-              status: m.status || 'pending'
+              budget:
+                typeof m.budget === "string"
+                  ? m.budget
+                  : String(m.budget || "0"),
+              title: m.title || "Untitled Milestone",
+              description: m.description || "No description provided",
+              status: m.status || "pending",
             }));
           }
 
@@ -456,17 +489,19 @@ export default function EnhancedProjectTracking({
               ...m,
               dueDate: m.dueDate ? new Date(m.dueDate) : undefined,
               completedAt: m.completedAt ? new Date(m.completedAt) : undefined,
-              budget: typeof m.budget === 'string' ? m.budget : String(m.budget || '0'),
-              title: m.title || 'Untitled Milestone',
-              description: m.description || 'No description provided',
-              status: m.status || 'pending'
+              budget:
+                typeof m.budget === "string"
+                  ? m.budget
+                  : String(m.budget || "0"),
+              title: m.title || "Untitled Milestone",
+              description: m.description || "No description provided",
+              status: m.status || "pending",
             }));
           }
 
           // No fallback to mock data - use only database data
           // If pricing type is milestone but no milestones exist, return empty array
           // This ensures we only display real data from the database
-
 
           return [];
         })(),
@@ -480,13 +515,24 @@ export default function EnhancedProjectTracking({
         })),
         payments: data.payments?.map((p) => ({
           ...p,
-          date: p.date ? (typeof p.date === 'string' ? p.date : new Date(p.date).toISOString().split('T')[0]) : undefined,
-          createdAt: p.createdAt ? (typeof p.createdAt === 'string' ? p.createdAt : new Date(p.createdAt).toISOString()) : new Date().toISOString(),
-          updatedAt: p.updatedAt ? (typeof p.updatedAt === 'string' ? p.updatedAt : new Date(p.updatedAt).toISOString()) : undefined,
+          date: p.date
+            ? typeof p.date === "string"
+              ? p.date
+              : new Date(p.date).toISOString().split("T")[0]
+            : undefined,
+          createdAt: p.createdAt
+            ? typeof p.createdAt === "string"
+              ? p.createdAt
+              : new Date(p.createdAt).toISOString()
+            : new Date().toISOString(),
+          updatedAt: p.updatedAt
+            ? typeof p.updatedAt === "string"
+              ? p.updatedAt
+              : new Date(p.updatedAt).toISOString()
+            : undefined,
         })),
       };
     };
-
 
     setProjectData(convertDates(project));
   }, [project]);
@@ -498,7 +544,9 @@ export default function EnhancedProjectTracking({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
-  const [editingMilestoneData, setEditingMilestoneData] = useState<Partial<Milestone>>({});
+  const [editingMilestoneData, setEditingMilestoneData] = useState<
+    Partial<Milestone>
+  >({});
   const [newMilestone, setNewMilestone] = useState<Partial<Milestone>>({});
   const [showAddMilestone, setShowAddMilestone] = useState(false);
 
@@ -511,7 +559,9 @@ export default function EnhancedProjectTracking({
   const [replyText, setReplyText] = useState("");
 
   // Payment tab state
-  const [activePaymentTab, setActivePaymentTab] = useState<'pending' | 'history'>('pending');
+  const [activePaymentTab, setActivePaymentTab] = useState<
+    "pending" | "history"
+  >("pending");
 
   // Error and loading states
   const [loading, setLoading] = useState(false);
@@ -529,7 +579,7 @@ export default function EnhancedProjectTracking({
     isOpen: false,
     title: "",
     message: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
     variant: "info",
     loading: false,
   });
@@ -553,19 +603,29 @@ export default function EnhancedProjectTracking({
   const totalBudget = (() => {
     switch (projectData.pricing?.type) {
       case "fixed":
-        return projectData.pricing.fixedBudget ? parseFloat(projectData.pricing.fixedBudget) : 0;
+        return projectData.pricing.fixedBudget
+          ? parseFloat(projectData.pricing.fixedBudget)
+          : 0;
       case "milestone":
-        return (projectData.milestones || []).reduce((sum, m) => sum + parseFloat(m.budget), 0);
+        return (projectData.milestones || []).reduce(
+          (sum, m) => sum + parseFloat(m.budget),
+          0
+        );
       case "hourly":
-        return projectData.pricing.hourlyRate && projectData.pricing.estimatedHours
-          ? parseFloat(projectData.pricing.hourlyRate) * parseFloat(projectData.pricing.estimatedHours)
+        return projectData.pricing.hourlyRate &&
+          projectData.pricing.estimatedHours
+          ? parseFloat(projectData.pricing.hourlyRate) *
+              parseFloat(projectData.pricing.estimatedHours)
           : 0;
       default:
         return 0;
     }
   })();
 
-  const spentBudget = (projectData.payments || []).reduce((sum, p) => sum + p.amount, 0);
+  const spentBudget = (projectData.payments || []).reduce(
+    (sum, p) => sum + p.amount,
+    0
+  );
   const budgetProgress =
     totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
 
@@ -575,51 +635,54 @@ export default function EnhancedProjectTracking({
     projectData.actualCompletionDate || projectData.estimatedCompletionDate;
   const daysPassed = startDate
     ? Math.floor(
-      (Date.now() -
-        (typeof startDate === "string"
-          ? new Date(startDate).getTime()
-          : startDate.getTime())) /
-      (1000 * 3600 * 24)
-    )
+        (Date.now() -
+          (typeof startDate === "string"
+            ? new Date(startDate).getTime()
+            : startDate.getTime())) /
+          (1000 * 3600 * 24)
+      )
     : 0;
   const totalDays =
     startDate && endDate
       ? Math.floor(
-        ((typeof endDate === "string"
-          ? new Date(endDate)
-          : endDate
-        ).getTime() -
-          (typeof startDate === "string"
-            ? new Date(startDate)
-            : startDate
-          ).getTime()) /
-        (1000 * 3600 * 24)
-      )
+          ((typeof endDate === "string"
+            ? new Date(endDate)
+            : endDate
+          ).getTime() -
+            (typeof startDate === "string"
+              ? new Date(startDate)
+              : startDate
+            ).getTime()) /
+            (1000 * 3600 * 24)
+        )
       : 0;
   // File CRUD operations
   const handleAddFile = async () => {
     if (selectedFile && newFile.fileName) {
       const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('fileName', newFile.fileName!);
-      formData.append('fileType', newFile.fileType || 'document');
-      formData.append('uploadedBy', 'client');
+      formData.append("file", selectedFile);
+      formData.append("fileName", newFile.fileName!);
+      formData.append("fileType", newFile.fileType || "document");
+      formData.append("uploadedBy", "client");
       if (newFile.description) {
-        formData.append('description', newFile.description);
+        formData.append("description", newFile.description);
       }
 
       try {
-        const token = localStorage.getItem('auth_token');
-        const userEmail = localStorage.getItem('userEmail');
+        const token = localStorage.getItem("auth_token");
+        const userEmail = localStorage.getItem("userEmail");
 
-        const response = await fetch(`/api/client-projects/${projectData._id}/files`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'user-email': userEmail || '',
-          },
-          body: formData,
-        });
+        const response = await fetch(
+          `/api/client-projects/${projectData._id}/files`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "user-email": userEmail || "",
+            },
+            body: formData,
+          }
+        );
 
         const result = await response.json();
 
@@ -630,7 +693,7 @@ export default function EnhancedProjectTracking({
             fileUrl: result.file.fileUrl,
             fileType: result.file.fileType as FileType,
             fileSize: result.file.fileSize,
-            uploadedBy: 'client',
+            uploadedBy: "client",
             createdAt: new Date(),
             ...(newFile.description && { description: newFile.description }),
           };
@@ -642,16 +705,28 @@ export default function EnhancedProjectTracking({
           setNewFile({});
           setSelectedFile(null);
           setShowAddFile(false);
-          toast.success("File uploaded", "The file has been successfully uploaded.");
+          toast.success(
+            "File uploaded",
+            "The file has been successfully uploaded."
+          );
         } else {
-          toast.error("Failed to upload file", result.error || "Please try again.");
+          toast.error(
+            "Failed to upload file",
+            result.error || "Please try again."
+          );
         }
       } catch (error) {
-        console.error('File upload error:', error);
-        toast.error("Failed to upload file", "An error occurred while uploading the file.");
+        console.error("File upload error:", error);
+        toast.error(
+          "Failed to upload file",
+          "An error occurred while uploading the file."
+        );
       }
     } else {
-      toast.warning("Missing information", "Please select a file and provide a file name.");
+      toast.warning(
+        "Missing information",
+        "Please select a file and provide a file name."
+      );
     }
   };
 
@@ -663,16 +738,17 @@ export default function EnhancedProjectTracking({
     if (result.success) {
       setProjectData((prev) => ({
         ...prev,
-        files: prev.files?.map((file) =>
-          file.id === id ? { ...file, ...updatedFile } : file
-        ) || [],
+        files:
+          prev.files?.map((file) =>
+            file.id === id ? { ...file, ...updatedFile } : file
+          ) || [],
       }));
       setEditingFile(null);
     }
   };
 
   const handleDeleteFile = async (id: string) => {
-    const file = projectData.files?.find(f => f.id === id);
+    const file = projectData.files?.find((f) => f.id === id);
     if (!file) return;
 
     setConfirmationModal({
@@ -682,17 +758,20 @@ export default function EnhancedProjectTracking({
       variant: "danger",
       loading: false,
       onConfirm: async () => {
-        setConfirmationModal(prev => ({ ...prev, loading: true }));
+        setConfirmationModal((prev) => ({ ...prev, loading: true }));
 
         try {
-          const token = localStorage.getItem('auth_token');
-          const response = await fetch(`/api/client-projects/${projectData._id}/files?fileId=${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
+          const token = localStorage.getItem("auth_token");
+          const response = await fetch(
+            `/api/client-projects/${projectData._id}/files?fileId=${id}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
           const result = await response.json();
 
@@ -701,16 +780,29 @@ export default function EnhancedProjectTracking({
               ...prev,
               files: prev.files?.filter((file) => file.id !== id) || [],
             }));
-            toast.success("File deleted", "The file has been successfully deleted.");
+            toast.success(
+              "File deleted",
+              "The file has been successfully deleted."
+            );
           } else {
-            toast.error("Failed to delete file", result.error || "Please try again.");
+            toast.error(
+              "Failed to delete file",
+              result.error || "Please try again."
+            );
           }
         } catch (error) {
-          console.error('File deletion error:', error);
-          toast.error("Failed to delete file", "An error occurred while deleting the file.");
+          console.error("File deletion error:", error);
+          toast.error(
+            "Failed to delete file",
+            "An error occurred while deleting the file."
+          );
         }
 
-        setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+        setConfirmationModal((prev) => ({
+          ...prev,
+          isOpen: false,
+          loading: false,
+        }));
       },
     });
   };
@@ -718,7 +810,7 @@ export default function EnhancedProjectTracking({
   // Milestone CRUD operations
   const handleAddMilestone = async () => {
     if (newMilestone.title && newMilestone.description) {
-      const milestoneData: Omit<Milestone, 'id'> = {
+      const milestoneData: Omit<Milestone, "id"> = {
         title: newMilestone.title,
         description: newMilestone.description,
         budget: newMilestone.budget || "0",
@@ -742,12 +834,21 @@ export default function EnhancedProjectTracking({
         }));
         setNewMilestone({});
         setShowAddMilestone(false);
-        toast.success("Milestone created", "The milestone has been successfully created.");
+        toast.success(
+          "Milestone created",
+          "The milestone has been successfully created."
+        );
       } else {
-        toast.error("Failed to create milestone", result.error || "Please try again.");
+        toast.error(
+          "Failed to create milestone",
+          result.error || "Please try again."
+        );
       }
     } else {
-      toast.warning("Missing information", "Please fill in the title and description.");
+      toast.warning(
+        "Missing information",
+        "Please fill in the title and description."
+      );
     }
   };
 
@@ -759,17 +860,24 @@ export default function EnhancedProjectTracking({
     if (result.success) {
       setProjectData((prev) => ({
         ...prev,
-        milestones: prev.milestones?.map((milestone) =>
-          milestone.id === id
-            ? { ...milestone, ...updatedMilestone }
-            : milestone
-        ) || [],
+        milestones:
+          prev.milestones?.map((milestone) =>
+            milestone.id === id
+              ? { ...milestone, ...updatedMilestone }
+              : milestone
+          ) || [],
       }));
       setEditingMilestone(null);
       setEditingMilestoneData({});
-      toast.success("Milestone updated", "The milestone has been successfully updated.");
+      toast.success(
+        "Milestone updated",
+        "The milestone has been successfully updated."
+      );
     } else {
-      toast.error("Failed to update milestone", result.error || "Please try again.");
+      toast.error(
+        "Failed to update milestone",
+        result.error || "Please try again."
+      );
     }
   };
 
@@ -795,7 +903,7 @@ export default function EnhancedProjectTracking({
   };
 
   const handleDeleteMilestone = async (id: string) => {
-    const milestone = projectData.milestones?.find(m => m.id === id);
+    const milestone = projectData.milestones?.find((m) => m.id === id);
     if (!milestone) return;
 
     setConfirmationModal({
@@ -805,26 +913,41 @@ export default function EnhancedProjectTracking({
       variant: "danger",
       loading: false,
       onConfirm: async () => {
-        setConfirmationModal(prev => ({ ...prev, loading: true }));
+        setConfirmationModal((prev) => ({ ...prev, loading: true }));
 
         const result = await deleteMilestone(projectData._id, id);
         if (result.success) {
           setProjectData((prev) => ({
             ...prev,
-            milestones: prev.milestones?.filter((milestone) => milestone.id !== id) || [],
+            milestones:
+              prev.milestones?.filter((milestone) => milestone.id !== id) || [],
           }));
-          toast.success("Milestone deleted", "The milestone has been successfully deleted.");
+          toast.success(
+            "Milestone deleted",
+            "The milestone has been successfully deleted."
+          );
         } else {
-          toast.error("Failed to delete milestone", result.error || "Please try again.");
+          toast.error(
+            "Failed to delete milestone",
+            result.error || "Please try again."
+          );
         }
 
-        setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+        setConfirmationModal((prev) => ({
+          ...prev,
+          isOpen: false,
+          loading: false,
+        }));
       },
     });
   };
 
   const handleCloseConfirmationModal = () => {
-    setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+    setConfirmationModal((prev) => ({
+      ...prev,
+      isOpen: false,
+      loading: false,
+    }));
   };
 
   // Payment CRUD operations
@@ -867,12 +990,21 @@ export default function EnhancedProjectTracking({
         }));
         setNewPayment({});
         setShowAddPayment(false);
-        toast.success("Payment added", "The payment has been successfully added.");
+        toast.success(
+          "Payment added",
+          "The payment has been successfully added."
+        );
       } else {
-        toast.error("Failed to add payment", result.error || "Please try again.");
+        toast.error(
+          "Failed to add payment",
+          result.error || "Please try again."
+        );
       }
     } else {
-      toast.warning("Missing information", "Please fill in the amount and date.");
+      toast.warning(
+        "Missing information",
+        "Please fill in the amount and date."
+      );
     }
   };
 
@@ -884,15 +1016,22 @@ export default function EnhancedProjectTracking({
     if (result.success) {
       setProjectData((prev) => ({
         ...prev,
-        payments: prev.payments?.map((payment) =>
-          payment.id === id ? { ...payment, ...updatedPayment } : payment
-        ) || [],
+        payments:
+          prev.payments?.map((payment) =>
+            payment.id === id ? { ...payment, ...updatedPayment } : payment
+          ) || [],
       }));
       setEditingPayment(null);
       setNewPayment({}); // Reset the form
-      toast.success("Payment updated", "The payment has been successfully updated.");
+      toast.success(
+        "Payment updated",
+        "The payment has been successfully updated."
+      );
     } else {
-      toast.error("Failed to update payment", result.error || "Please try again.");
+      toast.error(
+        "Failed to update payment",
+        result.error || "Please try again."
+      );
     }
   };
 
@@ -913,11 +1052,14 @@ export default function EnhancedProjectTracking({
   };
 
   const handleDeletePayment = async (id: string) => {
-    const payment = projectData.payments?.find(p => p.id === id);
+    const payment = projectData.payments?.find((p) => p.id === id);
     if (!payment) return;
 
     const paymentDescription = payment.description || "Payment";
-    const paymentAmount = formatCurrency(payment.amount, payment.currency || "USD");
+    const paymentAmount = formatCurrency(
+      payment.amount,
+      payment.currency || "USD"
+    );
 
     setConfirmationModal({
       isOpen: true,
@@ -926,20 +1068,31 @@ export default function EnhancedProjectTracking({
       variant: "danger",
       loading: false,
       onConfirm: async () => {
-        setConfirmationModal(prev => ({ ...prev, loading: true }));
+        setConfirmationModal((prev) => ({ ...prev, loading: true }));
 
         const result = await deletePayment(projectData._id, id);
         if (result.success) {
           setProjectData((prev) => ({
             ...prev,
-            payments: prev.payments?.filter((payment) => payment.id !== id) || [],
+            payments:
+              prev.payments?.filter((payment) => payment.id !== id) || [],
           }));
-          toast.success("Payment deleted", "The payment has been successfully deleted.");
+          toast.success(
+            "Payment deleted",
+            "The payment has been successfully deleted."
+          );
         } else {
-          toast.error("Failed to delete payment", result.error || "Please try again.");
+          toast.error(
+            "Failed to delete payment",
+            result.error || "Please try again."
+          );
         }
 
-        setConfirmationModal(prev => ({ ...prev, isOpen: false, loading: false }));
+        setConfirmationModal((prev) => ({
+          ...prev,
+          isOpen: false,
+          loading: false,
+        }));
       },
     });
   };
@@ -1002,26 +1155,36 @@ export default function EnhancedProjectTracking({
       .map((m) => ({
         id: m.id,
         title: `Milestone Completed: ${m.title}`,
-        description: `Milestone completed on ${m.completedAt ? new Date(m.completedAt).toLocaleDateString() : 'N/A'}`,
-        createdAt: m.completedAt ? (typeof m.completedAt === 'string' ? new Date(m.completedAt) : m.completedAt) : new Date(),
+        description: `Milestone completed on ${
+          m.completedAt ? new Date(m.completedAt).toLocaleDateString() : "N/A"
+        }`,
+        createdAt: m.completedAt
+          ? typeof m.completedAt === "string"
+            ? new Date(m.completedAt)
+            : m.completedAt
+          : new Date(),
         activityType: "milestone",
       })),
     ...(projectData.payments || [])
       .filter((p) => p.date)
       .map((p) => ({
         id: p.id,
-        title: `Payment: ${p.description || 'Payment'}`,
-        description: `Amount: ${formatCurrency(p.amount, p.currency || 'USD')} - Status: ${p.status}`,
+        title: `Payment: ${p.description || "Payment"}`,
+        description: `Amount: ${formatCurrency(
+          p.amount,
+          p.currency || "USD"
+        )} - Status: ${p.status}`,
         createdAt: p.date ? new Date(p.date) : new Date(),
         activityType: "payment",
       })),
-    {  // Example Manual Entry
-      id: 'manual-entry',
+    {
+      // Example Manual Entry
+      id: "manual-entry",
       title: "Project Status Changed",
       description: `Status changed to ${projectData.status.replace("_", " ")}`,
       createdAt: new Date(),
       activityType: "statusChange",
-    }
+    },
   ]
     .sort(
       (a, b) =>
@@ -1056,12 +1219,28 @@ export default function EnhancedProjectTracking({
               {/* Project Summary Card */}
               <div className="bg-gradient-to-br from-gray-800/10 to-gray-700/5 backdrop-blur-xl border border-gray-600/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-gray-500/10 transition-all duration-300">
                 <div className="flex flex-col items-start mb-4">
-                  <h3 className="text-xl font-semibold text-white mb-2">Project Summary</h3>
-                  <p className="text-gray-300 text-sm">Start Date: {projectData.startDate ? new Date(projectData.startDate).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-gray-300 text-sm">Status: <span className={getStatusColor(projectData.status)}>{projectData.status}</span></p>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Project Summary
+                  </h3>
+                  <p className="text-gray-300 text-sm">
+                    Start Date:{" "}
+                    {projectData.startDate
+                      ? new Date(projectData.startDate).toLocaleDateString()
+                      : "N/A"}
+                  </p>
+                  <p className="text-gray-300 text-sm">
+                    Status:{" "}
+                    <span className={getStatusColor(projectData.status)}>
+                      {projectData.status}
+                    </span>
+                  </p>
                 </div>
                 <h3 className="text-white font-semibold mb-2">Last Update</h3>
-                <p className="text-gray-400 text-sm">{projectData.updatedAt ? new Date(projectData.updatedAt).toLocaleDateString() : 'N/A'}</p>
+                <p className="text-gray-400 text-sm">
+                  {projectData.updatedAt
+                    ? new Date(projectData.updatedAt).toLocaleDateString()
+                    : "N/A"}
+                </p>
               </div>
 
               {/* Progress Card */}
@@ -1171,12 +1350,17 @@ export default function EnhancedProjectTracking({
                 )}
                 {/* Show calculated due date if no existing end date */}
                 {(() => {
-                  const calculatedDueDate = calculateProjectCompletionDate(projectData);
-                  if (calculatedDueDate && !projectData.estimatedCompletionDate) {
+                  const calculatedDueDate =
+                    calculateProjectCompletionDate(projectData);
+                  if (
+                    calculatedDueDate &&
+                    !projectData.estimatedCompletionDate
+                  ) {
                     return (
                       <div className="mt-3 p-2 bg-orange-500/10 rounded-lg">
                         <p className="text-xs text-orange-300 font-medium">
-                          Estimated Due: {calculatedDueDate.toLocaleDateString()}
+                          Estimated Due:{" "}
+                          {calculatedDueDate.toLocaleDateString()}
                         </p>
                       </div>
                     );
@@ -1201,13 +1385,24 @@ export default function EnhancedProjectTracking({
 
                 <div className="space-y-6">
                   {recentActivity.length === 0 ? (
-                    <p className="text-gray-400">No recent activity available</p>
+                    <p className="text-gray-400">
+                      No recent activity available
+                    </p>
                   ) : (
                     recentActivity.map((activity) => (
-                      <div key={activity.id} className="border-b border-gray-700 pb-2 mb-2">
-                        <h3 className="text-lg font-semibold text-white mb-1">{activity.title}</h3>
-                        <p className="text-gray-300 text-sm">{activity.description}</p>
-                        <p className="text-gray-500 text-xs mt-1">{new Date(activity.createdAt).toLocaleDateString()}</p>
+                      <div
+                        key={activity.id}
+                        className="border-b border-gray-700 pb-2 mb-2"
+                      >
+                        <h3 className="text-lg font-semibold text-white mb-1">
+                          {activity.title}
+                        </h3>
+                        <p className="text-gray-300 text-sm">
+                          {activity.description}
+                        </p>
+                        <p className="text-gray-500 text-xs mt-1">
+                          {new Date(activity.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
                     ))
                   )}
@@ -1273,23 +1468,27 @@ export default function EnhancedProjectTracking({
                         {(() => {
                           // Use existing completion date if available
                           if (projectData.estimatedCompletionDate) {
-                            return new Date(projectData.estimatedCompletionDate).toLocaleDateString();
+                            return new Date(
+                              projectData.estimatedCompletionDate
+                            ).toLocaleDateString();
                           }
 
                           // Calculate completion date
-                          const calculatedDate = calculateProjectCompletionDate(projectData);
+                          const calculatedDate =
+                            calculateProjectCompletionDate(projectData);
                           if (calculatedDate) {
                             return (
                               <span className="text-blue-400">
                                 {calculatedDate.toLocaleDateString()}
-                                <span className="text-xs text-gray-500 ml-1 block">(calculated)</span>
+                                <span className="text-xs text-gray-500 ml-1 block">
+                                  (calculated)
+                                </span>
                               </span>
                             );
                           }
 
                           return "TBD";
-                        })()
-                        }
+                        })()}
                       </span>
                     </div>
                   </div>
@@ -1310,37 +1509,57 @@ export default function EnhancedProjectTracking({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <h3 className="text-lg font-semibold text-white mb-2">Project Health</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Project Health
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Milestones Completed</span>
-                      <span className="text-white font-medium">{completedMilestones} of {totalMilestones}</span>
+                      <span className="text-gray-400 text-sm">
+                        Milestones Completed
+                      </span>
+                      <span className="text-white font-medium">
+                        {completedMilestones} of {totalMilestones}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Budget Utilized</span>
-                      <span className="text-white font-medium">{Math.round(budgetProgress)}%</span>
+                      <span className="text-gray-400 text-sm">
+                        Budget Utilized
+                      </span>
+                      <span className="text-white font-medium">
+                        {Math.round(budgetProgress)}%
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Days Active</span>
-                      <span className="text-white font-medium">{daysPassed}</span>
+                      <span className="text-white font-medium">
+                        {daysPassed}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <h3 className="text-lg font-semibold text-white mb-2">Quick Stats</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Quick Stats
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Total Files</span>
-                      <span className="text-white font-medium">{projectData.files?.length || 0}</span>
+                      <span className="text-white font-medium">
+                        {projectData.files?.length || 0}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Updates</span>
-                      <span className="text-white font-medium">{projectData.updates?.length || 0}</span>
+                      <span className="text-white font-medium">
+                        {projectData.updates?.length || 0}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Payments</span>
-                      <span className="text-white font-medium">{projectData.payments?.length || 0}</span>
+                      <span className="text-white font-medium">
+                        {projectData.payments?.length || 0}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1373,8 +1592,6 @@ export default function EnhancedProjectTracking({
             </div>
           </div>
         );
-
-
 
       case "milestones":
         return (
@@ -1487,27 +1704,33 @@ export default function EnhancedProjectTracking({
                       </label>
                       <input
                         type="date"
-                        value={
-                          (() => {
-                            // Auto-calculate due date from timeline if timeline exists and no manual date set
-                            if (newMilestone.timeline && !newMilestone.dueDate) {
-                              const projectStart = projectData.startDate ? new Date(projectData.startDate) : new Date();
-                              const lastMilestone = projectData.milestones?.[projectData.milestones.length - 1];
-                              const startDate = lastMilestone?.dueDate
-                                ? new Date(lastMilestone.dueDate)
-                                : projectStart;
+                        value={(() => {
+                          // Auto-calculate due date from timeline if timeline exists and no manual date set
+                          if (newMilestone.timeline && !newMilestone.dueDate) {
+                            const projectStart = projectData.startDate
+                              ? new Date(projectData.startDate)
+                              : new Date();
+                            const lastMilestone =
+                              projectData.milestones?.[
+                                projectData.milestones.length - 1
+                              ];
+                            const startDate = lastMilestone?.dueDate
+                              ? new Date(lastMilestone.dueDate)
+                              : projectStart;
 
-                              const calculatedDate = calculateDueDate(startDate, newMilestone.timeline);
-                              if (calculatedDate) {
-                                return calculatedDate.toISOString().split("T")[0];
-                              }
+                            const calculatedDate = calculateDueDate(
+                              startDate,
+                              newMilestone.timeline
+                            );
+                            if (calculatedDate) {
+                              return calculatedDate.toISOString().split("T")[0];
                             }
+                          }
 
-                            return newMilestone.dueDate instanceof Date
-                              ? newMilestone.dueDate.toISOString().split("T")[0]
-                              : "";
-                          })()
-                        }
+                          return newMilestone.dueDate instanceof Date
+                            ? newMilestone.dueDate.toISOString().split("T")[0]
+                            : "";
+                        })()}
                         onChange={(e) =>
                           setNewMilestone({
                             ...newMilestone,
@@ -1554,9 +1777,9 @@ export default function EnhancedProjectTracking({
                         </label>
                         <input
                           type="text"
-                          value={editingMilestoneData.title || ''}
+                          value={editingMilestoneData.title || ""}
                           onChange={(e) =>
-                            setEditingMilestoneData(prev => ({
+                            setEditingMilestoneData((prev) => ({
                               ...prev,
                               title: e.target.value,
                             }))
@@ -1572,9 +1795,9 @@ export default function EnhancedProjectTracking({
                           Description *
                         </label>
                         <textarea
-                          value={editingMilestoneData.description || ''}
+                          value={editingMilestoneData.description || ""}
                           onChange={(e) =>
-                            setEditingMilestoneData(prev => ({
+                            setEditingMilestoneData((prev) => ({
                               ...prev,
                               description: e.target.value,
                             }))
@@ -1595,9 +1818,9 @@ export default function EnhancedProjectTracking({
                             type="number"
                             min="0"
                             step="0.01"
-                            value={editingMilestoneData.budget || ''}
+                            value={editingMilestoneData.budget || ""}
                             onChange={(e) =>
-                              setEditingMilestoneData(prev => ({
+                              setEditingMilestoneData((prev) => ({
                                 ...prev,
                                 budget: e.target.value,
                               }))
@@ -1612,9 +1835,9 @@ export default function EnhancedProjectTracking({
                           </label>
                           <input
                             type="text"
-                            value={editingMilestoneData.timeline || ''}
+                            value={editingMilestoneData.timeline || ""}
                             onChange={(e) =>
-                              setEditingMilestoneData(prev => ({
+                              setEditingMilestoneData((prev) => ({
                                 ...prev,
                                 timeline: e.target.value,
                               }))
@@ -1628,7 +1851,10 @@ export default function EnhancedProjectTracking({
                       <div className="flex items-center space-x-3">
                         <button
                           onClick={handleSaveMilestone}
-                          disabled={!editingMilestoneData.title || !editingMilestoneData.description}
+                          disabled={
+                            !editingMilestoneData.title ||
+                            !editingMilestoneData.description
+                          }
                           className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors cursor-pointer"
                         >
                           <Save className="w-4 h-4" />
@@ -1658,7 +1884,7 @@ export default function EnhancedProjectTracking({
                             </p>
                           </div>
                           <div className="text-right">
-                            <div className="text-xl font-bold text-white">
+                            <div className="text-xl font-semibold text-white">
                               ${milestone.budget}
                             </div>
                             <div className="text-sm text-gray-400">
@@ -1672,18 +1898,29 @@ export default function EnhancedProjectTracking({
                           <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
                               <Calendar className="w-4 h-4 text-gray-500" />
-                              <span className="text-sm text-gray-400">Due:</span>
+                              <span className="text-sm text-gray-400">
+                                Due:
+                              </span>
                               <span className="text-sm font-medium text-white">
                                 {(() => {
                                   if (milestone.dueDate) {
-                                    return (milestone.dueDate instanceof Date
-                                      ? milestone.dueDate
-                                      : new Date(milestone.dueDate)
+                                    return (
+                                      milestone.dueDate instanceof Date
+                                        ? milestone.dueDate
+                                        : new Date(milestone.dueDate)
                                     ).toLocaleDateString();
                                   }
                                   if (milestone.timeline) {
-                                    const milestoneIndex = projectData.milestones?.findIndex(m => m.id === milestone.id) || 0;
-                                    const calculatedDueDate = calculateMilestoneDueDate(projectData, milestone, milestoneIndex);
+                                    const milestoneIndex =
+                                      projectData.milestones?.findIndex(
+                                        (m) => m.id === milestone.id
+                                      ) || 0;
+                                    const calculatedDueDate =
+                                      calculateMilestoneDueDate(
+                                        projectData,
+                                        milestone,
+                                        milestoneIndex
+                                      );
                                     if (calculatedDueDate) {
                                       return calculatedDueDate.toLocaleDateString();
                                     }
@@ -1692,14 +1929,21 @@ export default function EnhancedProjectTracking({
                                 })()}
                               </span>
                             </div>
-                            {milestone.deliverables && milestone.deliverables.length > 0 && (
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm text-gray-400">{milestone.deliverables.length} deliverables</span>
-                              </div>
-                            )}
+                            {milestone.deliverables &&
+                              milestone.deliverables.length > 0 && (
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm text-gray-400">
+                                    {milestone.deliverables.length} deliverables
+                                  </span>
+                                </div>
+                              )}
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(milestone.status)}`}>
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                                milestone.status
+                              )}`}
+                            >
                               {milestone.status.replace("_", " ")}
                             </span>
                           </div>
@@ -1735,10 +1979,10 @@ export default function EnhancedProjectTracking({
       case "budget":
         // Filter payments based on active tab
         const pendingPayments = (projectData.payments || []).filter(
-          (payment) => payment.status === 'pending'
+          (payment) => payment.status === "pending"
         );
         const historyPayments = (projectData.payments || []).filter(
-          (payment) => payment.status !== 'pending'
+          (payment) => payment.status !== "pending"
         );
 
         return (
@@ -1821,11 +2065,12 @@ export default function EnhancedProjectTracking({
               {/* Payment Tabs */}
               <div className="flex space-x-1 mb-6 bg-gray-800/50 rounded-xl p-1">
                 <button
-                  onClick={() => setActivePaymentTab('pending')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${activePaymentTab === 'pending'
-                    ? 'bg-blue-500 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                    }`}
+                  onClick={() => setActivePaymentTab("pending")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                    activePaymentTab === "pending"
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                  }`}
                 >
                   <span>Pending Payments</span>
                   {pendingPayments.length > 0 && (
@@ -1835,11 +2080,12 @@ export default function EnhancedProjectTracking({
                   )}
                 </button>
                 <button
-                  onClick={() => setActivePaymentTab('history')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${activePaymentTab === 'history'
-                    ? 'bg-green-500 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                    }`}
+                  onClick={() => setActivePaymentTab("history")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                    activePaymentTab === "history"
+                      ? "bg-green-500 text-white shadow-lg"
+                      : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                  }`}
                 >
                   <span>Payment History</span>
                   {historyPayments.length > 0 && (
@@ -1902,7 +2148,9 @@ export default function EnhancedProjectTracking({
                       }
                       className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                     >
-                      {getPaymentMethodsForCurrency(projectData.pricing?.currency || "USD").map((method) => (
+                      {getPaymentMethodsForCurrency(
+                        projectData.pricing?.currency || "USD"
+                      ).map((method) => (
                         <option key={method.value} value={method.value}>
                           {method.icon} {method.label}
                         </option>
@@ -1930,65 +2178,109 @@ export default function EnhancedProjectTracking({
 
               {/* Tabbed Payments Content */}
               <div className="space-y-4">
-                {activePaymentTab === 'pending' && (
+                {activePaymentTab === "pending" && (
                   <>
                     {pendingPayments.length > 0 ? (
                       pendingPayments.map((payment: Payment) => (
-                        <div key={payment.id} className="p-6 bg-black/10 rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200">
+                        <div
+                          key={payment.id}
+                          className="p-6 bg-black/10 rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all duration-200"
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               {editingPayment === payment.id ? (
                                 <div className="space-y-4">
-                                  <h3 className="text-lg font-semibold text-white mb-4">Edit Payment</h3>
+                                  <h3 className="text-lg font-semibold text-white mb-4">
+                                    Edit Payment
+                                  </h3>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Amount
+                                      </label>
                                       <input
                                         type="number"
                                         min="0"
                                         step="0.01"
-                                        value={newPayment.amount || payment.amount || ""}
+                                        value={
+                                          newPayment.amount ||
+                                          payment.amount ||
+                                          ""
+                                        }
                                         onChange={(e) =>
-                                          setNewPayment({ ...newPayment, amount: Number(e.target.value) })
+                                          setNewPayment({
+                                            ...newPayment,
+                                            amount: Number(e.target.value),
+                                          })
                                         }
                                         placeholder="Amount"
                                         className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                                       />
                                     </div>
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-300 mb-2">Date</label>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Date
+                                      </label>
                                       <input
                                         type="date"
-                                        value={newPayment.date || payment.date || ""}
+                                        value={
+                                          newPayment.date || payment.date || ""
+                                        }
                                         onChange={(e) =>
-                                          setNewPayment({ ...newPayment, date: e.target.value })
+                                          setNewPayment({
+                                            ...newPayment,
+                                            date: e.target.value,
+                                          })
                                         }
                                         className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                                       />
                                     </div>
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Description
+                                      </label>
                                       <input
                                         type="text"
-                                        value={newPayment.description || payment.description || ""}
+                                        value={
+                                          newPayment.description ||
+                                          payment.description ||
+                                          ""
+                                        }
                                         onChange={(e) =>
-                                          setNewPayment({ ...newPayment, description: e.target.value })
+                                          setNewPayment({
+                                            ...newPayment,
+                                            description: e.target.value,
+                                          })
                                         }
                                         placeholder="Description"
                                         className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                                       />
                                     </div>
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-300 mb-2">Payment Method</label>
+                                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Payment Method
+                                      </label>
                                       <select
-                                        value={newPayment.method || payment.method || DEFAULT_PAYMENT_METHOD}
+                                        value={
+                                          newPayment.method ||
+                                          payment.method ||
+                                          DEFAULT_PAYMENT_METHOD
+                                        }
                                         onChange={(e) =>
-                                          setNewPayment({ ...newPayment, method: e.target.value })
+                                          setNewPayment({
+                                            ...newPayment,
+                                            method: e.target.value,
+                                          })
                                         }
                                         className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-transparent"
                                       >
-                                        {getPaymentMethodsForCurrency(projectData.pricing?.currency || "USD").map((method) => (
-                                          <option key={method.value} value={method.value}>
+                                        {getPaymentMethodsForCurrency(
+                                          projectData.pricing?.currency || "USD"
+                                        ).map((method) => (
+                                          <option
+                                            key={method.value}
+                                            value={method.value}
+                                          >
                                             {method.icon} {method.label}
                                           </option>
                                         ))}
@@ -1997,8 +2289,15 @@ export default function EnhancedProjectTracking({
                                   </div>
                                   <div className="flex items-center space-x-3 mt-6">
                                     <button
-                                      onClick={() => handleUpdatePayment(payment.id, newPayment)}
-                                      disabled={!newPayment.amount && !payment.amount}
+                                      onClick={() =>
+                                        handleUpdatePayment(
+                                          payment.id,
+                                          newPayment
+                                        )
+                                      }
+                                      disabled={
+                                        !newPayment.amount && !payment.amount
+                                      }
                                       className="cursor-pointer flex items-center space-x-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors"
                                     >
                                       <Save className="w-4 h-4" />
@@ -2021,14 +2320,15 @@ export default function EnhancedProjectTracking({
                                     <div className="flex items-center justify-between">
                                       <div>
                                         <h3 className="text-lg font-semibold text-white">
-                                          {payment.description || "Payment Request"}
+                                          {payment.description ||
+                                            "Payment Request"}
                                         </h3>
                                         <p className="text-sm text-gray-400">
                                           Pending Admin Approval
                                         </p>
                                       </div>
                                       <div className="text-right">
-                                        <div className="text-2xl font-bold text-white">
+                                        <div className="text-2xl font-semibold text-white">
                                           {formatCurrency(
                                             payment.amount,
                                             payment.currency || "USD"
@@ -2044,14 +2344,20 @@ export default function EnhancedProjectTracking({
                                     <div className="flex items-center justify-between py-2 border-t border-gray-700">
                                       <div className="flex items-center space-x-2">
                                         <ExternalLink className="w-4 h-4 text-gray-500" />
-                                        <span className="text-sm text-gray-400">Method:</span>
+                                        <span className="text-sm text-gray-400">
+                                          Method:
+                                        </span>
                                         <span className="text-sm font-medium text-white capitalize">
-                                          {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
+                                          {formatPaymentMethodLabel(
+                                            payment.method as PaymentMethodType
+                                          )}
                                         </span>
                                       </div>
                                       <div className="flex items-center space-x-2">
                                         <Clock className="w-4 h-4 text-yellow-500" />
-                                        <span className="text-sm text-yellow-500 font-medium">Under Review</span>
+                                        <span className="text-sm text-yellow-500 font-medium">
+                                          Under Review
+                                        </span>
                                       </div>
                                     </div>
                                   </div>
@@ -2102,7 +2408,7 @@ export default function EnhancedProjectTracking({
                   </>
                 )}
 
-                {activePaymentTab === 'history' && (
+                {activePaymentTab === "history" && (
                   <>
                     {historyPayments.length > 0 ? (
                       historyPayments.map((payment: Payment) => (
@@ -2149,7 +2455,9 @@ export default function EnhancedProjectTracking({
                                 <div>
                                   <span className="text-gray-400">Method:</span>
                                   <p className="text-white font-medium capitalize">
-                                    {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
+                                    {formatPaymentMethodLabel(
+                                      payment.method as PaymentMethodType
+                                    )}
                                   </p>
                                 </div>
                                 <div>
@@ -2181,8 +2489,8 @@ export default function EnhancedProjectTracking({
                                         {payment.approvedBy} on{" "}
                                         {payment.approvedAt
                                           ? new Date(
-                                            payment.approvedAt
-                                          ).toLocaleDateString()
+                                              payment.approvedAt
+                                            ).toLocaleDateString()
                                           : ""}
                                       </p>
                                     </div>
@@ -2241,7 +2549,9 @@ export default function EnhancedProjectTracking({
         return (
           <div className="bg-black/5 backdrop-blur-xl rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-white">Project Files</h2>
+              <h2 className="text-2xl font-semibold text-white">
+                Project Files
+              </h2>
               <button
                 onClick={() => setShowAddFile(true)}
                 className="cursor-pointer flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl transition-all duration-200"
@@ -2249,15 +2559,14 @@ export default function EnhancedProjectTracking({
                 <Upload className="w-4 h-4" />
                 <span>Upload File</span>
               </button>
-
             </div>
             <div className="text-gray-400 mb-4 text-md text-center ">
-              Manage your project files here. You can upload, view, and delete files related to this project.
+              Manage your project files here. You can upload, view, and delete
+              files related to this project.
               {projectData.files?.length === 0 && !showAddFile && (
                 <p className="mt-2 text-md text-gray-500 text-center ">
                   No files uploaded yet. Click "Upload File" to add new files.
                 </p>
-
               )}
             </div>
 
@@ -2307,7 +2616,9 @@ export default function EnhancedProjectTracking({
                     <div className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white">
                       <p className="text-sm text-gray-400">Selected file:</p>
                       <p className="text-white">{selectedFile.name}</p>
-                      <p className="text-sm text-gray-400">Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="text-sm text-gray-400">
+                        Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
                     </div>
                   )}
                 </div>
@@ -2411,12 +2722,12 @@ export default function EnhancedProjectTracking({
           </div>
         );
 
-
-
       case "milestones":
         return (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-semibold text-white mb-6">Milestones</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">
+              Milestones
+            </h2>
             <div className="space-y-4">
               {(projectData.milestones || []).map((milestone: Milestone) => (
                 <div
@@ -2484,10 +2795,16 @@ export default function EnhancedProjectTracking({
                       {payment.description || "Payment"}
                     </h3>
                     <p className="text-sm text-gray-400">
-                      Method: {formatPaymentMethodLabel(payment.method as PaymentMethodType)}
+                      Method:{" "}
+                      {formatPaymentMethodLabel(
+                        payment.method as PaymentMethodType
+                      )}
                     </p>
                     <div className="text-xs text-gray-500 mt-2">
-                      Date: {payment.date ? new Date(payment.date).toLocaleDateString() : "N/A"}
+                      Date:{" "}
+                      {payment.date
+                        ? new Date(payment.date).toLocaleDateString()
+                        : "N/A"}
                     </div>
                   </div>
                   <div className="text-right">
@@ -2574,7 +2891,9 @@ export default function EnhancedProjectTracking({
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-white font-semibold text-lg mb-1">{activity.title}</h3>
+                      <h3 className="text-white font-semibold text-lg mb-1">
+                        {activity.title}
+                      </h3>
                       <p className="text-gray-300 text-sm mb-1">
                         {activity.description}
                       </p>
@@ -2748,10 +3067,11 @@ export default function EnhancedProjectTracking({
                   <button
                     key={tab.id}
                     onClick={() => setTrackingView(tab.id)}
-                    className={`cursor-pointer flex items-center space-x-2 px-5 py-3 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${trackingView === tab.id
-                      ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25 scale-105"
-                      : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:scale-105"
-                      }`}
+                    className={`cursor-pointer flex items-center space-x-2 px-5 py-3 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                      trackingView === tab.id
+                        ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25 scale-105"
+                        : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:scale-105"
+                    }`}
                   >
                     <Icon className="w-4 h-4" />
                     <span className="font-medium text-sm">{tab.label}</span>

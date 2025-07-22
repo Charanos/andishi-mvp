@@ -79,7 +79,11 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   const [activeTab, setActiveTab] = useState("personal");
   const { toast, notifications, removeNotification } = useToast();
 
-  const handleChange = (section: keyof DeveloperProfile['data'], field: string, value: any) => {
+  const handleChange = (
+    section: keyof DeveloperProfile["data"],
+    field: string,
+    value: any
+  ) => {
     setProfile((prev) => {
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
       // @ts-ignore – dynamic indexing within data
@@ -89,7 +93,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   };
 
   const handleArrayChange = (
-    section: keyof DeveloperProfile['data'],
+    section: keyof DeveloperProfile["data"],
     field: string,
     index: number,
     value: any
@@ -103,8 +107,8 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
   };
 
   const isValidSection = (
-    section: keyof DeveloperProfile['data']
-  ): section is keyof DeveloperProfile['data'] => {
+    section: keyof DeveloperProfile["data"]
+  ): section is keyof DeveloperProfile["data"] => {
     return [
       "personalInfo",
       "professionalInfo",
@@ -117,8 +121,11 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
     setProfile((prev) => {
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
 
-      if (!isValidSection(section as keyof DeveloperProfile['data'])) return prev;
-      const sectionObj = updated.data[section as keyof DeveloperProfile['data']] as Record<string, any>;
+      if (!isValidSection(section as keyof DeveloperProfile["data"]))
+        return prev;
+      const sectionObj = updated.data[
+        section as keyof DeveloperProfile["data"]
+      ] as Record<string, any>;
 
       if (!sectionObj[field]) {
         sectionObj[field] = [];
@@ -188,7 +195,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
     setCreating(true);
     try {
       toast.info("Creating new developer user and profile...");
-      
+
       // Step 1: Create user with developer role (this will auto-create the developer profile)
       const userPayload = {
         email: profile.data.personalInfo.email,
@@ -197,7 +204,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         role: "developer",
         generatePassword: true, // Generate password automatically
       };
-      
+
       const userRes = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -206,33 +213,41 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
       if (!userRes.ok) {
         const errorData = await userRes.json();
-        throw new Error(errorData.error || `User creation failed: ${userRes.status} ${userRes.statusText}`);
+        throw new Error(
+          errorData.error ||
+            `User creation failed: ${userRes.status} ${userRes.statusText}`
+        );
       }
 
       const userData = await userRes.json();
       toast.success("User created successfully!");
-      
+
       // Step 2: Wait a moment for the developer profile to be created
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Step 3: Fetch the newly created developer profile
       const profileRes = await fetch("/api/developer-profiles");
       if (!profileRes.ok) {
         throw new Error(`Failed to fetch profiles: ${profileRes.status}`);
       }
-      
+
       const profilesData = await profileRes.json();
-      const profiles = Array.isArray(profilesData) ? profilesData : profilesData.profiles || [];
-      
+      const profiles = Array.isArray(profilesData)
+        ? profilesData
+        : profilesData.profiles || [];
+
       // Find the profile that matches the email we just created
-      const newProfile = profiles.find((p: DeveloperProfile) => 
-        p.data.personalInfo.email === profile.data.personalInfo.email
+      const newProfile = profiles.find(
+        (p: DeveloperProfile) =>
+          p.data.personalInfo.email === profile.data.personalInfo.email
       );
-      
+
       if (!newProfile) {
-        throw new Error("Developer profile was not created automatically. Please try again.");
+        throw new Error(
+          "Developer profile was not created automatically. Please try again."
+        );
       }
-      
+
       // Step 4: Update the profile with the detailed information from the form
       const updateRes = await fetch("/api/developer-profiles", {
         method: "PUT",
@@ -243,20 +258,22 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
           personalInfo: {
             ...profile.data.personalInfo,
             // Keep the email from the created user
-            email: profile.data.personalInfo.email
-          }
+            email: profile.data.personalInfo.email,
+          },
         }),
       });
-      
+
       if (!updateRes.ok) {
-        toast.warning("Failed to update profile with detailed info, but profile was created");
+        toast.warning(
+          "Failed to update profile with detailed info, but profile was created"
+        );
         // Don't fail completely, just warn
       }
-      
+
       const finalProfile = updateRes.ok ? await updateRes.json() : newProfile;
-      
+
       toast.success("Developer created successfully with user account!");
-      
+
       // Show additional info about the generated password
       if (userData.generatedPassword) {
         toast.info(`Password generated: ${userData.generatedPassword}`);
@@ -264,7 +281,9 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
       onCreate(finalProfile as DeveloperProfile);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error creating developer");
+      toast.error(
+        err instanceof Error ? err.message : "Error creating developer"
+      );
     } finally {
       setCreating(false);
     }
@@ -426,31 +445,33 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-2">Languages</label>
           <div className="space-y-2">
-            {(profile.data.professionalInfo.languages || []).map((lang, index) => (
-              <div key={index} className="flex gap-2">
-                <input
-                  className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
-                  value={lang}
-                  onChange={(e) =>
-                    handleArrayChange(
-                      "professionalInfo",
-                      "languages",
-                      index,
-                      e.target.value
-                    )
-                  }
-                  placeholder="e.g., English (Native)"
-                />
-                <button
-                  onClick={() =>
-                    removeArrayItem("professionalInfo", "languages", index)
-                  }
-                  className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors cursor-pointer"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-            ))}
+            {(profile.data.professionalInfo.languages || []).map(
+              (lang, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1 focus:border-blue-400 focus:outline-none transition-colors"
+                    value={lang}
+                    onChange={(e) =>
+                      handleArrayChange(
+                        "professionalInfo",
+                        "languages",
+                        index,
+                        e.target.value
+                      )
+                    }
+                    placeholder="e.g., English (Native)"
+                  />
+                  <button
+                    onClick={() =>
+                      removeArrayItem("professionalInfo", "languages", index)
+                    }
+                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded transition-colors cursor-pointer"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              )
+            )}
             <button
               onClick={() => addArrayItem("professionalInfo", "languages", "")}
               className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2 transition-colors cursor-pointer"
@@ -920,7 +941,10 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
 
   return (
     <div className="min-h-screen ">
-      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+      />
 
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -934,13 +958,15 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                 <IoMdArrowBack className="w-6 h-6" />
               </button>
             )}
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
               Add New Developer
               <FaUserPlus className="text-blue-400" />
             </h1>
           </div>
           <p className="text-gray-300">
-            Create a new developer with user account and profile. This will generate login credentials and create a comprehensive developer profile.
+            Create a new developer with user account and profile. This will
+            generate login credentials and create a comprehensive developer
+            profile.
           </p>
         </div>
 

@@ -43,7 +43,7 @@ export default function NewsletterSection() {
             <div className="text-green-400 mb-6">
               <FaCheckCircle className="text-6xl mx-auto" />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-semibold text-white mb-4">
               Thanks for Subscribing!
             </h2>
             <p className="text-gray-300 text-lg">

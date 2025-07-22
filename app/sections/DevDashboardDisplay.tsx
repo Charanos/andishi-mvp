@@ -215,7 +215,7 @@ export default function DevDashboardSection(): JSX.Element {
                       </div>
                       <div className="text-right">
                         <div className="h-4 w-16 bg-gradient-to-r from-purple-400 to-pink-400 rounded text-center flex items-center justify-center">
-                          <span className="text-xs text-white font-bold">
+                          <span className="text-xs text-white font-semibold">
                             $2,840
                           </span>
                         </div>

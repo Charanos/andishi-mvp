@@ -37,7 +37,10 @@ export default function Footer() {
     legal: [
       { name: "Developer Terms of Service", href: "/legal/terms-of-service" },
       { name: "Developer Privacy Policy", href: "/legal/privacy-policy" },
-      { name: "Client Terms of Service", href: "/legal/client-terms-of-service" },
+      {
+        name: "Client Terms of Service",
+        href: "/legal/client-terms-of-service",
+      },
       { name: "Client Privacy Policy", href: "/legal/client-privacy-policy" },
     ],
   };
@@ -91,7 +94,7 @@ export default function Footer() {
             {/* Company Info */}
             <div className="lg:col-span-2 space-y-6">
               <div>
-                <h3 className="text-3xl font-bold !text-gray-100 mb-2 monty uppercase">
+                <h3 className="text-3xl font-semibold !text-gray-100 mb-2 monty uppercase">
                   Andishi
                 </h3>
                 <p className="text-gray-400 leading-relaxed max-w-md">

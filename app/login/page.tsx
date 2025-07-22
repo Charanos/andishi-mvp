@@ -689,7 +689,7 @@ export default function LoginPage() {
                 <div className="flex items-center mb-3">
                   {/* Avatar Placeholder */}
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 shadow-lg"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3 shadow-lg"
                     style={{ backgroundColor: testimonial.color }}
                   >
                     {testimonial.avatar}

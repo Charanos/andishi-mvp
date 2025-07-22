@@ -69,7 +69,7 @@ const ProjectDetailsPage = () => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-white text-center">
-        <h2 className="text-2xl font-bold mb-4">Error</h2>
+        <h2 className="text-2xl font-semibold mb-4">Error</h2>
         <p>{error}</p>
       </div>
     );
@@ -78,7 +78,7 @@ const ProjectDetailsPage = () => {
   if (!project) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-white text-center">
-        <h2 className="text-2xl font-bold mb-4">Project Not Found</h2>
+        <h2 className="text-2xl font-semibold mb-4">Project Not Found</h2>
         <p>The project you are looking for does not exist.</p>
       </div>
     );
@@ -89,9 +89,7 @@ const ProjectDetailsPage = () => {
   };
 
   // Function to transform ProjectWithDetails to ProjectData
-  const transformProjectToData = (
-    project: ProjectWithDetails
-  ): ProjectData => {
+  const transformProjectToData = (project: ProjectWithDetails): ProjectData => {
     return {
       _id: project.id,
       projectDetails: {

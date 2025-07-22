@@ -84,6 +84,7 @@ import {
 } from "@/types";
 import SearchFilter from "./SearchFilter";
 import ConfirmationModal from "../components/ConfirmationModal";
+import DeveloperDebugPanel from "./DeveloperDebugPanel";
 
 // Types
 interface SystemUser {
@@ -120,6 +121,7 @@ type ActiveTab =
   | "dev profiles"
   | "clients"
   | "analytics"
+  | "debug"
   | "settings";
 
 export default function EnhancedAdminDashboard(): ReactNode {
@@ -1753,11 +1755,24 @@ export default function EnhancedAdminDashboard(): ReactNode {
             /* kept original stub structure */
             await recordProjectPayment(projectId, payment);
           }}
-          developers={users.filter(
-            (user) =>
-              user.role === "developer" &&
-              user.developerProfileStatus === "approved"
-          )}
+          developers={users.filter((user) => {
+            // More flexible filtering to show available developers
+            const isDeveloper = user.role === "developer";
+            const hasApprovedStatus =
+              user.developerProfileStatus === "approved";
+            const hasPendingStatus =
+              user.developerProfileStatus === "pending" ||
+              user.developerProfileStatus === null;
+            const isActiveUser =
+              user.status === "active" || user.isActive !== false;
+
+            // Show developers if they are approved OR if they are pending/null but active
+            // This ensures developers show up even if approval process is incomplete
+            return (
+              isDeveloper &&
+              (hasApprovedStatus || (hasPendingStatus && isActiveUser))
+            );
+          })}
           refreshDevelopers={refreshAllData}
         />
       );
@@ -2165,7 +2180,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         {project?.files && project.files.length > 0 && (
                           <div className="flex items-center space-x-1 text-xs text-emerald-400">
                             <div className="w-3 h-3 rounded bg-emerald-400 flex items-center justify-center">
-                              <span className="text-xs font-bold text-emerald-900">
+                              <span className="text-xs font-semibold text-emerald-900">
                                 {project.files.length}
                               </span>
                             </div>
@@ -2176,7 +2191,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         {project?.payments && project.payments.length > 0 && (
                           <div className="flex items-center space-x-1 text-xs text-amber-400">
                             <div className="w-3 h-3 rounded bg-amber-400 flex items-center justify-center">
-                              <span className="text-xs font-bold text-amber-900">
+                              <span className="text-xs font-semibold text-amber-900">
                                 {project.payments.length}
                               </span>
                             </div>
@@ -3787,7 +3802,7 @@ Generate new credentials to reset password.`;
               { id: "users", label: "Users", icon: FaUsers },
               { id: "analytics", label: "Analytics", icon: FaChartBar },
               { id: "devProfiles", label: "Dev Profiles", icon: FaUserEdit },
-
+              { id: "debug", label: "Debug", icon: FaExclamationTriangle },
               { id: "settings", label: "Settings", icon: FaCog },
             ].map((tab) => (
               <button
@@ -3838,6 +3853,21 @@ Generate new credentials to reset password.`;
               onDeleteProfile={handleDeleteProfile}
               refreshTrigger={profileRefreshTrigger}
             />
+          )}
+          {activeTab === "debug" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-semibold text-white mb-2">
+                    Developer Debug Panel
+                  </h2>
+                  <p className="text-gray-400 mt-1">
+                    Diagnose and fix developer visibility issues in assignments
+                  </p>
+                </div>
+              </div>
+              <DeveloperDebugPanel users={users} onRefresh={refreshAllData} />
+            </div>
           )}
 
           {activeTab === "settings" && renderSettings()}

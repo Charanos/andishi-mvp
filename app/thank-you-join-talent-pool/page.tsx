@@ -61,8 +61,7 @@ export default function DeveloperThankYouPage() {
           </h1>
 
           <p className="text-xl text-gray-300 mb-4 max-w-2xl mx-auto leading-relaxed">
-            We will be in touch with you
-            regarding the next steps.
+            We will be in touch with you regarding the next steps.
           </p>
 
           <div className="flex items-center justify-center space-x-2 text-green-400 font-medium">
@@ -74,7 +73,7 @@ export default function DeveloperThankYouPage() {
 
         {/* What Happens Next */}
         <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center flex items-center justify-center">
+          <h2 className="text-2xl font-semibold text-white mb-8 text-center flex items-center justify-center">
             <FaLaptopCode className="mr-3 text-blue-400" />
             Your Developer Journey
           </h2>
@@ -109,7 +108,7 @@ export default function DeveloperThankYouPage() {
 
         {/* Developer Perks */}
         <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center flex items-center justify-center">
+          <h2 className="text-2xl font-semibold text-white mb-8 text-center flex items-center justify-center">
             <FaHandshake className="mr-3 text-green-400" />
             What You Get as Part of Our Talent Pool
           </h2>

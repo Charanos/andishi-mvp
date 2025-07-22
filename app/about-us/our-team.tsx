@@ -177,8 +177,8 @@ export default function TeamSection() {
     selectedDepartment === "all"
       ? teamMembers
       : teamMembers.filter(
-        (member) => member.department === selectedDepartment
-      );
+          (member) => member.department === selectedDepartment
+        );
 
   return (
     <section
@@ -203,10 +203,11 @@ export default function TeamSection() {
               <button
                 key={dept}
                 onClick={() => setSelectedDepartment(dept)}
-                className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-150 capitalize ${selectedDepartment === dept
-                  ? "bg-purple-500/20 border-purple-400/50 text-purple-300"
-                  : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-gray-300"
-                  }`}
+                className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-150 capitalize ${
+                  selectedDepartment === dept
+                    ? "bg-purple-500/20 border-purple-400/50 text-purple-300"
+                    : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-gray-300"
+                }`}
               >
                 {dept === "all" ? "All Departments" : dept}
               </button>
@@ -311,10 +312,11 @@ export default function TeamSection() {
 
                 {/* Quote overlay on hover */}
                 <div
-                  className={`absolute inset-x-4 bottom-4 transform transition-all duration-250 ${hoveredMember === member.id
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-4"
-                    }`}
+                  className={`absolute inset-x-4 bottom-4 transform transition-all duration-250 ${
+                    hoveredMember === member.id
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-4"
+                  }`}
                 >
                   <div className="bg-black/50 backdrop-blur-md rounded-lg p-3">
                     <p className="text-white text-xs italic leading-relaxed">
@@ -377,10 +379,11 @@ export default function TeamSection() {
 
                   {/* Achievements (shown on hover) */}
                   <div
-                    className={`mt-4 overflow-hidden transition-all duration-250 ${hoveredMember === member.id
-                      ? "max-h-40 opacity-100"
-                      : "max-h-0 opacity-0"
-                      }`}
+                    className={`mt-4 overflow-hidden transition-all duration-250 ${
+                      hoveredMember === member.id
+                        ? "max-h-40 opacity-100"
+                        : "max-h-0 opacity-0"
+                    }`}
                   >
                     <div className="space-y-1">
                       <span className="text-gray-500 text-xs">
@@ -441,7 +444,7 @@ export default function TeamSection() {
               <div className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-150">
                 {stat.icon}
               </div>
-              <div className="text-2xl font-bold text-white my-2 monty group-hover:text-purple-300 transition-colors duration-150">
+              <div className="text-2xl font-semibold text-white my-2 monty group-hover:text-purple-300 transition-colors duration-150">
                 {stat.value}
               </div>
               <div className="text-gray-400 text-sm monty uppercase">

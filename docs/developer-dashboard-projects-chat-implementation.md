@@ -5,6 +5,7 @@
 This guide provides a comprehensive roadmap for implementing project assignments and chat functionality in the developer dashboard. The implementation leverages existing reusable components and APIs to maintain consistency and reduce code duplication.
 
 ### Key Implementation Principles:
+
 - **Reuse existing components**: ProjectChat, ConfirmationModal, ToastContainer, etc.
 - **Leverage existing APIs**: Extend current project-assignments and project-chat endpoints
 - **Maintain consistency**: Use existing patterns and styling from admin/client dashboards
@@ -13,18 +14,21 @@ This guide provides a comprehensive roadmap for implementing project assignments
 ## 🎯 Core Features to Implement
 
 ### 1. Enhanced Project Assignment View
+
 - **Detailed project cards**: Rich project information with client details, tech stack, milestones
 - **Assignment-specific data**: Developer role, assignment date, estimated completion
 - **Project timeline**: Visual timeline showing project phases and developer involvement
 - **Collaboration info**: Team members, client contact, admin oversight
 
 ### 2. Comprehensive Project Management
+
 - **Inline tabbed navigation**: Overview, Tasks, Milestones, Files, Chat, Updates
 - **Real-time status updates**: Sync with admin dashboard for instant updates
 - **Progress tracking**: Visual progress indicators and milestone completion
 - **File management**: Upload deliverables and access project resources
 
 ### 3. Integrated Communication
+
 - **Project chat**: Reuse existing ProjectChat component with developer-specific features
 - **Notifications**: Integration with existing toast notification system
 - **Status updates**: Communication about project progress and blockers
@@ -60,17 +64,20 @@ app/
 ## 🔄 Reusable Components Strategy
 
 ### Existing Components to Reuse:
+
 1. **ProjectChat** (`app/admin-dashboard/ProjectChat.tsx`) - Full-featured chat component
 2. **ConfirmationModal** (`app/components/ConfirmationModal.tsx`) - Modal for confirmations
 3. **ToastContainer** (`app/components/ToastContainer.tsx`) - Notification system
 4. **ProjectAssignments** (`app/admin-dashboard/ProjectAssignments.tsx`) - Assignment logic
 
 ### Existing APIs to Leverage:
+
 1. **Project Assignments API** (`/api/project-assignments/`) - Extend with developer views
 2. **Project Chat API** (`/api/project-chat/`) - Already implemented and working
 3. **Projects API** (`/api/projects/`) - Core project data
 
 ### Existing Hooks to Extend:
+
 1. **useProjectAssignments** - Add developer-specific methods
 2. **useProjectChat** - Already developer-ready
 3. **useToast** - Already integrated in dashboard
@@ -82,17 +89,17 @@ app/
 **File**: `hooks/useDeveloperAssignments.ts`
 
 ```typescript
-import useSWR from 'swr';
-import { useAuth } from './useAuth';
-import { Assignment } from '@/types/project';
+import useSWR from "swr";
+import { useAuth } from "./useAuth";
+import { Assignment } from "@/types/project";
 
 // Reuse existing fetcher pattern
 const fetcher = async (url: string) => {
   const response = await fetch(url, {
-    credentials: 'include',
+    credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
-    }
+      "Content-Type": "application/json",
+    },
   });
 
   if (!response.ok) {
@@ -104,7 +111,7 @@ const fetcher = async (url: string) => {
 
 export function useDeveloperAssignments() {
   const { user } = useAuth();
-  
+
   // Leverage existing project-assignments API with developer filter
   const { data, error, mutate, isLoading } = useSWR<Assignment[]>(
     user ? `/api/project-assignments/developer/${user.id}` : null,
@@ -117,18 +124,24 @@ export function useDeveloperAssignments() {
   );
 
   // Update assignment status (developer can update their own assignment)
-  const updateAssignmentStatus = async (assignmentId: string, status: string) => {
-    const response = await fetch(`/api/project-assignments/${assignmentId}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ status }),
-      credentials: 'include',
-    });
+  const updateAssignmentStatus = async (
+    assignmentId: string,
+    status: string
+  ) => {
+    const response = await fetch(
+      `/api/project-assignments/${assignmentId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+        credentials: "include",
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to update assignment status');
+      throw new Error("Failed to update assignment status");
     }
 
     mutate(); // Refresh the data
@@ -138,16 +151,16 @@ export function useDeveloperAssignments() {
   // Update project progress (developer-specific)
   const updateProjectProgress = async (projectId: string, progress: number) => {
     const response = await fetch(`/api/projects/${projectId}/progress`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ progress }),
-      credentials: 'include',
+      credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update project progress');
+      throw new Error("Failed to update project progress");
     }
 
     mutate(); // Refresh the data
@@ -170,9 +183,9 @@ export function useDeveloperAssignments() {
 **File**: `app/api/project-assignments/developer/[developerId]/route.ts`
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/getSession';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/getSession";
+import prisma from "@/lib/prisma";
 
 // Extend existing project-assignments API for developer-specific view
 export async function GET(
@@ -181,7 +194,7 @@ export async function GET(
 ) {
   try {
     const { developerId } = await params;
-    
+
     // Reuse existing authentication pattern
     const session = await getSession(req);
     if (!session || !session.user) {
@@ -189,7 +202,7 @@ export async function GET(
     }
 
     // Only allow developers to view their own assignments or admin access
-    if (session.user.role !== 'admin' && session.user.id !== developerId) {
+    if (session.user.role !== "admin" && session.user.id !== developerId) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
@@ -212,17 +225,17 @@ export async function GET(
             },
             milestones: {
               orderBy: {
-                order: 'asc',
+                order: "asc",
               },
             },
             files: {
               orderBy: {
-                createdAt: 'desc',
+                createdAt: "desc",
               },
             },
             updates: {
               orderBy: {
-                createdAt: 'desc',
+                createdAt: "desc",
               },
               take: 5, // Latest 5 updates
             },
@@ -243,7 +256,7 @@ export async function GET(
     });
 
     // Transform data for developer dashboard with enhanced details
-    const enhancedAssignments = assignments.map(assignment => ({
+    const enhancedAssignments = assignments.map((assignment) => ({
       // Assignment-specific data
       id: assignment.id,
       assignmentId: assignment.id,
@@ -251,7 +264,7 @@ export async function GET(
       updatedAt: assignment.updatedAt,
       status: assignment.status,
       role: assignment.role,
-      
+
       // Project data
       project: {
         id: assignment.project.id,
@@ -266,38 +279,44 @@ export async function GET(
         estimatedCompletionDate: assignment.project.estimatedCompletionDate,
         actualCompletionDate: assignment.project.actualCompletionDate,
         createdAt: assignment.project.createdAt,
-        
+
         // Client information
-        client: assignment.project.client ? {
-          id: assignment.project.client.id,
-          name: `${assignment.project.client.firstName} ${assignment.project.client.lastName}`,
-          email: assignment.project.client.email,
-          company: assignment.project.client.company,
-        } : null,
-        
+        client: assignment.project.client
+          ? {
+              id: assignment.project.client.id,
+              name: `${assignment.project.client.firstName} ${assignment.project.client.lastName}`,
+              email: assignment.project.client.email,
+              company: assignment.project.client.company,
+            }
+          : null,
+
         // Project team (all assigned developers)
-        team: assignment.project.assignments.map(a => ({
+        team: assignment.project.assignments.map((a) => ({
           id: a.id,
           role: a.role,
           status: a.status,
           assignedAt: a.assignedAt,
-          developer: a.developer ? {
-            id: a.developer.id,
-            name: `${a.developer.personalInfo?.firstName || ''} ${a.developer.personalInfo?.lastName || ''}`.trim(),
-            title: a.developer.professionalInfo?.title || 'Developer',
-            email: a.developer.personalInfo?.email,
-          } : null,
+          developer: a.developer
+            ? {
+                id: a.developer.id,
+                name: `${a.developer.personalInfo?.firstName || ""} ${
+                  a.developer.personalInfo?.lastName || ""
+                }`.trim(),
+                title: a.developer.professionalInfo?.title || "Developer",
+                email: a.developer.personalInfo?.email,
+              }
+            : null,
         })),
-        
+
         // Milestones
         milestones: assignment.project.milestones,
-        
+
         // Files
         files: assignment.project.files,
-        
+
         // Recent updates
         updates: assignment.project.updates,
-        
+
         // Budget information
         budget: assignment.project.pricing.fixedBudget || 0,
         pricingType: assignment.project.pricing.type,
@@ -306,7 +325,7 @@ export async function GET(
 
     return NextResponse.json(enhancedAssignments);
   } catch (error) {
-    console.error('Error fetching developer assignments:', error);
+    console.error("Error fetching developer assignments:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -355,26 +374,31 @@ export default function DevProjects() {
   const { user } = useAuth();
   const { assignments, loading, error, refetch } = useDeveloperAssignments();
   const { notifications, removeNotification } = useToast();
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("deadline");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "milestones" | "files" | "chat" | "updates">("overview");
+  const [selectedAssignment, setSelectedAssignment] =
+    useState<Assignment | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "tasks" | "milestones" | "files" | "chat" | "updates"
+  >("overview");
 
   // Filter and sort assignments
   const filteredAssignments = useMemo(() => {
     let filtered = assignments.filter((assignment) => {
       const project = assignment.project;
-      const matchesSearch = 
+      const matchesSearch =
         project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.client?.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = statusFilter === "all" || assignment.status === statusFilter;
-      const matchesPriority = priorityFilter === "all" || project.priority === priorityFilter;
+      const matchesStatus =
+        statusFilter === "all" || assignment.status === statusFilter;
+      const matchesPriority =
+        priorityFilter === "all" || project.priority === priorityFilter;
 
       return matchesSearch && matchesStatus && matchesPriority;
     });
@@ -385,14 +409,22 @@ export default function DevProjects() {
         case "title":
           return a.project.title.localeCompare(b.project.title);
         case "deadline":
-          return new Date(a.project.estimatedCompletionDate).getTime() - new Date(b.project.estimatedCompletionDate).getTime();
+          return (
+            new Date(a.project.estimatedCompletionDate).getTime() -
+            new Date(b.project.estimatedCompletionDate).getTime()
+          );
         case "progress":
           return b.project.progress - a.project.progress;
         case "priority":
           const priorityOrder = { low: 1, medium: 2, high: 3, critical: 4 };
-          return priorityOrder[b.project.priority] - priorityOrder[a.project.priority];
+          return (
+            priorityOrder[b.project.priority] -
+            priorityOrder[a.project.priority]
+          );
         default:
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+          return (
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          );
       }
     });
 
@@ -413,22 +445,34 @@ export default function DevProjects() {
               <FaArrowLeft className="text-gray-400" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-white">{selectedAssignment.project.title}</h1>
+              <h1 className="text-2xl font-semibold text-white">
+                {selectedAssignment.project.title}
+              </h1>
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-gray-400">Client:</span>
-                <span className="text-white">{selectedAssignment.project.client?.name}</span>
+                <span className="text-white">
+                  {selectedAssignment.project.client?.name}
+                </span>
                 <span className="text-gray-400">•</span>
                 <span className="text-gray-400">Role:</span>
                 <span className="text-blue-400">{selectedAssignment.role}</span>
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <div className={`px-3 py-1 rounded-full text-sm ${getStatusColor(selectedAssignment.status)}`}>
+            <div
+              className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
+                selectedAssignment.status
+              )}`}
+            >
               {selectedAssignment.status}
             </div>
-            <div className={`px-3 py-1 rounded-full text-sm ${getPriorityColor(selectedAssignment.project.priority)}`}>
+            <div
+              className={`px-3 py-1 rounded-full text-sm ${getPriorityColor(
+                selectedAssignment.project.priority
+              )}`}
+            >
               {selectedAssignment.project.priority}
             </div>
           </div>
@@ -440,7 +484,9 @@ export default function DevProjects() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Progress</p>
-                <p className="text-2xl font-semibold text-white">{selectedAssignment.project.progress}%</p>
+                <p className="text-2xl font-semibold text-white">
+                  {selectedAssignment.project.progress}%
+                </p>
               </div>
               <FaChartLine className="text-blue-400 text-2xl" />
             </div>
@@ -451,35 +497,40 @@ export default function DevProjects() {
               />
             </div>
           </div>
-          
+
           <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Team Size</p>
-                <p className="text-2xl font-semibold text-white">{selectedAssignment.project.team?.length || 1}</p>
+                <p className="text-2xl font-semibold text-white">
+                  {selectedAssignment.project.team?.length || 1}
+                </p>
               </div>
               <FaUsers className="text-green-400 text-2xl" />
             </div>
           </div>
-          
+
           <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Deadline</p>
                 <p className="text-lg font-semibold text-white">
-                  {new Date(selectedAssignment.project.estimatedCompletionDate).toLocaleDateString()}
+                  {new Date(
+                    selectedAssignment.project.estimatedCompletionDate
+                  ).toLocaleDateString()}
                 </p>
               </div>
               <FaCalendarAlt className="text-orange-400 text-2xl" />
             </div>
           </div>
-          
+
           <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Budget</p>
                 <p className="text-lg font-semibold text-white">
-                  ${selectedAssignment.project.budget?.toLocaleString() || 'N/A'}
+                  $
+                  {selectedAssignment.project.budget?.toLocaleString() || "N/A"}
                 </p>
               </div>
               <FaDollarSign className="text-purple-400 text-2xl" />
@@ -499,19 +550,19 @@ export default function DevProjects() {
           {activeTab === "overview" && (
             <AssignmentOverview assignment={selectedAssignment} />
           )}
-          
+
           {activeTab === "tasks" && (
             <AssignmentTasks assignment={selectedAssignment} />
           )}
-          
+
           {activeTab === "milestones" && (
             <AssignmentMilestones assignment={selectedAssignment} />
           )}
-          
+
           {activeTab === "files" && (
             <AssignmentFiles assignment={selectedAssignment} />
           )}
-          
+
           {activeTab === "chat" && (
             <ProjectChat
               projectId={selectedAssignment.project.id}
@@ -521,12 +572,12 @@ export default function DevProjects() {
               currentUserName={user?.name || "Developer"}
             />
           )}
-          
+
           {activeTab === "updates" && (
             <AssignmentUpdates assignment={selectedAssignment} />
           )}
         </div>
-        
+
         {/* Toast Notifications */}
         <ToastContainer
           notifications={notifications}
@@ -538,11 +589,19 @@ export default function DevProjects() {
 
   // Assignment List View
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading assignments...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading assignments...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-red-500">Error loading assignments: {error.message}</div>;
+    return (
+      <div className="text-red-500">
+        Error loading assignments: {error.message}
+      </div>
+    );
   }
 
   return (
@@ -552,46 +611,57 @@ export default function DevProjects() {
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm monty uppercase">Total Projects</p>
-              <p className="text-2xl font-semibold text-white">{assignments.length}</p>
+              <p className="text-gray-400 text-sm monty uppercase">
+                Total Projects
+              </p>
+              <p className="text-2xl font-semibold text-white">
+                {assignments.length}
+              </p>
             </div>
             <FaBriefcase className="text-blue-400 text-2xl" />
           </div>
         </div>
-        
+
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm monty uppercase">Active</p>
               <p className="text-2xl font-semibold text-green-400">
-                {assignments.filter(a => a.status === 'accepted' || a.status === 'pending').length}
+                {
+                  assignments.filter(
+                    (a) => a.status === "accepted" || a.status === "pending"
+                  ).length
+                }
               </p>
             </div>
             <FaCheck className="text-green-400 text-2xl" />
           </div>
         </div>
-        
+
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm monty uppercase">Completed</p>
               <p className="text-2xl font-semibold text-purple-400">
-                {assignments.filter(a => a.status === 'completed').length}
+                {assignments.filter((a) => a.status === "completed").length}
               </p>
             </div>
             <FaCheckCircle className="text-purple-400 text-2xl" />
           </div>
         </div>
-        
+
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm monty uppercase">Overdue</p>
               <p className="text-2xl font-semibold text-red-400">
-                {assignments.filter(a => 
-                  new Date(a.project.estimatedCompletionDate) < new Date() && 
-                  a.status !== 'completed'
-                ).length}
+                {
+                  assignments.filter(
+                    (a) =>
+                      new Date(a.project.estimatedCompletionDate) <
+                        new Date() && a.status !== "completed"
+                  ).length
+                }
               </p>
             </div>
             <FaExclamationTriangle className="text-red-400 text-2xl" />
@@ -625,7 +695,7 @@ export default function DevProjects() {
             <option value="completed">Completed</option>
             <option value="rejected">Rejected</option>
           </select>
-          
+
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
@@ -667,10 +737,18 @@ export default function DevProjects() {
       {filteredAssignments.length === 0 ? (
         <div className="text-center py-12">
           <FaBriefcase className="mx-auto text-4xl text-gray-400 mb-4" />
-          <p className="text-gray-400">No assignments found matching your criteria</p>
+          <p className="text-gray-400">
+            No assignments found matching your criteria
+          </p>
         </div>
       ) : (
-        <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+        <div
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+          }
+        >
           {filteredAssignments.map((assignment) => (
             <ProjectAssignmentCard
               key={assignment.id}
@@ -681,7 +759,7 @@ export default function DevProjects() {
           ))}
         </div>
       )}
-      
+
       {/* Toast Notifications */}
       <ToastContainer
         notifications={notifications}
@@ -741,9 +819,13 @@ interface ProjectAssignmentCardProps {
   onSelect: () => void;
 }
 
-export default function ProjectAssignmentCard({ assignment, viewMode, onSelect }: ProjectAssignmentCardProps) {
+export default function ProjectAssignmentCard({
+  assignment,
+  viewMode,
+  onSelect,
+}: ProjectAssignmentCardProps) {
   const project = assignment.project;
-  
+
   const getStatusColor = (status: string) => {
     const colors = {
       pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -764,20 +846,39 @@ export default function ProjectAssignmentCard({ assignment, viewMode, onSelect }
     return colors[priority as keyof typeof colors] || colors.low;
   };
 
-  const isOverdue = new Date(project.estimatedCompletionDate) < new Date() && assignment.status !== "completed";
-  const daysUntilDeadline = Math.ceil((new Date(project.estimatedCompletionDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  const isOverdue =
+    new Date(project.estimatedCompletionDate) < new Date() &&
+    assignment.status !== "completed";
+  const daysUntilDeadline = Math.ceil(
+    (new Date(project.estimatedCompletionDate).getTime() -
+      new Date().getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
 
   if (viewMode === "list") {
     return (
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer" onClick={onSelect}>
+      <div
+        className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer"
+        onClick={onSelect}
+      >
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h3 className="text-lg font-semibold text-white">{project.title}</h3>
-              <div className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(assignment.status)}`}>
+              <h3 className="text-lg font-semibold text-white">
+                {project.title}
+              </h3>
+              <div
+                className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(
+                  assignment.status
+                )}`}
+              >
                 {assignment.status}
               </div>
-              <div className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(project.priority)}`}>
+              <div
+                className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(
+                  project.priority
+                )}`}
+              >
                 {project.priority}
               </div>
               {isOverdue && (
@@ -790,11 +891,14 @@ export default function ProjectAssignmentCard({ assignment, viewMode, onSelect }
             <div className="flex items-center gap-6 text-sm text-gray-400">
               <div className="flex items-center gap-1">
                 <FaUser />
-                {project.client?.name || 'Unknown Client'}
+                {project.client?.name || "Unknown Client"}
               </div>
               <div className="flex items-center gap-1">
                 <FaCalendarAlt />
-                {format(new Date(project.estimatedCompletionDate), "MMM dd, yyyy")}
+                {format(
+                  new Date(project.estimatedCompletionDate),
+                  "MMM dd, yyyy"
+                )}
               </div>
               <div className="flex items-center gap-1">
                 <FaChartLine />
@@ -815,15 +919,28 @@ export default function ProjectAssignmentCard({ assignment, viewMode, onSelect }
   }
 
   return (
-    <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors cursor-pointer" onClick={onSelect}>
+    <div
+      className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors cursor-pointer"
+      onClick={onSelect}
+    >
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-white mb-2">{project.title}</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            {project.title}
+          </h3>
           <div className="flex items-center gap-2 mb-2">
-            <div className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(assignment.status)}`}>
+            <div
+              className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(
+                assignment.status
+              )}`}
+            >
               {assignment.status}
             </div>
-            <div className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(project.priority)}`}>
+            <div
+              className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(
+                project.priority
+              )}`}
+            >
               {project.priority}
             </div>
           </div>
@@ -836,12 +953,17 @@ export default function ProjectAssignmentCard({ assignment, viewMode, onSelect }
         )}
       </div>
 
-      <p className="text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
+      <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+        {project.description}
+      </p>
 
       {/* Technologies */}
       <div className="flex flex-wrap gap-1 mb-4">
         {project.technologies.slice(0, 3).map((tech) => (
-          <span key={tech} className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+          <span
+            key={tech}
+            className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs"
+          >
             {tech}
           </span>
         ))}
@@ -874,16 +996,32 @@ export default function ProjectAssignmentCard({ assignment, viewMode, onSelect }
         </div>
         <div>
           <p className="text-gray-400">Team Size</p>
-          <p className="text-white font-medium">{project.team?.length || 1} members</p>
+          <p className="text-white font-medium">
+            {project.team?.length || 1} members
+          </p>
         </div>
         <div>
           <p className="text-gray-400">Assigned</p>
-          <p className="text-white font-medium">{format(new Date(assignment.assignedAt), "MMM dd, yyyy")}</p>
+          <p className="text-white font-medium">
+            {format(new Date(assignment.assignedAt), "MMM dd, yyyy")}
+          </p>
         </div>
         <div>
           <p className="text-gray-400">Deadline</p>
-          <p className={`font-medium ${isOverdue ? 'text-red-400' : daysUntilDeadline <= 7 ? 'text-yellow-400' : 'text-white'}`}>
-            {isOverdue ? 'Overdue' : daysUntilDeadline <= 0 ? 'Today' : `${daysUntilDeadline} days`}
+          <p
+            className={`font-medium ${
+              isOverdue
+                ? "text-red-400"
+                : daysUntilDeadline <= 7
+                ? "text-yellow-400"
+                : "text-white"
+            }`}
+          >
+            {isOverdue
+              ? "Overdue"
+              : daysUntilDeadline <= 0
+              ? "Today"
+              : `${daysUntilDeadline} days`}
           </p>
         </div>
       </div>
@@ -892,7 +1030,7 @@ export default function ProjectAssignmentCard({ assignment, viewMode, onSelect }
       <div className="flex items-center justify-between text-sm text-gray-400">
         <div className="flex items-center gap-1">
           <FaUser />
-          {project.client?.name || 'Unknown Client'}
+          {project.client?.name || "Unknown Client"}
         </div>
         <div className="flex items-center gap-1">
           <FaClock />
@@ -923,11 +1061,17 @@ import {
 
 interface ProjectTabNavigationProps {
   activeTab: "overview" | "tasks" | "milestones" | "files" | "chat" | "updates";
-  onTabChange: (tab: "overview" | "tasks" | "milestones" | "files" | "chat" | "updates") => void;
+  onTabChange: (
+    tab: "overview" | "tasks" | "milestones" | "files" | "chat" | "updates"
+  ) => void;
   assignment: Assignment;
 }
 
-export default function ProjectTabNavigation({ activeTab, onTabChange, assignment }: ProjectTabNavigationProps) {
+export default function ProjectTabNavigation({
+  activeTab,
+  onTabChange,
+  assignment,
+}: ProjectTabNavigationProps) {
   const tabs = [
     {
       id: "overview" as const,
@@ -973,7 +1117,7 @@ export default function ProjectTabNavigation({ activeTab, onTabChange, assignmen
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          
+
           return (
             <button
               key={tab.id}
@@ -1023,17 +1167,21 @@ interface AssignmentOverviewProps {
   assignment: Assignment;
 }
 
-export default function AssignmentOverview({ assignment }: AssignmentOverviewProps) {
+export default function AssignmentOverview({
+  assignment,
+}: AssignmentOverviewProps) {
   const project = assignment.project;
-  
+
   return (
     <div className="space-y-6">
       {/* Project Description */}
       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Project Description</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Project Description
+        </h3>
         <p className="text-gray-300 leading-relaxed">{project.description}</p>
       </div>
-      
+
       {/* Technologies & Requirements */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
@@ -1043,13 +1191,16 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
           </h3>
           <div className="flex flex-wrap gap-2">
             {project.technologies.map((tech) => (
-              <span key={tech} className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm">
+              <span
+                key={tech}
+                className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm"
+              >
                 {tech}
               </span>
             ))}
           </div>
         </div>
-        
+
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
             <FaClipboardList className="text-green-400" />
@@ -1058,7 +1209,9 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-400">Created:</span>
-              <span className="text-white">{format(new Date(project.createdAt), "MMM dd, yyyy")}</span>
+              <span className="text-white">
+                {format(new Date(project.createdAt), "MMM dd, yyyy")}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Estimated Duration:</span>
@@ -1066,12 +1219,17 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Expected Completion:</span>
-              <span className="text-white">{format(new Date(project.estimatedCompletionDate), "MMM dd, yyyy")}</span>
+              <span className="text-white">
+                {format(
+                  new Date(project.estimatedCompletionDate),
+                  "MMM dd, yyyy"
+                )}
+              </span>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Client Information */}
       {project.client && (
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
@@ -1084,7 +1242,9 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
               <div className="flex items-center gap-3">
                 <FaUser className="text-gray-400 text-sm" />
                 <div>
-                  <p className="text-white font-medium">{project.client.name}</p>
+                  <p className="text-white font-medium">
+                    {project.client.name}
+                  </p>
                   <p className="text-gray-400 text-sm">Client</p>
                 </div>
               </div>
@@ -1110,7 +1270,7 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
           </div>
         </div>
       )}
-      
+
       {/* Team Information */}
       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -1119,18 +1279,27 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {project.team?.map((member) => (
-            <div key={member.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+            <div
+              key={member.id}
+              className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
+            >
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                 <FaUser className="text-white text-sm" />
               </div>
               <div>
-                <p className="text-white font-medium">{member.developer?.name || 'Unknown'}</p>
+                <p className="text-white font-medium">
+                  {member.developer?.name || "Unknown"}
+                </p>
                 <p className="text-gray-400 text-sm">{member.role}</p>
-                <div className={`inline-block px-2 py-1 rounded-full text-xs ${
-                  member.status === 'accepted' ? 'bg-green-500/20 text-green-400' :
-                  member.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                  'bg-red-500/20 text-red-400'
-                }`}>
+                <div
+                  className={`inline-block px-2 py-1 rounded-full text-xs ${
+                    member.status === "accepted"
+                      ? "bg-green-500/20 text-green-400"
+                      : member.status === "pending"
+                      ? "bg-yellow-500/20 text-yellow-400"
+                      : "bg-red-500/20 text-red-400"
+                  }`}
+                >
                   {member.status}
                 </div>
               </div>
@@ -1138,10 +1307,12 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
           ))}
         </div>
       </div>
-      
+
       {/* Assignment Details */}
       <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Your Assignment Details</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Your Assignment Details
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <p className="text-gray-400 text-sm">Role</p>
@@ -1149,18 +1320,25 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
           </div>
           <div>
             <p className="text-gray-400 text-sm">Status</p>
-            <div className={`inline-block px-2 py-1 rounded-full text-xs ${
-              assignment.status === 'accepted' ? 'bg-green-500/20 text-green-400' :
-              assignment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-              assignment.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
-              'bg-red-500/20 text-red-400'
-            }`}>
+            <div
+              className={`inline-block px-2 py-1 rounded-full text-xs ${
+                assignment.status === "accepted"
+                  ? "bg-green-500/20 text-green-400"
+                  : assignment.status === "pending"
+                  ? "bg-yellow-500/20 text-yellow-400"
+                  : assignment.status === "completed"
+                  ? "bg-blue-500/20 text-blue-400"
+                  : "bg-red-500/20 text-red-400"
+              }`}
+            >
               {assignment.status}
             </div>
           </div>
           <div>
             <p className="text-gray-400 text-sm">Assigned On</p>
-            <p className="text-white font-medium">{format(new Date(assignment.assignedAt), "MMM dd, yyyy")}</p>
+            <p className="text-white font-medium">
+              {format(new Date(assignment.assignedAt), "MMM dd, yyyy")}
+            </p>
           </div>
         </div>
       </div>
@@ -1190,6 +1368,7 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
 ### Admin Dashboard Sync:
 
 All data displayed in the developer dashboard is manageable from the admin dashboard:
+
 - **Project assignments**: Admin can assign/unassign developers
 - **Project details**: Admin can update project information
 - **Milestones**: Admin can create and manage project milestones
@@ -1201,6 +1380,7 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 ### Testing Checklist
 
 #### API Integration Tests
+
 - [ ] Developer assignments API returns correct data
 - [ ] Assignment status updates work correctly
 - [ ] Project progress updates sync with admin dashboard
@@ -1208,6 +1388,7 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 - [ ] Authentication works across all endpoints
 
 #### Component Tests
+
 - [ ] ProjectAssignmentCard displays correct information
 - [ ] ProjectTabNavigation switches between tabs correctly
 - [ ] AssignmentOverview shows comprehensive project details
@@ -1215,6 +1396,7 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 - [ ] Toast notifications appear for actions
 
 #### Integration Tests
+
 - [ ] Developer can view only their assigned projects
 - [ ] Real-time updates work when admin makes changes
 - [ ] Chat messages sync between admin, client, and developer
@@ -1222,6 +1404,7 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 - [ ] File uploads and downloads work correctly
 
 #### User Experience Tests
+
 - [ ] Responsive design works on all devices
 - [ ] Loading states display appropriately
 - [ ] Error handling provides clear feedback
@@ -1231,6 +1414,7 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 ### Deployment Steps
 
 1. **API Extensions**
+
    ```bash
    # Add new API route for developer assignments
    mkdir -p app/api/project-assignments/developer
@@ -1238,6 +1422,7 @@ All data displayed in the developer dashboard is manageable from the admin dashb
    ```
 
 2. **Component Deployment**
+
    ```bash
    # Create component directory
    mkdir -p app/developer-dashboard/components
@@ -1245,12 +1430,14 @@ All data displayed in the developer dashboard is manageable from the admin dashb
    ```
 
 3. **Hook Extensions**
+
    ```bash
    # Add new developer-specific hook
    # Update existing hooks as needed
    ```
 
 4. **Database Verification**
+
    - Ensure assignment relationships are properly set up
    - Verify developer profile connections
    - Test chat permissions and access
@@ -1273,18 +1460,21 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 ### Common Issues
 
 1. **Assignments Not Loading**
+
    - Check developer profile status (`approved`)
    - Verify assignment relationships in database
    - Ensure API endpoint has correct permissions
    - Check authentication token validity
 
 2. **Chat Not Working**
+
    - Verify project chat permissions
    - Check authentication in chat API
    - Ensure developer is assigned to project
    - Test WebSocket connections
 
 3. **Real-time Updates Not Syncing**
+
    - Check SWR cache invalidation
    - Verify API response consistency
    - Test network connectivity
@@ -1299,21 +1489,23 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 ### Debugging Tips
 
 1. **API Debugging**
+
    ```javascript
    // Add logging to API routes
-   console.log('Assignment data:', assignments);
-   
+   console.log("Assignment data:", assignments);
+
    // Test API endpoints directly
-   fetch('/api/project-assignments/developer/[id]')
-     .then(r => r.json())
+   fetch("/api/project-assignments/developer/[id]")
+     .then((r) => r.json())
      .then(console.log);
    ```
 
 2. **Component Debugging**
+
    ```javascript
    // Add debug logging to components
-   console.log('Assignment data:', assignment);
-   
+   console.log("Assignment data:", assignment);
+
    // Use React DevTools to inspect component state
    // Check for prop drilling issues
    ```
@@ -1335,24 +1527,28 @@ All data displayed in the developer dashboard is manageable from the admin dashb
 ## 📈 Future Enhancements
 
 ### Phase 1: Core Features
+
 - [ ] Basic assignment viewing
 - [ ] Project detail tabs
 - [ ] Chat integration
 - [ ] Status updates
 
 ### Phase 2: Advanced Features
+
 - [ ] Time tracking integration
 - [ ] Advanced file management
 - [ ] Project collaboration tools
 - [ ] Performance analytics
 
 ### Phase 3: Mobile & Notifications
+
 - [ ] Mobile-responsive design
 - [ ] Push notifications
 - [ ] Offline support
 - [ ] Mobile app integration
 
 ### Phase 4: AI & Automation
+
 - [ ] AI-powered project insights
 - [ ] Automated status updates
 - [ ] Smart notifications
@@ -1365,6 +1561,7 @@ This implementation guide provides a comprehensive approach to extending the dev
 The inline tabbed navigation provides a seamless experience for developers to access all project information in one place, while the integration with existing admin dashboard features ensures data consistency and administrative control.
 
 Key success factors:
+
 - **Reuse existing, proven components**
 - **Maintain consistency with current design patterns**
 - **Ensure all features sync with admin dashboard**
@@ -1375,13 +1572,13 @@ Follow the implementation steps systematically, test thoroughly, and deploy with
 
 ---
 
-*This guide is designed to be a living document. Update it as you implement features and discover new patterns or improvements.*
-  FaEdit,
-  FaUpload,
-  FaDownload,
-  FaCheckCircle,
-  FaClock,
-  FaExclamationTriangle,
+_This guide is designed to be a living document. Update it as you implement features and discover new patterns or improvements._
+FaEdit,
+FaUpload,
+FaDownload,
+FaCheckCircle,
+FaClock,
+FaExclamationTriangle,
 } from "react-icons/fa";
 import ProjectTasks from "./components/ProjectTasks";
 import ProjectMilestones from "./components/ProjectMilestones";
@@ -1389,68 +1586,68 @@ import ProjectFiles from "./components/ProjectFiles";
 import ProjectProgressUpdate from "./components/ProjectProgressUpdate";
 
 interface ProjectDetailProps {
-  project: ProjectAssignment;
-  onBack: () => void;
-  onOpenChat: () => void;
+project: ProjectAssignment;
+onBack: () => void;
+onOpenChat: () => void;
 }
 
 export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDetailProps) {
-  const { updateProjectStatus, updateProjectProgress } = useDeveloperProjects();
-  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "milestones" | "files">("overview");
-  const [updating, setUpdating] = useState(false);
+const { updateProjectStatus, updateProjectProgress } = useDeveloperProjects();
+const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "milestones" | "files">("overview");
+const [updating, setUpdating] = useState(false);
 
-  const handleStatusUpdate = async (newStatus: string) => {
-    setUpdating(true);
-    try {
-      await updateProjectStatus(project.id, newStatus);
-      // Show success toast
-    } catch (error) {
-      // Show error toast
-    } finally {
-      setUpdating(false);
-    }
-  };
+const handleStatusUpdate = async (newStatus: string) => {
+setUpdating(true);
+try {
+await updateProjectStatus(project.id, newStatus);
+// Show success toast
+} catch (error) {
+// Show error toast
+} finally {
+setUpdating(false);
+}
+};
 
-  const handleProgressUpdate = async (newProgress: number) => {
-    setUpdating(true);
-    try {
-      await updateProjectProgress(project.id, newProgress);
-      // Show success toast
-    } catch (error) {
-      // Show error toast
-    } finally {
-      setUpdating(false);
-    }
-  };
+const handleProgressUpdate = async (newProgress: number) => {
+setUpdating(true);
+try {
+await updateProjectProgress(project.id, newProgress);
+// Show success toast
+} catch (error) {
+// Show error toast
+} finally {
+setUpdating(false);
+}
+};
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      assigned: "bg-blue-500/20 text-blue-400",
-      "in-progress": "bg-yellow-500/20 text-yellow-400",
-      completed: "bg-green-500/20 text-green-400",
-      "on-hold": "bg-gray-500/20 text-gray-400",
-      review: "bg-purple-500/20 text-purple-400",
-    };
-    return colors[status as keyof typeof colors] || colors.assigned;
-  };
+const getStatusColor = (status: string) => {
+const colors = {
+assigned: "bg-blue-500/20 text-blue-400",
+"in-progress": "bg-yellow-500/20 text-yellow-400",
+completed: "bg-green-500/20 text-green-400",
+"on-hold": "bg-gray-500/20 text-gray-400",
+review: "bg-purple-500/20 text-purple-400",
+};
+return colors[status as keyof typeof colors] || colors.assigned;
+};
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
+return (
+<div className="space-y-6">
+{/_ Header _/}
+<div className="flex items-center justify-between">
+<div className="flex items-center gap-4">
+<button
             onClick={onBack}
             className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
           >
-            <FaArrowLeft className="text-gray-400" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-white">{project.title}</h1>
-            <p className="text-gray-400">{project.client}</p>
-          </div>
-        </div>
-        
+<FaArrowLeft className="text-gray-400" />
+</button>
+<div>
+<h1 className="text-2xl font-semibold text-white">{project.title}</h1>
+<p className="text-gray-400">{project.client}</p>
+</div>
+</div>
+
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenChat}
@@ -1476,7 +1673,7 @@ export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDe
             <FaChartLine className="text-blue-400 text-2xl" />
           </div>
         </div>
-        
+
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -1486,7 +1683,7 @@ export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDe
             <FaDollarSign className="text-green-400 text-2xl" />
           </div>
         </div>
-        
+
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -1498,7 +1695,7 @@ export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDe
             <FaCalendarAlt className="text-orange-400 text-2xl" />
           </div>
         </div>
-        
+
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -1535,7 +1732,7 @@ export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDe
               <h3 className="text-lg font-semibold text-white mb-4">Project Description</h3>
               <p className="text-gray-300 leading-relaxed">{project.description}</p>
             </div>
-            
+
             <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Technologies</h3>
               <div className="flex flex-wrap gap-2">
@@ -1549,7 +1746,7 @@ export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDe
                 ))}
               </div>
             </div>
-            
+
             <ProjectProgressUpdate
               currentProgress={project.progress}
               onProgressUpdate={handleProgressUpdate}
@@ -1559,21 +1756,21 @@ export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDe
             />
           </div>
         )}
-        
+
         {activeTab === "tasks" && (
           <ProjectTasks
             projectId={project.id}
             tasks={project.tasks || []}
           />
         )}
-        
+
         {activeTab === "milestones" && (
           <ProjectMilestones
             projectId={project.id}
             milestones={project.milestones || []}
           />
         )}
-        
+
         {activeTab === "files" && (
           <ProjectFiles
             projectId={project.id}
@@ -1582,9 +1779,11 @@ export default function ProjectDetail({ project, onBack, onOpenChat }: ProjectDe
         )}
       </div>
     </div>
-  );
+
+);
 }
-```
+
+````
 
 ### Step 5: Create Developer Project Chat Component
 
@@ -1623,7 +1822,7 @@ export default function ProjectChat({ projectId, projectTitle, onBack }: Project
     onlineParticipants,
     isConnected,
   } = useProjectChat(projectId);
-  
+
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -1680,7 +1879,7 @@ export default function ProjectChat({ projectId, projectTitle, onBack }: Project
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <FaCircle className={`text-xs ${isConnected ? "text-green-400" : "text-red-400"}`} />
           <span className="text-sm text-gray-400">
@@ -1771,7 +1970,7 @@ export default function ProjectChat({ projectId, projectTitle, onBack }: Project
     </div>
   );
 }
-```
+````
 
 ### Step 6: Create Supporting Components
 
@@ -1800,7 +1999,12 @@ interface ProjectCardProps {
   onOpenChat: () => void;
 }
 
-export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }: ProjectCardProps) {
+export default function ProjectCard({
+  project,
+  viewMode,
+  onSelect,
+  onOpenChat,
+}: ProjectCardProps) {
   const getStatusColor = (status: string) => {
     const colors = {
       assigned: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -1822,7 +2026,8 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
     return colors[priority as keyof typeof colors] || colors.low;
   };
 
-  const isOverdue = new Date(project.deadline) < new Date() && project.status !== "completed";
+  const isOverdue =
+    new Date(project.deadline) < new Date() && project.status !== "completed";
 
   if (viewMode === "list") {
     return (
@@ -1830,11 +2035,21 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h3 className="text-lg font-semibold text-white">{project.title}</h3>
-              <div className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(project.status)}`}>
+              <h3 className="text-lg font-semibold text-white">
+                {project.title}
+              </h3>
+              <div
+                className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(
+                  project.status
+                )}`}
+              >
                 {project.status}
               </div>
-              <div className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(project.priority)}`}>
+              <div
+                className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(
+                  project.priority
+                )}`}
+              >
                 {project.priority}
               </div>
               {isOverdue && (
@@ -1882,12 +2097,22 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
     <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-white mb-2">{project.title}</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            {project.title}
+          </h3>
           <div className="flex items-center gap-2 mb-2">
-            <div className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(project.status)}`}>
+            <div
+              className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(
+                project.status
+              )}`}
+            >
               {project.status}
             </div>
-            <div className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(project.priority)}`}>
+            <div
+              className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(
+                project.priority
+              )}`}
+            >
               {project.priority}
             </div>
           </div>
@@ -1900,7 +2125,9 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
         )}
       </div>
 
-      <p className="text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
+      <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+        {project.description}
+      </p>
 
       <div className="flex flex-wrap gap-1 mb-4">
         {project.technologies.slice(0, 3).map((tech) => (
@@ -1967,11 +2194,13 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
 ### Testing Checklist
 
 1. **Authentication Tests**
+
    - [ ] Developer can only access their assigned projects
    - [ ] Chat authentication works correctly
    - [ ] API endpoints respect role-based access
 
 2. **Functionality Tests**
+
    - [ ] Project list displays correctly
    - [ ] Project details show complete information
    - [ ] Chat functionality works in real-time
@@ -1987,16 +2216,19 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
 ### Deployment Steps
 
 1. **Database Updates**
+
    - Ensure assignment relationships are properly set up
    - Test project-developer associations
    - Verify chat permissions
 
 2. **API Deployment**
+
    - Deploy new API routes for developer projects
    - Update existing chat API if needed
    - Test API endpoints in production
 
 3. **Frontend Deployment**
+
    - Deploy updated developer dashboard
    - Test chat functionality in production
    - Monitor for any performance issues
@@ -2009,16 +2241,19 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
 ## 📝 Future Enhancements
 
 1. **Real-time Notifications**
+
    - Push notifications for new messages
    - Email notifications for project updates
    - Desktop notifications for urgent messages
 
 2. **Advanced Chat Features**
+
    - File sharing in chat
    - Message reactions and threading
    - Voice and video calls
 
 3. **Project Management**
+
    - Time tracking integration
    - Gantt chart visualization
    - Advanced reporting and analytics
@@ -2033,11 +2268,13 @@ export default function ProjectCard({ project, viewMode, onSelect, onOpenChat }:
 ### Common Issues
 
 1. **Chat Not Loading**
+
    - Check authentication tokens
    - Verify project permissions
    - Check API endpoint responses
 
 2. **Projects Not Showing**
+
    - Verify assignment relationships in database
    - Check developer profile status
    - Verify API filtering logic

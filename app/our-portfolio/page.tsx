@@ -437,12 +437,14 @@ export default function OurProjectsPage() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div
-                  className={`flex flex-col items-center justify-center absolute inset-0 bg-gradient-to-r from-${stat.color
-                    }-600/20 to-${stat.color === "orange" ? "red" : stat.color
-                    }-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100 `}
+                  className={`flex flex-col items-center justify-center absolute inset-0 bg-gradient-to-r from-${
+                    stat.color
+                  }-600/20 to-${
+                    stat.color === "orange" ? "red" : stat.color
+                  }-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100 `}
                 ></div>
                 <div className="flex flex-col items-center justify-center relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-500 hover:transform hover:scale-105 hover:bg-white/8">
-                  <div className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 monty">
+                  <div className="text-3xl lg:text-4xl font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 monty">
                     {stat.value}
                   </div>
                   <div className="text-xs monty uppercase text-blue-300 font-medium mb-3">
@@ -478,8 +480,9 @@ export default function OurProjectsPage() {
             <div className="mb-8">
               <div className="relative max-w-2xl mx-auto group">
                 <div
-                  className={`bg-gray-300 text-black ${isSearchFocused ? "opacity-100" : "opacity-0"
-                    }`}
+                  className={`bg-gray-300 text-black ${
+                    isSearchFocused ? "opacity-100" : "opacity-0"
+                  }`}
                 ></div>
                 <div className="relative">
                   <input
@@ -528,10 +531,11 @@ export default function OurProjectsPage() {
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`group monty relative px-6 py-3 rounded-full border transition-all duration-300 capitalize font-medium text-sm transform hover:scale-105 active:scale-95 ${selectedCategory === category
-                        ? "bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400/60 text-white shadow-lg shadow-purple-500/25"
-                        : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
-                        }`}
+                      className={`group monty relative px-6 py-3 rounded-full border transition-all duration-300 capitalize font-medium text-sm transform hover:scale-105 active:scale-95 ${
+                        selectedCategory === category
+                          ? "bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400/60 text-white shadow-lg shadow-purple-500/25"
+                          : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
+                      }`}
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
                       <span className="relative z-10 flex items-center gap-2">
@@ -566,10 +570,11 @@ export default function OurProjectsPage() {
                 <div className="flex rounded-xl border border-white/10 overflow-hidden bg-white/5">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-3.5 transition-all duration-300 ${viewMode === "grid"
-                      ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                      : "text-gray-400 hover:text-white hover:bg-white/10"
-                      }`}
+                    className={`p-3.5 transition-all duration-300 ${
+                      viewMode === "grid"
+                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                    }`}
                     title="Grid View"
                   >
                     <HiViewGrid className="w-5 h-5" />
@@ -577,10 +582,11 @@ export default function OurProjectsPage() {
                   <div className="w-px bg-white/10"></div>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-3.5 transition-all duration-300 ${viewMode === "list"
-                      ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                      : "text-gray-400 hover:text-white hover:bg-white/10"
-                      }`}
+                    className={`p-3.5 transition-all duration-300 ${
+                      viewMode === "list"
+                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                    }`}
                     title="List View"
                   >
                     <HiViewList className="w-5 h-5" />
@@ -697,8 +703,9 @@ export default function OurProjectsPage() {
                       {/* Status Badge */}
                       <div className="absolute bottom-4 left-4">
                         <span
-                          className={`px-3 py-1 backdrop-blur-sm text-xs font-medium rounded-full border capitalize ${statusColors[project.status]
-                            }`}
+                          className={`px-3 py-1 backdrop-blur-sm text-xs font-medium rounded-full border capitalize ${
+                            statusColors[project.status]
+                          }`}
                         >
                           {project.status.replace("-", " ")}
                         </span>
@@ -762,9 +769,10 @@ export default function OurProjectsPage() {
                         {project.technologies.slice(0, 4).map((tech) => (
                           <div
                             key={tech}
-                            className={`px-3 py-1 rounded-full text-xs font-medium border ${techColors[tech] ||
+                            className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                              techColors[tech] ||
                               "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                              }`}
+                            }`}
                           >
                             {tech}
                           </div>
@@ -853,8 +861,9 @@ export default function OurProjectsPage() {
                             </span>
                           )}
                           <span
-                            className={`px-3 py-1 backdrop-blur-sm text-xs font-medium rounded-full border capitalize w-fit ${statusColors[project.status]
-                              }`}
+                            className={`px-3 py-1 backdrop-blur-sm text-xs font-medium rounded-full border capitalize w-fit ${
+                              statusColors[project.status]
+                            }`}
                           >
                             {project.status.replace("-", " ")}
                           </span>
@@ -918,9 +927,10 @@ export default function OurProjectsPage() {
                           {project.technologies.map((tech) => (
                             <div
                               key={tech}
-                              className={`px-3 py-1 rounded-full text-xs font-medium border ${techColors[tech] ||
+                              className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                                techColors[tech] ||
                                 "bg-gray-500/20 text-gray-300 border-gray-500/30"
-                                }`}
+                              }`}
                             >
                               {tech}
                             </div>
@@ -1059,10 +1069,11 @@ export default function OurProjectsPage() {
                     {[...Array(5)].map((_, i) => (
                       <FiStar
                         key={i}
-                        className={`${i < review.rating
-                          ? "fill-current opacity-100"
-                          : "opacity-30"
-                          }`}
+                        className={`${
+                          i < review.rating
+                            ? "fill-current opacity-100"
+                            : "opacity-30"
+                        }`}
                       />
                     ))}
                   </div>

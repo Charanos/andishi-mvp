@@ -272,7 +272,7 @@ export default function DevProfileModal({
 
                   {/* Name, Role, and Key Stats */}
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-white mb-2">
+                    <h2 className="text-3xl font-semibold text-white mb-2">
                       {developer.name}
                     </h2>
                     <p className="text-sm text-purple-400 monty uppercase font-medium mb-4">
@@ -332,7 +332,7 @@ export default function DevProfileModal({
 
                     <div className="flex flex-wrap gap-4 mb-6">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-400">
+                        <div className="text-2xl font-semibold text-blue-400">
                           {developer.projectsCompleted}
                         </div>
                         <div className="text-sm text-gray-400">

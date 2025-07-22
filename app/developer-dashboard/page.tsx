@@ -139,13 +139,15 @@ export default function EnhancedDeveloperDashboard() {
   );
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
-  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
+  const addNotification = (notification: Omit<ToastNotification, "id">) => {
     const id = Date.now().toString();
-    setNotifications(prev => [...prev, { ...notification, id }]);
+    setNotifications((prev) => [...prev, { ...notification, id }]);
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id)
+    );
   };
 
   useEffect(() => {
@@ -192,21 +194,32 @@ export default function EnhancedDeveloperDashboard() {
           timeEntries: profileData.timeEntries || [],
           notifications: profileData.notifications || [],
           technicalSkills: {
-            primarySkills: (profileData.technicalSkills?.primarySkills || []).filter((s: Skill) => s.name && s.category),
-            frameworks: (profileData.technicalSkills?.frameworks || []).filter((s: Skill) => s.name && s.category),
-            databases: (profileData.technicalSkills?.databases || []).filter((s: Skill) => s.name && s.category),
-            tools: (profileData.technicalSkills?.tools || []).filter((s: Skill) => s.name && s.category),
+            primarySkills: (
+              profileData.technicalSkills?.primarySkills || []
+            ).filter((s: Skill) => s.name && s.category),
+            frameworks: (profileData.technicalSkills?.frameworks || []).filter(
+              (s: Skill) => s.name && s.category
+            ),
+            databases: (profileData.technicalSkills?.databases || []).filter(
+              (s: Skill) => s.name && s.category
+            ),
+            tools: (profileData.technicalSkills?.tools || []).filter(
+              (s: Skill) => s.name && s.category
+            ),
             cloudPlatforms: profileData.technicalSkills?.cloudPlatforms || [],
             specializations: profileData.technicalSkills?.specializations || [],
           },
           professionalInfo: {
             title: profileData.professionalInfo?.title || "",
-            experienceLevel: profileData.professionalInfo?.experienceLevel || "",
-            yearsOfExperience: profileData.professionalInfo?.yearsOfExperience || "",
+            experienceLevel:
+              profileData.professionalInfo?.experienceLevel || "",
+            yearsOfExperience:
+              profileData.professionalInfo?.yearsOfExperience || "",
             availability: profileData.professionalInfo?.availability || "",
             languages: profileData.professionalInfo?.languages || [],
             bio: profileData.professionalInfo?.bio || "",
-            preferredWorkType: profileData.professionalInfo?.preferredWorkType || [],
+            preferredWorkType:
+              profileData.professionalInfo?.preferredWorkType || [],
             workingHours: profileData.professionalInfo?.workingHours || "",
             certifications: profileData.professionalInfo?.certifications || [],
           },
@@ -215,7 +228,7 @@ export default function EnhancedDeveloperDashboard() {
         addNotification({
           type: "error",
           title: "Profile Load Error",
-          message: "Failed to load your developer profile. Please try again."
+          message: "Failed to load your developer profile. Please try again.",
         });
       } finally {
         setLoading(false);
@@ -292,7 +305,7 @@ export default function EnhancedDeveloperDashboard() {
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6">
               <FaUser className="text-white text-2xl" />
             </div>
-            <h2 className="text-white text-2xl font-bold mb-4">
+            <h2 className="text-white text-2xl font-semibold mb-4">
               No Profile Found
             </h2>
             <p className="text-gray-400 mb-8">
@@ -320,7 +333,7 @@ export default function EnhancedDeveloperDashboard() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-lg font-bold">
+                <span className="text-white text-lg font-semibold">
                   {profile.personalInfo.firstName[0]}
                   {profile.personalInfo.lastName[0]}
                 </span>
@@ -345,10 +358,10 @@ export default function EnhancedDeveloperDashboard() {
                   <FaBell className="text-xl" />
                   {profile?.notifications?.filter((n) => !n.read).length >
                     0 && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                        {profile?.notifications?.filter((n) => !n.read).length}
-                      </span>
-                    )}
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                      {profile?.notifications?.filter((n) => !n.read).length}
+                    </span>
+                  )}
                 </button>
 
                 {showNotifications && (
@@ -362,8 +375,9 @@ export default function EnhancedDeveloperDashboard() {
                       {(profile?.notifications ?? []).map((notification) => (
                         <div
                           key={notification.id}
-                          className={`p-4 border-b border-white/5 hover:bg-white/5 ${!notification.read ? "bg-blue-500/5" : ""
-                            }`}
+                          className={`p-4 border-b border-white/5 hover:bg-white/5 ${
+                            !notification.read ? "bg-blue-500/5" : ""
+                          }`}
                         >
                           <div className="flex items-start space-x-3">
                             <div
@@ -405,7 +419,7 @@ export default function EnhancedDeveloperDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
               <FaTrophy className="text-2xl text-yellow-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-semibold text-white">
                 {profile.stats.completedProjects}
               </div>
               <div className="text-xs text-gray-400 monty uppercase">
@@ -414,7 +428,7 @@ export default function EnhancedDeveloperDashboard() {
             </div>
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
               <FaStar className="text-2xl text-yellow-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-semibold text-white">
                 {profile.stats.averageRating}
               </div>
               <div className="text-xs text-gray-400 monty uppercase">
@@ -423,7 +437,7 @@ export default function EnhancedDeveloperDashboard() {
             </div>
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
               <FaWallet className="text-2xl text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-semibold text-white">
                 ${(profile.stats.totalEarnings / 1000).toFixed(0)}K
               </div>
               <div className="text-xs text-gray-400 monty uppercase">
@@ -432,14 +446,14 @@ export default function EnhancedDeveloperDashboard() {
             </div>
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
               <FaCode className="text-2xl text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-semibold text-white">
                 {(profile.stats.totalCodeLines / 1000).toFixed(0)}K
               </div>
               <div className="text-xs text-gray-400 monty uppercase">Lines</div>
             </div>
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
               <FaFire className="text-2xl text-orange-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-semibold text-white">
                 {profile.stats.activeDays}
               </div>
               <div className="text-xs text-gray-400 monty uppercase">
@@ -448,7 +462,7 @@ export default function EnhancedDeveloperDashboard() {
             </div>
             <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
               <FaRocket className="text-2xl text-purple-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-semibold text-white">
                 {profile.stats.clientRetention}%
               </div>
               <div className="text-xs text-gray-400 monty uppercase">
@@ -472,10 +486,11 @@ export default function EnhancedDeveloperDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg transition-all ${activeTab === tab.id
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                    }`}
+                  className={`flex items-center cursor-pointer space-x-2 px-4 py-2 rounded-lg transition-all ${
+                    activeTab === tab.id
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
                 >
                   <tab.icon className="text-lg" />
                   <span className="font-medium">{tab.label}</span>
@@ -502,7 +517,10 @@ export default function EnhancedDeveloperDashboard() {
           <DevAchievements achievements={profile.achievements} />
         )}
       </div>
-      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+      />
     </div>
   );
 }

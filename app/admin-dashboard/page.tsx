@@ -49,6 +49,7 @@ import {
   FaTachometerAlt,
   FaBuilding,
   FaFlag,
+  FaBug,
 } from "react-icons/fa";
 import {
   MoreVertical,
@@ -3723,7 +3724,7 @@ Generate new credentials to reset password.`;
       <div className="relative min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover mb-0">
         {/* Navigation */}
         <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/5 border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[94%] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-8">
                 <div className="flex items-center space-x-2">
@@ -3753,6 +3754,11 @@ Generate new credentials to reset password.`;
                       label: "Projects",
                       icon: FaProjectDiagram,
                     },
+                    {
+                      id: "debug",
+                      label: "Debug",
+                      icon: FaBug,
+                    },
                     { id: "users", label: "Users", icon: FaUsers },
                     { id: "analytics", label: "Analytics", icon: FaChartBar },
                     {
@@ -3773,7 +3779,9 @@ Generate new credentials to reset password.`;
                       }`}
                     >
                       <tab.icon className="text-sm" />
-                      <span>{tab.label}</span>
+                      <span className="monty uppercase text-xs">
+                        {tab.label}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -3802,7 +3810,7 @@ Generate new credentials to reset password.`;
               { id: "users", label: "Users", icon: FaUsers },
               { id: "analytics", label: "Analytics", icon: FaChartBar },
               { id: "devProfiles", label: "Dev Profiles", icon: FaUserEdit },
-              { id: "debug", label: "Debug", icon: FaExclamationTriangle },
+              // { id: "debug", label: "Debug", icon: FaBug },
               { id: "settings", label: "Settings", icon: FaCog },
             ].map((tab) => (
               <button
@@ -3815,14 +3823,14 @@ Generate new credentials to reset password.`;
                 }`}
               >
                 <tab.icon className="text-lg" />
-                <span className="text-xs">{tab.label}</span>
+                <span className="text-xs monty uppercase">{tab.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="w-[90vw] max-w-none mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
+        <div className="w-[94vw] max-w-none mx-auto py-8 px-4 sm:px-8 my-8">
           {activeTab === "overview" && renderOverview()}
           {activeTab === "projects" && renderProjects()}
           {activeTab === "users" && (

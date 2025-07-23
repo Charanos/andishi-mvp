@@ -1812,43 +1812,116 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 </div>
               </div>
 
-              {/* User Statistics Card */}
+              {/* Developer Statistics Card */}
               <div className="bg-black/10 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
                 <h3 className="text-xl font-semibold text-white mb-6">
-                  User Statistics
+                  {selectedUser.role === 'developer' ? 'Developer Statistics' : 'User Statistics'}
                 </h3>
 
                 <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-semibold text-blue-400 mb-1">
-                      {selectedUser.projectsCount || 1}
+                  {/* Profile Status for Developers */}
+                  {selectedUser.role === 'developer' && (
+                    <div className="bg-black/20 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-gray-300 text-sm">Profile Status</span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedUser.developerProfileStatus === 'approved' 
+                            ? 'bg-green-500/20 text-green-400'
+                            : selectedUser.developerProfileStatus === 'pending'
+                            ? 'bg-yellow-500/20 text-yellow-400'
+                            : selectedUser.developerProfileStatus === 'rejected'
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {selectedUser.developerProfileStatus || 'No Profile'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300 text-sm">Availability</span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedUser.isAvailable 
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {selectedUser.isAvailable ? 'Available' : 'Unavailable'}
+                        </span>
+                      </div>
+                      
+                      {selectedUser.busyUntilDate && (
+                        <div className="mt-2 text-xs text-gray-400">
+                          Busy until: {new Date(selectedUser.busyUntilDate).toLocaleDateString()}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-gray-400 text-sm monty uppercase">
-                      Total Projects
-                    </p>
-                  </div>
+                  )}
 
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-xl font-semibold text-green-400 mb-1">
+                  {/* Project Statistics */}
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="bg-black/20 rounded-lg p-4">
+                      <div className="text-2xl font-semibold text-blue-400 mb-1">
+                        {selectedUser.projectsCount || 0}
+                      </div>
+                      <p className="text-gray-400 text-xs uppercase">
+                        Total
+                      </p>
+                    </div>
+                    <div className="bg-black/20 rounded-lg p-4">
+                      <div className="text-2xl font-semibold text-green-400 mb-1">
                         {selectedUser.completedProjects || 0}
                       </div>
-                      <p className="text-gray-400 text-xs monty uppercase">
+                      <p className="text-gray-400 text-xs uppercase">
                         Completed
                       </p>
                     </div>
-                    <div>
-                      <div className="text-xl font-semibold text-yellow-400 mb-1">
+                    <div className="bg-black/20 rounded-lg p-4">
+                      <div className="text-2xl font-semibold text-yellow-400 mb-1">
                         {selectedUser.activeProjects || 0}
                       </div>
-                      <p className="text-gray-400 text-xs monty uppercase">
+                      <p className="text-gray-400 text-xs uppercase">
                         Active
                       </p>
                     </div>
                   </div>
 
+                  {/* Skills and Rate for Developers */}
+                  {selectedUser.role === 'developer' && (
+                    <div className="space-y-4">
+                      {selectedUser.hourlyRate && (
+                        <div className="bg-black/20 rounded-lg p-4 text-center">
+                          <div className="text-2xl font-semibold text-emerald-400 mb-1">
+                            ${selectedUser.hourlyRate}/hr
+                          </div>
+                          <p className="text-gray-400 text-sm">Hourly Rate</p>
+                        </div>
+                      )}
+                      
+                      {selectedUser.skills && selectedUser.skills.length > 0 && (
+                        <div className="bg-black/20 rounded-lg p-4">
+                          <h4 className="text-white text-sm font-medium mb-3">Primary Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedUser.skills.slice(0, 6).map((skill, index) => (
+                              <span 
+                                key={index}
+                                className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                            {selectedUser.skills.length > 6 && (
+                              <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded text-xs">
+                                +{selectedUser.skills.length - 6} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Earnings */}
                   {selectedUser.totalEarnings && (
-                    <div className="text-center pt-4 border-t border-white/10">
+                    <div className="bg-black/20 rounded-lg p-4 text-center border-t border-white/10">
                       <div className="text-2xl font-semibold text-emerald-400 mb-1">
                         ${selectedUser.totalEarnings.toLocaleString()}
                       </div>

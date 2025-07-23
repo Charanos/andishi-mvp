@@ -41,6 +41,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
 
   // --- Admin Approval Actions ---
@@ -48,13 +49,15 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   const [rejecting, setRejecting] = useState(false);
 
   // Custom toast notification functions
-  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
+  const addNotification = (notification: Omit<ToastNotification, "id">) => {
     const id = Date.now().toString();
-    setNotifications(prev => [...prev, { ...notification, id }]);
+    setNotifications((prev) => [...prev, { ...notification, id }]);
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id)
+    );
   };
 
   // Load initial or fetch existing profile
@@ -135,7 +138,11 @@ const DeveloperProfileEditor: React.FC<Props> = ({
 
         setProfile(initializedProfile);
       } catch (err) {
-        addNotification({ type: "error", title: "Load Error", message: "Error loading developer profile" });
+        addNotification({
+          type: "error",
+          title: "Load Error",
+          message: "Error loading developer profile",
+        });
       } finally {
         setLoading(false);
       }
@@ -143,7 +150,11 @@ const DeveloperProfileEditor: React.FC<Props> = ({
     fetchProfile();
   }, [profileId]);
 
-  const handleChange = (section: keyof DeveloperProfile['data'], field: string, value: any) => {
+  const handleChange = (
+    section: keyof DeveloperProfile["data"],
+    field: string,
+    value: any
+  ) => {
     if (!profile) return;
     setProfile((prev) => {
       if (!prev) return prev;
@@ -155,7 +166,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   };
 
   const handleArrayChange = (
-    section: keyof DeveloperProfile['data'],
+    section: keyof DeveloperProfile["data"],
     field: string,
     index: number,
     value: any
@@ -171,8 +182,8 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   };
 
   const isValidSection = (
-    section: keyof DeveloperProfile['data']
-  ): section is keyof DeveloperProfile['data'] => {
+    section: keyof DeveloperProfile["data"]
+  ): section is keyof DeveloperProfile["data"] => {
     return [
       "personalInfo",
       "professionalInfo",
@@ -187,8 +198,11 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       if (!prev) return prev;
       const updated: DeveloperProfile = JSON.parse(JSON.stringify(prev));
 
-      if (!isValidSection(section as keyof DeveloperProfile['data'])) return prev;
-      const sectionObj = updated.data[section as keyof DeveloperProfile['data']] as Record<string, any>;
+      if (!isValidSection(section as keyof DeveloperProfile["data"]))
+        return prev;
+      const sectionObj = updated.data[
+        section as keyof DeveloperProfile["data"]
+      ] as Record<string, any>;
 
       if (!sectionObj[field]) {
         sectionObj[field] = [];
@@ -213,64 +227,76 @@ const DeveloperProfileEditor: React.FC<Props> = ({
     if (!profile || !profileId) return;
     setSaving(true);
     try {
-      console.log('Saving profile:', profile);
+      console.log("Saving profile:", profile);
       const res = await fetch(`/api/developer-profiles/${profileId}`, {
-        method: "PUT",
+        method: "PATCH", // Changed from PUT to PATCH
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
 
-      console.log('Response status:', res.status);
-      console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+      console.log("Response status:", res.status);
+      console.log(
+        "Response headers:",
+        Object.fromEntries(res.headers.entries())
+      );
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Save failed:', errorText);
+        console.error("Save failed:", errorText);
 
         // If it's a 500 error and we haven't retried yet, try once more
         if (res.status === 500 && retryCount < 1) {
-          console.log('Retrying save operation...');
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          console.log("Retrying save operation...");
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
           return handleSave(retryCount + 1);
         }
 
-        throw new Error(`Save failed: ${res.status} ${res.statusText} - ${errorText}`);
+        throw new Error(
+          `Save failed: ${res.status} ${res.statusText} - ${errorText}`
+        );
       }
 
       const data = await res.json();
-      console.log('Save successful:', data);
+      console.log("Save successful:", data);
 
       // Validate that the response contains the expected data
       if (!data || !data.id) {
-        throw new Error('Invalid response format from server');
+        throw new Error("Invalid response format from server");
       }
 
-      addNotification({ type: "success", title: "Profile Updated", message: "Profile updated successfully" });
+      addNotification({
+        type: "success",
+        title: "Profile Updated",
+        message: "Profile updated successfully",
+      });
       if (onSaveSuccess) {
         onSaveSuccess(data as DeveloperProfile);
       }
     } catch (err) {
-      console.error('Save error:', err);
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      console.error("Save error:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
 
       // Show a more user-friendly error message
-      if (errorMessage.includes('500')) {
+      if (errorMessage.includes("500")) {
         addNotification({
           type: "error",
           title: "Server Error",
-          message: "The profile was saved but there was a server error. Please refresh the page to see the updated profile."
+          message:
+            "The profile was saved but there was a server error. Please refresh the page to see the updated profile.",
         });
-      } else if (errorMessage.includes('404')) {
+      } else if (errorMessage.includes("404")) {
         addNotification({
           type: "error",
           title: "Profile Not Found",
-          message: "The profile could not be found. Please try refreshing the page."
+          message:
+            "The profile could not be found. Please try refreshing the page.",
         });
       } else {
         addNotification({
           type: "error",
           title: "Save Error",
-          message: `Error saving profile: ${errorMessage}`
+          message: `Error saving profile: ${errorMessage}`,
         });
       }
     } finally {
@@ -292,17 +318,29 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       if (!res.ok) throw new Error("Failed to update developer status");
       addNotification({
         type: "success",
-        title: action === "approve" ? "Developer Approved" : "Developer Rejected",
-        message: action === "approve"
-          ? "Developer approved and now available for assignment."
-          : "Developer rejected."
+        title:
+          action === "approve" ? "Developer Approved" : "Developer Rejected",
+        message:
+          action === "approve"
+            ? "Developer approved and now available for assignment."
+            : "Developer rejected.",
       });
       // Optionally refetch profile or update UI
       setProfile((prev) =>
-        prev ? { ...prev, status: action === "approve" ? "approved" : "rejected", isAvailable: action === "approve" } : prev
+        prev
+          ? {
+              ...prev,
+              status: action === "approve" ? "approved" : "rejected",
+              isAvailable: action === "approve",
+            }
+          : prev
       );
     } catch (err) {
-      addNotification({ type: "error", title: "Update Error", message: "Failed to update developer status" });
+      addNotification({
+        type: "error",
+        title: "Update Error",
+        message: "Failed to update developer status",
+      });
     } finally {
       setApproving(false);
       setRejecting(false);
@@ -318,7 +356,10 @@ const DeveloperProfileEditor: React.FC<Props> = ({
             <p className="text-gray-400">Loading developer profile...</p>
           </div>
         </div>
-        <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
+        <ToastContainer
+          notifications={notifications}
+          onRemoveNotification={removeNotification}
+        />
       </>
     );
   }
@@ -331,7 +372,10 @@ const DeveloperProfileEditor: React.FC<Props> = ({
             <p className="text-gray-400">Profile not found</p>
           </div>
         </div>
-        <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
+        <ToastContainer
+          notifications={notifications}
+          onRemoveNotification={removeNotification}
+        />
       </>
     );
   }
@@ -344,7 +388,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   ];
 
   const renderPersonalInfo = () => (
-    <section className="bg-white/5 p-6 rounded-lg">
+    <section className="bg-black/10 border border-white/10 p-6 rounded-lg">
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaUsers className="text-blue-400" />
         Personal Information
@@ -379,7 +423,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   );
 
   const renderProfessionalInfo = () => (
-    <section className="bg-white/5 p-6 rounded-lg">
+    <section className="bg-black/10 border border-white/10 p-6 rounded-lg">
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaCode className="text-green-400" />
         Professional Information
@@ -463,31 +507,33 @@ const DeveloperProfileEditor: React.FC<Props> = ({
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-2">Languages</label>
           <div className="space-y-2">
-            {(profile.data.professionalInfo.languages || []).map((lang, index) => (
-              <div key={index} className="flex gap-2">
-                <input
-                  className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
-                  value={lang}
-                  onChange={(e) =>
-                    handleArrayChange(
-                      "professionalInfo",
-                      "languages",
-                      index,
-                      e.target.value
-                    )
-                  }
-                  placeholder="e.g., English (Native)"
-                />
-                <button
-                  onClick={() =>
-                    removeArrayItem("professionalInfo", "languages", index)
-                  }
-                  className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-            ))}
+            {(profile.data.professionalInfo.languages || []).map(
+              (lang, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white flex-1"
+                    value={lang}
+                    onChange={(e) =>
+                      handleArrayChange(
+                        "professionalInfo",
+                        "languages",
+                        index,
+                        e.target.value
+                      )
+                    }
+                    placeholder="e.g., English (Native)"
+                  />
+                  <button
+                    onClick={() =>
+                      removeArrayItem("professionalInfo", "languages", index)
+                    }
+                    className="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-3 py-2 rounded"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              )
+            )}
             <button
               onClick={() => addArrayItem("professionalInfo", "languages", "")}
               className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded flex items-center gap-2"
@@ -612,14 +658,14 @@ const DeveloperProfileEditor: React.FC<Props> = ({
 
     return (
       <div className="mb-8">
-        <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <h4 className="text-lg w-full font-semibold text-white mb-4 flex items-center gap-2">
           <IconComponent className="text-purple-400" />
           {sectionTitle}
         </h4>
         <div className="space-y-3">
           {skills.map((skill, index) => (
             <div key={index} className="bg-black/20 p-4 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
                   <label className="text-xs text-gray-400 mb-1">
                     Skill Name
@@ -661,26 +707,6 @@ const DeveloperProfileEditor: React.FC<Props> = ({
                         updatedSkill
                       );
                     }}
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-xs text-gray-400 mb-1">Category</label>
-                  <input
-                    className="bg-black/30 border border-white/20 rounded px-3 py-2 text-white text-sm"
-                    value={skill.category || ""}
-                    onChange={(e) => {
-                      const updatedSkill = {
-                        ...skill,
-                        category: e.target.value,
-                      };
-                      handleArrayChange(
-                        "technicalSkills",
-                        skillKey,
-                        index,
-                        updatedSkill
-                      );
-                    }}
-                    placeholder="e.g., Frontend"
                   />
                 </div>
               </div>
@@ -748,7 +774,6 @@ const DeveloperProfileEditor: React.FC<Props> = ({
               addArrayItem("technicalSkills", skillKey, {
                 name: "",
                 level: 1,
-                category: "",
                 trending: "",
                 endorsements: 0,
                 lastUsed: "",
@@ -764,7 +789,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   };
 
   const renderTechnicalSkills = () => (
-    <section className="bg-white/5 p-6 rounded-lg">
+    <section className="bg-black/10 border border-white/10 p-6 rounded-lg">
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaStar className="text-yellow-400" />
         Technical Skills
@@ -876,7 +901,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
   );
 
   const renderStats = () => (
-    <section className="bg-white/5 p-6 rounded-lg">
+    <section className="bg-black/10 border border-white/10 p-6 rounded-lg">
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
         <FaTrophy className="text-orange-400" />
         Statistics & Performance
@@ -918,7 +943,10 @@ const DeveloperProfileEditor: React.FC<Props> = ({
 
   return (
     <div className="min-h-screen ">
-      <ToastContainer notifications={notifications} onRemoveNotification={removeNotification} />
+      <ToastContainer
+        notifications={notifications}
+        onRemoveNotification={removeNotification}
+      />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
@@ -962,10 +990,11 @@ const DeveloperProfileEditor: React.FC<Props> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === tab.id
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-white/10"
-                      }`}
+                    className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      activeTab === tab.id
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-white/10"
+                    }`}
                   >
                     <IconComponent />
                     {tab.label}
@@ -982,8 +1011,6 @@ const DeveloperProfileEditor: React.FC<Props> = ({
             {activeTab === "skills" && renderTechnicalSkills()}
             {activeTab === "stats" && renderStats()}
           </div>
-
-
 
           {/* Footer */}
           <div className="mt-12 text-center">

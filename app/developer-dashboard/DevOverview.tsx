@@ -512,7 +512,7 @@ const EnhancedDeveloperOverview = ({
                     </div>
                     <div className="text-right">
                       <p className="text-blue-400 font-semibold">
-                        {entry.hours}h
+                        {entry.hours} hrs
                       </p>
                     </div>
                   </div>
@@ -544,11 +544,10 @@ const EnhancedDeveloperOverview = ({
             {profile.notifications.slice(0, 3).map((notification) => (
               <div
                 key={notification.id}
-                className={`p-3 rounded-lg transition-all ${
-                  notification.read
+                className={`p-3 rounded-lg transition-all ${notification.read
                     ? "bg-white/5"
                     : "bg-blue-500/10 border border-blue-500/20"
-                }`}
+                  }`}
               >
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 mt-1">

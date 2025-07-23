@@ -445,7 +445,7 @@ const DevAnalytics: React.FC<DevAnalyticsProps> = ({ profile }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Revenue Chart */}
           {chartData.productivityData.length > 0 && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Revenue & Projects Trend
               </h3>
@@ -491,7 +491,7 @@ const DevAnalytics: React.FC<DevAnalyticsProps> = ({ profile }) => {
 
           {/* Skills Radar Chart */}
           {chartData.skillsRadarData.length > 0 && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Skills Assessment
               </h3>
@@ -520,7 +520,7 @@ const DevAnalytics: React.FC<DevAnalyticsProps> = ({ profile }) => {
 
           {/* Project Status Pie Chart */}
           {chartData.projectStatusData.length > 0 && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Project Status Distribution
               </h3>
@@ -555,7 +555,7 @@ const DevAnalytics: React.FC<DevAnalyticsProps> = ({ profile }) => {
 
           {/* Weekly Productivity */}
           {chartData.productivityData.length > 0 && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Weekly Productivity
               </h3>
@@ -584,7 +584,7 @@ const DevAnalytics: React.FC<DevAnalyticsProps> = ({ profile }) => {
       )}
 
       {/* Skills Progress */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-6">
           Technical Skills Progress
         </h3>
@@ -635,7 +635,7 @@ const DevAnalytics: React.FC<DevAnalyticsProps> = ({ profile }) => {
 
       {/* Achievements Section */}
       {profile.achievements.length > 0 && (
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-xl font-semibold text-white mb-6">
             Recent Achievements
           </h3>
@@ -682,7 +682,7 @@ const DevAnalytics: React.FC<DevAnalyticsProps> = ({ profile }) => {
       )}
 
       {/* Performance Metrics */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-6">
           Performance Metrics
         </h3>

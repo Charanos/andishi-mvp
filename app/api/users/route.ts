@@ -187,6 +187,7 @@ export async function GET(request: Request) {
     }
 
     const users = await prisma.user.findMany({
+      orderBy: { createdAt: 'desc' }, 
       include: {
         developerProfile: true,
       },

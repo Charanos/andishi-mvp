@@ -335,7 +335,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       {/* Skills Visualization */}
       {skillView === "radar" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-xl font-semibold text-white mb-4">
               Skills Radar
             </h3>
@@ -361,7 +361,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-xl font-semibold text-white mb-4">
               Skill Distribution
             </h3>
@@ -396,7 +396,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       )}
 
       {skillView === "chart" && (
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4">
             Skills Proficiency Chart
           </h3>
@@ -424,7 +424,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       )}
 
       {/* Trending Skills */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
           <FaFire className="mr-2 text-orange-400" />
           Trending Skills
@@ -440,7 +440,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       {skillView === "grid" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Primary Skills */}
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
               <FaCode className="mr-3 text-blue-400" />
               Primary Skills
@@ -453,7 +453,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
           </div>
 
           {/* Frameworks */}
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
               <FaAtom className="mr-3 text-purple-400" />
               Frameworks & Libraries
@@ -470,7 +470,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       {/* Additional Skills Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Databases */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <FaDatabase className="mr-2 text-green-400" />
             Databases
@@ -504,7 +504,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
         </div>
 
         {/* Tools */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <FaTools className="mr-2 text-orange-400" />
             Tools & Technologies
@@ -538,7 +538,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
         </div>
 
         {/* Cloud Platforms */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <FaCloud className="mr-2 text-blue-400" />
             Cloud Platforms
@@ -557,7 +557,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       </div>
 
       {/* Specializations */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
           <FaRocket className="mr-2 text-purple-400" />
           Specializations
@@ -578,7 +578,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       </div>
 
       {/* Certifications */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
           <FaCertificate className="mr-3 text-yellow-400" />
           Certifications

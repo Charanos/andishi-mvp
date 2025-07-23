@@ -229,10 +229,9 @@ const EnhancedDeveloperOverview = ({
 
   return (
     <div className="min-h-screen my-18">
-      <div className="max-w-7xl mx-auto space-y-8 mb-0">
+      <div className="w-full mx-auto space-y-8 mb-0">
         {/* Enhanced Profile Header */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-50"></div>
+        <div className="">
           <div className="relative z-10">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center space-x-6">
@@ -331,7 +330,7 @@ const EnhancedDeveloperOverview = ({
           ].map((stat, index) => (
             <div
               key={index}
-              className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all"
+              className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`p-2 rounded-lg bg-${stat.color}-500/20`}>
@@ -354,7 +353,7 @@ const EnhancedDeveloperOverview = ({
           {/* Left Column - Skills & Achievements */}
           <div className="lg:col-span-2 space-y-8">
             {/* Top Skills */}
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-white flex items-center">
                   <FaFire className="mr-3 text-orange-400" />
@@ -401,7 +400,7 @@ const EnhancedDeveloperOverview = ({
             </div>
 
             {/* Achievements */}
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-white flex items-center">
                   <FaTrophy className="mr-3 text-yellow-400" />
@@ -454,7 +453,7 @@ const EnhancedDeveloperOverview = ({
           {/* Right Column - Activity & Time Tracking */}
           <div className="space-y-8">
             {/* Recent Activity */}
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
                 <FaHistory className="mr-3 text-blue-400" />
                 Recent Activity
@@ -491,7 +490,7 @@ const EnhancedDeveloperOverview = ({
             </div>
 
             {/* Time Tracking */}
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
                 <FaClock className="mr-3 text-green-400" />
                 This Week's Time
@@ -536,7 +535,7 @@ const EnhancedDeveloperOverview = ({
         </div>
 
         {/* Recent Notifications */}
-        <div className="backdrop-blur-md w-full bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="backdrop-blur-md w-full bg-black/10 border border-white/10 rounded-xl p-6">
           <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
             <FaLightbulb className="mr-3 text-yellow-400" />
             Notifications
@@ -545,10 +544,11 @@ const EnhancedDeveloperOverview = ({
             {profile.notifications.slice(0, 3).map((notification) => (
               <div
                 key={notification.id}
-                className={`p-3 rounded-lg transition-all ${notification.read
-                  ? "bg-white/5"
-                  : "bg-blue-500/10 border border-blue-500/20"
-                  }`}
+                className={`p-3 rounded-lg transition-all ${
+                  notification.read
+                    ? "bg-white/5"
+                    : "bg-blue-500/10 border border-blue-500/20"
+                }`}
               >
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 mt-1">

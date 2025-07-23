@@ -20,6 +20,7 @@ import DevAnalytics from "./DevAnalytics";
 import DevAchievements from "./DevAchievements";
 import DevSkills from "./devSkills";
 import DevProjects from "./DevProjects";
+import { useDeveloperAssignments } from "@/hooks/useDeveloperAssignments";
 import EnhancedDeveloperOverview from "./DevOverview";
 import ToastContainer from "../components/ToastContainer";
 import { ToastNotification } from "../components/ToastNotification";
@@ -129,6 +130,9 @@ export default function EnhancedDeveloperDashboard() {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  // Developer assignments hook
+  const { assignments, loading: assignmentsLoading } =
+    useDeveloperAssignments();
   const [profile, setProfile] = useState<DeveloperProfile | null>(null);
   const [activeTab, setActiveTab] = useState<
     "overview" | "projects" | "skills" | "analytics" | "achievements"
@@ -329,7 +333,7 @@ export default function EnhancedDeveloperDashboard() {
     <div className="min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
       {/* Top Navigation Bar */}
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/30 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[94%] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -413,11 +417,11 @@ export default function EnhancedDeveloperDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[94%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Stats Banner */}
         <div className="mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4 text-center">
               <FaTrophy className="text-2xl text-yellow-400 mx-auto mb-2" />
               <div className="text-2xl font-semibold text-white">
                 {profile.stats.completedProjects}
@@ -426,7 +430,7 @@ export default function EnhancedDeveloperDashboard() {
                 Completed
               </div>
             </div>
-            <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4 text-center">
               <FaStar className="text-2xl text-yellow-400 mx-auto mb-2" />
               <div className="text-2xl font-semibold text-white">
                 {profile.stats.averageRating}
@@ -435,7 +439,7 @@ export default function EnhancedDeveloperDashboard() {
                 Rating
               </div>
             </div>
-            <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4 text-center">
               <FaWallet className="text-2xl text-green-400 mx-auto mb-2" />
               <div className="text-2xl font-semibold text-white">
                 ${(profile.stats.totalEarnings / 1000).toFixed(0)}K
@@ -444,14 +448,14 @@ export default function EnhancedDeveloperDashboard() {
                 Earned
               </div>
             </div>
-            <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4 text-center">
               <FaCode className="text-2xl text-blue-400 mx-auto mb-2" />
               <div className="text-2xl font-semibold text-white">
                 {(profile.stats.totalCodeLines / 1000).toFixed(0)}K
               </div>
               <div className="text-xs text-gray-400 monty uppercase">Lines</div>
             </div>
-            <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4 text-center">
               <FaFire className="text-2xl text-orange-400 mx-auto mb-2" />
               <div className="text-2xl font-semibold text-white">
                 {profile.stats.activeDays}
@@ -460,7 +464,7 @@ export default function EnhancedDeveloperDashboard() {
                 Active Days
               </div>
             </div>
-            <div className="backdrop-blur-md bg-white/10 rounded-xl p-4 text-center">
+            <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4 text-center">
               <FaRocket className="text-2xl text-purple-400 mx-auto mb-2" />
               <div className="text-2xl font-semibold text-white">
                 {profile.stats.clientRetention}%
@@ -507,9 +511,47 @@ export default function EnhancedDeveloperDashboard() {
 
         {activeTab === "skills" && <DevSkills profile={profile} />}
 
-        {activeTab === "projects" && (
-          <DevProjects projects={profile.projects} />
-        )}
+        {activeTab === "projects" &&
+          (assignmentsLoading ? (
+            <div className="text-center text-gray-400 py-10">
+              Loading projects...
+            </div>
+          ) : (
+            <DevProjects
+              projects={assignments.map((a) => ({
+                id: a.id,
+                title: a.project.title,
+                description: a.project.description,
+                status: a.status as any,
+                startDate: a.project.startDate?.toString() ?? "",
+                deadline: a.project.estimatedCompletionDate?.toString() ?? "",
+                budget: 0,
+                technologies: a.project.techStack || [],
+                progress: a.project.progress || 0,
+                priority: a.project.priority as any,
+                client: (a.project as any).clientName ?? "Client",
+                teamSize: 1,
+                metrics: {
+                  linesOfCode: 0,
+                  commits: 0,
+                  testsWritten: 0,
+                  bugsFixed: 0,
+                  codeReviews: 0,
+                },
+                tasks: [],
+                milestones: a.project.milestones || [],
+                riskLevel: "low",
+                satisfaction: 0,
+                category: a.project.category || "",
+                isBookmarked: false,
+                lastUpdated: a.project.updatedAt?.toString() ?? "",
+                estimatedCompletion:
+                  a.project.estimatedCompletionDate?.toString() ?? "",
+                actualHours: 0,
+                efficiency: 0,
+              }))}
+            />
+          ))}
 
         {activeTab === "analytics" && <DevAnalytics profile={profile} />}
 

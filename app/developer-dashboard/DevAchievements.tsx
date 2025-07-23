@@ -68,8 +68,9 @@ const DevAchievements: React.FC<DevAchievementsProps> = ({ achievements }) => {
 
   // Remove duplicate achievements based on ID
   const displayAchievements = useMemo(() => {
-    const uniqueAchievements = achievements.filter((achievement, index, self) => 
-      index === self.findIndex(a => a.id === achievement.id)
+    const uniqueAchievements = achievements.filter(
+      (achievement, index, self) =>
+        index === self.findIndex((a) => a.id === achievement.id)
     );
     return uniqueAchievements;
   }, [achievements]);
@@ -440,7 +441,7 @@ const DevAchievements: React.FC<DevAchievementsProps> = ({ achievements }) => {
       )}
 
       {/* Rarity Breakdown */}
-      <div className="backdrop-blur-md my-10 bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md my-10 bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-6">
           Achievement Breakdown
         </h3>
@@ -475,7 +476,7 @@ const DevAchievements: React.FC<DevAchievementsProps> = ({ achievements }) => {
       </div>
 
       {/* Category Breakdown */}
-      <div className="backdrop-blur-md my-10 bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="backdrop-blur-md my-10 bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-6">
           Category Distribution
         </h3>

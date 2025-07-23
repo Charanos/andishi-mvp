@@ -29,7 +29,6 @@ import {
   FaBookmark,
   FaTag,
   FaHeart,
-  FaComments,
   FaRocket,
   FaLightbulb,
 } from "react-icons/fa";
@@ -48,7 +47,8 @@ export default function DevProjects({ projects }: DevProjectsProps) {
   const [sortBy, setSortBy] = useState<string>("lastUpdated");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<ProjectAssignment | null>(null);
+  const [selectedProject, setSelectedProject] =
+    useState<ProjectAssignment | null>(null);
 
   // Helper functions
   const getStatusColor = (status: string) => {
@@ -173,7 +173,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
     <div className="space-y-6 my-18">
       {/* Project Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm  monty uppercase">
@@ -186,7 +186,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
             <FaBriefcase className="text-blue-400 text-2xl" />
           </div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm  monty uppercase">
@@ -199,7 +199,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
             <FaCheck className="text-green-400 text-2xl" />
           </div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm  monty uppercase">
@@ -212,7 +212,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
             <FaClock className="text-yellow-400 text-2xl" />
           </div>
         </div>
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-4">
+        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm monty uppercase">
@@ -389,14 +389,14 @@ export default function DevProjects({ projects }: DevProjectsProps) {
       <div
         className={
           viewMode === "grid"
-            ? "grid grid-cols-1 xl:grid-cols-2 gap-6"
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             : "space-y-4"
         }
       >
         {filteredAndSortedProjects.map((project) => (
           <div
             key={project.id}
-            className={`backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all ${
+            className={`backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all ${
               selectedProject === project.id
                 ? "border-blue-400/50 bg-blue-500/5"
                 : ""
@@ -644,7 +644,9 @@ export default function DevProjects({ projects }: DevProjectsProps) {
                       <div className="flex-1 min-w-0">
                         <span
                           className={`text-sm block truncate ${
-                            milestone.completedAt ? "text-white" : "text-gray-400"
+                            milestone.completedAt
+                              ? "text-white"
+                              : "text-gray-400"
                           }`}
                         >
                           {milestone.title}
@@ -670,7 +672,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="flex items-center space-x-2">
-                <button 
+                <button
                   onClick={() => setSelectedProject(project)}
                   className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
                 >

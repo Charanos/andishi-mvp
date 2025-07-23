@@ -7,7 +7,6 @@ import {
   FaComments,
   FaCode,
   FaCalendarAlt,
-  FaDollarSign,
   FaUsers,
   FaChartLine,
 } from "react-icons/fa";
@@ -110,7 +109,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
       case "overview":
         return (
           <div className="space-y-6">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+            <div className="">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Project Overview
               </h3>
@@ -152,14 +151,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
                     </span>
                   </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-400 mb-2">
-                    Budget
-                  </h4>
-                  <p className="text-white font-semibold">
-                    ${project.budget.toLocaleString()}
-                  </p>
-                </div>
               </div>
             </div>
           </div>
@@ -167,7 +158,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
 
       case "chat":
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+          <div className="">
             {user && (
               <ProjectChatComponent
                 projectId={project.id}
@@ -180,30 +171,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
           </div>
         );
 
-      case "assignments":
-        return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-            {loadingDevelopers ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-                <span className="ml-3 text-gray-400">
-                  Loading developers...
-                </span>
-              </div>
-            ) : (
-              <ProjectAssignmentsComponent
-                projectId={project.id}
-                projectTitle={project.title}
-                developers={developers}
-                readOnly={true}
-              />
-            )}
-          </div>
-        );
-
       case "activity":
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+          <div className="">
             <h2 className="text-2xl font-semibold text-white mb-6">
               Recent Activity
             </h2>
@@ -310,12 +280,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
                   Due: {new Date(project.deadline).toLocaleDateString()}
                 </span>
               </div>
-              <div className="flex items-center space-x-2">
-                <FaDollarSign className="text-gray-400" />
-                <span className="text-gray-300 text-sm">
-                  ${project.budget.toLocaleString()}
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -343,17 +307,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onBack }) => {
           >
             <FaComments className="inline mr-2" />
             Chat
-          </button>
-          <button
-            onClick={() => setActiveView("assignments")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-              activeView === "assignments"
-                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <FaUsers className="inline mr-2" />
-            Team Assignments
           </button>
           <button
             onClick={() => setActiveView("activity")}

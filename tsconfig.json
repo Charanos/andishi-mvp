@@ -38,7 +38,7 @@
     "global.d.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts"
-  ],
+, "scripts/migrateBlogHtml.js"  ],
   "exclude": [
     "node_modules",
     ".next/standalone/types"

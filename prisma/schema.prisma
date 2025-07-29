@@ -37,6 +37,9 @@ model User {
   developerProfile       DeveloperProfile? @relation("UserProfile")
   company                String?
   phone                  String?
+  blogLikes              BlogLike[]
+  blogBookmarks          BlogBookmark[]
+  blogComments           BlogComment[]
 }
 
 model DeveloperProfile {
@@ -196,4 +199,75 @@ model Developer {
   projects         Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model Blog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug      String   @unique
+  title     String
+  excerpt   String
+  content   String
+  author    String
+  date      String
+  readTime  String
+  category  String
+  image     String?
+  gradient  String
+  views     Int      @default(0)
+  likes     Int      @default(0)
+  featured  Boolean  @default(false)
+  mainFeatured Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blogLikes    BlogLike[]
+  blogBookmarks BlogBookmark[]
+  blogComments  BlogComment[]
+}
+
+model BlogLike {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  blogId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  blog      Blog     @relation(fields: [blogId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([blogId, userId])
+}
+
+model BlogBookmark {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  blogId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  blog      Blog     @relation(fields: [blogId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([blogId, userId])
+}
+
+model BlogComment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  blogId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blog      Blog     @relation(fields: [blogId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  position   String
+  avatar     String?
+  rating     Int
+  review     String
+  project    String
+  featured   Boolean  @default(false)
+  timeToHire String?
+  keyResult  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

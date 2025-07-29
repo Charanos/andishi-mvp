@@ -170,6 +170,9 @@ html.lenis {
   body {
     @apply bg-background text-foreground;
   }
+  .icon-color-reset {
+    color: unset;
+  }
 }
 
 

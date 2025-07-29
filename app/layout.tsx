@@ -52,9 +52,6 @@ export default function RootLayout({
           </ClientMotionProvider>
         </AuthProvider>
 
-        {/* Floating WhatsApp Button */}
-        <WhatsAppButton />
-
         {/* Google Analytics Scripts */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-8668KBDWFZ"

@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "./LoadingSpinner";
 import { UserRole } from "@/types/auth";
 import { FaUserLock } from "react-icons/fa";
+import WhatsAppButton from "../components/FloatingWhatsappButton";
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -27,21 +28,21 @@ const ROUTE_CONFIG = {
   ],
   PUBLIC_ROUTES: [
     "/",
-    "/about-us",
-    "/contact-us",
-    "/our-portfolio",
-    "/featured-blog",
-    "/tech-talent-pool",
-    "/start-project",
+    "/blogs",
     "/project-details",
-    "/join-talent-pool",
-    "/thank-you-start-project",
-    "/thank-you-join-talent-pool",
-    "/legal/privacy-policy",
+    "/featured-blog",
     "/legal/terms-of-service",
+    "/legal/privacy-policy",
     "/legal/client-terms-of-service",
     "/legal/client-privacy-policy",
-    "/blogs",
+    "/api/auth/login",
+    "/api/auth/verify",
+    "/api/join-talent-pool",
+    "/api/start-project",
+    "/api/developer-profiles",
+    "/api/blogs",
+    "/api/blogs/featured",
+    "/api/reviews",
   ],
   DASHBOARD_ROUTES: [
     "/admin-dashboard",
@@ -332,7 +333,8 @@ export default function ConditionalLayout({
 
   // Determine layout configuration
   const showNavbar = !isAuthRoute && !isMinimalLayout;
-  const showFooter = !isAuthRoute && !isMinimalLayout && !isDashboardRoute;
+  const isBlogPostRoute = pathname.startsWith('/blogs/') && pathname !== '/blogs';
+  const showFooter = !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogPostRoute;
   const mainPadding = showNavbar ? "pt-19" : "";
 
   return (
@@ -352,6 +354,9 @@ export default function ConditionalLayout({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating WhatsApp Button - hidden on dashboard pages */}
+      {!isDashboardRoute && <WhatsAppButton />}
 
       {/* Main content with enhanced styling */}
       <motion.main

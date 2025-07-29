@@ -10,6 +10,7 @@ module.exports = {
         // Properly reference CSS variables
         fontNunito: ["var(--font-nunito)", "sans-serif"],
         fontMontserrat: ["var(--font-montserrat)", "sans-serif"],
+        monty: ["var(--font-montserrat)", "sans-serif"],
       },
       colors: {
         dark: "#0B0D0E",

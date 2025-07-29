@@ -207,3 +207,30 @@ export interface ProjectWithDetails extends BaseProjectWithDetails {
     role?: string;
   };
 }
+
+export interface ReviewType {
+  id: string;
+  name: string;
+  position: string;
+  avatar?: string;
+  rating: number;
+  review: string;
+  project: string;
+  featured: boolean;
+  timeToHire?: string;
+  keyResult?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ReviewFormData {
+  name: string;
+  position: string;
+  avatar?: string;
+  rating: number;
+  review: string;
+  project: string;
+  featured: boolean;
+  timeToHire?: string;
+  keyResult?: string;
+}

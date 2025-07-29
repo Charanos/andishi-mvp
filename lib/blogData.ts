@@ -10,6 +10,9 @@ export type BlogPostType = {
   category: string;
   image: string;
   gradient: string;
+  views?: string;
+  likes?: string;
+  size?: "large" | "medium" | "small";
 };
 
 export const blogData: Record<string, BlogPostType> = {
@@ -24,6 +27,9 @@ export const blogData: Record<string, BlogPostType> = {
     category: "AI & Hiring",
     image: "/blog1.jpg",
     gradient: "from-blue-500/20 to-cyan-500/10",
+    views: "1.2k",
+    likes: "245",
+    size: "large",
   },
   "high-performance-teams": {
     slug: "high-performance-teams",
@@ -36,6 +42,9 @@ export const blogData: Record<string, BlogPostType> = {
     category: "Team Management",
     image: "/blog2.jpg",
     gradient: "from-purple-500/20 to-pink-500/10",
+    views: "856",
+    likes: "178",
+    size: "medium",
   },
   "web3-development-skills": {
     slug: "web3-development-skills",
@@ -48,5 +57,8 @@ export const blogData: Record<string, BlogPostType> = {
     category: "Web3 & Blockchain",
     image: "/blog3.jpg",
     gradient: "from-green-500/20 to-emerald-500/10",
+    views: "1.5k",
+    likes: "312",
+    size: "medium",
   },
 };

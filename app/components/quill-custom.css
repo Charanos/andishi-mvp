@@ -1,0 +1,38 @@
+/* Custom styling for Quill editor to match dark theme */
+.ql-toolbar.ql-snow {
+  border: 1px solid #4b5563 !important;
+  border-radius: 0.5rem 0.5rem 0 0 !important;
+  background-color: #1f2937 !important;
+}
+
+.ql-container.ql-snow {
+  border: 1px solid #4b5563 !important;
+  border-radius: 0 0 0.5rem 0.5rem !important;
+  background-color: #1f2937 !important;
+  color: white !important;
+}
+
+.ql-editor {
+  min-height: 200px;
+  color: white !important;
+}
+
+.ql-snow .ql-picker {
+  color: white !important;
+}
+
+.ql-snow .ql-picker-options {
+  background-color: #1f2937 !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.ql-snow .ql-tooltip {
+  background-color: #1f2937 !important;
+  border: 1px solid #4b5563 !important;
+  color: white !important;
+}
+
+/* Custom styling for code blocks */
+.prose pre {
+  @apply bg-gray-900 border border-gray-700 rounded-lg;
+}

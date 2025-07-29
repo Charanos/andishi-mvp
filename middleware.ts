@@ -34,6 +34,9 @@ const publicRoutes = [
   '/api/join-talent-pool',
   '/api/start-project',
   '/api/developer-profiles',
+  '/api/blogs',
+  '/api/blogs/featured',
+  '/api/reviews',
 ];
 
 // Auth routes (login, register, etc.)

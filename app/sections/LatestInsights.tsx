@@ -178,10 +178,10 @@ export default function LatestInsights() {
                 Tech Innovation
               </span>
             </h2>
-            <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              Loading latest insights on remote work, AI, blockchain, and the
-              technologies shaping tomorrow's development landscape
-            </p>
+            <div className="text-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+              <p className="text-gray-400 monty uppercase">Loading blogs...</p>
+            </div>
           </div>
         </div>
       </section>

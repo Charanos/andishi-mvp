@@ -15,6 +15,8 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import dynamic from "next/dynamic";
+import ToastNotification from "./ToastNotification";
+import { ToastNotification as ToastNotificationType } from "./ToastNotification";
 
 const RichContentEditor = dynamic(() => import("./RichContentEditor"), {
   ssr: false,
@@ -48,10 +50,7 @@ export default function BlogForm({
     gradient: "",
   });
 
-  const [notification, setNotification] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const [toasts, setToasts] = useState<ToastNotificationType[]>([]);
 
   // Populate form when editing
   useEffect(() => {
@@ -79,13 +78,17 @@ export default function BlogForm({
     }
   }, [editingBlog, mode, isOpen]);
 
-  // Clear notifications after 5 seconds
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
+  const addToast = (toast: Omit<ToastNotificationType, "id">) => {
+    const newToast = {
+      ...toast,
+      id: Date.now().toString(),
+    };
+    setToasts((prev) => [...prev, newToast]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,9 +101,11 @@ export default function BlogForm({
       !formData.author ||
       !formData.category
     ) {
-      setNotification({
+      addToast({
         type: "error",
+        title: "Error",
         message: "Please fill in all required fields",
+        duration: 5000,
       });
       return;
     }
@@ -114,21 +119,27 @@ export default function BlogForm({
       }
 
       if (result) {
-        setNotification({
+        addToast({
           type: "success",
+          title: "Success",
           message: `Blog post ${
             mode === "create" ? "created" : "updated"
           } successfully!`,
+          duration: 3000,
         });
         setTimeout(() => {
           onSuccess();
           onClose();
+          // Redirect to blogs page
+          window.location.href = "/blogs";
         }, 1500);
       }
     } catch (err) {
-      setNotification({
+      addToast({
         type: "error",
+        title: "Error",
         message: error || "An error occurred",
+        duration: 5000,
       });
     }
   };
@@ -164,15 +175,15 @@ export default function BlogForm({
         </div>
 
         {/* Notification */}
-        {notification && (
+        {toasts.length > 0 && (
           <div
             className={`mx-6 mt-4 p-4 rounded-lg ${
-              notification.type === "success"
+              toasts[0].type === "success"
                 ? "bg-green-500/20 border border-green-500/30 text-green-300"
                 : "bg-red-500/20 border border-red-500/30 text-red-300"
             }`}
           >
-            {notification.message}
+            {toasts[0].message}
           </div>
         )}
 
@@ -326,6 +337,18 @@ export default function BlogForm({
             </button>
           </div>
         </form>
+      </div>
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[9999] pointer-events-none">
+        <div className="pointer-events-auto space-y-2">
+          {toasts.map((toast) => (
+            <ToastNotification
+              key={toast.id}
+              notification={toast}
+              onClose={removeToast}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

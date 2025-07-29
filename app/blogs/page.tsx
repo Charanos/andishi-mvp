@@ -68,7 +68,7 @@ export default function BlogsSection() {
   useEffect(() => {
     const loadBlogs = async () => {
       try {
-        const blogData = await fetchBlogs();
+        const { blogs: blogData } = await fetchBlogs();
         if (blogData) {
           setAllBlogs(blogData);
 
@@ -95,7 +95,7 @@ export default function BlogsSection() {
         console.error("Failed to load blogs:", err);
         // Fallback to fetch blogs only if featured API fails
         try {
-          const blogData = await fetchBlogs();
+          const { blogs: blogData } = await fetchBlogs();
           if (blogData) {
             setAllBlogs(blogData);
             setFeaturedBlog(blogData[0]);
@@ -131,7 +131,7 @@ export default function BlogsSection() {
       if (success) {
         toast.success("Success", "Blog post deleted successfully!");
         // Refresh the blog list
-        const blogData = await fetchBlogs();
+        const { blogs: blogData } = await fetchBlogs();
         if (blogData) {
           setAllBlogs(blogData);
 
@@ -205,7 +205,7 @@ export default function BlogsSection() {
       if (response.ok) {
         toast.success("Success", "Featured blog updated successfully!");
         // Refresh the blog list to show updated featured status
-        const blogData = await fetchBlogs();
+        const { blogs: blogData } = await fetchBlogs();
         if (blogData) {
           setAllBlogs(blogData);
           setFeaturedBlog(blog);
@@ -697,7 +697,7 @@ export default function BlogsSection() {
                   // Clear error and try to reload
                   const loadBlogs = async () => {
                     try {
-                      const blogData = await fetchBlogs();
+                      const { blogs: blogData } = await fetchBlogs();
                       if (blogData) {
                         setAllBlogs(blogData);
 

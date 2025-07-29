@@ -50,7 +50,7 @@ export default function LatestInsights() {
   useEffect(() => {
     const loadBlogs = async () => {
       try {
-        const blogData = await fetchBlogs();
+        const { blogs: blogData } = await fetchBlogs();
         if (blogData) {
           setBlogs(blogData);
 

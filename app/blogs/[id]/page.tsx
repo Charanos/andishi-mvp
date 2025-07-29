@@ -69,9 +69,9 @@ export default function EnhancedBlogPostPage() {
 
           // Check like status
           const likeResponse = await fetch(`/api/blogs/${id}/like`, {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
           });
           if (likeResponse.ok) {
@@ -141,14 +141,14 @@ export default function EnhancedBlogPostPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          guestName: 'Anonymous' // For anonymous users, we can use a default name
+          guestName: "Anonymous", // For anonymous users, we can use a default name
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setIsLiked(data.data.liked);
-        setLikeCount(prev => data.data.liked ? prev + 1 : prev - 1);
+        setLikeCount((prev) => (data.data.liked ? prev + 1 : prev - 1));
         // Show success message
         if (data.data.liked) {
           addToast({
@@ -308,32 +308,47 @@ export default function EnhancedBlogPostPage() {
               }
             } catch (error) {
               console.error("Error adding comment:", error);
-              toast.error("Failed to add comment");
+              addToast({
+                type: "error",
+                title: "Error",
+                message: "Failed to add comment",
+                duration: 3000,
+              });
             }
           }}
           onCommentLike={async (commentId) => {
             try {
-              const response = await fetch(`/api/blogs/${id}/comment/${commentId}/like`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
+              const response = await fetch(
+                `/api/blogs/${id}/comment/${commentId}/like`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
               if (response.ok) {
                 const result = await response.json();
                 // Update the comments state to reflect the like/unlike
-                setComments((prev: any[]) => 
-                  prev.map(comment => 
-                    comment.id === commentId 
-                      ? { ...comment, likes: result.data.liked ? comment.likes + 1 : comment.likes - 1 }
+                setComments((prev: any[]) =>
+                  prev.map((comment) =>
+                    comment.id === commentId
+                      ? {
+                          ...comment,
+                          likes: result.data.liked
+                            ? comment.likes + 1
+                            : comment.likes - 1,
+                        }
                       : comment
                   )
                 );
                 addToast({
                   type: "success",
                   title: "Success",
-                  message: result.data.liked ? "Comment liked!" : "Comment unliked!",
+                  message: result.data.liked
+                    ? "Comment liked!"
+                    : "Comment unliked!",
                   duration: 3000,
                 });
               } else {
@@ -346,26 +361,37 @@ export default function EnhancedBlogPostPage() {
               }
             } catch (error) {
               console.error("Error liking comment:", error);
-              toast.error("Failed to like comment");
+              addToast({
+                type: "error",
+                title: "Error",
+                message: "Failed to like comment",
+                duration: 3000,
+              });
             }
           }}
           onReply={async (commentId, content) => {
             try {
-              const response = await fetch(`/api/blogs/${id}/comment/${commentId}/reply`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ content }),
-              });
+              const response = await fetch(
+                `/api/blogs/${id}/comment/${commentId}/reply`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ content }),
+                }
+              );
 
               if (response.ok) {
                 const newReply = await response.json();
                 // Update the comments state to add the new reply
-                setComments((prev: any[]) => 
-                  prev.map(comment => 
-                    comment.id === commentId 
-                      ? { ...comment, replies: [...comment.replies, newReply.data] }
+                setComments((prev: any[]) =>
+                  prev.map((comment) =>
+                    comment.id === commentId
+                      ? {
+                          ...comment,
+                          replies: [...comment.replies, newReply.data],
+                        }
                       : comment
                   )
                 );

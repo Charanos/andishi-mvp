@@ -48,19 +48,60 @@ async function verifyAdminAuth(request: NextRequest) {
   }
 }
 
-// GET /api/blogs/featured - Get featured blogs
+// GET /api/blogs/featured - Get featured blogs with optimizations
 export async function GET() {
   try {
-    // Get featured blogs from database
-    const featuredBlogs = await prisma.blog.findMany({
-      where: { featured: true },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    // Get main featured blog
-    const mainFeaturedBlog = await prisma.blog.findFirst({
-      where: { mainFeatured: true }
-    });
+    // Use Promise.all to run both queries in parallel for better performance
+    const [featuredBlogs, mainFeaturedBlog] = await Promise.all([
+      // Get featured blogs with field selection to reduce payload
+      prisma.blog.findMany({
+        where: { featured: true },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          author: true,
+          date: true,
+          readTime: true,
+          category: true,
+          image: true,
+          authorImage: true,
+          views: true,
+          likes: true,
+          featured: true,
+          mainFeatured: true,
+          createdAt: true,
+          updatedAt: true
+          // Exclude 'content' field for list view to reduce payload size
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 3 // Limit to 3 featured blogs for performance
+      }),
+      // Get main featured blog
+      prisma.blog.findFirst({
+        where: { mainFeatured: true },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          author: true,
+          date: true,
+          readTime: true,
+          category: true,
+          image: true,
+          authorImage: true,
+          views: true,
+          likes: true,
+          featured: true,
+          mainFeatured: true,
+          createdAt: true,
+          updatedAt: true
+          // Exclude 'content' field for list view to reduce payload size
+        }
+      })
+    ]);
     
     // Transform the data to match the expected format
     const formattedFeaturedBlogs = featuredBlogs.map(blog => ({
@@ -75,13 +116,20 @@ export async function GET() {
       likes: mainFeaturedBlog.likes.toString()
     } : null;
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         featuredBlogs: formattedFeaturedBlogs,
         mainFeaturedBlog: formattedMainFeaturedBlog
       }
     });
+    
+    // Add aggressive caching for featured blogs since they change less frequently
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+    response.headers.set('CDN-Cache-Control', 'public, s-maxage=300');
+    response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=300');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching featured blogs:', error);
     return NextResponse.json(

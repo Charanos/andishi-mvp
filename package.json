@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "NODE_ENV=production node .next/standalone/server.js",
     "postinstall": "npx prisma generate",
-    "lint": "next lint"
+    "lint": "next lint",
+    "optimize-db": "node scripts/optimize-db-indexes.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

@@ -23,49 +23,72 @@ export async function GET(
   }
   
   try {
-    // First try to find by slug, fallback to id for backward compatibility
+    // Optimize query strategy: try slug first (more common), then ID
     let blog = null;
+    
+    // First try to find by slug (most common case for SEO-friendly URLs)
     try {
-      blog = await prisma.blog.findFirst({
-        where: { 
-          OR: [
-            { slug: id },
-            { id: id }
-          ]
-        }
+      blog = await prisma.blog.findUnique({
+        where: { slug: id }
       });
     } catch (prismaError: any) {
-      // Handle Prisma P2023 error (invalid ID format)
-      if (prismaError?.code === 'P2023') {
-        // Try again but only with slug since ID format is invalid
-        blog = await prisma.blog.findFirst({
-          where: { 
-            slug: id
-          }
+      // If slug lookup fails, it might be an ID
+      console.warn('Slug lookup failed, trying ID:', prismaError?.message);
+    }
+    
+    // If not found by slug and ID looks like a valid ObjectId, try ID lookup
+    if (!blog && id.length === 24 && /^[0-9a-fA-F]+$/.test(id)) {
+      try {
+        blog = await prisma.blog.findUnique({
+          where: { id: id }
         });
-      } else {
-        throw prismaError; // Re-throw if it's a different error
+      } catch (prismaError: any) {
+        // Handle Prisma P2023 error (invalid ID format)
+        if (prismaError?.code === 'P2023') {
+          console.warn('Invalid ObjectId format:', id);
+        } else {
+          throw prismaError; // Re-throw if it's a different error
+        }
       }
     }
 
     if (!blog) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Blog post not found' },
         { status: 404 }
       );
+      // Cache 404 responses for a short time to prevent repeated invalid requests
+      response.headers.set('Cache-Control', 'public, max-age=60');
+      return response;
     }
+
+    // Increment view count asynchronously (fire and forget)
+    prisma.blog.update({
+      where: { id: blog.id },
+      data: { views: { increment: 1 } }
+    }).catch(error => {
+      console.error('Failed to increment view count:', error);
+    });
 
     // Transform the data to match the expected format
     const formattedBlog = {
       ...blog,
-      views: blog.views.toString(),
+      views: (blog.views + 1).toString(), // Show incremented view count immediately
       likes: blog.likes.toString()
     };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: formattedBlog
     });
+    
+    // Add cache headers for better performance
+    // Cache for 5 minutes with stale-while-revalidate for 30 minutes
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
+    response.headers.set('CDN-Cache-Control', 'public, s-maxage=300');
+    response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=300');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching blog:', error);
     return NextResponse.json(

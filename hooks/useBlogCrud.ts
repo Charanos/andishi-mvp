@@ -128,12 +128,12 @@ export const useBlogCrud = () => {
     }
   }, [isAdmin, token]);
 
-  const fetchBlogs = useCallback(async (): Promise<BlogPostType[]> => {
+  const fetchBlogs = useCallback(async (page: number = 1, limit: number = 10): Promise<{ blogs: BlogPostType[], pagination: any }> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/blogs', {
+      const response = await fetch(`/api/blogs?page=${page}&limit=${limit}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -147,21 +147,31 @@ export const useBlogCrud = () => {
         throw new Error(result.error || 'Failed to fetch blogs');
       }
 
-      return result.data || [];
+      return {
+        blogs: result.data || [],
+        pagination: result.pagination || {}
+      };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch blogs';
       setError(errorMessage);
-      return [];
+      return { blogs: [], pagination: {} };
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  // Legacy function for backward compatibility - fetches all blogs from first page
+  const fetchAllBlogs = useCallback(async (): Promise<BlogPostType[]> => {
+    const result = await fetchBlogs(1, 50); // Get first 50 blogs
+    return result.blogs;
+  }, [fetchBlogs]);
 
   return {
     createBlog,
     updateBlog,
     deleteBlog,
     fetchBlogs,
+    fetchAllBlogs,
     isLoading,
     error,
     isAdmin,

@@ -3,16 +3,58 @@ import { blogData, BlogPostType } from '@/lib/blogData';
 import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 
-// GET /api/blogs - Get all blog posts
-export async function GET() {
+// GET /api/blogs - Get all blog posts with optimizations
+export async function GET(request: NextRequest) {
   try {
-    let blogs;
+    // Parse query parameters for pagination
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
+    
+    // Validate pagination parameters
+    if (page < 1 || limit < 1 || limit > 50) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid pagination parameters' },
+        { status: 400 }
+      );
+    }
+
+    let blogs, totalCount;
     try {
-      blogs = await prisma.blog.findMany({
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
+      // Use Promise.all to run count and find queries in parallel
+      const [blogsResult, countResult] = await Promise.all([
+        prisma.blog.findMany({
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            author: true,
+            date: true,
+            readTime: true,
+            category: true,
+            image: true,
+            authorImage: true,
+            views: true,
+            likes: true,
+            featured: true,
+            mainFeatured: true,
+            createdAt: true,
+            updatedAt: true
+            // Exclude 'content' field for list view to reduce payload size
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          skip: skip,
+          take: limit
+        }),
+        prisma.blog.count()
+      ]);
+      
+      blogs = blogsResult;
+      totalCount = countResult;
     } catch (prismaError) {
       console.error('Database error when fetching blogs:', prismaError);
       return NextResponse.json(
@@ -28,10 +70,27 @@ export async function GET() {
       likes: blog.likes.toString()
     }));
     
-    return NextResponse.json({
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    const response = NextResponse.json({
       success: true,
-      data: formattedBlogs
+      data: formattedBlogs,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
     });
+    
+    // Add cache headers for better performance
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    response.headers.set('CDN-Cache-Control', 'public, s-maxage=60');
+    response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=60');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching blogs:', error);
     return NextResponse.json(

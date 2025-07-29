@@ -104,10 +104,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { featuredBlogSlugs, mainFeaturedBlogSlug } = body;
+    const { featuredBlogids, mainFeaturedBlogid } = body;
 
     // Validate input
-    if (!Array.isArray(featuredBlogSlugs) || featuredBlogSlugs.length > 3) {
+    if (!Array.isArray(featuredBlogids) || featuredBlogids.length > 3) {
       return NextResponse.json(
         { success: false, error: 'Invalid featured blogs data. Maximum 3 featured blogs allowed.' },
         { status: 400 }
@@ -121,17 +121,17 @@ export async function POST(request: NextRequest) {
     });
 
     // Set featured blogs
-    if (featuredBlogSlugs.length > 0) {
+    if (featuredBlogids.length > 0) {
       await prisma.blog.updateMany({
-        where: { slug: { in: featuredBlogSlugs } },
+        where: { id: { in: featuredBlogids } },
         data: { featured: true }
       });
     }
 
     // Set main featured blog
-    if (mainFeaturedBlogSlug) {
+    if (mainFeaturedBlogid) {
       await prisma.blog.updateMany({
-        where: { slug: mainFeaturedBlogSlug },
+        where: { id: mainFeaturedBlogid },
         data: { mainFeatured: true }
       });
     }

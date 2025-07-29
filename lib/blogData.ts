@@ -1,6 +1,6 @@
 // lib/blogData.ts
 export type BlogPostType = {
-  slug: string;
+  id: string;
   title: string;
   excerpt: string;
   content: string;
@@ -17,7 +17,7 @@ export type BlogPostType = {
 
 export const blogData: Record<string, BlogPostType> = {
   "ai-remote-hiring": {
-    slug: "ai-remote-hiring",
+    id: "ai-remote-hiring",
     title: "The Future of Remote Work: How AI is Transforming Tech Hiring",
     excerpt: "Discover how AI-powered tools are revolutionizing remote hiring processes, reducing bias, and helping companies find the best global tech talent faster than ever before.",
     content: `<p>AI content...</p>`,
@@ -32,7 +32,7 @@ export const blogData: Record<string, BlogPostType> = {
     size: "large",
   },
   "high-performance-teams": {
-    slug: "high-performance-teams",
+    id: "high-performance-teams",
     title: "Building High-Performance Remote Development Teams",
     excerpt: "Learn the proven strategies for creating cohesive, productive remote engineering teams that deliver exceptional results across time zones and cultural boundaries.",
     content: `<p>Team content...</p>`,
@@ -47,7 +47,7 @@ export const blogData: Record<string, BlogPostType> = {
     size: "medium",
   },
   "web3-development-skills": {
-    slug: "web3-development-skills",
+    id: "web3-development-skills",
     title: "Web3 Development: Skills That Are in High Demand",
     excerpt: "Explore the essential blockchain and decentralized technology skills that are commanding premium salaries in today's rapidly evolving Web3 job market.",
     content: `<p>Web3 content...</p>`,

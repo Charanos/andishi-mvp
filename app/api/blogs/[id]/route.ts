@@ -3,18 +3,18 @@ import { blogData, BlogPostType } from '@/lib/blogData';
 import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 
-// GET /api/blogs/[slug] - Get specific blog post
+// GET /api/blogs/[id] - Get specific blog post
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
-  if (!slug) {
-    return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
   try {
     const blog = await prisma.blog.findUnique({
-      where: { slug }
+      where: { id }
     });
 
     if (!blog) {
@@ -44,14 +44,14 @@ export async function GET(
   }
 }
 
-// PUT /api/blogs/[slug] - Update blog post (Admin only)
+// PUT /api/blogs/[id] - Update blog post (Admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
-  if (!slug) {
-    return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
   try {
     // Verify admin authentication
@@ -66,7 +66,7 @@ export async function PUT(
 
     
     const existingBlog = await prisma.blog.findUnique({
-      where: { slug }
+      where: { id }
     });
 
     if (!existingBlog) {
@@ -81,7 +81,7 @@ export async function PUT(
 
     // Update blog post in database
     const updatedBlog = await prisma.blog.update({
-      where: { slug },
+      where: { id },
       data: {
         title: title || existingBlog.title,
         excerpt: excerpt || existingBlog.excerpt,
@@ -116,14 +116,14 @@ export async function PUT(
   }
 }
 
-// DELETE /api/blogs/[slug] - Delete blog post (Admin only)
+// DELETE /api/blogs/[id] - Delete blog post (Admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
-  if (!slug) {
-    return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
   try {
     // Verify admin authentication
@@ -138,7 +138,7 @@ export async function DELETE(
 
     
     const existingBlog = await prisma.blog.findUnique({
-      where: { slug }
+      where: { id }
     });
 
     if (!existingBlog) {
@@ -150,7 +150,7 @@ export async function DELETE(
 
     // Delete from database
     await prisma.blog.delete({
-      where: { slug }
+      where: { id }
     });
 
     return NextResponse.json({

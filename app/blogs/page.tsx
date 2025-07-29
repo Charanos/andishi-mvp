@@ -79,7 +79,7 @@ export default function BlogsSection() {
 
             // Filter out the main featured blog from the regular blogs list
             const filteredBlogs = mainFeatured
-              ? blogData.filter((blog) => blog.slug !== mainFeatured.slug)
+              ? blogData.filter((blog) => blog.id !== mainFeatured.id)
               : blogData.slice(1); // If no main featured, exclude first blog
             setBlogs(filteredBlogs);
           } else {
@@ -108,23 +108,23 @@ export default function BlogsSection() {
   }, [fetchBlogs]);
 
   // Handle delete blog
-  const handleDeleteBlog = async (slug: string, title: string) => {
+  const handleDeleteBlog = async (id: string, title: string) => {
     setConfirmationModal({
       isOpen: true,
       title: "Delete Blog Post",
       message: `Are you sure you want to delete the blog post "${title}"? This action cannot be undone.`,
-      onConfirm: () => confirmDeleteBlog(slug),
+      onConfirm: () => confirmDeleteBlog(id),
       variant: "danger",
       loading: false,
     });
   };
 
   // Confirm delete blog
-  const confirmDeleteBlog = async (slug: string) => {
+  const confirmDeleteBlog = async (id: string) => {
     setConfirmationModal((prev) => ({ ...prev, loading: true }));
 
     try {
-      const success = await deleteBlog(slug);
+      const success = await deleteBlog(id);
       if (success) {
         toast.success("Success", "Blog post deleted successfully!");
         // Refresh the blog list
@@ -133,7 +133,7 @@ export default function BlogsSection() {
           setAllBlogs(blogData);
 
           // Update featured blog if necessary
-          if (featuredBlog?.slug === slug) {
+          if (featuredBlog?.id === id) {
             const featuredResponse = await fetch("/api/blogs/featured");
             const featuredResult = await featuredResponse.json();
 
@@ -143,7 +143,7 @@ export default function BlogsSection() {
 
               // Filter out the main featured blog from the regular blogs list
               const filteredBlogs = mainFeatured
-                ? blogData.filter((blog) => blog.slug !== mainFeatured.slug)
+                ? blogData.filter((blog) => blog.id !== mainFeatured.id)
                 : blogData.slice(1);
               setBlogs(filteredBlogs);
             } else {
@@ -153,7 +153,7 @@ export default function BlogsSection() {
           } else {
             // If deleted blog wasn't featured, just filter the list
             const filteredBlogs = featuredBlog
-              ? blogData.filter((blog) => blog.slug !== featuredBlog.slug)
+              ? blogData.filter((blog) => blog.id !== featuredBlog.id)
               : blogData.slice(1);
             setBlogs(filteredBlogs);
           }
@@ -195,8 +195,8 @@ export default function BlogsSection() {
         },
         credentials: "include",
         body: JSON.stringify({
-          featuredBlogSlugs: [], // We'll manage this separately if needed
-          mainFeaturedBlogSlug: blog.slug,
+          featuredBlogids: [], // We'll manage this separately if needed
+          mainFeaturedBlogid: blog.id,
         }),
       });
 
@@ -212,7 +212,7 @@ export default function BlogsSection() {
         setFeaturedBlog(blog);
 
         // Filter out the new featured blog from the regular blogs list
-        const filteredBlogs = allBlogs.filter((b) => b.slug !== blog.slug);
+        const filteredBlogs = allBlogs.filter((b) => b.id !== blog.id);
         setBlogs(filteredBlogs);
       } else {
         toast.error("Error", result.error || "Failed to set featured blog");
@@ -345,7 +345,7 @@ export default function BlogsSection() {
 
                   <div className="flex items-center justify-between pt-4">
                     <Link
-                      href={`/blogs/${featuredBlog.slug}`}
+                      href={`/blogs/${featuredBlog.id}`}
                       className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 monty uppercase hover:to-purple-600 transition-all duration-300 hover:scale-105 group/btn"
                     >
                       <span>Read Full Article</span>
@@ -411,7 +411,7 @@ export default function BlogsSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogs.map((blog) => (
               <article
-                key={blog.slug}
+                key={blog.id}
                 className={`group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.02] cursor-pointer ${getCardSizeClasses(
                   blog.size
                 )}`}
@@ -435,7 +435,7 @@ export default function BlogsSection() {
                       <FaStar className="text-xs" />
                     </button>
                     <Link
-                      href={`/blog-form?mode=edit&slug=${blog.slug}`}
+                      href={`/blog-form?mode=edit&id=${blog.id}`}
                       className="p-2 bg-blue-600/80 backdrop-blur-sm text-white rounded-full hover:bg-blue-700/80 transition-colors duration-300"
                       title="Edit Blog"
                     >
@@ -445,13 +445,13 @@ export default function BlogsSection() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        handleDeleteBlog(blog.slug, blog.title);
+                        handleDeleteBlog(blog.id, blog.title);
                       }}
-                      disabled={isDeleting === blog.slug}
+                      disabled={isDeleting === blog.id}
                       className="p-2 bg-red-600/80 backdrop-blur-sm text-white rounded-full hover:bg-red-700/80 transition-colors duration-300 disabled:opacity-50"
                       title="Delete Blog"
                     >
-                      {isDeleting === blog.slug ? (
+                      {isDeleting === blog.id ? (
                         <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
                       ) : (
                         <FaTrash className="text-xs" />
@@ -521,7 +521,7 @@ export default function BlogsSection() {
 
                   <div className="flex items-center justify-between">
                     <Link
-                      href={`/blogs/${blog.slug}`}
+                      href={`/blogs/${blog.id}`}
                       className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300"
                     >
                       <span className="text-sm font-medium">Read More</span>
@@ -580,7 +580,7 @@ export default function BlogsSection() {
                           // Filter out the main featured blog from the regular blogs list
                           const filteredBlogs = mainFeatured
                             ? blogData.filter(
-                                (blog) => blog.slug !== mainFeatured.slug
+                                (blog) => blog.id !== mainFeatured.id
                               )
                             : blogData.slice(1);
                           setBlogs(filteredBlogs);

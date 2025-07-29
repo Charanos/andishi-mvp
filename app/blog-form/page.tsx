@@ -20,7 +20,10 @@ import { useBlogCrud } from "@/hooks/useBlogCrud";
 import { BlogPostType } from "@/lib/blogData";
 import dynamic from "next/dynamic";
 
-const RichContentEditor = dynamic(() => import("@/app/components/RichContentEditor"), { ssr: false });
+const RichContentEditor = dynamic(
+  () => import("@/app/components/RichContentEditor"),
+  { ssr: false }
+);
 
 export default function BlogFormPage() {
   const router = useRouter();
@@ -46,7 +49,7 @@ export default function BlogFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const mode = searchParams.get("mode") || "create";
-  const slug = searchParams.get("slug") || "";
+  const id = searchParams.get("id") || "";
 
   // Check if user is admin
   const isAdmin = user?.role === "admin";
@@ -60,10 +63,10 @@ export default function BlogFormPage() {
 
   // Load blog data for editing
   useEffect(() => {
-    if (mode === "edit" && slug) {
+    if (mode === "edit" && id) {
       const loadBlogData = async () => {
         try {
-          const response = await fetch(`/api/blogs/${slug}`);
+          const response = await fetch(`/api/blogs/${id}`);
           const result = await response.json();
 
           if (response.ok && result.data) {
@@ -92,7 +95,7 @@ export default function BlogFormPage() {
 
       loadBlogData();
     }
-  }, [mode, slug]);
+  }, [mode, id]);
 
   // Clear notifications after 5 seconds
   useEffect(() => {
@@ -135,8 +138,8 @@ export default function BlogFormPage() {
       let result;
       if (mode === "create") {
         result = await createBlog(formData);
-      } else if (slug) {
-        result = await updateBlog(slug, formData);
+      } else if (id) {
+        result = await updateBlog(id, formData);
       }
 
       if (result) {
@@ -358,7 +361,9 @@ export default function BlogFormPage() {
               <div className="w-full">
                 <RichContentEditor
                   value={formData.content}
-                  onChange={(html: string) => setFormData(prev => ({ ...prev, content: html }))}
+                  onChange={(html: string) =>
+                    setFormData((prev) => ({ ...prev, content: html }))
+                  }
                   placeholder="Write your blog content here..."
                 />
               </div>

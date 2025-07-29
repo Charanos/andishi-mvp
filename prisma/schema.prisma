@@ -40,6 +40,8 @@ model User {
   blogLikes              BlogLike[]
   blogBookmarks          BlogBookmark[]
   blogComments           BlogComment[]
+  commentLikes           CommentLike[]
+  commentReplies         CommentReply[]
 }
 
 model DeveloperProfile {
@@ -203,7 +205,6 @@ model Developer {
 
 model Blog {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  slug      String   @unique
   title     String
   excerpt   String
   content   String
@@ -227,12 +228,14 @@ model Blog {
 model BlogLike {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   blogId    String   @db.ObjectId
-  userId    String   @db.ObjectId
+  userId    String?  @db.ObjectId
+  guestName String?
   createdAt DateTime @default(now())
   blog      Blog     @relation(fields: [blogId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@unique([blogId, userId])
+  @@unique([blogId, guestName])
 }
 
 model BlogBookmark {
@@ -247,14 +250,42 @@ model BlogBookmark {
 }
 
 model BlogComment {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  blogId    String   @db.ObjectId
-  userId    String   @db.ObjectId
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  blogId    String         @db.ObjectId
+  userId    String?        @db.ObjectId
+  guestName String?
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  blog      Blog     @relation(fields: [blogId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  blog      Blog           @relation(fields: [blogId], references: [id])
+  user      User?          @relation(fields: [userId], references: [id])
+  likes     CommentLike[]  @relation("CommentLikes")
+  replies   CommentReply[] @relation("CommentReplies")
+}
+
+model CommentLike {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  commentId String      @db.ObjectId
+  userId    String?     @db.ObjectId
+  guestName String?
+  createdAt DateTime    @default(now())
+  comment   BlogComment @relation("CommentLikes", fields: [commentId], references: [id])
+  user      User?       @relation(fields: [userId], references: [id])
+
+  @@unique([commentId, userId])
+  @@unique([commentId, guestName])
+}
+
+model CommentReply {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  commentId String      @db.ObjectId
+  userId    String?     @db.ObjectId
+  guestName String?
+  content   String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  comment   BlogComment @relation("CommentReplies", fields: [commentId], references: [id])
+  user      User?       @relation(fields: [userId], references: [id])
 }
 
 model Review {

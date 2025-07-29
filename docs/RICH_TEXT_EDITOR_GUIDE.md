@@ -6,12 +6,13 @@ This document explains how to integrate **react-quill-new** (Quill v2 compatible
 
 ## 1. Why `react-quill-new`?
 
-| Package | React 19 Support | Bundle Size | Maturity |
-|---------|-----------------|-------------|----------|
-| `react-quill` | ❌ (peer ≤ 18) | 117 KB | Widely used |
-| **`react-quill-new`** | ✅ (≥ 16 → 19) | 118 KB | Fork of `react-quill` w/ updated peerDeps |
+| Package               | React 19 Support | Bundle Size | Maturity                                  |
+| --------------------- | ---------------- | ----------- | ----------------------------------------- |
+| `react-quill`         | ❌ (peer ≤ 18)   | 117 KB      | Widely used                               |
+| **`react-quill-new`** | ✅ (≥ 16 → 19)   | 118 KB      | Fork of `react-quill` w/ updated peerDeps |
 
 We already installed it:
+
 ```bash
 npm install react-quill-new quill
 ```
@@ -35,14 +36,15 @@ app/
 ## 3. Creating the Reusable Editor Component
 
 `app/components/RichTextEditor.tsx`
+
 ```tsx
-'use client';
-import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';         // base Quill styles
-import './quill-custom.css';                      // optional custom styling
+"use client";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css"; // base Quill styles
+import "./quill-custom.css"; // optional custom styling
 
 // Quill requires `window`. Use dynamic import to avoid SSR issues.
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export interface RichTextEditorProps {
   value: string;
@@ -50,7 +52,11 @@ export interface RichTextEditorProps {
   placeholder?: string;
 }
 
-export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+export default function RichTextEditor({
+  value,
+  onChange,
+  placeholder,
+}: RichTextEditorProps) {
   return (
     <ReactQuill
       theme="snow"
@@ -68,17 +74,25 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
 const modules = {
   toolbar: [
     [{ header: [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['blockquote', 'code-block'],
-    ['link', 'image'],
-    ['clean'],
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["blockquote", "code-block"],
+    ["link", "image"],
+    ["clean"],
   ],
 };
 const formats = [
-  'header', 'bold', 'italic', 'underline', 'strike',
-  'list', 'bullet', 'blockquote', 'code-block',
-  'link', 'image'
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "list",
+  "bullet",
+  "blockquote",
+  "code-block",
+  "link",
+  "image",
 ];
 ```
 
@@ -89,28 +103,37 @@ Add optional `quill-custom.css` (dark theme adjustments) or Tailwind classes.
 ## 4. Updating `BlogForm.tsx`
 
 1. **Import** the component:
+
 ```tsx
-import dynamic from 'next/dynamic';
-const RichTextEditor = dynamic(() => import('./RichTextEditor'), { ssr: false });
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
+  ssr: false,
+});
 ```
+
 2. **Replace** the current `<textarea name="content" …>` block with:
+
 ```tsx
 <RichTextEditor
   value={formData.content}
-  onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
+  onChange={(val) => setFormData((prev) => ({ ...prev, content: val }))}
   placeholder="Write engaging content…"
 />
 ```
+
 3. **Validation** stays the same – we still store HTML string in `formData.content`.
 
 ---
 
-## 5. Rendering Rich Content in `[slug]/page.tsx`
+## 5. Rendering Rich Content in `[id]/page.tsx`
 
 Create `RichTextViewer.tsx`:
+
 ```tsx
-import DOMPurify from 'isomorphic-dompurify';
-interface Props { html: string; }
+import DOMPurify from "isomorphic-dompurify";
+interface Props {
+  html: string;
+}
 export default function RichTextViewer({ html }: Props) {
   return (
     <div
@@ -122,12 +145,15 @@ export default function RichTextViewer({ html }: Props) {
 ```
 
 Then in `EnhancedBlogPostPage` swap `renderBlogContent(blog.content)` with:
+
 ```tsx
 <RichTextViewer html={blog.content} />
 ```
+
 You can still keep special blocks (quotes, highlights) if you parse for custom markers; Quill’s HTML already contains `<blockquote>`, `<pre>`, `<img>`, etc. which Tailwind’s `prose` classes style nicely.
 
 > **Security**: Using `isomorphic-dompurify` prevents XSS. Install it:
+>
 > ```bash
 > npm install isomorphic-dompurify
 > ```
@@ -136,11 +162,14 @@ You can still keep special blocks (quotes, highlights) if you parse for custom m
 
 ## 6. Styling Tips
 
-* Tailwind Typography (`@tailwindcss/typography`) is already in the project; combine with `prose-invert` for dark mode.
-* Override Quill’s snow theme background/borders to fit your dark UI (`quill-custom.css`).
-* For inline code blocks, add:
+- Tailwind Typography (`@tailwindcss/typography`) is already in the project; combine with `prose-invert` for dark mode.
+- Override Quill’s snow theme background/borders to fit your dark UI (`quill-custom.css`).
+- For inline code blocks, add:
+
 ```css
-.prose pre { @apply bg-gray-900 border border-gray-700 rounded-lg; }
+.prose pre {
+  @apply bg-gray-900 border border-gray-700 rounded-lg;
+}
 ```
 
 ---
@@ -156,7 +185,7 @@ If you want **markdown**, you can switch Quill to output markdown using `quilljs
 
 1. Create a post in admin mode – ensure editor loads and saves.
 2. Check API payload – `content` should contain rich HTML.
-3. View `/blogs/[slug]` – verify content styles, images, code, lists.
+3. View `/blogs/[id]` – verify content styles, images, code, lists.
 4. Test XSS by inserting `<script>alert(1)</script>` → should be sanitized.
 5. Mobile responsiveness – check editor (creation) only on desktop.
 
@@ -164,9 +193,9 @@ If you want **markdown**, you can switch Quill to output markdown using `quilljs
 
 ## 9. Future Enhancements
 
-* **Image Uploads**: integrate `quill-image-uploader` with an S3/Cloudinary endpoint.
-* **Syntax Highlighting**: add `highlight.js` for code blocks.
-* **Word Count & Read Time**: compute on save using `quill.getText().split(/\s+/).length`.
+- **Image Uploads**: integrate `quill-image-uploader` with an S3/Cloudinary endpoint.
+- **Syntax Highlighting**: add `highlight.js` for code blocks.
+- **Word Count & Read Time**: compute on save using `quill.getText().split(/\s+/).length`.
 
 ---
 

@@ -1,55 +1,61 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { BlogPostType } from '@/lib/blogData';
-import { BlogFormData, useBlogCrud } from '@/hooks/useBlogCrud';
-import { 
-  FaTimes, 
-  FaSave, 
+import React, { useState, useEffect } from "react";
+import { BlogPostType } from "@/lib/blogData";
+import { BlogFormData, useBlogCrud } from "@/hooks/useBlogCrud";
+import {
+  FaTimes,
+  FaSave,
   FaSpinner,
   FaImage,
   FaPalette,
   FaUser,
   FaTag,
   FaEdit,
-  FaFileAlt
-} from 'react-icons/fa';
-import dynamic from 'next/dynamic';
+  FaFileAlt,
+} from "react-icons/fa";
+import dynamic from "next/dynamic";
 
-const RichContentEditor = dynamic(() => import('./RichContentEditor'), { ssr: false });
+const RichContentEditor = dynamic(() => import("./RichContentEditor"), {
+  ssr: false,
+});
 
 interface BlogFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   editingBlog?: BlogPostType | null;
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
 }
 
-export default function BlogForm({ 
-  isOpen, 
-  onClose, 
-  onSuccess, 
-  editingBlog, 
-  mode 
+export default function BlogForm({
+  isOpen,
+  onClose,
+  onSuccess,
+  editingBlog,
+  mode,
 }: BlogFormProps) {
-  const { createBlog, updateBlog, isLoading, error, clearError } = useBlogCrud();
-  
+  const { createBlog, updateBlog, isLoading, error, clearError } =
+    useBlogCrud();
+
   const [formData, setFormData] = useState<BlogFormData>({
-    title: '',
-    excerpt: '',
-    content: '',
-    author: '',
-    category: '',
-    image: '',
-    gradient: ''
+    title: "",
+    excerpt: "",
+    content: "",
+    author: "",
+    category: "",
+    image: "",
+    gradient: "",
   });
 
-  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Populate form when editing
   useEffect(() => {
-    if (editingBlog && mode === 'edit') {
+    if (editingBlog && mode === "edit") {
       setFormData({
         title: editingBlog.title,
         excerpt: editingBlog.excerpt,
@@ -57,18 +63,18 @@ export default function BlogForm({
         author: editingBlog.author,
         category: editingBlog.category,
         image: editingBlog.image,
-        gradient: editingBlog.gradient
+        gradient: editingBlog.gradient,
       });
     } else {
       // Reset form for create mode
       setFormData({
-        title: '',
-        excerpt: '',
-        content: '',
-        author: '',
-        category: '',
-        image: '',
-        gradient: ''
+        title: "",
+        excerpt: "",
+        content: "",
+        author: "",
+        category: "",
+        image: "",
+        gradient: "",
       });
     }
   }, [editingBlog, mode, isOpen]);
@@ -85,23 +91,34 @@ export default function BlogForm({
     e.preventDefault();
     clearError();
 
-    if (!formData.title || !formData.excerpt || !formData.content || !formData.author || !formData.category) {
-      setNotification({ type: 'error', message: 'Please fill in all required fields' });
+    if (
+      !formData.title ||
+      !formData.excerpt ||
+      !formData.content ||
+      !formData.author ||
+      !formData.category
+    ) {
+      setNotification({
+        type: "error",
+        message: "Please fill in all required fields",
+      });
       return;
     }
 
     try {
       let result;
-      if (mode === 'create') {
+      if (mode === "create") {
         result = await createBlog(formData);
       } else if (editingBlog) {
-        result = await updateBlog(editingBlog.slug, formData);
+        result = await updateBlog(editingBlog.id, formData);
       }
 
       if (result) {
-        setNotification({ 
-          type: 'success', 
-          message: `Blog post ${mode === 'create' ? 'created' : 'updated'} successfully!` 
+        setNotification({
+          type: "success",
+          message: `Blog post ${
+            mode === "create" ? "created" : "updated"
+          } successfully!`,
         });
         setTimeout(() => {
           onSuccess();
@@ -109,16 +126,20 @@ export default function BlogForm({
         }, 1500);
       }
     } catch (err) {
-      setNotification({ 
-        type: 'error', 
-        message: error || 'An error occurred' 
+      setNotification({
+        type: "error",
+        message: error || "An error occurred",
       });
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (!isOpen) return null;
@@ -131,7 +152,7 @@ export default function BlogForm({
           <div className="flex items-center space-x-3">
             <FaEdit className="text-blue-400 text-xl" />
             <h2 className="text-2xl font-semibold text-white">
-              {mode === 'create' ? 'Create New Blog Post' : 'Edit Blog Post'}
+              {mode === "create" ? "Create New Blog Post" : "Edit Blog Post"}
             </h2>
           </div>
           <button
@@ -144,11 +165,13 @@ export default function BlogForm({
 
         {/* Notification */}
         {notification && (
-          <div className={`mx-6 mt-4 p-4 rounded-lg ${
-            notification.type === 'success' 
-              ? 'bg-green-500/20 border border-green-500/30 text-green-300' 
-              : 'bg-red-500/20 border border-red-500/30 text-red-300'
-          }`}>
+          <div
+            className={`mx-6 mt-4 p-4 rounded-lg ${
+              notification.type === "success"
+                ? "bg-green-500/20 border border-green-500/30 text-green-300"
+                : "bg-red-500/20 border border-red-500/30 text-red-300"
+            }`}
+          >
             {notification.message}
           </div>
         )}
@@ -271,7 +294,9 @@ export default function BlogForm({
             </label>
             <RichContentEditor
               value={formData.content}
-              onChange={(val) => setFormData(prev => ({ ...prev, content: val }))}
+              onChange={(val) =>
+                setFormData((prev) => ({ ...prev, content: val }))
+              }
               placeholder="Write engaging content…"
             />
           </div>
@@ -290,12 +315,14 @@ export default function BlogForm({
               disabled={isLoading}
               className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isLoading ? (
-                <FaSpinner className="animate-spin" />
-              ) : (
-                <FaSave />
-              )}
-              <span>{isLoading ? 'Saving...' : (mode === 'create' ? 'Create Post' : 'Update Post')}</span>
+              {isLoading ? <FaSpinner className="animate-spin" /> : <FaSave />}
+              <span>
+                {isLoading
+                  ? "Saving..."
+                  : mode === "create"
+                  ? "Create Post"
+                  : "Update Post"}
+              </span>
             </button>
           </div>
         </form>

@@ -57,7 +57,7 @@ export const useBlogCrud = () => {
     }
   }, [isAdmin, token]);
 
-  const updateBlog = useCallback(async (slug: string, blogData: Partial<BlogFormData>): Promise<BlogPostType | null> => {
+  const updateBlog = useCallback(async (id: string, blogData: Partial<BlogFormData>): Promise<BlogPostType | null> => {
     if (!isAdmin) {
       setError('Unauthorized. Admin access required.');
       return null;
@@ -67,7 +67,7 @@ export const useBlogCrud = () => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/blogs/${slug}`, {
+      const response = await fetch(`/api/blogs/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export const useBlogCrud = () => {
     }
   }, [isAdmin, token]);
 
-  const deleteBlog = useCallback(async (slug: string): Promise<boolean> => {
+  const deleteBlog = useCallback(async (id: string): Promise<boolean> => {
     if (!isAdmin) {
       setError('Unauthorized. Admin access required.');
       return false;
@@ -103,7 +103,7 @@ export const useBlogCrud = () => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/blogs/${slug}`, {
+      const response = await fetch(`/api/blogs/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

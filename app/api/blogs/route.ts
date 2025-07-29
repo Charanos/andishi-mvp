@@ -55,16 +55,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate slug from title
-    const slug = title
+    // Generate id from title
+    const id = title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .substring(0, 50);
 
-    // Check if slug already exists
+    // Check if id already exists
     const existingBlog = await prisma.blog.findUnique({
-      where: { slug }
+      where: { id }
     });
     
     if (existingBlog) {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // Create new blog post in database
     const newBlog = await prisma.blog.create({
       data: {
-        slug,
+        id,
         title,
         excerpt,
         content,

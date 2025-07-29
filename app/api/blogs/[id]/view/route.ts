@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// POST /api/blogs/[slug]/view - Increment blog view count
+// POST /api/blogs/[id]/view - Increment blog view count
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
-  if (!slug) {
-    return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
   
   try {
     // Find the blog post
     const blog = await prisma.blog.findUnique({
-      where: { slug }
+      where: { id }
     });
 
     if (!blog) {
@@ -26,7 +26,7 @@ export async function POST(
 
     // Increment the view count
     const updatedBlog = await prisma.blog.update({
-      where: { slug },
+      where: { id },
       data: {
         views: {
           increment: 1

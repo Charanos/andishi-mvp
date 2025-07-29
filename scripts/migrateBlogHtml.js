@@ -14,7 +14,7 @@ async function main() {
         where: { id: blog.id },
         data: { content: htmlContent },
       });
-      console.log(`Converted blog post: ${blog.slug}`);
+      console.log(`Converted blog post: ${blog.id}`);
     }
   }
   

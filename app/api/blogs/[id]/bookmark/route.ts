@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/getSession';
 
-// POST /api/blogs/[slug]/bookmark - Bookmark or unbookmark a blog post
+// POST /api/blogs/[id]/bookmark - Bookmark or unbookmark a blog post
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
-  if (!slug) {
-    return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
   
   try {
@@ -26,7 +26,7 @@ export async function POST(
     
     // Find the blog post
     const blog = await prisma.blog.findUnique({
-      where: { slug }
+      where: { id }
     });
 
     if (!blog) {
@@ -91,14 +91,14 @@ export async function POST(
   }
 }
 
-// GET /api/blogs/[slug]/bookmark - Check if user has bookmarked a blog post
+// GET /api/blogs/[id]/bookmark - Check if user has bookmarked a blog post
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { slug } = await params;
-  if (!slug) {
-    return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
   
   try {
@@ -112,7 +112,7 @@ export async function GET(
     
     // Find the blog post
     const blog = await prisma.blog.findUnique({
-      where: { slug }
+      where: { id }
     });
 
     if (!blog) {

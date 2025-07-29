@@ -34,7 +34,7 @@ export default function LatestInsights() {
   const [toasts, setToasts] = useState<ToastNotificationType[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<{
-    slug: string;
+    id: string;
     title: string;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -89,20 +89,20 @@ export default function LatestInsights() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  const handleDeleteBlog = async (slug: string, title: string) => {
-    setBlogToDelete({ slug, title });
+  const handleDeleteBlog = async (id: string, title: string) => {
+    setBlogToDelete({ id, title });
     setIsDeleteModalOpen(true);
   };
 
   const confirmDeleteBlog = async () => {
     if (!blogToDelete) return;
 
-    const { slug, title } = blogToDelete;
+    const { id, title } = blogToDelete;
     setIsDeleteModalOpen(false);
-    setIsDeleting(slug);
+    setIsDeleting(id);
 
     try {
-      const success = await deleteBlog(slug);
+      const success = await deleteBlog(id);
       if (success) {
         addToast({
           type: "success",
@@ -133,7 +133,7 @@ export default function LatestInsights() {
   };
 
   interface Blog {
-    slug: string;
+    id: string;
     title: string;
     excerpt: string;
     author: string;
@@ -247,7 +247,7 @@ export default function LatestInsights() {
               {isAdmin && (
                 <div className="absolute top-6 right-6 z-10 flex space-x-2">
                   <Link
-                    href={`/blog-form?mode=edit&slug=${mainFeaturedBlog.slug}`}
+                    href={`/blog-form?mode=edit&id=${mainFeaturedBlog.id}`}
                     className="p-2 bg-blue-500/80 backdrop-blur-sm rounded-full text-white hover:bg-blue-600 transition-colors duration-300"
                     title="Edit Post"
                   >
@@ -256,15 +256,15 @@ export default function LatestInsights() {
                   <button
                     onClick={() =>
                       handleDeleteBlog(
-                        mainFeaturedBlog.slug,
+                        mainFeaturedBlog.id,
                         mainFeaturedBlog.title
                       )
                     }
-                    disabled={isDeleting === mainFeaturedBlog.slug}
+                    disabled={isDeleting === mainFeaturedBlog.id}
                     className="p-2 bg-red-500/80 backdrop-blur-sm rounded-full text-white hover:bg-red-600 transition-colors duration-300 disabled:opacity-50"
                     title="Delete Post"
                   >
-                    {isDeleting === mainFeaturedBlog.slug ? (
+                    {isDeleting === mainFeaturedBlog.id ? (
                       <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
                     ) : (
                       <FaTrash className="text-xs" />
@@ -322,7 +322,7 @@ export default function LatestInsights() {
 
                   <div className="flex items-center justify-between pt-4">
                     <Link
-                      href={`/blogs/${mainFeaturedBlog.slug}`}
+                      href={`/blogs/${mainFeaturedBlog.id}`}
                       className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 monty uppercase hover:to-purple-600 transition-all duration-300 hover:scale-105 group/btn"
                     >
                       <span>Read Full Article</span>
@@ -373,30 +373,30 @@ export default function LatestInsights() {
         {featuredBlogs.length > 1 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             {featuredBlogs
-              .filter((blog) => blog.slug !== mainFeaturedBlog?.slug)
+              .filter((blog) => blog.id !== mainFeaturedBlog?.id)
               .slice(0, 2)
               .map((blog) => (
                 <article
-                  key={blog.slug}
+                  key={blog.id}
                   className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
                 >
                   {/* Admin Controls */}
                   {isAdmin && (
                     <div className="absolute top-4 right-4 z-10 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <Link
-                        href={`/blog-form?mode=edit&slug=${blog.slug}`}
+                        href={`/blog-form?mode=edit&id=${blog.id}`}
                         className="p-2 bg-blue-500/80 backdrop-blur-sm rounded-full text-white hover:bg-blue-600 transition-colors duration-300"
                         title="Edit Post"
                       >
                         <FaEdit className="text-xs" />
                       </Link>
                       <button
-                        onClick={() => handleDeleteBlog(blog.slug, blog.title)}
-                        disabled={isDeleting === blog.slug}
+                        onClick={() => handleDeleteBlog(blog.id, blog.title)}
+                        disabled={isDeleting === blog.id}
                         className="p-2 bg-red-500/80 backdrop-blur-sm rounded-full text-white hover:bg-red-600 transition-colors duration-300 disabled:opacity-50"
                         title="Delete Post"
                       >
-                        {isDeleting === blog.slug ? (
+                        {isDeleting === blog.id ? (
                           <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
                         ) : (
                           <FaTrash className="text-xs" />
@@ -466,7 +466,7 @@ export default function LatestInsights() {
 
                     <div className="flex items-center justify-between">
                       <Link
-                        href={`/blogs/${blog.slug}`}
+                        href={`/blogs/${blog.id}`}
                         className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300"
                       >
                         <span className="text-sm font-medium">Read More</span>

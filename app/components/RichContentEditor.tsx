@@ -47,6 +47,7 @@ export default function RichContentEditor({ value, onChange, placeholder }: Prop
           ] as { k: Mode; label: string }[]
         ).map(({ k, label }) => (
           <button
+            type="button"
             key={k}
             onClick={() => setMode(k)}
             className={`px-4 py-2 flex-1 text-center transition-colors ${

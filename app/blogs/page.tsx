@@ -204,14 +204,30 @@ export default function BlogsSection() {
 
       if (response.ok) {
         toast.success("Success", "Featured blog updated successfully!");
-        // Refresh the blog list to show updated featured status
+        // Refresh the blog list and featured blog data from API
         const { blogs: blogData } = await fetchBlogs();
         if (blogData) {
           setAllBlogs(blogData);
-          setFeaturedBlog(blog);
-          // Filter out the main featured blog from the regular blogs list
-          const filteredBlogs = blogData.filter((b) => b.id !== blog.id);
-          setBlogs(filteredBlogs);
+
+          // Fetch updated featured blogs from the API endpoint
+          const featuredResponse = await fetch("/api/blogs/featured");
+          const featuredResult = await featuredResponse.json();
+
+          if (featuredResponse.ok && featuredResult.data) {
+            const mainFeatured = featuredResult.data.mainFeaturedBlog;
+            setFeaturedBlog(mainFeatured || blogData[0]);
+
+            // Filter out the main featured blog from the regular blogs list
+            const filteredBlogs = mainFeatured
+              ? blogData.filter((b) => b.id !== mainFeatured.id)
+              : blogData.slice(1);
+            setBlogs(filteredBlogs);
+          } else {
+            // Fallback
+            setFeaturedBlog(blog);
+            const filteredBlogs = blogData.filter((b) => b.id !== blog.id);
+            setBlogs(filteredBlogs);
+          }
         }
       } else {
         const errorData = await response.json();

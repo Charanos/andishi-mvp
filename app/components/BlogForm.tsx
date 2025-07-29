@@ -130,8 +130,15 @@ export default function BlogForm({
         setTimeout(() => {
           onSuccess();
           onClose();
-          // Redirect to blogs page
-          window.location.href = "/blogs";
+          // Redirect to the new blog's page
+          if (mode === "create" && result.slug) {
+            window.location.href = `/blogs/${result.slug}`;
+          } else if (mode === "edit" && editingBlog?.slug) {
+            window.location.href = `/blogs/${editingBlog.slug}`;
+          } else {
+            // Fallback to blogs page
+            window.location.href = "/blogs";
+          }
         }, 1500);
       }
     } catch (err) {

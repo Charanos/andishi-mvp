@@ -5,10 +5,9 @@ import { getSession } from '@/lib/getSession';
 // POST /api/blogs/[slug]/like - Like or unlike a blog post
 export async function POST(
   request: NextRequest,
-  context: { params?: { slug?: string } } = {}
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const params = await context.params;
-  const slug = params?.slug;
+  const { slug } = await params;
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
   }
@@ -117,10 +116,9 @@ export async function POST(
 // GET /api/blogs/[slug]/like - Check if user has liked a blog post
 export async function GET(
   request: NextRequest,
-  context: { params?: { slug?: string } } = {}
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const params = await context.params;
-  const slug = params?.slug;
+  const { slug } = await params;
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
   }

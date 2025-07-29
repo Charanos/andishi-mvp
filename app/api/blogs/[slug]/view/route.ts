@@ -4,10 +4,9 @@ import prisma from '@/lib/prisma';
 // POST /api/blogs/[slug]/view - Increment blog view count
 export async function POST(
   request: NextRequest,
-  context: { params?: { slug?: string } } = {}
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const params = await context.params;
-  const slug = params?.slug;
+  const { slug } = await params;
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
   }

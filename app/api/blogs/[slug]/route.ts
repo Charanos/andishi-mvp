@@ -6,9 +6,9 @@ import prisma from '@/lib/prisma';
 // GET /api/blogs/[slug] - Get specific blog post
 export async function GET(
   request: NextRequest,
-  context: { params?: { slug?: string } } = {}
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const slug = context.params?.slug;
+  const { slug } = await params;
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
   }
@@ -47,9 +47,9 @@ export async function GET(
 // PUT /api/blogs/[slug] - Update blog post (Admin only)
 export async function PUT(
   request: NextRequest,
-  context: { params?: { slug?: string } } = {}
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const slug = context.params?.slug;
+  const { slug } = await params;
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
   }
@@ -119,9 +119,9 @@ export async function PUT(
 // DELETE /api/blogs/[slug] - Delete blog post (Admin only)
 export async function DELETE(
   request: NextRequest,
-  context: { params?: { slug?: string } } = {}
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const slug = context.params?.slug;
+  const { slug } = await params;
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Missing blog slug' }, { status: 400 });
   }

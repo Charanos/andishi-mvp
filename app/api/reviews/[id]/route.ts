@@ -5,10 +5,10 @@ import prisma from '@/lib/prisma';
 // GET /api/reviews/[id] - Get specific review
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     const review = await prisma.review.findUnique({
       where: { id }
@@ -44,7 +44,7 @@ export async function GET(
 // PUT /api/reviews/[id] - Update review (Admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication
@@ -56,7 +56,7 @@ export async function PUT(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     
     const existingReview = await prisma.review.findUnique({
       where: { id }
@@ -113,7 +113,7 @@ export async function PUT(
 // DELETE /api/reviews/[id] - Delete review (Admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication
@@ -125,7 +125,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     
     const existingReview = await prisma.review.findUnique({
       where: { id }

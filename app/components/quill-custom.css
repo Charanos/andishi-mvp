@@ -1,13 +1,13 @@
 /* Custom styling for Quill editor to match dark theme */
 .ql-toolbar.ql-snow {
   border: 1px solid #4b5563 !important;
-  border-radius: 0.5rem 0.5rem 0 0 !important;
+  border-radius: 8px 8px 0 0 !important;
   background-color: #1f2937 !important;
 }
 
 .ql-container.ql-snow {
   border: 1px solid #4b5563 !important;
-  border-radius: 0 0 0.5rem 0.5rem !important;
+  border-radius: 0 0 8px 8px !important;
   background-color: #1f2937 !important;
   color: white !important;
 }
@@ -34,5 +34,7 @@
 
 /* Custom styling for code blocks */
 .prose pre {
-  @apply bg-gray-900 border border-gray-700 rounded-lg;
+  background-color: #111827;
+  border: 1px solid #374151;
+  border-radius: 8px;
 }

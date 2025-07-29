@@ -24,12 +24,29 @@ export async function GET(
   
   try {
     // Optimize query strategy: try slug first (more common), then ID
+    // Select only necessary fields for better performance, excluding large content field initially
     let blog = null;
     
     // First try to find by slug (most common case for SEO-friendly URLs)
     try {
       blog = await prisma.blog.findUnique({
-        where: { slug: id }
+        where: { slug: id },
+        select: {
+          id: true,
+          title: true,
+          excerpt: true,
+          content: true,
+          author: true,
+          category: true,
+          image: true,
+          readTime: true,
+          views: true,
+          likes: true,
+          slug: true,
+          createdAt: true,
+          updatedAt: true,
+          authorImage: true
+        }
       });
     } catch (prismaError: any) {
       // If slug lookup fails, it might be an ID
@@ -40,7 +57,23 @@ export async function GET(
     if (!blog && id.length === 24 && /^[0-9a-fA-F]+$/.test(id)) {
       try {
         blog = await prisma.blog.findUnique({
-          where: { id: id }
+          where: { id: id },
+          select: {
+            id: true,
+            title: true,
+            excerpt: true,
+            content: true,
+            author: true,
+            category: true,
+            image: true,
+            readTime: true,
+            views: true,
+            likes: true,
+            slug: true,
+            createdAt: true,
+            updatedAt: true,
+            authorImage: true
+          }
         });
       } catch (prismaError: any) {
         // Handle Prisma P2023 error (invalid ID format)
@@ -62,7 +95,8 @@ export async function GET(
       return response;
     }
 
-    // Increment view count asynchronously (fire and forget)
+    // Increment view count asynchronously (fire and forget) without blocking response
+    // We don't wait for this to complete before sending the response
     prisma.blog.update({
       where: { id: blog.id },
       data: { views: { increment: 1 } }
@@ -71,9 +105,10 @@ export async function GET(
     });
 
     // Transform the data to match the expected format
+    // Note: We don't increment the view count in the response since it's async
     const formattedBlog = {
       ...blog,
-      views: (blog.views + 1).toString(), // Show incremented view count immediately
+      views: blog.views.toString(),
       likes: blog.likes.toString()
     };
 

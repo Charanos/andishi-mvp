@@ -52,42 +52,48 @@ export default function EnhancedBlogPostPage() {
       try {
         setLoading(true);
 
-        // Fetch blog data
-        const blogResponse = await fetch(`/api/blogs/${id}`);
+        // Fetch blog data and all related data in parallel for better performance
+        const [
+          blogResponse,
+          likeResponse,
+          bookmarkResponse,
+          commentsResponse
+        ] = await Promise.all([
+          fetch(`/api/blogs/${id}`),
+          fetch(`/api/blogs/${id}/like`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }),
+          fetch(`/api/blogs/${id}/bookmark`),
+          fetch(`/api/blogs/${id}/comment`)
+        ]);
+
         const blogResult = await blogResponse.json();
 
         if (blogResult.success) {
           setBlog(blogResult.data);
           setLikeCount(parseInt(blogResult.data.likes) || 0);
 
-          // Increment view count
-          try {
-            await fetch(`/api/blogs/${id}/view`, { method: "POST" });
-          } catch (viewError) {
+          // Increment view count (fire and forget)
+          fetch(`/api/blogs/${id}/view`, { method: "POST" }).catch(viewError => {
             console.error("Error incrementing view count:", viewError);
-          }
+          });
 
           // Check like status
-          const likeResponse = await fetch(`/api/blogs/${id}/like`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
           if (likeResponse.ok) {
             const likeData = await likeResponse.json();
             setIsLiked(likeData.liked);
           }
 
           // Check bookmark status
-          const bookmarkResponse = await fetch(`/api/blogs/${id}/bookmark`);
           if (bookmarkResponse.ok) {
             const bookmarkData = await bookmarkResponse.json();
             setIsBookmarked(bookmarkData.bookmarked);
           }
 
           // Load comments
-          const commentsResponse = await fetch(`/api/blogs/${id}/comment`);
           if (commentsResponse.ok) {
             const commentsData = await commentsResponse.json();
             setComments(commentsData.data || []);

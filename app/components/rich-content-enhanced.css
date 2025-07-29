@@ -5,7 +5,7 @@
   }
   
   .rich-content-enhanced h1 {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: white;
     margin-bottom: 2rem;
@@ -17,7 +17,7 @@
   }
   
   .rich-content-enhanced h2 {
-    font-size: 2rem;
+    font-size: 1rem;
     font-weight: 600;
     color: white;
     margin-bottom: 1.5rem;
@@ -40,7 +40,7 @@
   }
   
   .rich-content-enhanced h3 {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: 600;
     color: white;
     margin-bottom: 1rem;
@@ -48,7 +48,7 @@
   }
   
   .rich-content-enhanced h4 {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 500;
     color: white;
     margin-bottom: 0.75rem;
@@ -56,14 +56,14 @@
   }
   
   .rich-content-enhanced p {
-    font-size: 1.125rem;
+    font-size: 1rem;  
     color: #d1d5db;
     margin-bottom: 1.5rem;
     line-height: 1.75;
   }
   
   .rich-content-enhanced p:first-of-type {
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: #e5e7eb;
     font-weight: 500;
   }
@@ -203,7 +203,10 @@
     border-radius: 0.5rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     width: 100%;
-    height: auto;
+    height: 600px;
+    object-fit: contain;
+    object-position: center;
+    
   }
   
   .rich-content-enhanced hr {
@@ -292,11 +295,11 @@
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .rich-content-enhanced h1 {
-      font-size: 1.875rem;
+      font-size: 1rem;
     }
     
     .rich-content-enhanced h2 {
-      font-size: 1.5rem;
+      font-size: 1rem;
       padding-left: 0;
     }
     
@@ -306,7 +309,7 @@
     }
     
     .rich-content-enhanced h3 {
-      font-size: 1.25rem;
+      font-size: 1rem;
     }
     
     .rich-content-enhanced p {
@@ -318,25 +321,25 @@
     }
     
     .rich-content-enhanced blockquote p {
-      font-size: 1.125rem;
+      font-size: 1rem;
     }
   }
   
   /* Large screens */
   @media (min-width: 768px) {
     .rich-content-enhanced h1 {
-      font-size: 3.125rem;
+      font-size: 2.125rem;
     }
     
     .rich-content-enhanced h2 {
-      font-size: 2.5rem;
+      font-size: 1.5rem;
     }
     
     .rich-content-enhanced h3 {
-      font-size: 1.875rem;
+      font-size: 1rem;
     }
     
     .rich-content-enhanced h4 {
-      font-size: 1.5rem;
+      font-size: 1rem;
     }
   }

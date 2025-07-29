@@ -21,9 +21,12 @@ import {
   FaQuoteLeft,
   FaCode,
   FaArrowCircleLeft,
+  FaCopy,
 } from "react-icons/fa";
 import RichTextViewer from "./RichTextViewer";
 import BlogImage from "./BlogImage";
+import ToastNotification from "./ToastNotification";
+import { ToastNotification as ToastNotificationType } from "./ToastNotification";
 
 interface BlogPost {
   id: string;
@@ -96,6 +99,7 @@ export default function EnhancedBlogLayout({
   const [localLiked, setLocalLiked] = useState(isLiked);
   const [localBookmarked, setLocalBookmarked] = useState(isBookmarked);
   const [localLikeCount, setLocalLikeCount] = useState(likeCount);
+  const [toasts, setToasts] = useState<ToastNotificationType[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -122,6 +126,39 @@ export default function EnhancedBlogLayout({
   const handleBookmark = () => {
     setLocalBookmarked(!localBookmarked);
     onBookmark?.();
+  };
+
+  const addToast = (toast: Omit<ToastNotificationType, "id">) => {
+    const newToast = {
+      ...toast,
+      id: Date.now().toString(),
+    };
+    setToasts((prev) => [...prev, newToast]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      addToast({
+        type: "success",
+        title: "Success",
+        message: "Blog URL copied to clipboard!",
+        duration: 3000,
+      });
+    } catch (err) {
+      console.error("Failed to copy URL: ", err);
+      addToast({
+        type: "error",
+        title: "Error",
+        message: "Failed to copy URL to clipboard",
+        duration: 3000,
+      });
+    }
   };
 
   const handleCommentSubmit = () => {
@@ -248,6 +285,13 @@ export default function EnhancedBlogLayout({
 
             <div className="flex items-center space-x-3">
               <span className="text-gray-400 text-sm">Share:</span>
+              <button
+                onClick={copyToClipboard}
+                className="p-2 bg-gray-500/20 text-gray-400 rounded-full hover:bg-gray-500/30 transition-colors duration-300"
+                title="Copy URL to clipboard"
+              >
+                <FaCopy className="text-sm" />
+              </button>
               <button className="p-2 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors duration-300">
                 <FaTwitter className="text-sm" />
               </button>
@@ -268,12 +312,14 @@ export default function EnhancedBlogLayout({
           {/* Featured Image */}
           {blog.image && (
             <div className="mb-12">
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden">
+              <div className="relative rounded-2xl overflow-hidden">
                 <BlogImage
                   src={blog.image}
                   alt={blog.title}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
                   priority
+                  maxWidth={1200}
+                  maxHeight={600}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
@@ -304,10 +350,10 @@ export default function EnhancedBlogLayout({
                   topics.
                 </p>
                 <div className="flex items-center space-x-4 mt-4">
-                  <button className="text-blue-400 hover:text-blue-300 transition-colors duration-300">
+                  <button className="cursor-pointer text-blue-400 hover:text-blue-300 transition-colors duration-300">
                     <FaTwitter className="text-lg" />
                   </button>
-                  <button className="text-blue-400 hover:text-blue-300 transition-colors duration-300">
+                  <button className="cursor-pointer text-blue-400 hover:text-blue-300 transition-colors duration-300">
                     <FaLinkedin className="text-lg" />
                   </button>
                 </div>
@@ -354,7 +400,7 @@ export default function EnhancedBlogLayout({
                           </div>
                         </div>
 
-                        <button className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300">
+                        <button className="cursor-pointer flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300">
                           <span className="text-sm font-medium">
                             Read Article
                           </span>
@@ -557,7 +603,7 @@ export default function EnhancedBlogLayout({
                 placeholder="Enter your email"
                 className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors duration-300"
               />
-              <button className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 whitespace-nowrap">
+              <button className="w-full cursor-pointer sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 whitespace-nowrap">
                 Subscribe Now
               </button>
             </div>
@@ -582,7 +628,7 @@ export default function EnhancedBlogLayout({
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleLike}
-                className="p-2 text-gray-400 hover:text-red-400 transition-colors duration-300"
+                className="cursor-pointer p-2 text-gray-400 hover:text-red-400 transition-colors duration-300"
               >
                 <FaHeart
                   className={`text-sm ${
@@ -592,7 +638,7 @@ export default function EnhancedBlogLayout({
               </button>
               <button
                 onClick={handleBookmark}
-                className="p-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
+                className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
               >
                 <FaBookmark
                   className={`text-sm ${
@@ -600,7 +646,13 @@ export default function EnhancedBlogLayout({
                   }`}
                 />
               </button>
-              <button className="p-2 text-gray-400 hover:text-blue-400 transition-colors duration-300">
+              <button
+                onClick={copyToClipboard}
+                className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
+              >
+                <FaCopy className="text-sm" />
+              </button>
+              <button className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 transition-colors duration-300">
                 <FaShare className="text-sm" />
               </button>
             </div>
@@ -617,6 +669,19 @@ export default function EnhancedBlogLayout({
           <FaArrowRight className="transform -rotate-90" />
         </button>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[9999] pointer-events-none">
+        <div className="pointer-events-auto space-y-2">
+          {toasts.map((toast) => (
+            <ToastNotification
+              key={toast.id}
+              notification={toast}
+              onClose={removeToast}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

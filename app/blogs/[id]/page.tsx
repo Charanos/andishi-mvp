@@ -215,6 +215,7 @@ export default function EnhancedBlogPostPage() {
           isBookmarked={isBookmarked}
           likeCount={likeCount}
           comments={comments}
+          scrollProgress={scrollProgress}
           onLike={handleLike}
           onBookmark={handleBookmark}
           onComment={async (content) => {

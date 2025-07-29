@@ -14,8 +14,8 @@ import {
   FaUser,
 } from "react-icons/fa";
 import FeaturedBlogLayout from "@/app/components/FeaturedBlogLayout";
-import { toast } from "react-toastify";
 import ToastContainer from "../../components/ToastContainer";
+import { ToastNotification as ToastNotificationType } from "../../components/ToastNotification";
 import "../../components/rich-content-enhanced.css";
 
 interface BlogPost {
@@ -45,6 +45,7 @@ export default function EnhancedBlogPostPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [comments, setComments] = useState<any[]>([]);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [toasts, setToasts] = useState<ToastNotificationType[]>([]);
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -108,6 +109,18 @@ export default function EnhancedBlogPostPage() {
   }, [id]);
 
   // Scroll progress tracking
+  const addToast = (toast: Omit<ToastNotificationType, "id">) => {
+    const newToast = {
+      ...toast,
+      id: Date.now().toString(),
+    };
+    setToasts((prev) => [...prev, newToast]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       const totalHeight =
@@ -135,14 +148,39 @@ export default function EnhancedBlogPostPage() {
       if (response.ok) {
         const data = await response.json();
         setIsLiked(data.data.liked);
-        setLikeCount(data.data.likes);
-        toast.success(data.data.liked ? "Blog liked!" : "Blog unliked!");
+        setLikeCount(prev => data.data.liked ? prev + 1 : prev - 1);
+        // Show success message
+        if (data.data.liked) {
+          addToast({
+            type: "success",
+            title: "Success",
+            message: "Blog liked!",
+            duration: 3000,
+          });
+        } else {
+          addToast({
+            type: "success",
+            title: "Success",
+            message: "Blog unliked!",
+            duration: 3000,
+          });
+        }
       } else {
-        toast.error("Failed to like blog");
+        addToast({
+          type: "error",
+          title: "Error",
+          message: "Failed to like blog",
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error("Error liking blog:", error);
-      toast.error("Failed to like blog");
+      addToast({
+        type: "error",
+        title: "Error",
+        message: "Failed to like blog",
+        duration: 3000,
+      });
     }
   };
 
@@ -155,15 +193,38 @@ export default function EnhancedBlogPostPage() {
       if (response.ok) {
         const data = await response.json();
         setIsBookmarked(data.data.bookmarked);
-        toast.success(
-          data.data.bookmarked ? "Blog bookmarked!" : "Blog unbookmarked!"
-        );
+        // Show success message
+        if (data.data.bookmarked) {
+          addToast({
+            type: "success",
+            title: "Success",
+            message: "Blog bookmarked!",
+            duration: 3000,
+          });
+        } else {
+          addToast({
+            type: "success",
+            title: "Success",
+            message: "Blog unbookmarked!",
+            duration: 3000,
+          });
+        }
       } else {
-        toast.error("Failed to bookmark blog");
+        addToast({
+          type: "error",
+          title: "Error",
+          message: "Failed to bookmark blog",
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error("Error bookmarking blog:", error);
-      toast.error("Failed to bookmark blog");
+      addToast({
+        type: "error",
+        title: "Error",
+        message: "Failed to bookmark blog",
+        duration: 3000,
+      });
     }
   };
 
@@ -231,9 +292,19 @@ export default function EnhancedBlogPostPage() {
               if (response.ok) {
                 const newComment = await response.json();
                 setComments((prev: any[]) => [newComment.data, ...prev]);
-                toast.success("Comment added successfully!");
+                addToast({
+                  type: "success",
+                  title: "Success",
+                  message: "Comment added successfully!",
+                  duration: 3000,
+                });
               } else {
-                toast.error("Failed to add comment");
+                addToast({
+                  type: "error",
+                  title: "Error",
+                  message: "Failed to add comment",
+                  duration: 3000,
+                });
               }
             } catch (error) {
               console.error("Error adding comment:", error);
@@ -259,9 +330,19 @@ export default function EnhancedBlogPostPage() {
                       : comment
                   )
                 );
-                toast.success(result.data.liked ? "Comment liked!" : "Comment unliked!");
+                addToast({
+                  type: "success",
+                  title: "Success",
+                  message: result.data.liked ? "Comment liked!" : "Comment unliked!",
+                  duration: 3000,
+                });
               } else {
-                toast.error("Failed to like comment");
+                addToast({
+                  type: "error",
+                  title: "Error",
+                  message: "Failed to like comment",
+                  duration: 3000,
+                });
               }
             } catch (error) {
               console.error("Error liking comment:", error);
@@ -288,14 +369,29 @@ export default function EnhancedBlogPostPage() {
                       : comment
                   )
                 );
-                toast.success("Reply added successfully!");
+                addToast({
+                  type: "success",
+                  title: "Success",
+                  message: "Reply added successfully!",
+                  duration: 3000,
+                });
               } else {
                 const error = await response.json();
-                toast.error(error.error || "Failed to add reply");
+                addToast({
+                  type: "error",
+                  title: "Error",
+                  message: error.error || "Failed to add reply",
+                  duration: 3000,
+                });
               }
             } catch (error) {
               console.error("Error adding reply:", error);
-              toast.error("Failed to add reply");
+              addToast({
+                type: "error",
+                title: "Error",
+                message: "Failed to add reply",
+                duration: 3000,
+              });
             }
           }}
         />
@@ -303,8 +399,8 @@ export default function EnhancedBlogPostPage() {
 
       {/* Toast Notifications */}
       <ToastContainer
-        notifications={[]}
-        onRemoveNotification={() => {}}
+        notifications={toasts}
+        onRemoveNotification={removeToast}
         position="top-right"
       />
     </>

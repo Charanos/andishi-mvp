@@ -30,7 +30,7 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({
   useEffect(() => {
     // Animate in
     const timer = setTimeout(() => setIsVisible(true), 10);
-    
+
     // Auto-close after duration
     const duration = notification.duration || 5000;
     const autoCloseTimer = setTimeout(() => {
@@ -84,8 +84,12 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({
   return (
     <div
       className={`
-        transform transition-all duration-300 ease-in-out
-        ${isVisible && !isExiting ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}
+        transform transition-all z-[9999] duration-300 ease-in-out
+        ${
+          isVisible && !isExiting
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0"
+        }
         ${styles.bgColor}
         backdrop-blur-md border rounded-lg p-4 mb-3 shadow-lg
         max-w-sm w-full
@@ -99,11 +103,13 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h4 className="text-white font-medium text-sm">{notification.title}</h4>
+          <h4 className="text-white font-medium text-sm">
+            {notification.title}
+          </h4>
           {notification.message && (
             <p className="text-gray-400 text-xs mt-1">{notification.message}</p>
           )}
-          
+
           {/* Action Button */}
           {notification.action && (
             <button

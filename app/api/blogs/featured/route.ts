@@ -122,18 +122,28 @@ export async function POST(request: NextRequest) {
 
     // Set featured blogs
     if (featuredBlogids.length > 0) {
-      await prisma.blog.updateMany({
-        where: { id: { in: featuredBlogids } },
-        data: { featured: true }
-      });
+      // Validate that all IDs look like valid MongoDB ObjectIds
+      const validIds = featuredBlogids.filter((id: string) => 
+        id.length === 24 && /^[0-9a-fA-F]+$/.test(id)
+      );
+      
+      if (validIds.length > 0) {
+        await prisma.blog.updateMany({
+          where: { id: { in: validIds } },
+          data: { featured: true }
+        });
+      }
     }
 
     // Set main featured blog
     if (mainFeaturedBlogid) {
-      await prisma.blog.updateMany({
-        where: { id: mainFeaturedBlogid },
-        data: { mainFeatured: true }
-      });
+      // Validate that the ID looks like a valid MongoDB ObjectId
+      if (mainFeaturedBlogid.length === 24 && /^[0-9a-fA-F]+$/.test(mainFeaturedBlogid)) {
+        await prisma.blog.updateMany({
+          where: { id: mainFeaturedBlogid },
+          data: { mainFeatured: true }
+        });
+      }
     }
 
     return NextResponse.json({

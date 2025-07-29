@@ -17,6 +17,9 @@ import {
   FaEdit,
   FaTrash,
   FaStar,
+  FaTwitter,
+  FaLinkedin,
+  FaFacebook,
 } from "react-icons/fa";
 import { IoMdTrendingUp } from "react-icons/io";
 import Image from "next/image";
@@ -188,39 +191,81 @@ export default function BlogsSection() {
   // Handle setting main featured blog
   const handleSetMainFeatured = async (blog: Blog) => {
     try {
-      const response = await fetch("/api/blogs/featured", {
+      const response = await fetch(`/api/blogs/featured`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
-          featuredBlogids: [], // We'll manage this separately if needed
-          mainFeaturedBlogid: blog.id,
-        }),
+          featuredBlogids: [],
+          mainFeaturedBlogid: blog.id
+        })
       });
 
-      const result = await response.json();
-
       if (response.ok) {
-        toast.success(
-          "Success",
-          `"${blog.title}" is now the main featured blog!`
-        );
-
-        // Update local state
-        setFeaturedBlog(blog);
-
-        // Filter out the new featured blog from the regular blogs list
-        const filteredBlogs = allBlogs.filter((b) => b.id !== blog.id);
-        setBlogs(filteredBlogs);
+        toast.success("Success", "Featured blog updated successfully!");
+        // Refresh the blog list to show updated featured status
+        const blogData = await fetchBlogs();
+        if (blogData) {
+          setAllBlogs(blogData);
+          setFeaturedBlog(blog);
+          // Filter out the main featured blog from the regular blogs list
+          const filteredBlogs = blogData.filter((b) => b.id !== blog.id);
+          setBlogs(filteredBlogs);
+        }
       } else {
-        toast.error("Error", result.error || "Failed to set featured blog");
+        const errorData = await response.json();
+        toast.error(
+          "Error",
+          errorData.error || "Failed to update featured blog"
+        );
       }
-    } catch (error) {
-      console.error("Error setting featured blog:", error);
-      toast.error("Error", "An error occurred while setting the featured blog");
+    } catch (err) {
+      console.error("Error setting featured blog:", err);
+      toast.error("Error", "Failed to update featured blog");
     }
+  };
+
+  // Social sharing functions
+  const shareBlog = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const title = blog.title;
+    const text = `Check out this article: ${title}`;
+
+    // Copy to clipboard
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        toast.success("Success", "Blog URL copied to clipboard!");
+      })
+      .catch(() => {
+        toast.error("Error", "Failed to copy URL to clipboard");
+      });
+  };
+
+  const shareToTwitter = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const text = `Check out this article: ${blog.title}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+      url
+    )}&text=${encodeURIComponent(text)}`;
+    window.open(twitterUrl, "_blank");
+  };
+
+  const shareToLinkedIn = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+      url
+    )}`;
+    window.open(linkedInUrl, "_blank");
+  };
+
+  const shareToFacebook = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      url
+    )}`;
+    window.open(facebookUrl, "_blank");
   };
 
   const CategoryIcon = ({ category }: { category: string }) => {
@@ -297,9 +342,7 @@ export default function BlogsSection() {
         {featuredBlog && (
           <div className="mb-16">
             <article className="group relative overflow-hidden rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.01] cursor-pointer">
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${featuredBlog.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700`}
-              ></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
               <div className="relative grid md:grid-cols-2 gap-0 min-h-[400px]">
                 {/* Content */}
@@ -330,22 +373,28 @@ export default function BlogsSection() {
                     <div className="flex items-center space-x-6 text-sm text-gray-400">
                       <div className="flex items-center space-x-2">
                         <FaUser className="text-xs" />
-                        <span>{featuredBlog.author}</span>
+                        <span className="monty uppercase">
+                          {featuredBlog.author}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <FaCalendarAlt className="text-xs" />
-                        <span>{featuredBlog.date}</span>
+                        <span className="monty uppercase">
+                          {featuredBlog.date}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <FaClock className="text-xs" />
-                        <span>{featuredBlog.readTime}</span>
+                        <span className="monty uppercase">
+                          {featuredBlog.readTime}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-4">
                     <Link
-                      href={`/blogs/${featuredBlog.id}`}
+                      href={`/blogs/${featuredBlog.slug || featuredBlog.id}`}
                       className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 monty uppercase hover:to-purple-600 transition-all duration-300 hover:scale-105 group/btn"
                     >
                       <span>Read Full Article</span>
@@ -355,11 +404,15 @@ export default function BlogsSection() {
                     <div className="flex items-center space-x-4 text-gray-400">
                       <div className="flex items-center space-x-1">
                         <FaEye className="text-xs" />
-                        <span className="text-sm">{featuredBlog.views}</span>
+                        <span className="monty uppercase text-sm">
+                          {featuredBlog.views}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <FaHeart className="text-xs" />
-                        <span className="text-sm">{featuredBlog.likes}</span>
+                        <span className="monty uppercase text-sm">
+                          {featuredBlog.likes}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -429,14 +482,14 @@ export default function BlogsSection() {
                         e.stopPropagation();
                         handleSetMainFeatured(blog);
                       }}
-                      className="p-2 bg-yellow-600/80 backdrop-blur-sm text-white rounded-full hover:bg-yellow-700/80 transition-colors duration-300"
+                      className="cursor-pointer p-2 bg-yellow-600/80 backdrop-blur-sm text-white rounded-full hover:bg-yellow-700/80 transition-colors duration-300"
                       title="Set as Featured Blog"
                     >
                       <FaStar className="text-xs" />
                     </button>
                     <Link
                       href={`/blog-form?mode=edit&id=${blog.id}`}
-                      className="p-2 bg-blue-600/80 backdrop-blur-sm text-white rounded-full hover:bg-blue-700/80 transition-colors duration-300"
+                      className="cursor-pointer p-2 bg-blue-600/80 backdrop-blur-sm text-white rounded-full hover:bg-blue-700/80 transition-colors duration-300"
                       title="Edit Blog"
                     >
                       <FaEdit className="text-xs" />
@@ -448,7 +501,7 @@ export default function BlogsSection() {
                         handleDeleteBlog(blog.id, blog.title);
                       }}
                       disabled={isDeleting === blog.id}
-                      className="p-2 bg-red-600/80 backdrop-blur-sm text-white rounded-full hover:bg-red-700/80 transition-colors duration-300 disabled:opacity-50"
+                      className="cursor-pointer p-2 bg-red-600/80 backdrop-blur-sm text-white rounded-full hover:bg-red-700/80 transition-colors duration-300 disabled:opacity-50"
                       title="Delete Blog"
                     >
                       {isDeleting === blog.id ? (
@@ -461,9 +514,7 @@ export default function BlogsSection() {
                 )}
 
                 {/* Blog Image */}
-                <div
-                  className={`relative h-48 bg-gradient-to-br ${blog.gradient} overflow-hidden`}
-                >
+                <div className="relative h-48 bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden">
                   {blog.image && (
                     <Image
                       src={blog.image}
@@ -500,28 +551,28 @@ export default function BlogsSection() {
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-1">
                         <FaUser className="text-xs" />
-                        <span>{blog.author}</span>
+                        <span className="monty uppercase">{blog.author}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <FaClock className="text-xs" />
-                        <span>{blog.readTime}</span>
+                        <span className="monty uppercase">{blog.readTime}</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center space-x-1">
                         <FaEye className="text-xs" />
-                        <span>{blog.views}</span>
+                        <span className="monty uppercase">{blog.views}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <FaHeart className="text-xs" />
-                        <span>{blog.likes}</span>
+                        <span className="monty uppercase">{blog.likes}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <Link
-                      href={`/blogs/${blog.id}`}
+                      href={`/blogs/${blog.slug || blog.id}`}
                       className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300"
                     >
                       <span className="text-sm font-medium">Read More</span>
@@ -531,9 +582,93 @@ export default function BlogsSection() {
                       <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-300">
                         <FaBookmark className="text-xs" />
                       </button>
-                      <button className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-300">
-                        <FaShare className="text-xs" />
-                      </button>
+                      <div className="relative group/share">
+                        <button
+                          className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-300"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // Show sharing options dropdown
+                            const shareMenu = e.currentTarget
+                              .nextElementSibling as HTMLElement;
+                            if (shareMenu) {
+                              shareMenu.classList.toggle("hidden");
+                            }
+                          }}
+                        >
+                          <FaShare className="text-xs" />
+                        </button>
+                        <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20 hidden">
+                          <button
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              shareBlog(blog);
+                              // Hide the menu
+                              const shareMenu = e.currentTarget
+                                .parentElement as HTMLElement;
+                              if (shareMenu) {
+                                shareMenu.classList.add("hidden");
+                              }
+                            }}
+                          >
+                            <FaShare className="text-xs" />
+                            <span>Copy Link</span>
+                          </button>
+                          <button
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-400 hover:bg-gray-700 hover:text-blue-300 transition-colors duration-200"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              shareToTwitter(blog);
+                              // Hide the menu
+                              const shareMenu = e.currentTarget
+                                .parentElement as HTMLElement;
+                              if (shareMenu) {
+                                shareMenu.classList.add("hidden");
+                              }
+                            }}
+                          >
+                            <FaTwitter className="text-xs" />
+                            <span>Twitter</span>
+                          </button>
+                          <button
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-500 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              shareToLinkedIn(blog);
+                              // Hide the menu
+                              const shareMenu = e.currentTarget
+                                .parentElement as HTMLElement;
+                              if (shareMenu) {
+                                shareMenu.classList.add("hidden");
+                              }
+                            }}
+                          >
+                            <FaLinkedin className="text-xs" />
+                            <span>LinkedIn</span>
+                          </button>
+                          <button
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-700 hover:text-blue-500 transition-colors duration-200"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              shareToFacebook(blog);
+                              // Hide the menu
+                              const shareMenu = e.currentTarget
+                                .parentElement as HTMLElement;
+                              if (shareMenu) {
+                                shareMenu.classList.add("hidden");
+                              }
+                            }}
+                          >
+                            <FaFacebook className="text-xs" />
+                            <span>Facebook</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

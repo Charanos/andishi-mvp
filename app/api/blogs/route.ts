@@ -6,11 +6,20 @@ import prisma from '@/lib/prisma';
 // GET /api/blogs - Get all blog posts
 export async function GET() {
   try {
-    const blogs = await prisma.blog.findMany({
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+    let blogs;
+    try {
+      blogs = await prisma.blog.findMany({
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+    } catch (prismaError) {
+      console.error('Database error when fetching blogs:', prismaError);
+      return NextResponse.json(
+        { success: false, error: 'Database connection error when fetching blogs' },
+        { status: 500 }
+      );
+    }
     
     // Transform the data to match the expected format
     const formattedBlogs = blogs.map(blog => ({
@@ -45,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, excerpt, content, author, category, image, gradient } = body;
+    const { title, excerpt, content, author, category, image, authorImage } = body;
 
     // Validate required fields
     if (!title || !excerpt || !content || !author || !category) {
@@ -55,17 +64,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate id from title
-    const id = title
+    // Generate a slug for URL purposes
+    const slug = title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .substring(0, 50);
+    
+    // Ensure slug is not empty
+    if (!slug) {
+      return NextResponse.json(
+        { success: false, error: 'Title must contain alphanumeric characters' },
+        { status: 400 }
+      );
+    }
 
-    // Check if id already exists
-    const existingBlog = await prisma.blog.findUnique({
-      where: { id }
-    });
+    // Check if a blog with this slug already exists
+    let existingBlog;
+    try {
+      existingBlog = await prisma.blog.findFirst({
+        where: { slug }
+      });
+    } catch (prismaError) {
+      console.error('Database error when checking for existing blog:', prismaError);
+      return NextResponse.json(
+        { success: false, error: 'Database connection error when checking for existing blog' },
+        { status: 500 }
+      );
+    }
     
     if (existingBlog) {
       return NextResponse.json(
@@ -74,25 +100,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new blog post in database
-    const newBlog = await prisma.blog.create({
-      data: {
-        id,
-        title,
-        excerpt,
-        content,
-        author,
-        date: new Date().toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        }),
-        readTime: calculateReadTime(content),
-        category,
-        image: image || '/images/default-blog.jpg',
-        gradient: gradient || 'from-blue-500/20 to-purple-500/10'
-      }
+    // Format the date safely
+    let formattedDate;
+    try {
+      formattedDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    } catch (dateError) {
+      console.error('Error formatting date:', dateError);
+      formattedDate = new Date().toISOString(); // Fallback to ISO string
+    }
+    
+    // Log the data we're about to insert for debugging
+    console.log('Creating blog with data:', {
+      title,
+      slug,
+      excerpt: excerpt.substring(0, 50) + '...', // Truncate for logging
+      author,
+      date: formattedDate,
+      category,
+      image,
+      authorImage
     });
+    
+    // Create new blog post in database
+    let newBlog;
+    try {
+      newBlog = await prisma.blog.create({
+        data: {
+          title,
+          slug,
+          excerpt,
+          content,
+          author,
+          date: formattedDate,
+          readTime: calculateReadTime(content),
+          category,
+          image: image || '/images/default-blog.jpg',
+          authorImage: authorImage || '/images/default-avatar.png'
+        }
+      });
+    } catch (prismaError) {
+      console.error('Database error when creating blog:', prismaError);
+      return NextResponse.json(
+        { success: false, error: 'Database connection error when creating blog post' },
+        { status: 500 }
+      );
+    }
 
     // Transform the data to match the expected format
     const formattedBlog = {
@@ -109,8 +165,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error creating blog post:', error);
+    
+    // Provide more detailed error information
+    let errorMessage = 'Failed to create blog post';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      // Log the full error stack for debugging
+      console.error('Full error stack:', error.stack);
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to create blog post' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -134,20 +199,37 @@ async function verifyAdminAuth(request: NextRequest) {
 
     // Get JWT secret from environment
     const secretValue = process.env.JWT_SECRET || process.env.NEXT_PUBLIC_JWT_SECRET;
+    console.log('JWT Secret exists:', !!secretValue); // Log for debugging
+    
     if (!secretValue) {
-      return { success: false, error: 'Server configuration error' };
+      console.error('JWT_SECRET or NEXT_PUBLIC_JWT_SECRET not found in environment variables');
+      return { success: false, error: 'Server configuration error: Missing JWT secret' };
     }
 
     // Verify JWT token
-    const secret = new TextEncoder().encode(secretValue);
-    const { payload } = await jwtVerify(token, secret);
+    let payload;
+    try {
+      const secret = new TextEncoder().encode(secretValue);
+      const result = await jwtVerify(token, secret);
+      payload = result.payload;
+    } catch (jwtError) {
+      console.error('JWT verification failed:', jwtError);
+      return { success: false, error: 'Invalid or expired authentication token' };
+    }
     
     // Get user data from payload
     const userEmail = payload.email as string;
+    console.log('Looking up user with email:', userEmail); // Log for debugging
 
-    const user = await prisma.user.findUnique({ 
-      where: { email: userEmail } 
-    });
+    let user;
+    try {
+      user = await prisma.user.findUnique({ 
+        where: { email: userEmail } 
+      });
+    } catch (userLookupError) {
+      console.error('Database error when looking up user:', userLookupError);
+      return { success: false, error: 'Database connection error when looking up user' };
+    }
 
     if (!user || !user.isActive || user.role !== 'admin') {
       return { success: false, error: 'Admin access required' };
@@ -156,7 +238,16 @@ async function verifyAdminAuth(request: NextRequest) {
     return { success: true, user };
   } catch (error) {
     console.error('Auth verification error:', error);
-    return { success: false, error: 'Authentication failed' };
+    
+    // Provide more detailed error information
+    let errorMessage = 'Authentication failed';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      // Log the full error stack for debugging
+      console.error('Full auth error stack:', error.stack);
+    }
+    
+    return { success: false, error: errorMessage };
   }
 }
 

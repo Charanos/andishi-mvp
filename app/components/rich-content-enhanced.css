@@ -39,12 +39,33 @@
     border-radius: 2px;
   }
   
+  .rich-content-enhanced h2::after {
+    content: '';
+    position: absolute;
+    top: -1.5rem;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(96, 165, 250, 0.3), transparent);
+  }
+  
   .rich-content-enhanced h3 {
     font-size: 1.2rem;
     font-weight: 600;
     color: white;
     margin-bottom: 1rem;
     margin-top: 2rem;
+    position: relative;
+  }
+  
+  .rich-content-enhanced h3::before {
+    content: '';
+    position: absolute;
+    top: -1rem;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(96, 165, 250, 0.2), transparent);
   }
   
   .rich-content-enhanced h4 {
@@ -211,6 +232,8 @@
   .rich-content-enhanced img {
     margin: 2rem 0;
     border-radius: 0.5rem;
+    background-color: #00020767;
+    backdrop-filter: blur(10px);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     width: 100%;
     height: 600px;

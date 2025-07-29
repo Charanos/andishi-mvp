@@ -30,13 +30,15 @@ import { ToastNotification as ToastNotificationType } from "./ToastNotification"
 
 interface BlogPost {
   id: string;
+  slug?: string;
   title: string;
   excerpt: string;
   content: string;
   author: string;
   category: string;
   image: string | null;
-  gradient: string | null;
+  gradient?: string | null;
+  authorImage?: string | null;
   readTime: string;
   views: string;
   likes: string;
@@ -46,6 +48,7 @@ interface BlogPost {
 
 interface RelatedArticle {
   id: string;
+  slug?: string;
   title: string;
   author: string;
   date: string;
@@ -161,6 +164,31 @@ export default function EnhancedBlogLayout({
     }
   };
 
+  const shareToTwitter = () => {
+    const url = window.location.href;
+    const text = `Check out this article: ${blog.title} by ${blog.author}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+      url
+    )}&text=${encodeURIComponent(text)}`;
+    window.open(twitterUrl, "_blank");
+  };
+
+  const shareToLinkedIn = () => {
+    const url = window.location.href;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+      url
+    )}`;
+    window.open(linkedInUrl, "_blank");
+  };
+
+  const shareToFacebook = () => {
+    const url = window.location.href;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      url
+    )}`;
+    window.open(facebookUrl, "_blank");
+  };
+
   const handleCommentSubmit = () => {
     if (commentText.trim()) {
       onComment?.(commentText);
@@ -196,8 +224,8 @@ export default function EnhancedBlogLayout({
       </nav>
 
       {/* Article Header */}
-      <header className="relative z-10 pb-12">
-        <div className="max-w-7xl mx-auto px-6">
+      <header className="relative z-10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-0">
           {/* Category Badge */}
           <div className="flex items-center space-x-4 mb-6">
             <div className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full">
@@ -276,29 +304,32 @@ export default function EnhancedBlogLayout({
                 <FaBookmark className="text-sm" />
                 <span className="text-sm font-medium">Save</span>
               </button>
-
-              <button className="cursor-pointer flex items-center space-x-2 px-4 py-2 bg-black/50 backdrop-blur-xl border border-white/10 rounded-full text-gray-400 hover:text-gray-200 hover:border-white/20 transition-all duration-300">
-                <FaComment className="text-sm" />
-                <span className="text-sm font-medium">Comment</span>
-              </button>
             </div>
 
             <div className="flex items-center space-x-3">
               <span className="text-gray-400 text-sm">Share:</span>
               <button
                 onClick={copyToClipboard}
-                className="p-2 bg-gray-500/20 text-gray-400 rounded-full hover:bg-gray-500/30 transition-colors duration-300"
-                title="Copy URL to clipboard"
+                className="cursor-pointer p-2 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors duration-300"
               >
                 <FaCopy className="text-sm" />
               </button>
-              <button className="p-2 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors duration-300">
+              <button
+                onClick={shareToTwitter}
+                className="cursor-pointer p-2 bg-blue-600/20 text-blue-400 rounded-full hover:bg-blue-600/30 transition-colors duration-300"
+              >
                 <FaTwitter className="text-sm" />
               </button>
-              <button className="p-2 bg-blue-600/20 text-blue-400 rounded-full hover:bg-blue-600/30 transition-colors duration-300">
+              <button
+                onClick={shareToLinkedIn}
+                className="cursor-pointer p-2 bg-blue-700/20 text-blue-400 rounded-full hover:bg-blue-700/30 transition-colors duration-300"
+              >
                 <FaLinkedin className="text-sm" />
               </button>
-              <button className="p-2 bg-blue-700/20 text-blue-400 rounded-full hover:bg-blue-700/30 transition-colors duration-300">
+              <button
+                onClick={shareToFacebook}
+                className="cursor-pointer p-2 bg-blue-800/20 text-blue-400 rounded-full hover:bg-blue-800/30 transition-colors duration-300"
+              >
                 <FaFacebook className="text-sm" />
               </button>
             </div>
@@ -350,10 +381,16 @@ export default function EnhancedBlogLayout({
                   topics.
                 </p>
                 <div className="flex items-center space-x-4 mt-4">
-                  <button className="cursor-pointer text-blue-400 hover:text-blue-300 transition-colors duration-300">
+                  <button
+                    onClick={shareToTwitter}
+                    className="cursor-pointer text-blue-400 hover:text-blue-300 transition-colors duration-300"
+                  >
                     <FaTwitter className="text-lg" />
                   </button>
-                  <button className="cursor-pointer text-blue-400 hover:text-blue-300 transition-colors duration-300">
+                  <button
+                    onClick={shareToLinkedIn}
+                    className="cursor-pointer text-blue-400 hover:text-blue-300 transition-colors duration-300"
+                  >
                     <FaLinkedin className="text-lg" />
                   </button>
                 </div>
@@ -371,7 +408,10 @@ export default function EnhancedBlogLayout({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {relatedArticles.map((article) => (
-                  <Link key={article.id} href={`/blogs/${article.id}`}>
+                  <Link
+                    key={article.id}
+                    href={`/blogs/${article.slug || article.id}`}
+                  >
                     <article className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer">
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
@@ -651,9 +691,6 @@ export default function EnhancedBlogLayout({
                 className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
               >
                 <FaCopy className="text-sm" />
-              </button>
-              <button className="cursor-pointer p-2 text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                <FaShare className="text-sm" />
               </button>
             </div>
           </div>

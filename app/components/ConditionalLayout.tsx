@@ -28,6 +28,16 @@ const ROUTE_CONFIG = {
   ],
   PUBLIC_ROUTES: [
     "/",
+    "/login",
+    "/about-us",
+    "/contact-us",
+    "/our-portfolio",
+    "/tech-talent-pool",
+    "/join-talent-pool",
+    "/start-project",
+    "/thank-you-join-talent-pool",
+    "/thank-you-start-project",
+    "/thanks",
     "/blogs",
     "/project-details",
     "/featured-blog",
@@ -333,8 +343,10 @@ export default function ConditionalLayout({
 
   // Determine layout configuration
   const showNavbar = !isAuthRoute && !isMinimalLayout;
-  const isBlogPostRoute = pathname.startsWith('/blogs/') && pathname !== '/blogs';
-  const showFooter = !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogPostRoute;
+  const isBlogPostRoute =
+    pathname.startsWith("/blogs/") && pathname !== "/blogs";
+  const showFooter =
+    !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogPostRoute;
   const mainPadding = showNavbar ? "pt-19" : "";
 
   return (

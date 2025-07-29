@@ -12,10 +12,41 @@ export async function GET(
   if (!id) {
     return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
+  
+  // Validate ID format if it looks like a MongoDB ObjectId
+  if (id.length === 24 && /^[0-9a-fA-F]+$/.test(id)) {
+    // This looks like a valid MongoDB ObjectId, we can proceed
+  } else if (id.length < 2 || id.length > 100) {
+    // If it's not a valid ObjectId format and it's too short or too long, it's likely invalid
+    // We'll still try the slug lookup but log a warning
+    console.warn(`Suspicious blog ID format: ${id}`);
+  }
+  
   try {
-    const blog = await prisma.blog.findUnique({
-      where: { id }
-    });
+    // First try to find by slug, fallback to id for backward compatibility
+    let blog = null;
+    try {
+      blog = await prisma.blog.findFirst({
+        where: { 
+          OR: [
+            { slug: id },
+            { id: id }
+          ]
+        }
+      });
+    } catch (prismaError: any) {
+      // Handle Prisma P2023 error (invalid ID format)
+      if (prismaError?.code === 'P2023') {
+        // Try again but only with slug since ID format is invalid
+        blog = await prisma.blog.findFirst({
+          where: { 
+            slug: id
+          }
+        });
+      } else {
+        throw prismaError; // Re-throw if it's a different error
+      }
+    }
 
     if (!blog) {
       return NextResponse.json(
@@ -53,6 +84,16 @@ export async function PUT(
   if (!id) {
     return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
+  
+  // Validate ID format if it looks like a MongoDB ObjectId
+  if (id.length === 24 && /^[0-9a-fA-F]+$/.test(id)) {
+    // This looks like a valid MongoDB ObjectId, we can proceed
+  } else if (id.length < 2 || id.length > 100) {
+    // If it's not a valid ObjectId format and it's too short or too long, it's likely invalid
+    // We'll still try the slug lookup but log a warning
+    console.warn(`Suspicious blog ID format: ${id}`);
+  }
+  
   try {
     // Verify admin authentication
     const authResult = await verifyAdminAuth(request);
@@ -65,8 +106,14 @@ export async function PUT(
 
 
     
-    const existingBlog = await prisma.blog.findUnique({
-      where: { id }
+    // First try to find by slug, fallback to id for backward compatibility
+    const existingBlog = await prisma.blog.findFirst({
+      where: { 
+        OR: [
+          { slug: id },
+          { id: id }
+        ]
+      }
     });
 
     if (!existingBlog) {
@@ -77,11 +124,11 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, excerpt, content, author, category, image, gradient } = body;
+    const { title, excerpt, content, author, category, image, authorImage } = body;
 
-    // Update blog post in database
+    // Update blog post in database using the actual id
     const updatedBlog = await prisma.blog.update({
-      where: { id },
+      where: { id: existingBlog.id },
       data: {
         title: title || existingBlog.title,
         excerpt: excerpt || existingBlog.excerpt,
@@ -89,7 +136,7 @@ export async function PUT(
         author: author || existingBlog.author,
         category: category || existingBlog.category,
         image: image !== undefined ? image : existingBlog.image,
-        gradient: gradient !== undefined ? gradient : existingBlog.gradient,
+        authorImage: authorImage !== undefined ? authorImage : existingBlog.authorImage,
         readTime: content ? calculateReadTime(content) : existingBlog.readTime
       }
     });
@@ -125,6 +172,16 @@ export async function DELETE(
   if (!id) {
     return NextResponse.json({ success: false, error: 'Missing blog id' }, { status: 400 });
   }
+  
+  // Validate ID format if it looks like a MongoDB ObjectId
+  if (id.length === 24 && /^[0-9a-fA-F]+$/.test(id)) {
+    // This looks like a valid MongoDB ObjectId, we can proceed
+  } else if (id.length < 2 || id.length > 100) {
+    // If it's not a valid ObjectId format and it's too short or too long, it's likely invalid
+    // We'll still try the slug lookup but log a warning
+    console.warn(`Suspicious blog ID format: ${id}`);
+  }
+  
   try {
     // Verify admin authentication
     const authResult = await verifyAdminAuth(request);
@@ -137,8 +194,14 @@ export async function DELETE(
 
 
     
-    const existingBlog = await prisma.blog.findUnique({
-      where: { id }
+    // First try to find by slug, fallback to id for backward compatibility
+    const existingBlog = await prisma.blog.findFirst({
+      where: { 
+        OR: [
+          { slug: id },
+          { id: id }
+        ]
+      }
     });
 
     if (!existingBlog) {
@@ -148,9 +211,43 @@ export async function DELETE(
       );
     }
 
-    // Delete from database
+    // First delete all related BlogLike records to avoid foreign key constraint violation
+    await prisma.blogLike.deleteMany({
+      where: { blogId: existingBlog.id }
+    });
+    
+    // Also delete related BlogBookmark records
+    await prisma.blogBookmark.deleteMany({
+      where: { blogId: existingBlog.id }
+    });
+    
+    // Also delete related BlogComment records and their likes/replies
+    // First delete comment likes
+    await prisma.commentLike.deleteMany({
+      where: { 
+        comment: {
+          blogId: existingBlog.id
+        }
+      }
+    });
+    
+    // Then delete comment replies
+    await prisma.commentReply.deleteMany({
+      where: { 
+        comment: {
+          blogId: existingBlog.id
+        }
+      }
+    });
+    
+    // Finally delete the comments themselves
+    await prisma.blogComment.deleteMany({
+      where: { blogId: existingBlog.id }
+    });
+    
+    // Now delete the blog post itself
     await prisma.blog.delete({
-      where: { id }
+      where: { id: existingBlog.id }
     });
 
     return NextResponse.json({

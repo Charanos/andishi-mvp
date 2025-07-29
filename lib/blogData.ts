@@ -1,6 +1,7 @@
 // lib/blogData.ts
 export type BlogPostType = {
   id: string;
+  slug?: string;
   title: string;
   excerpt: string;
   content: string;
@@ -9,7 +10,7 @@ export type BlogPostType = {
   readTime: string;
   category: string;
   image: string;
-  gradient: string;
+  authorImage?: string;
   views?: string;
   likes?: string;
   size?: "large" | "medium" | "small";
@@ -26,7 +27,7 @@ export const blogData: Record<string, BlogPostType> = {
     readTime: "5 min read",
     category: "AI & Hiring",
     image: "/blog1.jpg",
-    gradient: "from-blue-500/20 to-cyan-500/10",
+    authorImage: "/authors/dennis.jpg",
     views: "1.2k",
     likes: "245",
     size: "large",
@@ -41,7 +42,7 @@ export const blogData: Record<string, BlogPostType> = {
     readTime: "7 min read",
     category: "Team Management",
     image: "/blog2.jpg",
-    gradient: "from-purple-500/20 to-pink-500/10",
+    authorImage: "/authors/yvette.jpg",
     views: "856",
     likes: "178",
     size: "medium",
@@ -56,7 +57,7 @@ export const blogData: Record<string, BlogPostType> = {
     readTime: "6 min read",
     category: "Web3 & Blockchain",
     image: "/blog3.jpg",
-    gradient: "from-green-500/20 to-emerald-500/10",
+    authorImage: "/authors/ian.jpg",
     views: "1.5k",
     likes: "312",
     size: "medium",

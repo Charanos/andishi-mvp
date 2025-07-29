@@ -66,20 +66,16 @@ export default function RichContentEditor({ value, onChange, placeholder }: Prop
           value={value}
           onChange={(html) => onChange(html)}
           placeholder={placeholder}
-          formats={[
-            "header",
-            "bold",
-            "italic",
-            "underline",
-            "strike",
-            "blockquote",
-            "list",
-            "bullet",
-            "link",
-            "code",
-            "code-block",
-            "image",
-          ]}
+          modules={{
+            toolbar: [
+              [{ header: [1, 2, 3, 4, 5, 6, false] }],
+              ["bold", "italic", "underline", "strike"],
+              [{ list: "ordered" }, { list: "bullet" }],
+              ["blockquote", "code-block"],
+              ["link", "image"],
+              ["clean"],
+            ],
+          }}
           className="dark quill-dark" // custom dark styles in quill-custom.css
         />
       ) : (

@@ -206,6 +206,7 @@ model Developer {
 model Blog {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
+  slug      String   @unique
   excerpt   String
   content   String
   author    String
@@ -213,7 +214,7 @@ model Blog {
   readTime  String
   category  String
   image     String?
-  gradient  String
+  authorImage String?
   views     Int      @default(0)
   likes     Int      @default(0)
   featured  Boolean  @default(false)

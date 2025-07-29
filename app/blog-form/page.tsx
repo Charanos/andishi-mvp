@@ -17,8 +17,9 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
 import { useBlogCrud } from "@/hooks/useBlogCrud";
-import { BlogPostType } from "@/lib/blogData";
 import dynamic from "next/dynamic";
+import ToastNotification from "@/app/components/ToastNotification";
+import { ToastNotification as ToastNotificationType } from "@/app/components/ToastNotification";
 
 const RichContentEditor = dynamic(
   () => import("@/app/components/RichContentEditor"),
@@ -28,6 +29,7 @@ const RichContentEditor = dynamic(
 export default function BlogFormPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [toasts, setToasts] = useState<ToastNotificationType[]>([]);
   const { user, isLoading: authLoading } = useAuth();
   const { createBlog, updateBlog, isLoading, error, clearError } =
     useBlogCrud();
@@ -39,20 +41,26 @@ export default function BlogFormPage() {
     author: user?.name || "",
     category: "",
     image: "",
-    gradient: "",
+    authorImage: "",
   });
-
-  const [notification, setNotification] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const mode = searchParams.get("mode") || "create";
   const id = searchParams.get("id") || "";
 
   // Check if user is admin
   const isAdmin = user?.role === "admin";
+
+  const addToast = (toast: Omit<ToastNotificationType, "id">) => {
+    const newToast = {
+      ...toast,
+      id: Date.now().toString(),
+    };
+    setToasts((prev) => [...prev, newToast]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   // Redirect if not admin
   useEffect(() => {
@@ -77,17 +85,19 @@ export default function BlogFormPage() {
               author: result.data.author,
               category: result.data.category,
               image: result.data.image,
-              gradient: result.data.gradient,
+              authorImage: result.data.authorImage,
             });
           } else {
-            setNotification({
+            addToast({
               type: "error",
+              title: "Error",
               message: result.error || "Failed to load blog data",
             });
           }
         } catch (err) {
-          setNotification({
+          addToast({
             type: "error",
+            title: "Error",
             message: "Failed to load blog data",
           });
         }
@@ -99,11 +109,11 @@ export default function BlogFormPage() {
 
   // Clear notifications after 5 seconds
   useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 5000);
+    if (toasts.length > 0) {
+      const timer = setTimeout(() => removeToast(toasts[0].id), 5000);
       return () => clearTimeout(timer);
     }
-  }, [notification]);
+  }, [toasts]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -117,7 +127,6 @@ export default function BlogFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    setIsSubmitting(true);
 
     if (
       !formData.title ||
@@ -126,11 +135,12 @@ export default function BlogFormPage() {
       !formData.author ||
       !formData.category
     ) {
-      setNotification({
+      addToast({
         type: "error",
+        title: "Error",
         message: "Please fill in all required fields",
+        duration: 5000,
       });
-      setIsSubmitting(false);
       return;
     }
 
@@ -143,11 +153,13 @@ export default function BlogFormPage() {
       }
 
       if (result) {
-        setNotification({
+        addToast({
           type: "success",
+          title: "Success",
           message: `Blog post ${
             mode === "create" ? "created" : "updated"
           } successfully!`,
+          duration: 3000,
         });
 
         // Redirect to home page after success
@@ -156,12 +168,12 @@ export default function BlogFormPage() {
         }, 1500);
       }
     } catch (err) {
-      setNotification({
+      addToast({
         type: "error",
+        title: "Error",
         message: error || "An error occurred",
+        duration: 5000,
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -216,15 +228,15 @@ export default function BlogFormPage() {
         </div>
 
         {/* Notification */}
-        {notification && (
+        {toasts.length > 0 && (
           <div
             className={`mb-6 p-4 rounded-lg ${
-              notification.type === "success"
+              toasts[0].type === "success"
                 ? "bg-green-900/50 border border-green-800/50 text-green-200"
                 : "bg-red-900/50 border border-red-800/50 text-red-200"
             }`}
           >
-            <p>{notification.message}</p>
+            <p>{toasts[0].message}</p>
           </div>
         )}
 
@@ -249,7 +261,7 @@ export default function BlogFormPage() {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   placeholder="Enter blog post title"
                   required
                 />
@@ -266,7 +278,7 @@ export default function BlogFormPage() {
                   name="author"
                   value={formData.author}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   placeholder="Author name"
                   required
                 />
@@ -282,23 +294,48 @@ export default function BlogFormPage() {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   required
                 >
-                  <option value="">Select a category</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Design">Design</option>
-                  <option value="Business">Business</option>
-                  <option value="Lifestyle">Lifestyle</option>
-                  <option value="Career">Career</option>
-                  <option value="AI & Future Tech">AI & Future Tech</option>
-                  <option value="Team Leadership">Team Leadership</option>
-                  <option value="Web3 & Blockchain">Web3 & Blockchain</option>
-                  <option value="Cloud & Infrastructure">
+                  <option className="bg-black/50" value="">
+                    Select a category
+                  </option>
+                  <option className="bg-black/50" value="Technology">
+                    Technology
+                  </option>
+                  <option className="bg-black/50" value="Design">
+                    Design
+                  </option>
+                  <option className="bg-black/50" value="Business">
+                    Business
+                  </option>
+                  <option className="bg-black/50" value="Lifestyle">
+                    Lifestyle
+                  </option>
+                  <option className="bg-black/50" value="Career">
+                    Career
+                  </option>
+                  <option className="bg-black/50" value="AI & Future Tech">
+                    AI & Future Tech
+                  </option>
+                  <option className="bg-black/50" value="Team Leadership">
+                    Team Leadership
+                  </option>
+                  <option className="bg-black/50" value="Web3 & Blockchain">
+                    Web3 & Blockchain
+                  </option>
+                  <option
+                    className="bg-black/50"
+                    value="Cloud & Infrastructure"
+                  >
                     Cloud & Infrastructure
                   </option>
-                  <option value="Security">Security</option>
-                  <option value="Architecture">Architecture</option>
+                  <option className="bg-black/50" value="Security">
+                    Security
+                  </option>
+                  <option className="bg-black/50" value="Architecture">
+                    Architecture
+                  </option>
                 </select>
               </div>
 
@@ -313,24 +350,24 @@ export default function BlogFormPage() {
                   name="image"
                   value={formData.image}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   placeholder="https://example.com/image.jpg"
                 />
               </div>
 
-              {/* Gradient */}
+              {/* Author Image */}
               <div>
                 <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                  <FaPalette className="text-pink-400" />
-                  <span>Gradient Classes</span>
+                  <FaUser className="text-green-400" />
+                  <span>Author Image URL</span>
                 </label>
                 <input
-                  type="text"
-                  name="gradient"
-                  value={formData.gradient}
+                  type="url"
+                  name="authorImage"
+                  value={formData.authorImage}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                  placeholder="from-blue-500/20 to-purple-500/10"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  placeholder="https://example.com/author.jpg"
                 />
               </div>
             </div>
@@ -346,7 +383,7 @@ export default function BlogFormPage() {
                 value={formData.excerpt}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
+                className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
                 placeholder="Brief description of the blog post..."
                 required
               />
@@ -379,16 +416,16 @@ export default function BlogFormPage() {
               </Link>
               <button
                 type="submit"
-                disabled={isSubmitting || isLoading}
+                disabled={isLoading}
                 className="cursor-pointer flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                {isSubmitting || isLoading ? (
+                {isLoading ? (
                   <FaSpinner className="animate-spin" />
                 ) : (
                   <FaSave />
                 )}
                 <span>
-                  {isSubmitting || isLoading
+                  {isLoading
                     ? "Saving..."
                     : mode === "create"
                     ? "Create Post"
@@ -397,6 +434,18 @@ export default function BlogFormPage() {
               </button>
             </div>
           </form>
+        </div>
+      </div>
+
+      <div className="fixed top-4 right-4 z-[9999] pointer-events-none">
+        <div className="pointer-events-auto space-y-2">
+          {toasts.map((toast) => (
+            <ToastNotification
+              key={toast.id}
+              notification={toast}
+              onClose={removeToast}
+            />
+          ))}
         </div>
       </div>
     </div>

@@ -11,7 +11,7 @@ export interface BlogFormData {
   author: string;
   category: string;
   image?: string;
-  gradient?: string;
+  authorImage?: string;
 }
 
 export const useBlogCrud = () => {

@@ -17,6 +17,9 @@ import {
   FaTrash,
   FaPlus,
   FaExclamationTriangle,
+  FaTwitter,
+  FaLinkedin,
+  FaFacebook,
 } from "react-icons/fa";
 import { IoMdTrendingUp } from "react-icons/io";
 import Image from "next/image";
@@ -94,6 +97,49 @@ export default function LatestInsights() {
     setIsDeleteModalOpen(true);
   };
 
+  // Social sharing functions
+  const shareBlog = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const title = blog.title;
+    const text = `Check out this article: ${title}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(url).then(() => {
+      addToast({
+        type: "success",
+        title: "Success",
+        message: "Blog URL copied to clipboard!",
+        duration: 3000,
+      });
+    }).catch(() => {
+      addToast({
+        type: "error",
+        title: "Error",
+        message: "Failed to copy URL to clipboard",
+        duration: 3000,
+      });
+    });
+  };
+
+  const shareToTwitter = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const text = `Check out this article: ${blog.title}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+    window.open(twitterUrl, '_blank');
+  };
+
+  const shareToLinkedIn = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    window.open(linkedInUrl, '_blank');
+  };
+
+  const shareToFacebook = (blog: Blog) => {
+    const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(facebookUrl, '_blank');
+  };
+
   const confirmDeleteBlog = async () => {
     if (!blogToDelete) return;
 
@@ -134,6 +180,7 @@ export default function LatestInsights() {
 
   interface Blog {
     id: string;
+    slug?: string;
     title: string;
     excerpt: string;
     author: string;
@@ -142,7 +189,8 @@ export default function LatestInsights() {
     views?: string;
     likes?: string;
     category: string;
-    gradient: string;
+    gradient?: string;
+    authorImage?: string;
     size?: "large" | "medium" | "small";
     image?: string;
     featured?: boolean;
@@ -322,7 +370,7 @@ export default function LatestInsights() {
 
                   <div className="flex items-center justify-between pt-4">
                     <Link
-                      href={`/blogs/${mainFeaturedBlog.id}`}
+                      href={`/blogs/${mainFeaturedBlog.slug || mainFeaturedBlog.id}`}
                       className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 monty uppercase hover:to-purple-600 transition-all duration-300 hover:scale-105 group/btn"
                     >
                       <span>Read Full Article</span>
@@ -466,7 +514,7 @@ export default function LatestInsights() {
 
                     <div className="flex items-center justify-between">
                       <Link
-                        href={`/blogs/${blog.id}`}
+                        href={`/blogs/${blog.slug || blog.id}`}
                         className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300"
                       >
                         <span className="text-sm font-medium">Read More</span>
@@ -476,9 +524,88 @@ export default function LatestInsights() {
                         <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-300">
                           <FaBookmark className="text-xs" />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-300">
-                          <FaShare className="text-xs" />
-                        </button>
+                        <div className="relative group/share">
+                          <button 
+                            className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-300"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              // Show sharing options dropdown
+                              const shareMenu = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (shareMenu) {
+                                shareMenu.classList.toggle('hidden');
+                              }
+                            }}
+                          >
+                            <FaShare className="text-xs" />
+                          </button>
+                          <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20 hidden">
+                            <button 
+                              className="flex items-center space-x-2 w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                shareBlog(blog);
+                                // Hide the menu
+                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                if (shareMenu) {
+                                  shareMenu.classList.add('hidden');
+                                }
+                              }}
+                            >
+                              <FaShare className="text-xs" />
+                              <span>Copy Link</span>
+                            </button>
+                            <button 
+                              className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-400 hover:bg-gray-700 hover:text-blue-300 transition-colors duration-200"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                shareToTwitter(blog);
+                                // Hide the menu
+                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                if (shareMenu) {
+                                  shareMenu.classList.add('hidden');
+                                }
+                              }}
+                            >
+                              <FaTwitter className="text-xs" />
+                              <span>Twitter</span>
+                            </button>
+                            <button 
+                              className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-500 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                shareToLinkedIn(blog);
+                                // Hide the menu
+                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                if (shareMenu) {
+                                  shareMenu.classList.add('hidden');
+                                }
+                              }}
+                            >
+                              <FaLinkedin className="text-xs" />
+                              <span>LinkedIn</span>
+                            </button>
+                            <button 
+                              className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-700 hover:text-blue-500 transition-colors duration-200"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                shareToFacebook(blog);
+                                // Hide the menu
+                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                if (shareMenu) {
+                                  shareMenu.classList.add('hidden');
+                                }
+                              }}
+                            >
+                              <FaFacebook className="text-xs" />
+                              <span>Facebook</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

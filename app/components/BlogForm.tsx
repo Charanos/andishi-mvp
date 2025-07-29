@@ -47,7 +47,7 @@ export default function BlogForm({
     author: "",
     category: "",
     image: "",
-    gradient: "",
+    authorImage: "",
   });
 
   const [toasts, setToasts] = useState<ToastNotificationType[]>([]);
@@ -62,7 +62,7 @@ export default function BlogForm({
         author: editingBlog.author,
         category: editingBlog.category,
         image: editingBlog.image,
-        gradient: editingBlog.gradient,
+        authorImage: editingBlog.authorImage || "",
       });
     } else {
       // Reset form for create mode
@@ -73,7 +73,7 @@ export default function BlogForm({
         author: "",
         category: "",
         image: "",
-        gradient: "",
+        authorImage: "",
       });
     }
   }, [editingBlog, mode, isOpen]);
@@ -263,19 +263,19 @@ export default function BlogForm({
               />
             </div>
 
-            {/* Gradient */}
+            {/* Author Image */}
             <div>
               <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                <FaPalette className="text-pink-400" />
-                <span>Gradient Classes</span>
+                <FaUser className="text-green-400" />
+                <span>Author Image URL</span>
               </label>
               <input
-                type="text"
-                name="gradient"
-                value={formData.gradient}
+                type="url"
+                name="authorImage"
+                value={formData.authorImage}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                placeholder="from-blue-500/20 to-purple-500/10"
+                placeholder="https://example.com/author.jpg"
               />
             </div>
           </div>

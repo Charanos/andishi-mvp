@@ -9,7 +9,8 @@ const EnhancedStatsCards = () => {
       label: "Success Stories",
       color: "from-blue-400 to-cyan-400",
       icon: <FaBullseye />,
-      bgGradient: "from-blue-500/20 to-cyan-500/20",
+      bgGradient: "black/50",
+      bgGradientHover: "from-blue-500/20 to-cyan-500/20",
       shadowColor: "shadow-blue-500/25",
       glowColor: "group-hover:shadow-blue-500/40",
     },
@@ -18,7 +19,8 @@ const EnhancedStatsCards = () => {
       label: "Client Satisfaction",
       color: "from-purple-400 to-pink-400",
       icon: <IoIosStar />,
-      bgGradient: "from-purple-500/20 to-pink-500/20",
+      bgGradient: "black/40",
+      bgGradientHover: "from-purple-500/20 to-pink-500/20",
       shadowColor: "shadow-purple-500/25",
       glowColor: "group-hover:shadow-purple-500/40",
     },
@@ -27,7 +29,8 @@ const EnhancedStatsCards = () => {
       label: "Long-term Partnerships",
       color: "from-green-400 to-emerald-400",
       icon: <FaHandshake />,
-      bgGradient: "from-green-500/20 to-emerald-500/20",
+      bgGradient: "black/30",
+      bgGradientHover: "from-green-500/20 to-emerald-500/20",
       shadowColor: "shadow-green-500/25",
       glowColor: "group-hover:shadow-emerald-500/40",
     },
@@ -48,7 +51,7 @@ const EnhancedStatsCards = () => {
             >
               {/* Outer glow ring */}
               <div
-                className={`absolute inset-0 rounded-full bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500 scale-110 pointer-events-none`}
+                className={`absolute inset-0 rounded-full bg-gradient-to-r  ${stat.color} opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500 scale-110 pointer-events-none`}
               ></div>
 
               {/* Main card container */}
@@ -62,7 +65,7 @@ const EnhancedStatsCards = () => {
 
                 {/* Card content */}
                 <div
-                  className={`relative bg-gradient-to-br ${stat.bgGradient} backdrop-blur-xl border border-white/20 rounded-full w-46 h-46 md:w-54 md:h-54 flex items-center justify-center flex-col shadow-2xl ${stat.shadowColor} ${stat.glowColor} transition-all duration-500 group-hover:border-white/30`}
+                  className={`relative bg-gradient-to-br bg-black/70 backdrop-blur-xl border border-white/20 rounded-full w-46 h-46 md:w-54 md:h-54 flex items-center justify-center flex-col shadow-2xl ${stat.shadowColor} $ transition-all duration-500 group-hover:border-white/30`}
                 >
                   {/* Floating particles effect */}
                   <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
@@ -81,19 +84,19 @@ const EnhancedStatsCards = () => {
                   </div>
 
                   {/* Icon with pulsing effect */}
-                  <div className="text-4xl md:text-5xl mb-4 md:mb-6 transform group-hover:scale-125 transition-transform duration-300 text-white/40 relative z-10">
+                  <div className="text-3xl md:text-4xl mb-3 md:mb-5 transform group-hover:scale-125 transition-transform duration-300 text-white/40 relative z-10">
                     {stat.icon}
                   </div>
 
                   {/* Value with counter animation */}
                   <div
-                    className={`text-3xl md:text-4xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-3 md:mb-4 transform group-hover:scale-110 transition-transform duration-300 relative z-10`}
+                    className={`text-2xl monty md:text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-3 md:mb-4 transform group-hover:scale-110 transition-transform duration-300 relative z-10`}
                   >
                     {stat.value}
                   </div>
 
                   {/* Label */}
-                  <div className="text-gray-300 font-medium tracking-widest uppercase text-xs group-hover:text-white transition-colors duration-300 px-4 relative z-10">
+                  <div className="text-gray-300 font-medium monty uppercase text-xs group-hover:text-white transition-colors duration-300 px-6 relative z-10">
                     {stat.label}
                   </div>
 

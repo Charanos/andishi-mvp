@@ -142,14 +142,14 @@ export default function ClientReviews() {
 
   // Auto-play functionality
   useEffect(() => {
-    if (!isAutoPlaying || reviews.length <= 1) return;
+    if (!isAutoPlaying || reviews.length <= 1 || hoveredCard !== null) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % reviews.length);
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, reviews.length]);
+  }, [isAutoPlaying, reviews.length, hoveredCard]);
 
   const nextReview = () => {
     setCurrentIndex((prev) => (prev + 1) % reviews.length);

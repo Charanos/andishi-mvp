@@ -562,7 +562,7 @@ export async function PATCH(request: Request) {
   }
 }
 
-// DELETE - Delete a user
+// DELETE - Delete a user with cascade cleanup (assignments, chats, profile)
 export async function DELETE(request: Request) {
   try {
     const { id: rawId, _id } = await request.json();
@@ -575,16 +575,61 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Use a transaction to ensure atomicity
-    const [deletedUser] = await prisma.$transaction([
-      prisma.user.delete({ where: { id } }),
-      prisma.developerProfile.deleteMany({ where: { userId: id } }),
-      // Add other related data deletions here if necessary
-    ]);
+    await prisma.$transaction(async (prisma) => {
+      // Fetch user with potential profile and assignments
+      const userWithProfile = await prisma.user.findUnique({
+        where: { id },
+        include: {
+          developerProfile: {
+            include: {
+              assignments: true,
+            },
+          },
+        },
+      });
+
+      if (!userWithProfile) {
+        throw new Error('User not found');
+      }
+
+      const assignments = await prisma.projectAssignment.findMany({
+        where: { developerId: id },
+      });
+
+      console.log(`[USER DELETE] Found ${assignments.length} project assignments to clean up`);
+
+      // Remove user from chat participants for each assignment
+      for (const assignment of assignments) {
+        try {
+          const projectChat = await prisma.projectChat.findFirst({
+            where: { projectId: assignment.projectId },
+          });
+          if (projectChat) {
+            await prisma.chatParticipant.deleteMany({
+              where: { chatId: projectChat.id, userId: id },
+            });
+          }
+        } catch (chatErr) {
+          console.warn(`[USER DELETE] Failed chat cleanup for project ${assignment.projectId}`, chatErr);
+        }
+      }
+
+      // Delete project assignments
+      await prisma.projectAssignment.deleteMany({ where: { developerId: id } });
+
+      // Delete developer profile if exists
+      if (userWithProfile.developerProfile) {
+        await prisma.developerProfile.delete({ where: { id: userWithProfile.developerProfile.id } });
+      }
+
+      // Finally delete the user
+      await prisma.user.delete({ where: { id } });
+    });
 
     return NextResponse.json({ success: true, message: 'User deleted successfully' });
   } catch (err) {
     const error = err as Error;
+    console.error('[USER DELETE]', error);
     if (error.name === 'PrismaClientKnownRequestError') {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -592,7 +637,7 @@ export async function DELETE(request: Request) {
       );
     }
     return NextResponse.json(
-      { success: false, error: 'Failed to delete user' },
+      { success: false, error: error.message || 'Failed to delete user' },
       { status: 500 }
     );
   }

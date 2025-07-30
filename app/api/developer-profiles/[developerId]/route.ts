@@ -243,7 +243,7 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/developer-profiles/[developerId] - remove profile
+// DELETE /api/developer-profiles/[developerId] - cascade delete profile, assignments, and user
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ developerId: string }> }
@@ -255,20 +255,83 @@ export async function DELETE(
       return new NextResponse("Developer ID is required", { status: 400, headers: corsHeaders });
     }
 
-    const existingProfile = await prisma.developerProfile.findUnique({
-      where: { id: developerId }
+    // Use transaction to ensure atomicity of cascade deletion
+    await prisma.$transaction(async (prisma) => {
+      // Find the developer profile and associated user
+      const existingProfile = await prisma.developerProfile.findUnique({
+        where: { id: developerId },
+        include: {
+          user: true,
+          assignments: {
+            include: {
+              project: true
+            }
+          }
+        }
+      });
+
+      if (!existingProfile) {
+        throw new Error("Profile not found");
+      }
+
+      console.log(`Starting cascade deletion for developer: ${developerId}`);
+      console.log(`Found ${existingProfile.assignments.length} project assignments to clean up`);
+
+      // Step 1: Remove developer from all project chat participants
+      for (const assignment of existingProfile.assignments) {
+        try {
+          // Find project chat and remove developer as participant
+          const projectChat = await prisma.projectChat.findFirst({
+            where: { projectId: assignment.projectId }
+          });
+
+          if (projectChat) {
+            await prisma.chatParticipant.deleteMany({
+              where: {
+                chatId: projectChat.id,
+                userId: existingProfile.userId || developerId
+              }
+            });
+            console.log(`Removed developer from chat for project: ${assignment.projectId}`);
+          }
+        } catch (chatError) {
+          console.warn(`Failed to remove from chat for project ${assignment.projectId}:`, chatError);
+          // Continue with deletion even if chat cleanup fails
+        }
+      }
+
+      // Step 2: Delete all project assignments
+      const deletedAssignments = await prisma.projectAssignment.deleteMany({
+        where: { developerId: existingProfile.userId || developerId }
+      });
+      console.log(`Deleted ${deletedAssignments.count} project assignments`);
+
+      // Step 3: Delete the developer profile
+      await prisma.developerProfile.delete({
+        where: { id: developerId }
+      });
+      console.log(`Deleted developer profile: ${developerId}`);
+
+      // Step 4: Delete the associated user if it exists
+      if (existingProfile.userId) {
+        try {
+          await prisma.user.delete({
+            where: { id: existingProfile.userId }
+          });
+          console.log(`Deleted associated user: ${existingProfile.userId}`);
+        } catch (userDeleteError) {
+          console.warn(`Failed to delete user ${existingProfile.userId}:`, userDeleteError);
+          // Continue - profile is already deleted
+        }
+      }
+
+      console.log(`Cascade deletion completed for developer: ${developerId}`);
     });
 
-    if (!existingProfile) {
-      return new NextResponse("Profile not found", { status: 404, headers: corsHeaders });
-    }
-
-    await prisma.developerProfile.delete({
-      where: { id: developerId }
-    });
     return new NextResponse(null, { status: 204, headers: corsHeaders });
   } catch (err) {
     console.error("DELETE /api/developer-profiles/[developerId]", err);
-    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
+    const errorMessage = err instanceof Error ? err.message : "Internal Server Error";
+    return new NextResponse(errorMessage, { status: 500, headers: corsHeaders });
   }
 }

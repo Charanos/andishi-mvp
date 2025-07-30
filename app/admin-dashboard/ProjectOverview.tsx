@@ -600,6 +600,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     Client Information
                   </h3>
                   <p>Client ID: {projectData.clientId}</p>
+                  <p>
+                    Client: {projectData.userInfo?.firstName} {projectData.userInfo?.lastName}
+                  </p>
+                  {projectData.userInfo?.company && (
+                    <p>Company: {projectData.userInfo.company}</p>
+                  )}
                   <p>Status: {projectData.status}</p>
                 </div>
               </div>

@@ -189,7 +189,7 @@ export async function GET(req: NextRequest) {
     const clientIds = Array.from(uniqueProjectsMap.values()).map(p => p.clientId).filter(Boolean);
     const clientUsers = clientIds.length ? await prisma.user.findMany({
       where: { id: { in: clientIds } },
-      select: { id: true, firstName: true, lastName: true, email: true }
+      select: { id: true, firstName: true, lastName: true, email: true, company: true }
     }) : [];
     const clientMap: Record<string, any> = {};
     clientUsers.forEach((u: any) => { clientMap[u.id] = u; });
@@ -203,6 +203,7 @@ export async function GET(req: NextRequest) {
         firstName: clientMap[project.clientId].firstName,
         lastName: clientMap[project.clientId].lastName,
         email: clientMap[project.clientId].email,
+        company: clientMap[project.clientId].company,
       } : {};
       // Merge existing embedded userInfo (if any) to keep phone, company, etc.
       const userInfo = { ...project.userInfo, ...clientInfo };

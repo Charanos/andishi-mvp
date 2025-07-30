@@ -159,9 +159,35 @@ export async function GET(
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    return NextResponse.json(project, { status: 200 });
+    // Fetch client information if clientId exists
+    let clientInfo = {};
+    if (project.clientId) {
+      const clientUser = await prisma.user.findUnique({
+        where: { id: project.clientId },
+        select: { id: true, firstName: true, lastName: true, email: true, company: true }
+      });
+      
+      if (clientUser) {
+        clientInfo = {
+          id: clientUser.id,
+          firstName: clientUser.firstName,
+          lastName: clientUser.lastName,
+          email: clientUser.email,
+          company: clientUser.company,
+        };
+      }
+    }
+
+    // Merge client info into project userInfo
+    // Ensure we're working with a valid object
+    const projectWithClientInfo = Object.assign({}, project, {
+      userInfo: Object.assign({}, project.userInfo || {}, clientInfo)
+    });
+
+    return NextResponse.json(projectWithClientInfo, { status: 200 });
   } catch (error) {
-    console.error(`GET /api/projects/${(await params).projectId}`, error);
+    const { projectId } = await params;
+    console.error(`GET /api/projects/${projectId}`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -203,7 +229,8 @@ export async function PUT(
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-    console.error(`PUT /api/projects/${(await params).projectId}`, error);
+    const { projectId } = await params;
+    console.error(`PUT /api/projects/${projectId}`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -244,7 +271,8 @@ export async function DELETE(
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-    console.error(`DELETE /api/projects/${(await params).projectId}`, error);
+    const { projectId } = await params;
+    console.error(`DELETE /api/projects/${projectId}`, error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

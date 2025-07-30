@@ -207,6 +207,7 @@ export async function POST(req: NextRequest) {
           firstName: userInfo.firstName,
           lastName: userInfo.lastName,
           email: userInfo.email.toLowerCase(),
+          company: userInfo.company || null,
           role: 'client',
           isActive: true,
           projectCount: 1,
@@ -234,19 +235,28 @@ export async function POST(req: NextRequest) {
       clientId: existingUser.id,
       status: 'pending',
       priority: projectDetails.priority || 'low',
-      budget: Number(pricing?.fixedBudget) || 0,
+      budget: pricing?.fixedBudget ? Number(pricing.fixedBudget) : 0,
       timeline: projectDetails.timeline,
       techStack: projectDetails.techStack || [],
       requiredSkills: projectDetails.requiredSkills || [],
       experienceLevel: projectDetails.experienceLevel || 'Mid-level',
-      maxTeamSize: projectDetails.maxTeamSize || 1,
+      maxTeamSize: projectDetails.maxTeamSize ? Number(projectDetails.maxTeamSize) : 1,
       estimatedCompletionDate: projectDetails.estimatedCompletionDate ? new Date(projectDetails.estimatedCompletionDate) : null,
-      milestones: pricing?.milestones || [],
+      milestones: (pricing?.milestones || []).map((milestone: any, index: number) => ({
+        ...milestone,
+        order: milestone.order ?? index,
+        budget: typeof milestone.budget === 'string' ? parseFloat(milestone.budget) : milestone.budget
+      })),
       pricing: {
         ...pricing,
-        fixedBudget: Number(pricing?.fixedBudget) || null,
-        hourlyRate: Number(pricing?.hourlyRate) || null,
-        estimatedHours: Number(pricing?.estimatedHours) || null,
+        milestones: (pricing?.milestones || []).map((milestone: any, index: number) => ({
+          ...milestone,
+          order: milestone.order ?? index,
+          budget: typeof milestone.budget === 'string' ? parseFloat(milestone.budget) : milestone.budget
+        })),
+        fixedBudget: pricing?.fixedBudget ? Number(pricing.fixedBudget) : null,
+        hourlyRate: pricing?.hourlyRate ? Number(pricing.hourlyRate) : null,
+        estimatedHours: pricing?.estimatedHours ? Number(pricing.estimatedHours) : null,
       }
     };
 

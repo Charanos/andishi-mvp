@@ -139,7 +139,7 @@ export default function TeamSection() {
 
     {
       id: 6,
-      name: "Yvette Janes",
+      name: "Yvette Asewe",
       position: "Marketing Strategist",
       department: "Marketing",
       bio: "Pattern detective who reads market signals like tea leaves, then transforms insights into campaigns that feel inevitable in hindsight.",
@@ -220,7 +220,7 @@ export default function TeamSection() {
           {filteredMembers.map((member) => (
             <article
               key={member.id}
-              className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-black/10 border border-white/10 hover:border-white/20 transition-all duration-250 hover:scale-[1.02]"
+              className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-black/10 border border-white/10 hover:border-white/20 transition-all duration-250 hover:scale-[1.01] hover:shadow-lg cursor-pointer"
               // style={{
               //   background: `linear-gradient(135deg,
               //     rgba(59, 130, 246, 0.03) 0%,
@@ -333,7 +333,7 @@ export default function TeamSection() {
                   <h3 className="text-xl font-semibold text-white group-hover:text-purple-300 transition-colors duration-150">
                     {member.name}
                   </h3>
-                  <p className="text-blue-400 font-medium text-sm">
+                  <p className="text-indigo-400 font-medium text-xs monty uppercase">
                     {member.position}
                   </p>
                 </div>

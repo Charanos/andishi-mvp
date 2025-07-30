@@ -559,7 +559,7 @@ export default function ClientReviews() {
                             <div className="text-blue-400 font-semibold text-md mb-1">
                               {review.timeToHire}
                             </div>
-                            <div className="text-gray-400 text-xs tracking-wide uppercase">
+                            <div className="text-gray-200 text-xs tracking-wide uppercase">
                               Time to Hire
                             </div>
                           </div>
@@ -568,7 +568,7 @@ export default function ClientReviews() {
                             <div className="text-purple-400 font-semibold text-md mb-1">
                               {review.project}
                             </div>
-                            <div className="text-gray-400 text-xs tracking-wide uppercase">
+                            <div className="text-gray-200 text-xs tracking-wide uppercase">
                               Project Type
                             </div>
                           </div>
@@ -577,7 +577,7 @@ export default function ClientReviews() {
                             <div className="text-green-400 font-semibold text-md mb-1">
                               {review.keyResult}
                             </div>
-                            <div className="text-gray-400 text-xs tracking-wide uppercase">
+                            <div className="text-gray-200 text-xs tracking-wide uppercase">
                               Key Result
                             </div>
                           </div>

@@ -35,6 +35,7 @@ import {
   FaUserFriends,
   FaInbox,
 } from "react-icons/fa";
+import { IoIosHeartEmpty } from "react-icons/io";
 
 const FeedbackTabEnhanced: React.FC = () => {
   const {
@@ -305,8 +306,8 @@ const FeedbackTabEnhanced: React.FC = () => {
         {/* Feedback List */}
         <div className="lg:col-span-2 space-y-4">
           {feedback.length === 0 ? (
-            <div className="bg-black/40 flex flex-col py-6 backdrop-blur-xl border border-gray-400/40">
-              <FiInbox className="mx-auto text-6xl text-gray-500 mb-4" />
+            <div className="bg-black/40 flex flex-col py-6 gap-4 items-center justify-between backdrop-blur-xl border border-gray-400/40">
+              <IoIosHeartEmpty className="mx-auto text-6xl text-gray-500 mb-4" />
               <h3 className="text-xl font-medium text-white mb-2">
                 No feedback found
               </h3>

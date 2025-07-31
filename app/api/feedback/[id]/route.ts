@@ -2,16 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/getSession";
 
-type Params = {
-  params: {
-    id: string;
-  };
-};
-
 // PUT /api/feedback/[id] - Update feedback (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: Params
+  { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
     const session = await getSession(request);
@@ -71,7 +65,7 @@ export async function PUT(
 // DELETE /api/feedback/[id] - Delete feedback (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: Params
+  { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
     const session = await getSession(request);

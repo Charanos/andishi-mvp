@@ -234,3 +234,15 @@ export interface ReviewFormData {
   timeToHire?: string;
   keyResult?: string;
 }
+
+export interface ContactFeedback {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  read: boolean;
+  deleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}

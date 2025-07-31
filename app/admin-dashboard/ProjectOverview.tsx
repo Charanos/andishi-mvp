@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+// Shared currency utilities
+import { CurrencyAmount, formatCurrency, extractAmount } from "@/utils/currency";
 import useSWR from "swr";
 import {
   FaArrowCircleLeft,
@@ -199,12 +201,7 @@ const toUSD = (amount: number, currency: "USD" | "KES" = "USD") => {
   return amount * (EXCHANGE_RATES[currency] ?? 1);
 };
 
-const formatCurrency = (amount: number, currency: "USD" | "KES") => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency,
-  }).format(amount);
-};
+
 
 const formatCurrencyLocal = (amount: number, currency: "USD" | "KES") => {
   const currencySymbol = currency === "USD" ? "$" : "KES ";
@@ -567,17 +564,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </h3>
                   <p>
                     Total Budget:{" "}
-                    {formatCurrency(
-                      totalBudget,
-                      projectData.pricing?.currency || "USD"
-                    )}
+                    {formatCurrency(totalBudget)}
                   </p>
                   <p>
                     Spent:{" "}
-                    {formatCurrency(
-                      spentBudget,
-                      projectData.pricing?.currency || "USD"
-                    )}
+                    {formatCurrency(spentBudget)}
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
                     <div
@@ -601,7 +592,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </h3>
                   <p>Client ID: {projectData.clientId}</p>
                   <p>
-                    Client: {projectData.userInfo?.firstName} {projectData.userInfo?.lastName}
+                    Client: {projectData.userInfo?.firstName}{" "}
+                    {projectData.userInfo?.lastName}
                   </p>
                   {projectData.userInfo?.company && (
                     <p>Company: {projectData.userInfo.company}</p>
@@ -652,10 +644,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {milestone.status.replace("_", " ")}
                     </div>
                     <div className="text-lg font-semibold text-white mt-2">
-                      {formatCurrency(
-                        parseFloat(milestone.budget),
-                        projectData.pricing?.currency || "USD"
-                      )}
+                      {formatCurrency(parseFloat(milestone.budget))}
                     </div>
                   </div>
                 </div>
@@ -710,10 +699,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {payment.status?.replace("_", " ") || "pending"}
                     </div>
                     <div className="text-lg font-semibold text-white mt-2">
-                      {formatCurrency(
-                        payment.amount,
-                        payment.currency || "USD"
-                      )}
+                      {formatCurrency(payment.amount)}
                     </div>
                   </div>
                 </div>

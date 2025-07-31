@@ -21,6 +21,7 @@ import {
   FaBuilding,
   FaGlobe,
   FaStar,
+  FaArrowCircleLeft,
 } from "react-icons/fa";
 import { SiTypescript, SiDocker, SiKubernetes } from "react-icons/si";
 import { toast, ToastContainer } from "react-toastify";
@@ -602,10 +603,10 @@ export default function LoginPage() {
             <div className="mt-12 text-center">
               <Link
                 href="/"
-                className="inline-flex items-center monty uppercase px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg"
               >
-                <FaArrowLeft className="mr-2" />
-                Back to Home Page
+                <FaArrowCircleLeft className="w-5 h-5" />
+                <span className="text-xs monty uppercase">Back to Home</span>
               </Link>
             </div>
           </div>

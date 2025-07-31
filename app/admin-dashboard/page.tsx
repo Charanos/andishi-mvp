@@ -60,6 +60,8 @@ import {
   Trash2,
 } from "lucide-react";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
+// Shared currency utilities
+import { CurrencyAmount, formatCurrency, extractAmount } from "@/utils/currency";
 import ProjectAssignments from "./ProjectAssignments";
 import AdvancedAnalyticsDashboard from "./renderAnalytics";
 import generateAdvancedAnalytics, {
@@ -86,6 +88,7 @@ import {
 import SearchFilter from "./SearchFilter";
 import ConfirmationModal from "../components/ConfirmationModal";
 import DeveloperDebugPanel from "./DeveloperDebugPanel";
+import FeedbackTabEnhanced from "./FeedbackTabEnhanced";
 
 // Types
 interface SystemUser {
@@ -123,6 +126,7 @@ type ActiveTab =
   | "clients"
   | "analytics"
   // | "debug"
+  | "feedback"
   | "settings";
 
 export default function EnhancedAdminDashboard(): ReactNode {
@@ -268,9 +272,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
   const hasActiveFilters = Boolean(
     searchTerm.trim() ||
-    statusFilter !== "all" ||
-    priorityFilter !== "all" ||
-    sortBy !== "newest"
+      statusFilter !== "all" ||
+      priorityFilter !== "all" ||
+      sortBy !== "newest"
   );
 
   // Reset to first page when filters change
@@ -329,8 +333,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
         const usersArray = Array.isArray(usersData)
           ? usersData
           : Array.isArray(usersData?.users)
-            ? usersData.users
-            : [];
+          ? usersData.users
+          : [];
         setUsers(usersArray);
 
         // Use real analytics from API instead of generated mock data
@@ -365,7 +369,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             avgProjectValue:
               analyticsResponse.overview.totalProjects > 0
                 ? analyticsResponse.overview.totalRevenue /
-                analyticsResponse.overview.totalProjects
+                  analyticsResponse.overview.totalProjects
                 : 0,
             clientRetentionRate: 85, // Default or calculate from data
             avgDeliveryTime: 25, // Default or calculate from data
@@ -401,8 +405,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
           const usersArray = Array.isArray(usersData)
             ? usersData
             : Array.isArray(usersData?.users)
-              ? usersData.users
-              : [];
+            ? usersData.users
+            : [];
           const analyticsData = generateAdvancedAnalytics(
             transformedProjects,
             usersArray
@@ -676,7 +680,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
               avgProjectValue:
                 analyticsData.overview.totalProjects > 0
                   ? analyticsData.overview.totalRevenue /
-                  analyticsData.overview.totalProjects
+                    analyticsData.overview.totalProjects
                   : 0,
               clientRetentionRate: 85, // Default or calculate from data
               avgDeliveryTime: 25, // Default or calculate from data
@@ -872,7 +876,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
       revenueMonthly[revenueMonthly.length - 2]?.revenue || 0;
     const monthlyGrowth = previousMonthRevenue
       ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) *
-      100
+        100
       : 0;
 
     setAnalytics({
@@ -928,7 +932,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     } else {
       return toUSD(
         parseFloat(project.pricing.hourlyRate || "0") *
-        parseFloat(project.pricing.estimatedHours || "0"),
+          parseFloat(project.pricing.estimatedHours || "0"),
         project.pricing.currency
       );
     }
@@ -1084,15 +1088,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
           // Ensure pricing is always a valid PricingOption
           pricing: project.pricing
             ? {
-              ...project.pricing,
-              milestones: updatedMilestones,
-            }
+                ...project.pricing,
+                milestones: updatedMilestones,
+              }
             : {
-              // Provide default values that match PricingOption type
-              type: "fixed", // or whatever default makes sense
-              currency: "USD",
-              milestones: updatedMilestones,
-            },
+                // Provide default values that match PricingOption type
+                type: "fixed", // or whatever default makes sense
+                currency: "USD",
+                milestones: updatedMilestones,
+              },
           updatedAt: new Date().toISOString(),
         };
 
@@ -1287,10 +1291,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
         prevProjects.map((project) =>
           project._id === projectId
             ? {
-              ...project,
-              payments: [newPayment, ...(project.payments || [])],
-              updatedAt: new Date().toISOString(),
-            }
+                ...project,
+                payments: [newPayment, ...(project.payments || [])],
+                updatedAt: new Date().toISOString(),
+              }
             : project
         )
       );
@@ -1302,7 +1306,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
       });
 
       toast.success(
-        `Payment of ${payment.amount} ${payment.currency || "USD"
+        `Payment of ${payment.amount} ${
+          payment.currency || "USD"
         } recorded successfully`
       );
     } catch (error) {
@@ -1355,12 +1360,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
     });
   };
 
-  const formatCurrency = (amount: number, currency: string = "USD") => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-    }).format(amount);
-  };
+  
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -1500,7 +1500,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
             label: "Avg Project Value",
             value: formatCurrency(
               analytics.totalProjects > 0
-                ? analytics.totalRevenue / analytics.totalProjects
+                ? extractAmount(analytics.totalRevenue) / analytics.totalProjects
                 : 0
             ),
             icon: <FaChartLine className="text-purple-400" />,
@@ -1530,8 +1530,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <FaSortAmountDown className="text-red-400 mr-1" />
                   )}
                   <span
-                    className={`text-sm ${metric.trend === "up" ? "text-green-400" : "text-red-400"
-                      }`}
+                    className={`text-sm ${
+                      metric.trend === "up" ? "text-green-400" : "text-red-400"
+                    }`}
                   >
                     {metric.change}
                   </span>
@@ -1661,9 +1662,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 <p className="text-green-400 font-medium">
                   {formatCurrency(
                     client.totalSpent ||
-                    client.revenue ||
-                    client.totalValue ||
-                    0
+                      client.revenue ||
+                      client.totalValue ||
+                      0
                   )}
                 </p>
               </div>
@@ -1779,15 +1780,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
     return (
       <div className="min-h-screen">
-        <div className="space-y-8 p-6">
+        <div className="space-y-6">
           {/* Enhanced Header with Statistics */}
           <div className="mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
-                <h1 className="text-4xl font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                <h1 className="text-3xl font-semibold text-white mb-2 flex items-center gap-3">
                   Client Projects
                 </h1>
-                <p className="text-gray-300 text-lg">
+                <p className="text-gray-300">
                   Manage and track all client projects with real-time insights
                 </p>
                 {/* Create Project Button */}
@@ -2001,18 +2002,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                           const remaining = totalBudgetOriginal - totalPaid;
 
                           return {
-                            budgetDisplay: formatCurrency(
-                              totalBudgetOriginal,
-                              project.pricing.currency
-                            ),
-                            paidDisplay: formatCurrency(
-                              totalPaid,
-                              project.pricing.currency
-                            ),
-                            remainingDisplay: formatCurrency(
-                              remaining,
-                              project.pricing.currency
-                            ),
+                            budgetDisplay: formatCurrency(totalBudgetOriginal),
+                            paidDisplay: formatCurrency(totalPaid),
+                            remainingDisplay: formatCurrency(remaining),
                             totalBudget: totalBudgetOriginal,
                             totalPaid,
                             remaining,
@@ -2054,10 +2046,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
                                 </span>
                               </div>
                               <span
-                                className={`font-medium ${statusInfo.remaining > 0
+                                className={`font-medium ${
+                                  statusInfo.remaining > 0
                                     ? "text-amber-400"
                                     : "text-emerald-400"
-                                  }`}
+                                }`}
                               >
                                 {statusInfo.remainingDisplay}
                               </span>
@@ -2072,13 +2065,13 @@ export default function EnhancedAdminDashboard(): ReactNode {
                                 <span className="text-xs text-slate-400">
                                   {statusInfo.totalBudget > 0
                                     ? Math.min(
-                                      Math.round(
-                                        (statusInfo.totalPaid /
-                                          statusInfo.totalBudget) *
+                                        Math.round(
+                                          (statusInfo.totalPaid /
+                                            statusInfo.totalBudget) *
+                                            100
+                                        ),
                                         100
-                                      ),
-                                      100
-                                    )
+                                      )
                                     : 0}
                                   %
                                 </span>
@@ -2087,15 +2080,16 @@ export default function EnhancedAdminDashboard(): ReactNode {
                                 <div
                                   className="bg-gradient-to-r from-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
                                   style={{
-                                    width: `${statusInfo.totalBudget > 0
+                                    width: `${
+                                      statusInfo.totalBudget > 0
                                         ? Math.min(
-                                          (statusInfo.totalPaid /
-                                            statusInfo.totalBudget) *
-                                          100,
-                                          100
-                                        )
+                                            (statusInfo.totalPaid /
+                                              statusInfo.totalBudget) *
+                                              100,
+                                            100
+                                          )
                                         : 0
-                                      }%`,
+                                    }%`,
                                   }}
                                 ></div>
                               </div>
@@ -2327,18 +2321,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         const remaining = totalBudget - totalPaid;
 
                         return {
-                          budgetDisplay: formatCurrency(
-                            totalBudget,
-                            project.pricing.currency
-                          ),
-                          paidDisplay: formatCurrency(
-                            totalPaid,
-                            project.pricing.currency
-                          ),
-                          remainingDisplay: formatCurrency(
-                            remaining,
-                            project.pricing.currency
-                          ),
+                          budgetDisplay: formatCurrency(totalBudget),
+                          paidDisplay: formatCurrency(totalPaid),
+                          remainingDisplay: formatCurrency(remaining),
                           totalBudget,
                           totalPaid,
                           remaining,
@@ -2370,10 +2355,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             </div>
                             <span className="text-slate-400">Remaining:</span>
                             <span
-                              className={`font-medium ${statusInfo.remaining > 0
+                              className={`font-medium ${
+                                statusInfo.remaining > 0
                                   ? "text-amber-400"
                                   : "text-emerald-400"
-                                }`}
+                              }`}
                             >
                               {statusInfo.remainingDisplay}
                             </span>
@@ -2418,10 +2404,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer
-            ${currentPage === page
-                          ? "bg-blue-500/20 border border-blue-400/50 text-gray-300"
-                          : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
-                        }`}
+            ${
+              currentPage === page
+                ? "bg-blue-500/20 border border-blue-400/50 text-gray-300"
+                : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+            }`}
                     >
                       {page}
                     </button>
@@ -2481,8 +2468,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 </h3>
                 <p className="text-gray-400">
                   {searchTerm ||
-                    statusFilter !== "all" ||
-                    priorityFilter !== "all"
+                  statusFilter !== "all" ||
+                  priorityFilter !== "all"
                     ? "Try adjusting your filters to see more projects."
                     : "Start by creating your first project to see it here."}
                 </p>
@@ -2598,24 +2585,24 @@ export default function EnhancedAdminDashboard(): ReactNode {
           prev.map((user) =>
             user.id === userId
               ? {
-                ...user,
-                ...userData,
-                skills:
-                  typeof userData.skills === "string"
-                    ? userData.skills
-                      .split(",")
-                      .map((s: string) => s.trim())
-                      .filter(Boolean)
-                    : userData.skills ?? user.skills,
-                hourlyRate:
-                  userData.hourlyRate !== undefined
-                    ? typeof userData.hourlyRate === "string"
-                      ? userData.hourlyRate === ""
-                        ? undefined
-                        : Number(userData.hourlyRate)
-                      : userData.hourlyRate
-                    : user.hourlyRate,
-              }
+                  ...user,
+                  ...userData,
+                  skills:
+                    typeof userData.skills === "string"
+                      ? userData.skills
+                          .split(",")
+                          .map((s: string) => s.trim())
+                          .filter(Boolean)
+                      : userData.skills ?? user.skills,
+                  hourlyRate:
+                    userData.hourlyRate !== undefined
+                      ? typeof userData.hourlyRate === "string"
+                        ? userData.hourlyRate === ""
+                          ? undefined
+                          : Number(userData.hourlyRate)
+                        : userData.hourlyRate
+                      : user.hourlyRate,
+                }
               : user
           )
         );
@@ -2692,7 +2679,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
           )
         );
         toast.success(
-          `User ${newStatus === "active" ? "activated" : "deactivated"
+          `User ${
+            newStatus === "active" ? "activated" : "deactivated"
           } successfully!`
         );
         return data;
@@ -2881,8 +2869,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <FaSortAmountDown className="text-red-400 mr-1" />
                   )}
                   <span
-                    className={`text-sm ${metric.trend === "up" ? "text-green-400" : "text-red-400"
-                      }`}
+                    className={`text-sm ${
+                      metric.trend === "up" ? "text-green-400" : "text-red-400"
+                    }`}
                   >
                     {metric.change}
                   </span>
@@ -2924,9 +2913,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{
-                          width: `${((count ?? 0) / (analytics?.totalProjects ?? 1)) *
+                          width: `${
+                            ((count ?? 0) / (analytics?.totalProjects ?? 1)) *
                             100
-                            }%`,
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -3489,10 +3479,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
     const action = disable ? "disable" : "enable";
     const confirmMessage = disable
-      ? `Are you sure you want to disable access for ${selectedUser?.email ?? "Unknown"
-      }? This will prevent them from logging in.`
-      : `Are you sure you want to enable access for ${selectedUser?.email ?? "Unknown"
-      }?`;
+      ? `Are you sure you want to disable access for ${
+          selectedUser?.email ?? "Unknown"
+        }? This will prevent them from logging in.`
+      : `Are you sure you want to enable access for ${
+          selectedUser?.email ?? "Unknown"
+        }?`;
 
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
@@ -3562,14 +3554,16 @@ export default function EnhancedAdminDashboard(): ReactNode {
     // For MVP, show different messages based on account status
     if (generatedPassword) {
       // Newly generated password
-      const message = `Login Credentials for ${selectedUser?.email ?? "Unknown"
-        }:
+      const message = `Login Credentials for ${
+        selectedUser?.email ?? "Unknown"
+      }:
 
         Email: ${selectedUser?.email ?? "Unknown"}
         Password: ${generatedPassword}
         Login URL: ${window.location.origin}/login
 
-        This ${statusInfo.hasAccount ? "updates their existing" : "creates a new"
+        This ${
+          statusInfo.hasAccount ? "updates their existing" : "creates a new"
         } account.
         Role: ${selectedUser?.role ?? "Unknown"}
         Status: Active`;
@@ -3577,8 +3571,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
       alert(message);
     } else if (accountExists) {
       // Existing account
-      const message = `Account Information for ${selectedUser?.email ?? "Unknown"
-        }:
+      const message = `Account Information for ${
+        selectedUser?.email ?? "Unknown"
+      }:
 
 Email: ${selectedUser?.email ?? "Unknown"}
 Password: [Hidden for security - generate new to reset]
@@ -3586,19 +3581,22 @@ Login URL: ${window.location.origin}/login
 
 Account Status: ${statusInfo.isActive ? "Active" : "Inactive"}
 Role: ${statusInfo.role}
-Last Login: ${statusInfo.lastLogin
+Last Login: ${
+        statusInfo.lastLogin
           ? new Date(statusInfo.lastLogin).toLocaleDateString()
           : "Never"
-        }
-Account Created: ${statusInfo.accountCreated
+      }
+Account Created: ${
+        statusInfo.accountCreated
           ? new Date(statusInfo.accountCreated).toLocaleDateString()
           : "Unknown"
-        }
+      }
 
-${statusInfo.isActive
-          ? "User can log in with existing password."
-          : "Account is disabled - enable to allow login."
-        }
+${
+  statusInfo.isActive
+    ? "User can log in with existing password."
+    : "Account is disabled - enable to allow login."
+}
 Generate new credentials to reset password.`;
 
       alert(message);
@@ -3611,8 +3609,9 @@ Generate new credentials to reset password.`;
   const deleteUserAccount = async () => {
     if (!selectedUser) return;
 
-    const confirmMessage = `Are you sure you want to permanently delete the account for ${selectedUser?.email ?? "Unknown"
-      }? This action cannot be undone.`;
+    const confirmMessage = `Are you sure you want to permanently delete the account for ${
+      selectedUser?.email ?? "Unknown"
+    }? This action cannot be undone.`;
     const confirmed = window.confirm(confirmMessage);
     if (!confirmed) return;
 
@@ -3656,8 +3655,9 @@ Generate new credentials to reset password.`;
   const copyCredentials = async () => {
     if (!selectedUser || !generatedPassword) return;
 
-    const credentials = `Email: ${selectedUser?.email ?? "Unknown"
-      }\nPassword: ${generatedPassword}`;
+    const credentials = `Email: ${
+      selectedUser?.email ?? "Unknown"
+    }\nPassword: ${generatedPassword}`;
 
     try {
       await navigator.clipboard.writeText(credentials);
@@ -3747,16 +3747,21 @@ Generate new credentials to reset password.`;
                       label: "Dev Profiles",
                       icon: FaUserEdit,
                     },
-
+                    {
+                      id: "feedback",
+                      label: "Feedback",
+                      icon: FaEnvelope,
+                    },
                     { id: "settings", label: "Settings", icon: FaCog },
                   ].map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as ActiveTab)}
-                      className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${activeTab === tab.id
+                      className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        activeTab === tab.id
                           ? "bg-blue-600 text-white"
                           : "text-gray-300 hover:bg-white/10 hover:text-white"
-                        }`}
+                      }`}
                     >
                       <tab.icon className="text-sm" />
                       <span className="monty uppercase text-xs">
@@ -3790,16 +3795,18 @@ Generate new credentials to reset password.`;
               { id: "users", label: "Users", icon: FaUsers },
               { id: "analytics", label: "Analytics", icon: FaChartBar },
               { id: "devProfiles", label: "Dev Profiles", icon: FaUserEdit },
+              { id: "feedback", label: "Feedback", icon: FaEnvelope },
               // { id: "debug", label: "Debug", icon: FaBug },
               { id: "settings", label: "Settings", icon: FaCog },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as ActiveTab)}
-                className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${activeTab === tab.id
+                className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
+                  activeTab === tab.id
                     ? "bg-blue-600 text-white"
                     : "text-gray-300 hover:bg-white/10 hover:text-white"
-                  }`}
+                }`}
               >
                 <tab.icon className="text-lg" />
                 <span className="text-xs monty uppercase">{tab.label}</span>
@@ -3857,6 +3864,7 @@ Generate new credentials to reset password.`;
             </div>
           )} */}
 
+          {activeTab === "feedback" && <FeedbackTabEnhanced />}
           {activeTab === "settings" && renderSettings()}
         </div>
       </div>

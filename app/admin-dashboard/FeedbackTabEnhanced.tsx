@@ -305,7 +305,7 @@ const FeedbackTabEnhanced: React.FC = () => {
         {/* Feedback List */}
         <div className="lg:col-span-2 space-y-4">
           {feedback.length === 0 ? (
-            <div className="bg-black/40 backdrop-blur-xl border border-gray-400/40">
+            <div className="bg-black/40 flex flex-col py-6 backdrop-blur-xl border border-gray-400/40">
               <FiInbox className="mx-auto text-6xl text-gray-500 mb-4" />
               <h3 className="text-xl font-medium text-white mb-2">
                 No feedback found

@@ -2,31 +2,49 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/getSession";
 
+type Params = {
+  params: {
+    id: string;
+  };
+};
+
 // PUT /api/feedback/[id] - Update feedback (admin only)
 export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  request: NextRequest,
+  { params }: Params
+): Promise<NextResponse> {
   try {
-    const session = await getSession(req);
+    const session = await getSession(request);
 
     // Check if user is admin
     if (!session?.user || session.user.role !== "admin") {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    const id = params.id;
+    const { id } = params;
 
     if (!id) {
-      return new NextResponse("Missing feedback ID", { status: 400 });
+      return new NextResponse(JSON.stringify({ error: "Missing feedback ID" }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { read } = body;
 
     // Validate that at least one field is being updated
     if (read === undefined) {
-      return new NextResponse("No fields to update", { status: 400 });
+      return new NextResponse(
+        JSON.stringify({ error: "No fields to update" }), 
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const updatedFeedback = await prisma.contactFeedback.update({
@@ -34,30 +52,51 @@ export async function PUT(
       data: { read },
     });
 
-    return NextResponse.json(updatedFeedback, { status: 200 });
+    return NextResponse.json(updatedFeedback, { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
-    console.error(`PUT /api/feedback/${params.id}`, error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error(`[Feedback API] PUT /api/feedback/${params.id}`, error);
+    return new NextResponse(
+      JSON.stringify({ error: "Internal Server Error" }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
 
 // DELETE /api/feedback/[id] - Delete feedback (admin only)
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  request: NextRequest,
+  { params }: Params
+): Promise<NextResponse> {
   try {
-    const session = await getSession(req);
+    const session = await getSession(request);
 
     // Check if user is admin
     if (!session?.user || session.user.role !== "admin") {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse(
+        JSON.stringify({ error: "Unauthorized" }), 
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
-    const id = params.id;
+    const { id } = params;
 
     if (!id) {
-      return new NextResponse("Missing feedback ID", { status: 400 });
+      return new NextResponse(
+        JSON.stringify({ error: "Missing feedback ID" }), 
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     // Soft delete by marking as deleted
@@ -66,9 +105,18 @@ export async function DELETE(
       data: { deleted: true },
     });
 
-    return NextResponse.json(deletedFeedback, { status: 200 });
+    return NextResponse.json(deletedFeedback, { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
-    console.error(`DELETE /api/feedback/${params.id}`, error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error(`[Feedback API] DELETE /api/feedback/${params.id}`, error);
+    return new NextResponse(
+      JSON.stringify({ error: "Internal Server Error" }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }

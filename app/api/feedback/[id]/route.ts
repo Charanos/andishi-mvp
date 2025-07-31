@@ -5,26 +5,27 @@ import { getSession } from "@/lib/getSession";
 // PUT /api/feedback/[id] - Update feedback (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession(request);
 
     // Check if user is admin
     if (!session?.user || session.user.role !== "admin") {
-      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { 
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return NextResponse.json(
+        { error: "Unauthorized" }, 
+        { status: 401 }
+      );
     }
 
-    const { id } = params;
+    // Await the params Promise
+    const { id } = await context.params;
 
     if (!id) {
-      return new NextResponse(JSON.stringify({ error: "Missing feedback ID" }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return NextResponse.json(
+        { error: "Missing feedback ID" }, 
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
@@ -32,12 +33,21 @@ export async function PUT(
 
     // Validate that at least one field is being updated
     if (read === undefined) {
-      return new NextResponse(
-        JSON.stringify({ error: "No fields to update" }), 
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return NextResponse.json(
+        { error: "No fields to update" }, 
+        { status: 400 }
+      );
+    }
+
+    // Check if feedback exists
+    const existingFeedback = await prisma.contactFeedback.findUnique({
+      where: { id },
+    });
+
+    if (!existingFeedback) {
+      return NextResponse.json(
+        { error: "Feedback not found" }, 
+        { status: 404 }
       );
     }
 
@@ -46,18 +56,21 @@ export async function PUT(
       data: { read },
     });
 
-    return NextResponse.json(updatedFeedback, { 
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return NextResponse.json(updatedFeedback, { status: 200 });
   } catch (error) {
-    console.error(`[Feedback API] PUT /api/feedback/${params.id}`, error);
-    return new NextResponse(
-      JSON.stringify({ error: "Internal Server Error" }), 
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+    console.error(`[Feedback API] PUT /api/feedback/[id]`, error);
+    
+    // Handle Prisma record not found error
+    if (error instanceof Error && error.message.includes('Record to update not found')) {
+      return NextResponse.json(
+        { error: "Feedback not found" }, 
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal Server Error" }, 
+      { status: 500 }
     );
   }
 }
@@ -65,31 +78,38 @@ export async function PUT(
 // DELETE /api/feedback/[id] - Delete feedback (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession(request);
 
     // Check if user is admin
     if (!session?.user || session.user.role !== "admin") {
-      return new NextResponse(
-        JSON.stringify({ error: "Unauthorized" }), 
-        { 
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return NextResponse.json(
+        { error: "Unauthorized" }, 
+        { status: 401 }
       );
     }
 
-    const { id } = params;
+    // Await the params Promise
+    const { id } = await context.params;
 
     if (!id) {
-      return new NextResponse(
-        JSON.stringify({ error: "Missing feedback ID" }), 
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return NextResponse.json(
+        { error: "Missing feedback ID" }, 
+        { status: 400 }
+      );
+    }
+
+    // Check if feedback exists
+    const existingFeedback = await prisma.contactFeedback.findUnique({
+      where: { id },
+    });
+
+    if (!existingFeedback) {
+      return NextResponse.json(
+        { error: "Feedback not found" }, 
+        { status: 404 }
       );
     }
 
@@ -99,18 +119,21 @@ export async function DELETE(
       data: { deleted: true },
     });
 
-    return NextResponse.json(deletedFeedback, { 
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return NextResponse.json(deletedFeedback, { status: 200 });
   } catch (error) {
-    console.error(`[Feedback API] DELETE /api/feedback/${params.id}`, error);
-    return new NextResponse(
-      JSON.stringify({ error: "Internal Server Error" }), 
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+    console.error(`[Feedback API] DELETE /api/feedback/[id]`, error);
+    
+    // Handle Prisma record not found error
+    if (error instanceof Error && error.message.includes('Record to update not found')) {
+      return NextResponse.json(
+        { error: "Feedback not found" }, 
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal Server Error" }, 
+      { status: 500 }
     );
   }
 }

@@ -287,7 +287,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
             {/* Languages Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-3">
-                Programming Languages
+                Languages
               </label>
               <div className="bg-white/10 border border-gray-600 rounded-lg p-4 min-h-[120px] max-h-32 overflow-y-auto">
                 {languageOptions.length > 0 ? (

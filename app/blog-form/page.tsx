@@ -8,18 +8,18 @@ import {
   FaSave,
   FaSpinner,
   FaImage,
-  FaPalette,
   FaUser,
   FaTag,
   FaEdit,
   FaFileAlt,
   FaArrowCircleLeft,
 } from "react-icons/fa";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks/useAuth";
 import { useBlogCrud } from "@/hooks/useBlogCrud";
-import dynamic from "next/dynamic";
 import ToastNotification from "@/app/components/ToastNotification";
 import { ToastNotification as ToastNotificationType } from "@/app/components/ToastNotification";
+import ImageUpload from "@/app/components/ImageUpload";
 
 const RichContentEditor = dynamic(
   () => import("@/app/components/RichContentEditor"),
@@ -339,35 +339,25 @@ export default function BlogFormPage() {
                 </select>
               </div>
 
-              {/* Image URL */}
+              {/* Article Image Upload */}
               <div>
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                  <FaImage className="text-yellow-400" />
-                  <span>Image URL</span>
-                </label>
-                <input
-                  type="url"
-                  name="image"
+                <ImageUpload
+                  label="Article Cover Image"
                   value={formData.image}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                  placeholder="https://example.com/image.jpg"
+                  onChange={(url) => setFormData(prev => ({ ...prev, image: url }))}
+                  icon={<FaImage className="text-purple-400" />}
+                  type="cover"
                 />
               </div>
 
-              {/* Author Image */}
+              {/* Author Image Upload */}
               <div>
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                  <FaUser className="text-green-400" />
-                  <span>Author Image URL</span>
-                </label>
-                <input
-                  type="url"
-                  name="authorImage"
+                <ImageUpload
+                  label="Author Image"
                   value={formData.authorImage}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                  placeholder="https://example.com/author.jpg"
+                  onChange={(url) => setFormData(prev => ({ ...prev, authorImage: url }))}
+                  icon={<FaUser className="text-green-400" />}
+                  type="author"
                 />
               </div>
             </div>

@@ -479,9 +479,10 @@ export default function BlogsSection() {
         {!isLoading && !error && blogs.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogs.map((blog) => (
-              <article
+              <Link
                 key={blog.id}
-                className={`group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.02] cursor-pointer ${getCardSizeClasses(
+                href={`/blogs/${blog.slug || blog.id}`}
+                className={`group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.02] cursor-pointer block ${getCardSizeClasses(
                   blog.size
                 )}`}
                 style={{
@@ -507,6 +508,7 @@ export default function BlogsSection() {
                       href={`/blog-form?mode=edit&id=${blog.id}`}
                       className="cursor-pointer p-2 bg-blue-600/80 backdrop-blur-sm text-white rounded-full hover:bg-blue-700/80 transition-colors duration-300"
                       title="Edit Blog"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <FaEdit className="text-xs" />
                     </Link>
@@ -587,13 +589,10 @@ export default function BlogsSection() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Link
-                      href={`/blogs/${blog.slug || blog.id}`}
-                      className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300"
-                    >
+                    <div className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300">
                       <span className="text-sm font-medium">Read More</span>
                       <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
-                    </Link>
+                    </div>
                     <div className="flex items-center space-x-2">
                       <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-300">
                         <FaBookmark className="text-xs" />
@@ -695,7 +694,7 @@ export default function BlogsSection() {
                   className="absolute bottom-3 right-3 w-1 h-1 bg-purple-400/30 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-500"
                   style={{ animationDelay: "1s" }}
                 ></div>
-              </article>
+              </Link>
             ))}
           </div>
         )}

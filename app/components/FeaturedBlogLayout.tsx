@@ -249,11 +249,19 @@ export default function EnhancedBlogLayout({
           {/* Author & Meta Info */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0 mb-12">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-medium">
-                  {getAuthorInitials(blog.author)}
-                </span>
-              </div>
+              {blog.authorImage ? (
+                <img 
+                  src={blog.authorImage} 
+                  alt={blog.author} 
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium">
+                    {getAuthorInitials(blog.author)}
+                  </span>
+                </div>
+              )}
               <div>
                 <h3 className="text-white font-medium">{blog.author}</h3>
                 <p className="text-gray-400 text-xs monty uppercase">Author</p>

@@ -424,9 +424,9 @@ export default function LatestInsights() {
               .filter((blog) => blog.id !== mainFeaturedBlog?.id)
               .slice(0, 2)
               .map((blog) => (
-                <article
-                  key={blog.id}
-                  className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
+                <Link
+                  href={`/blogs/${blog.slug || blog.id}`}
+                  className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer block"
                 >
                   {/* Admin Controls */}
                   {isAdmin && (
@@ -435,11 +435,16 @@ export default function LatestInsights() {
                         href={`/blog-form?mode=edit&id=${blog.id}`}
                         className="p-2 bg-blue-500/80 backdrop-blur-sm rounded-full text-white hover:bg-blue-600 transition-colors duration-300"
                         title="Edit Post"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <FaEdit className="text-xs" />
                       </Link>
                       <button
-                        onClick={() => handleDeleteBlog(blog.id, blog.title)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDeleteBlog(blog.id, blog.title);
+                        }}
                         disabled={isDeleting === blog.id}
                         className="p-2 bg-red-500/80 backdrop-blur-sm rounded-full text-white hover:bg-red-600 transition-colors duration-300 disabled:opacity-50"
                         title="Delete Post"
@@ -513,13 +518,10 @@ export default function LatestInsights() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <Link
-                        href={`/blogs/${blog.slug || blog.id}`}
-                        className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300"
-                      >
+                      <div className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300">
                         <span className="text-sm font-medium">Read More</span>
                         <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
-                      </Link>
+                      </div>
                       <div className="flex items-center space-x-2">
                         <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-300">
                           <FaBookmark className="text-xs" />
@@ -616,7 +618,7 @@ export default function LatestInsights() {
                     className="absolute bottom-3 right-3 w-1 h-1 bg-purple-400/30 rounded-full opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-500"
                     style={{ animationDelay: "1s" }}
                   ></div>
-                </article>
+                </Link>
               ))}
           </div>
         )}

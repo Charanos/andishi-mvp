@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { JSX, useEffect, useState } from "react";
 import DeveloperProfileEditor from "./DeveloperProfileEditor";
 import ConfirmationModal from "../components/ConfirmationModal";
+import { EnhancedDeveloperFilter } from "./EnhancedDeveloperFilter";
 
 import {
   FaEdit,
@@ -65,8 +66,8 @@ interface Props {
   refreshTrigger?: number; // Add refresh trigger prop
 }
 
-type ViewMode = "list" | "detail" | "edit" | "create";
-type SortOption = "name" | "rating" | "projects" | "earnings";
+type ViewMode = "list" | "detail" | "edit" | "create" | "grid";
+type SortOption = "name" | "rating" | "projects" | "earnings" | "newest";
 type ExperienceLevel = "all" | "junior" | "mid" | "senior" | "lead";
 type AvailabilityStatus = "all" | "available" | "busy" | "unavailable";
 
@@ -95,6 +96,11 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
     useState<ExperienceLevel>("all");
   const [selectedAvailability, setSelectedAvailability] =
     useState<AvailabilityStatus>("all");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedCertifications, setSelectedCertifications] = useState<
+    string[]
+  >([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -103,6 +109,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
     name: string;
   } | null>(null);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+  const [allLanguages, setAllLanguages] = useState<string[]>([]);
+  const [allCertifications, setAllCertifications] = useState<string[]>([]);
+  const [allSkills, setAllSkills] = useState<string[]>([]);
 
   // Custom toast notification functions
   const addNotification = (
@@ -173,6 +182,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
       setProfiles(uniqueProfiles);
       setFilteredProfiles(uniqueProfiles);
+      extractFilterOptions(uniqueProfiles);
 
       // Notify parent of refresh if callback provided
       if (onRefresh) {
@@ -188,6 +198,57 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
     }
   };
 
+  // Extract all available filter options from profiles
+  const extractFilterOptions = (profiles: DeveloperProfile[]) => {
+    const languages = new Set<string>();
+    const certifications = new Set<string>();
+    const skills = new Set<string>();
+
+    profiles.forEach((profile) => {
+      // Extract languages
+      if (profile.data.professionalInfo.languages) {
+        profile.data.professionalInfo.languages.forEach((lang) => {
+          if (lang) languages.add(lang);
+        });
+      }
+
+      // Extract certifications
+      if (profile.data.professionalInfo.certifications) {
+        profile.data.professionalInfo.certifications.forEach((cert) => {
+          if (cert) certifications.add(cert);
+        });
+      }
+
+      // Extract skills
+      if (profile.data.technicalSkills) {
+        const skillCategories = [
+          profile.data.technicalSkills.primarySkills || [],
+          profile.data.technicalSkills.frameworks || [],
+          profile.data.technicalSkills.databases || [],
+          profile.data.technicalSkills.tools || [],
+          profile.data.technicalSkills.cloudPlatforms || [],
+          profile.data.technicalSkills.specializations || [],
+        ];
+
+        skillCategories.forEach((category) => {
+          if (category) {
+            category.forEach((skill) => {
+              if (typeof skill === "string") {
+                skills.add(skill);
+              } else if (skill && typeof skill !== "string" && skill.name) {
+                skills.add(skill.name);
+              }
+            });
+          }
+        });
+      }
+    });
+
+    setAllLanguages(Array.from(languages).sort());
+    setAllCertifications(Array.from(certifications).sort());
+    setAllSkills(Array.from(skills).sort());
+  };
+
   // Manual refresh function
   const handleRefresh = async () => {
     await fetchProfiles();
@@ -199,30 +260,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
   useEffect(() => {
     fetchProfiles();
-
-    // Add focus event listener to refresh when tab becomes active
-    const handleFocus = () => {
-      fetchProfiles();
-    };
-
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
   }, []);
-
-  // Also refresh when component mounts or when users navigate back to this tab
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      // Auto-refresh every 30 seconds if not loading
-      if (!loading) {
-        fetchProfiles();
-      }
-    }, 30000);
-
-    return () => clearInterval(intervalId);
-  }, [loading]);
 
   // Refresh profiles when refreshTrigger changes (e.g., after assignment changes)
   useEffect(() => {
@@ -276,7 +314,74 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
         return true;
       })();
 
-      return matchesSearch && matchesExperience && matchesAvailability;
+      // Language filter
+      const matchesLanguages =
+        selectedLanguages.length === 0 ||
+        (profile.data.professionalInfo?.languages &&
+          selectedLanguages.every((lang) =>
+            profile.data.professionalInfo.languages?.includes(lang)
+          ));
+
+      // Certification filter
+      const matchesCertifications =
+        selectedCertifications.length === 0 ||
+        (profile.data.professionalInfo?.certifications &&
+          selectedCertifications.every((cert) =>
+            profile.data.professionalInfo.certifications?.includes(cert)
+          ));
+
+      // Skill filter
+      const matchesSkills =
+        selectedSkills.length === 0 ||
+        (profile.data.technicalSkills &&
+          selectedSkills.every(
+            (skill) =>
+              (profile.data.technicalSkills.primarySkills &&
+                profile.data.technicalSkills.primarySkills.some((s) =>
+                  typeof s === "string"
+                    ? s === skill
+                    : (s as { name: string }).name === skill
+                )) ||
+              (profile.data.technicalSkills.frameworks &&
+                profile.data.technicalSkills.frameworks.some((s) =>
+                  typeof s === "string"
+                    ? s === skill
+                    : (s as { name: string }).name === skill
+                )) ||
+              (profile.data.technicalSkills.databases &&
+                profile.data.technicalSkills.databases.some((s) =>
+                  typeof s === "string"
+                    ? s === skill
+                    : (s as { name: string }).name === skill
+                )) ||
+              (profile.data.technicalSkills.tools &&
+                profile.data.technicalSkills.tools.some((s) =>
+                  typeof s === "string"
+                    ? s === skill
+                    : (s as { name: string }).name === skill
+                )) ||
+              (profile.data.technicalSkills.cloudPlatforms &&
+                profile.data.technicalSkills.cloudPlatforms.some((s) =>
+                  typeof s === "string"
+                    ? s === skill
+                    : (s as { name: string }).name === skill
+                )) ||
+              (profile.data.technicalSkills.specializations &&
+                profile.data.technicalSkills.specializations.some((s) =>
+                  typeof s === "string"
+                    ? s === skill
+                    : (s as { name: string }).name === skill
+                ))
+          ));
+
+      return (
+        matchesSearch &&
+        matchesExperience &&
+        matchesAvailability &&
+        matchesLanguages &&
+        matchesCertifications &&
+        matchesSkills
+      );
     });
 
     // Sort profiles - prioritize new profiles first, then by selected sort option
@@ -326,6 +431,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
     selectedAvailability,
     sortBy,
     currentPage,
+    selectedLanguages,
+    selectedCertifications,
+    selectedSkills,
   ]);
 
   const handleEdit = (profileId: string): void => {
@@ -1609,119 +1717,45 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
           </div>
 
           {/* Search and Filter Controls */}
-          <div className="bg-white/5 rounded-xl p-6 mb-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-              <div className="flex-1 max-w-lg">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search developers..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3 items-center">
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="cursor-pointer appearance-none bg-blacl/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                  >
-                    <option value="name" className="bg-black/50">
-                      Name
-                    </option>
-                    <option value="rating" className="bg-black/50">
-                      Rating
-                    </option>
-                    <option value="projects" className="bg-black/50">
-                      Projects
-                    </option>
-                    <option value="earnings" className="bg-black/50">
-                      Earnings
-                    </option>
-                  </select>
-                  <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-                </div>
-
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`cursor-pointer flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors ${
-                    showFilters
-                      ? "bg-blue-600 text-white"
-                      : "bg-white/10 text-gray-300 hover:bg-black/20"
-                  }`}
-                >
-                  <FaFilter />
-                </button>
-              </div>
-            </div>
-
-            {showFilters && (
-              <div className="mt-6 pt-6 border-t border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Experience Level
-                    </label>
-                    <select
-                      value={selectedExperience}
-                      onChange={(e) =>
-                        setSelectedExperience(e.target.value as ExperienceLevel)
-                      }
-                      className="cursor-pointer w-full bg-white/10 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all" className="bg-gray-800">
-                        All Levels
-                      </option>
-                      <option value="junior" className="bg-gray-800">
-                        Junior
-                      </option>
-                      <option value="mid" className="bg-gray-800">
-                        Mid-Level
-                      </option>
-                      <option value="senior" className="bg-gray-800">
-                        Senior
-                      </option>
-                      <option value="lead" className="bg-gray-800">
-                        Lead
-                      </option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Availability Status
-                    </label>
-                    <select
-                      value={selectedAvailability}
-                      onChange={(e) =>
-                        setSelectedAvailability(
-                          e.target.value as AvailabilityStatus
-                        )
-                      }
-                      className="cursor-pointer w-full bg-white/10 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all" className="bg-gray-800">
-                        All Status
-                      </option>
-                      <option value="available" className="bg-gray-800">
-                        Available
-                      </option>
-                      <option value="busy" className="bg-gray-800">
-                        Busy
-                      </option>
-                      <option value="unavailable" className="bg-gray-800">
-                        Unavailable
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <EnhancedDeveloperFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedExperience={selectedExperience}
+            onExperienceChange={setSelectedExperience}
+            selectedAvailability={selectedAvailability}
+            onAvailabilityChange={setSelectedAvailability}
+            selectedLanguages={selectedLanguages}
+            onLanguagesChange={setSelectedLanguages}
+            selectedCertifications={selectedCertifications}
+            onCertificationsChange={setSelectedCertifications}
+            selectedSkills={selectedSkills}
+            onSkillsChange={setSelectedSkills}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onViewModeChange={setViewMode}
+            viewMode={viewMode}
+            languageOptions={allLanguages}
+            certificationOptions={allCertifications}
+            skillOptions={allSkills}
+            filteredProfilesCount={filteredProfiles.length}
+            totalProfilesCount={profiles.length}
+            hasActiveFilters={
+              searchTerm !== "" ||
+              selectedExperience !== "all" ||
+              selectedAvailability !== "all" ||
+              selectedLanguages.length > 0 ||
+              selectedCertifications.length > 0 ||
+              selectedSkills.length > 0
+            }
+            clearFilters={() => {
+              setSearchTerm("");
+              setSelectedExperience("all");
+              setSelectedAvailability("all");
+              setSelectedLanguages([]);
+              setSelectedCertifications([]);
+              setSelectedSkills([]);
+            }}
+          />
 
           {/* Profiles Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">

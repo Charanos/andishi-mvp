@@ -343,10 +343,12 @@ export default function ConditionalLayout({
 
   // Determine layout configuration
   const showNavbar = !isAuthRoute && !isMinimalLayout;
-  const isBlogPostRoute =
-    pathname.startsWith("/blogs/") && pathname !== "/blogs";
+  const isBlogRelatedRoute =
+    pathname.startsWith("/blogs") || 
+    pathname.startsWith("/blog-form") || 
+    pathname === "/featured-blog";
   const showFooter =
-    !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogPostRoute;
+    !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogRelatedRoute;
   const mainPadding = showNavbar ? "pt-19" : "";
 
   return (

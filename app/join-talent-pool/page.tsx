@@ -32,6 +32,7 @@ import {
 import Link from "next/link";
 import { useToast } from "../../hooks/useToast";
 import ToastContainer from "../components/ToastContainer";
+import CVUpload from "../components/CVUpload";
 
 interface PersonalInfo {
   firstName: string;
@@ -92,6 +93,7 @@ interface FormData {
   technicalSkills: TechnicalSkills;
   workExperience: WorkExperience[];
   projects: Project[];
+  cvUrl?: string;
 }
 
 export default function DeveloperRegistrationForm() {
@@ -405,13 +407,19 @@ export default function DeveloperRegistrationForm() {
 
   const handleSubmit = async () => {
     if (!termsAccepted) {
-      toast.error("Terms Required", "Please accept the terms and conditions before submitting.");
+      toast.error(
+        "Terms Required",
+        "Please accept the terms and conditions before submitting."
+      );
       return;
     }
 
     try {
       setSubmitStatus("loading");
-      toast.info("Submitting Application", "Your application is being submitted...");
+      toast.info(
+        "Submitting Application",
+        "Your application is being submitted..."
+      );
 
       // Submit to join-talent-pool endpoint (this creates both user and developer profile)
       const response = await fetch("/api/join-talent-pool", {
@@ -440,21 +448,27 @@ export default function DeveloperRegistrationForm() {
       }
 
       const result = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.message || "Failed to submit application");
       }
 
-      toast.success("Application Submitted!", "Successfully joined the talent pool! Redirecting...");
+      toast.success(
+        "Application Submitted!",
+        "Successfully joined the talent pool! Redirecting..."
+      );
       setSubmitStatus("success");
-      
+
       // Delay redirect to show success message
       setTimeout(() => {
         router.push("/thank-you-join-talent-pool");
       }, 2000);
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Submission Failed", "Failed to submit form. Please try again.");
+      toast.error(
+        "Submission Failed",
+        "Failed to submit form. Please try again."
+      );
       setSubmitStatus("error");
     }
   };
@@ -518,10 +532,11 @@ export default function DeveloperRegistrationForm() {
             {steps.map((step) => (
               <div key={step.number} className="relative z-10">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.number
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
-                    : "bg-gray-700 text-gray-400"
-                    }`}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    currentStep >= step.number
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
+                      : "bg-gray-700 text-gray-400"
+                  }`}
                 >
                   <step.icon className="text-lg" />
                 </div>
@@ -847,10 +862,11 @@ export default function DeveloperRegistrationForm() {
                               "workType"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${formData.professionalInfo.workType.includes(type)
-                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                            }`}
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${
+                            formData.professionalInfo.workType.includes(type)
+                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                          }`}
                         >
                           {type}
                         </button>
@@ -875,10 +891,11 @@ export default function DeveloperRegistrationForm() {
                               "languages"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${formData.professionalInfo.languages.includes(lang)
-                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                            }`}
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${
+                            formData.professionalInfo.languages.includes(lang)
+                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                          }`}
                         >
                           {lang}
                         </button>
@@ -898,6 +915,22 @@ export default function DeveloperRegistrationForm() {
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
                       placeholder="Tell us about yourself, your experience, and what makes you unique..."
                     />
+                  </div>
+                  <div>
+                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaFileUpload className="mr-2 text-blue-400" />
+                      Upload CV (Optional)
+                    </label>
+                    <CVUpload
+                      label="Upload CV (Optional)"
+                      value={formData.cvUrl}
+                      onChange={(url) =>
+                        setFormData((prev) => ({ ...prev, cvUrl: url }))
+                      }
+                    />
+                    <p className="text-gray-400 text-xs mt-2">
+                      Supported formats: PDF, DOC, DOCX, TXT (Max 10MB)
+                    </p>
                   </div>
                 </div>
               </div>
@@ -927,12 +960,13 @@ export default function DeveloperRegistrationForm() {
                               "primarySkills"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.primarySkills.includes(
-                            skill
-                          )
-                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                            }`}
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                            formData.technicalSkills.primarySkills.includes(
+                              skill
+                            )
+                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
+                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                          }`}
                         >
                           {skill}
                         </button>
@@ -955,12 +989,13 @@ export default function DeveloperRegistrationForm() {
                               "frameworks"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.frameworks.includes(
-                            framework
-                          )
-                            ? "bg-purple-500/20 border-purple-400 text-purple-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                            }`}
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                            formData.technicalSkills.frameworks.includes(
+                              framework
+                            )
+                              ? "bg-purple-500/20 border-purple-400 text-purple-300"
+                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                          }`}
                         >
                           {framework}
                         </button>
@@ -983,10 +1018,11 @@ export default function DeveloperRegistrationForm() {
                               "databases"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.databases.includes(db)
-                            ? "bg-green-500/20 border-green-400 text-green-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                            }`}
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                            formData.technicalSkills.databases.includes(db)
+                              ? "bg-green-500/20 border-green-400 text-green-300"
+                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                          }`}
                         >
                           {db}
                         </button>
@@ -1009,10 +1045,11 @@ export default function DeveloperRegistrationForm() {
                               "tools"
                             )
                           }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${formData.technicalSkills.tools.includes(tool)
-                            ? "bg-orange-500/20 border-orange-400 text-orange-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                            }`}
+                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                            formData.technicalSkills.tools.includes(tool)
+                              ? "bg-orange-500/20 border-orange-400 text-orange-300"
+                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                          }`}
                         >
                           {tool}
                         </button>
@@ -1507,10 +1544,11 @@ export default function DeveloperRegistrationForm() {
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${currentStep === 1
-                  ? "text-gray-500 cursor-not-allowed"
-                  : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
-                  }`}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
+                  currentStep === 1
+                    ? "text-gray-500 cursor-not-allowed"
+                    : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
+                }`}
               >
                 <FaArrowLeft className="text-[15.5px" />
                 <span>Previous</span>
@@ -1525,10 +1563,11 @@ export default function DeveloperRegistrationForm() {
                   type="button"
                   onClick={nextStep}
                   disabled={!isStepValid()}
-                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${isStepValid()
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
-                    : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
-                    }`}
+                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${
+                    isStepValid()
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
+                      : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                  }`}
                 >
                   Next
                   <FaArrowRight className="ml-2" />
@@ -1538,10 +1577,11 @@ export default function DeveloperRegistrationForm() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={!isStepValid() || submitStatus === "loading"}
-                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${isStepValid() && submitStatus !== "loading"
-                    ? "cursor-pointer bg-green-500/80 text-gray-200 hover:bg-green-500/70"
-                    : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
-                    }`}
+                  className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${
+                    isStepValid() && submitStatus !== "loading"
+                      ? "cursor-pointer bg-green-500/80 text-gray-200 hover:bg-green-500/70"
+                      : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                  }`}
                 >
                   {submitStatus === "loading" ? (
                     "Submitting..."

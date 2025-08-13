@@ -191,6 +191,10 @@ export default function BlogsSection() {
   // Handle setting main featured blog
   const handleSetMainFeatured = async (blog: Blog) => {
     try {
+      // Immediately update the UI to reflect the change
+      setFeaturedBlog(blog);
+      setBlogs(prevBlogs => prevBlogs.filter(b => b.id !== blog.id));
+      
       const response = await fetch(`/api/blogs/featured`, {
         method: "POST",
         headers: {
@@ -204,7 +208,7 @@ export default function BlogsSection() {
 
       if (response.ok) {
         toast.success("Success", "Featured blog updated successfully!");
-        // Refresh the blog list and featured blog data from API
+        // Refresh the blog list and featured blog data from API to confirm the change
         const { blogs: blogData } = await fetchBlogs();
         if (blogData) {
           setAllBlogs(blogData);
@@ -230,6 +234,30 @@ export default function BlogsSection() {
           }
         }
       } else {
+        // If the API call fails, revert the UI changes
+        const { blogs: blogData } = await fetchBlogs();
+        if (blogData) {
+          setAllBlogs(blogData);
+          
+          // Fetch current featured blogs from the API endpoint
+          const featuredResponse = await fetch("/api/blogs/featured");
+          const featuredResult = await featuredResponse.json();
+
+          if (featuredResponse.ok && featuredResult.data) {
+            const mainFeatured = featuredResult.data.mainFeaturedBlog;
+            setFeaturedBlog(mainFeatured || blogData[0]);
+
+            // Filter out the main featured blog from the regular blogs list
+            const filteredBlogs = mainFeatured
+              ? blogData.filter((b) => b.id !== mainFeatured.id)
+              : blogData.slice(1);
+            setBlogs(filteredBlogs);
+          } else {
+            setFeaturedBlog(blogData[0]);
+            setBlogs(blogData.slice(1));
+          }
+        }
+        
         const errorData = await response.json();
         toast.error(
           "Error",
@@ -237,6 +265,30 @@ export default function BlogsSection() {
         );
       }
     } catch (err) {
+      // If there's an error, revert the UI changes
+      const { blogs: blogData } = await fetchBlogs();
+      if (blogData) {
+        setAllBlogs(blogData);
+        
+        // Fetch current featured blogs from the API endpoint
+        const featuredResponse = await fetch("/api/blogs/featured");
+        const featuredResult = await featuredResponse.json();
+
+        if (featuredResponse.ok && featuredResult.data) {
+          const mainFeatured = featuredResult.data.mainFeaturedBlog;
+          setFeaturedBlog(mainFeatured || blogData[0]);
+
+          // Filter out the main featured blog from the regular blogs list
+          const filteredBlogs = mainFeatured
+            ? blogData.filter((b) => b.id !== mainFeatured.id)
+            : blogData.slice(1);
+          setBlogs(filteredBlogs);
+        } else {
+          setFeaturedBlog(blogData[0]);
+          setBlogs(blogData.slice(1));
+        }
+      }
+      
       console.error("Error setting featured blog:", err);
       toast.error("Error", "Failed to update featured blog");
     }

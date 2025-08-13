@@ -199,6 +199,7 @@ model Developer {
   technicalSkills  Json?
   workExperience   Json?
   projects         Json?
+  cvUrl            String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

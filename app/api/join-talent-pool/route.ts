@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
         technicalSkills: data.technicalSkills || {},
         workExperience: data.workExperience || [],
         projects: data.projects || [],
+        cvUrl: data.cvUrl || null,
         createdAt: data.createdAt
       }
     });
@@ -131,6 +132,7 @@ export async function POST(req: NextRequest) {
               technicalSkills: data.technicalSkills || {},
               workExperience: data.workExperience || [],
               projects: data.projects || [],
+              cvUrl: data.cvUrl || null,
               stats: {
                 totalProjects: 0,
                 averageRating: 0,
@@ -157,6 +159,7 @@ export async function POST(req: NextRequest) {
               technicalSkills: data.technicalSkills || {},
               workExperience: data.workExperience || [],
               projects: data.projects || [],
+              cvUrl: data.cvUrl || null,
               stats: {
                 totalProjects: 0,
                 averageRating: 0,
@@ -207,6 +210,13 @@ export async function PUT(req: NextRequest) {
     if (!(_id && typeof _id === 'string')) {
       return new NextResponse(JSON.stringify({ success: false, message: 'Missing or invalid _id' }), { status: 400, headers: corsHeaders });
     }
+    
+    // Ensure cvUrl is properly handled
+    if (updateData.data && updateData.data.cvUrl !== undefined) {
+      updateData.cvUrl = updateData.data.cvUrl;
+      delete updateData.data.cvUrl;
+    }
+    
     // Update developer using Prisma
     const result = await prisma.developer.update({
       where: { id: _id },

@@ -290,7 +290,10 @@ export default function LatestInsights() {
         {/* Featured Article */}
         {mainFeaturedBlog && (
           <div className="mb-16">
-            <article className="group relative overflow-hidden rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.01] cursor-pointer">
+            <Link
+              href={`/blogs/${mainFeaturedBlog.slug || mainFeaturedBlog.id}`}
+              className="group relative overflow-hidden rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.01] cursor-pointer block"
+            >
               {/* Admin Controls for Featured Blog - Only visible to admins */}
               {isAdmin && (
                 <div className="absolute top-6 right-6 z-10 flex space-x-2">
@@ -298,16 +301,19 @@ export default function LatestInsights() {
                     href={`/blog-form?mode=edit&id=${mainFeaturedBlog.id}`}
                     className="p-2 bg-blue-500/80 backdrop-blur-sm rounded-full text-white hover:bg-blue-600 transition-colors duration-300"
                     title="Edit Post"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <FaEdit className="text-xs" />
                   </Link>
                   <button
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       handleDeleteBlog(
                         mainFeaturedBlog.id,
                         mainFeaturedBlog.title
-                      )
-                    }
+                      );
+                    }}
                     disabled={isDeleting === mainFeaturedBlog.id}
                     className="p-2 bg-red-500/80 backdrop-blur-sm rounded-full text-white hover:bg-red-600 transition-colors duration-300 disabled:opacity-50"
                     title="Delete Post"
@@ -369,13 +375,10 @@ export default function LatestInsights() {
                   </div>
 
                   <div className="flex items-center justify-between pt-4">
-                    <Link
-                      href={`/blogs/${mainFeaturedBlog.slug || mainFeaturedBlog.id}`}
-                      className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 monty uppercase hover:to-purple-600 transition-all duration-300 hover:scale-105 group/btn"
-                    >
+                    <div className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 monty uppercase hover:to-purple-600 transition-all duration-300 hover:scale-105 group/btn">
                       <span>Read Full Article</span>
                       <FaArrowRight className="text-sm transition-transform duration-300 group-hover/btn:translate-x-1" />
-                    </Link>
+                    </div>
 
                     <div className="flex items-center space-x-4 text-gray-400">
                       <div className="flex items-center space-x-1">
@@ -413,7 +416,7 @@ export default function LatestInsights() {
                   ></div>
                 </div>
               </div>
-            </article>
+            </Link>
           </div>
         )}
 

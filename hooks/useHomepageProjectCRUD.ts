@@ -66,10 +66,9 @@ export const useHomepageProjectCRUD = () => {
         throw new Error(data.message || 'Failed to fetch homepage projects');
       }
       
-      return data.projects;
+      return data.data;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
       console.error('Error fetching homepage projects:', err);
       return [];
     } finally {

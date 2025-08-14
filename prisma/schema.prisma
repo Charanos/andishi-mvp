@@ -153,7 +153,7 @@ model HomepageProject {
   gradient    String   @default("from-gray-500/20 to-gray-600/10")
   liveUrl     String   @default("")
   githubUrl   String   @default("")
-  projectUrl  String   @default("")
+  projectUrl  String   @unique
   client      String   @default("")
   duration    String   @default("")
   teamSize    String   @default("")

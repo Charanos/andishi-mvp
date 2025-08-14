@@ -2,7 +2,9 @@ import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 
 // Load environment variables for development
-dotenv.config({ path: '.env.local' });
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config({ path: '.env.local' });
+}
 
 const prisma = new PrismaClient();
 

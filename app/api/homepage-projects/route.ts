@@ -12,30 +12,66 @@ const getCorsHeaders = (req: NextRequest) => {
   };
 };
 
-// GET /api/homepage-projects - Get all homepage projects
+// GET /api/homepage-projects - Get all homepage projects or a single project by slug
 export async function GET(req: NextRequest) {
   try {
-    const projects = await prisma.homepageProject.findMany({
-      orderBy: [
-        { featured: 'desc' }, // Featured projects first
-        { createdAt: 'desc' }, // Then by creation date
-      ],
-    });
+    const { searchParams } = new URL(req.url);
+    const slug = searchParams.get('slug');
 
-    const response = new NextResponse(JSON.stringify({
-      success: true,
-      data: projects
-    }), { 
-      status: 200, 
-      headers: getCorsHeaders(req) 
-    });
+    if (slug) {
+      // Fetch single project by slug
+      const project = await prisma.homepageProject.findFirst({
+        where: { projectUrl: slug }
+      });
 
-    // Add cache headers for better performance
-    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-    response.headers.set('CDN-Cache-Control', 'public, s-maxage=60');
-    response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=60');
+      if (!project) {
+        return new NextResponse(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Project not found' 
+          }), 
+          { status: 404, headers: getCorsHeaders(req) }
+        );
+      }
 
-    return response;
+      const response = new NextResponse(JSON.stringify({
+        success: true,
+        data: project
+      }), { 
+        status: 200, 
+        headers: getCorsHeaders(req) 
+      });
+
+      // Add cache headers for better performance
+      response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+      response.headers.set('CDN-Cache-Control', 'public, s-maxage=60');
+      response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=60');
+
+      return response;
+    } else {
+      // Fetch all projects
+      const projects = await prisma.homepageProject.findMany({
+        orderBy: [
+          { featured: 'desc' }, // Featured projects first
+          { createdAt: 'desc' }, // Then by creation date
+        ],
+      });
+
+      const response = new NextResponse(JSON.stringify({
+        success: true,
+        data: projects
+      }), { 
+        status: 200, 
+        headers: getCorsHeaders(req) 
+      });
+
+      // Add cache headers for better performance
+      response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+      response.headers.set('CDN-Cache-Control', 'public, s-maxage=60');
+      response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=60');
+
+      return response;
+    }
   } catch (error) {
     console.error('Error fetching homepage projects:', error);
     return new NextResponse(
@@ -43,10 +79,7 @@ export async function GET(req: NextRequest) {
         success: false, 
         error: 'Failed to fetch homepage projects' 
       }), 
-      { 
-        status: 500, 
-        headers: getCorsHeaders(req) 
-      }
+      { status: 500, headers: getCorsHeaders(req) }
     );
   }
 }
@@ -113,6 +146,9 @@ export async function POST(req: NextRequest) {
       githubUrl: githubUrl || '',
     };
 
+    // Always generate slug from title (ignore projectUrl if it's a URL)
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
     const newProject = await prisma.homepageProject.create({
       data: {
         title,
@@ -124,7 +160,7 @@ export async function POST(req: NextRequest) {
         gradient: gradient || 'from-gray-500/20 to-gray-600/10',
         liveUrl: liveUrl || '',
         githubUrl: githubUrl || '',
-        projectUrl: projectUrl || '',
+        projectUrl: slug,
         client: client || '',
         duration: duration || '',
         teamSize: teamSize || '',
@@ -179,11 +215,17 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Always generate slug from title if title is being updated
+    let updateData = { ...updates };
+    if (updates.title) {
+      updateData.projectUrl = updates.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
     // Update project in database
     const updatedProject = await prisma.homepageProject.update({
       where: { id },
       data: {
-        ...updates,
+        ...updateData,
         updatedAt: new Date()
       }
     });

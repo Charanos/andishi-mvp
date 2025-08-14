@@ -706,6 +706,173 @@ export default function ProjectsPage() {
           )}
         </div>
       </section>
+
+      <section className="py-24 overflow-hidden bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20 relative">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-2xl lg:text-3xl font-semibold text-white mb-4">
+              What Our <span className="text-purple-400">Clients Say</span>
+            </h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Hear from businesses that transformed their operations with our
+              solutions
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Video Testimonial Section */}
+            <div className="relative group">
+              <div className="aspect-video bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl overflow-hidden border border-white/10">
+                {/* Video placeholder with play button */}
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                  <button className="absolute z-10 w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors duration-300">
+                    <FiPlay className="w-8 h-8 text-white ml-1" />
+                  </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <Image
+                    src="/api/placeholder/1280/720"
+                    alt="Client testimonial"
+                    fill
+                    className="object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 p-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r  from-purple-500 to-blue-500 -z-30"></div>
+                  <div>
+                    <h3 className="text-white font-medium z-20">
+                      Sarah Johnson
+                    </h3>
+                    <p className="text-purple-400 text-sm z-20">
+                      CTO, TechInnovate Inc.
+                    </p>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-gray-300 italic z-20">
+                  "The team delivered beyond our expectations. Our platform
+                  handles 3x more traffic with zero downtime."
+                </p>
+              </div>
+            </div>
+
+            {/* Client Reviews Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  name: "Michael Chen",
+                  role: "Product Director, FinTech Global",
+                  quote:
+                    "Their blockchain solution reduced transaction costs by 40% and improved security significantly.",
+                  rating: 5,
+                },
+                {
+                  name: "Emma Rodriguez",
+                  role: "CEO, HealthCare Solutions",
+                  quote:
+                    "The healthcare management system streamlined our operations and improved patient care quality.",
+                  rating: 5,
+                },
+                {
+                  name: "David Wilson",
+                  role: "Operations Manager, RetailChain",
+                  quote:
+                    "Our e-commerce platform saw 150% growth in conversions after their AI recommendations implementation.",
+                  rating: 4,
+                },
+                {
+                  name: "Priya Sharma",
+                  role: "Tech Lead, EduTech Innovations",
+                  quote:
+                    "The learning management system transformed how we deliver content to 50,000+ students globally.",
+                  rating: 5,
+                },
+              ].map((review, index) => (
+                <div
+                  key={index}
+                  className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300"
+                >
+                  <div className="flex gap-1 text-yellow-400 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <FiStar
+                        key={i}
+                        className={`${
+                          i < review.rating
+                            ? "fill-current opacity-100"
+                            : "opacity-30"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-300 mb-6 italic">"{review.quote}"</p>
+                  <div>
+                    <h3 className="text-white font-medium">{review.name}</h3>
+                    <p className="text-purple-400 text-sm">{review.role}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 relative overflow-hidden ">
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10  ">
+          <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
+            Ready to Start Your{" "}
+            <span className="text-purple-400">Next Project?</span>
+          </h2>
+          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            Let's collaborate to bring your vision to life with cutting-edge
+            technology and innovative solutions
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/start-project"
+              className="group inline-flex items-center monty uppercase justify-center space-x-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium rounded-full hover:from-purple-600 hover:to-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 cursor-pointer"
+            >
+              <span>Start a Project</span>
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </Link>
+
+            <Link
+              href="/contact-us"
+              className="group monty uppercase inline-flex items-center justify-center space-x-2 px-8 py-4 bg-white/5 border border-white/10 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+            >
+              <span>Contact Us</span>
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

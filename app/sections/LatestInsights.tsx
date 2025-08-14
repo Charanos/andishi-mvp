@@ -297,14 +297,17 @@ export default function LatestInsights() {
               {/* Admin Controls for Featured Blog - Only visible to admins */}
               {isAdmin && (
                 <div className="absolute top-6 right-6 z-10 flex space-x-2">
-                  <Link
-                    href={`/blog-form?mode=edit&id=${mainFeaturedBlog.id}`}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.location.href = `/blog-form?mode=edit&id=${mainFeaturedBlog.id}`;
+                    }}
                     className="p-2 bg-blue-500/80 backdrop-blur-sm rounded-full text-white hover:bg-blue-600 transition-colors duration-300"
                     title="Edit Post"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <FaEdit className="text-xs" />
-                  </Link>
+                  </button>
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -428,20 +431,24 @@ export default function LatestInsights() {
               .slice(0, 2)
               .map((blog) => (
                 <Link
+                  key={blog.id}
                   href={`/blogs/${blog.slug || blog.id}`}
                   className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer block"
                 >
                   {/* Admin Controls */}
                   {isAdmin && (
                     <div className="absolute top-4 right-4 z-10 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <Link
-                        href={`/blog-form?mode=edit&id=${blog.id}`}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.location.href = `/blog-form?mode=edit&id=${blog.id}`;
+                        }}
                         className="p-2 bg-blue-500/80 backdrop-blur-sm rounded-full text-white hover:bg-blue-600 transition-colors duration-300"
                         title="Edit Post"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <FaEdit className="text-xs" />
-                      </Link>
+                      </button>
                       <button
                         onClick={(e) => {
                           e.preventDefault();

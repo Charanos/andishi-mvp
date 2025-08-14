@@ -120,6 +120,8 @@ model Project {
   priority                String              @default("medium")
   budget                  Float               @default(0)
   timeline                String?
+  featured                Boolean             @default(false)
+  mainFeatured            Boolean             @default(false)
   techStack               String[]
   requiredSkills          String[]
   experienceLevel         String              @default("Mid-level")
@@ -138,6 +140,27 @@ model Project {
   payments                ProjectPayment[]
   updates                 ProjectUpdate[]
   progress                Int                 @default(0)
+}
+
+model HomepageProject {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  category    String
+  image       String   @default("/images/default-project.jpg")
+  projectImages String[]
+  technologies String[]
+  gradient    String   @default("from-gray-500/20 to-gray-600/10")
+  liveUrl     String   @default("")
+  githubUrl   String   @default("")
+  projectUrl  String   @default("")
+  client      String   @default("")
+  duration    String   @default("")
+  teamSize    String   @default("")
+  featured    Boolean  @default(false)
+  status      String   @default("planning") // completed, in-progress, planning
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ProjectAssignment {

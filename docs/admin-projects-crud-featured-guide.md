@@ -10,6 +10,7 @@ The implementation will allow admin users to:
 2. Select featured projects for homepage display
 3. Designate a main featured project
 4. Manage projects through an intuitive admin dashboard interface
+5. Create, read, update, and delete homepage marketing projects using a separate, simplified system
 
 ## Architecture Components
 
@@ -30,6 +31,8 @@ model Project {
 }
 ```
 
+**Note:** Homepage marketing projects will use a separate, simplified data structure from formal client projects.
+
 ### 2. API Endpoints
 
 #### Main Projects API (`/api/projects`)
@@ -45,9 +48,72 @@ model Project {
 - `GET /api/projects/featured` - Get featured projects (public access)
 - `POST /api/projects/featured` - Update featured projects selection (admin only)
 
+#### Homepage Marketing Projects API (`/api/homepage-projects`)
+
+- `GET /api/homepage-projects` - Fetch all homepage marketing projects (public access)
+- `POST /api/homepage-projects` - Create new homepage marketing project (admin only)
+- `PUT /api/homepage-projects/[id]` - Update homepage marketing project (admin only)
+- `DELETE /api/homepage-projects/[id]` - Delete homepage marketing project (admin only)
+
 ### 3. React Hooks
 
 #### `useProjectCrud` Hook
+
+This hook manages CRUD operations for formal client projects.
+
+#### `useHomepageProjectCRUD` Hook
+
+This hook manages CRUD operations specifically for homepage marketing projects:
+
+```typescript
+export const useHomepageProjectCRUD = () => {
+  const { user, token } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isAdmin = user?.role === "admin";
+
+  // CRUD operations for homepage projects
+  const fetchHomepageProjects = useCallback(async (): Promise<HomepageProjectType[]> => {
+    /* ... */
+  }, []);
+
+  const createHomepageProject = useCallback(
+    async (projectData: HomepageProjectFormData): Promise<HomepageProjectType | null> => {
+      /* ... */
+    },
+    [isAdmin, token]
+  );
+
+  const updateHomepageProject = useCallback(
+    async (
+      id: string,
+      projectData: Partial<HomepageProjectFormData>
+    ): Promise<HomepageProjectType | null> => {
+      /* ... */
+    },
+    [isAdmin, token]
+  );
+
+  const deleteHomepageProject = useCallback(
+    async (id: string): Promise<boolean> => {
+      /* ... */
+    },
+    [isAdmin, token]
+  );
+
+  return {
+    fetchHomepageProjects,
+    createHomepageProject,
+    updateHomepageProject,
+    deleteHomepageProject,
+    isLoading,
+    error,
+    isAdmin,
+    clearError: () => setError(null),
+  };
+};
+```
 
 Similar to `useBlogCrud`, this hook will manage project operations:
 
@@ -101,6 +167,30 @@ export const useProjectCrud = () => {
 ### 4. Admin Dashboard UI Components
 
 #### Project Selection Interface
+
+#### Minified Homepage Project Form
+
+For homepage marketing projects, we'll create a simplified inline form with only the essential fields needed for display purposes:
+
+- Title (string)
+- Short Description (string)
+- Category (string)
+- Technologies (string array)
+- Image URL (string)
+- Client Name (string)
+- Duration (string)
+- Team Size (string)
+- Featured Status (boolean)
+- Status (completed, in-progress, planning)
+
+This form will be distinct from the full client project creation form and will be used specifically for marketing-focused projects displayed on the homepage.
+
+The form component has been implemented at `app/admin-dashboard/HomepageProjectForm.tsx` with the following features:
+- Clean, responsive design with glassmorphic styling
+- Technology tags with add/remove functionality
+- Form validation for required fields
+- Integration with the `useHomepageProjectCRUD` hook
+- Support for both creating new and editing existing homepage projects
 
 Create a dedicated admin interface for selecting featured projects:
 

@@ -107,7 +107,7 @@ export default function HomePage() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
       >
-        <ProjectsShowcase />
+        <ProjectsShowcase isHomepage={true} maxProjects={6} />
       </motion.div>
 
       <motion.div

@@ -347,8 +347,11 @@ export default function ConditionalLayout({
     pathname.startsWith("/blogs") || 
     pathname.startsWith("/blog-form") || 
     pathname === "/featured-blog";
+  const isProjectRelatedRoute =
+    pathname.startsWith("/projects") ||
+    pathname === "/projects";
   const showFooter =
-    !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogRelatedRoute;
+    !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogRelatedRoute && !isProjectRelatedRoute;
   const mainPadding = showNavbar ? "pt-19" : "";
 
   return (

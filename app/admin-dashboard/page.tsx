@@ -61,7 +61,11 @@ import {
 } from "lucide-react";
 import DeveloperProfilesOverview from "./DeveloperProfilesOverview";
 // Shared currency utilities
-import { CurrencyAmount, formatCurrency, extractAmount } from "@/utils/currency";
+import {
+  CurrencyAmount,
+  formatCurrency,
+  extractAmount,
+} from "@/utils/currency";
 import ProjectAssignments from "./ProjectAssignments";
 import AdvancedAnalyticsDashboard from "./renderAnalytics";
 import generateAdvancedAnalytics, {
@@ -1360,8 +1364,6 @@ export default function EnhancedAdminDashboard(): ReactNode {
     });
   };
 
-  
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "pending":
@@ -1500,7 +1502,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
             label: "Avg Project Value",
             value: formatCurrency(
               analytics.totalProjects > 0
-                ? extractAmount(analytics.totalRevenue) / analytics.totalProjects
+                ? extractAmount(analytics.totalRevenue) /
+                    analytics.totalProjects
                 : 0
             ),
             icon: <FaChartLine className="text-purple-400" />,

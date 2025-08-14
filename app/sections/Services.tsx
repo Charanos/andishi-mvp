@@ -273,10 +273,11 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                         {/* Expand indicator */}
                         <div className="flex-shrink-0">
                           <div
-                            className={`w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition-all duration-300 ${expandedService === index
-                              ? "rotate-90 bg-blue-500/20"
-                              : "group-hover:bg-white/10"
-                              }`}
+                            className={`w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition-all duration-300 ${
+                              expandedService === index
+                                ? "rotate-90 bg-blue-500/20"
+                                : "group-hover:bg-white/10"
+                            }`}
                           >
                             <FaArrowRight className="text-sm text-blue-400" />
                           </div>
@@ -304,10 +305,11 @@ export default function ServicesWithDashboard(): React.JSX.Element {
 
                       {/* Expanded content */}
                       <div
-                        className={`transition-all duration-500 overflow-hidden ${expandedService === index
-                          ? "max-h-96 opacity-100"
-                          : "max-h-0 opacity-0"
-                          }`}
+                        className={`transition-all duration-500 overflow-hidden ${
+                          expandedService === index
+                            ? "max-h-96 opacity-100"
+                            : "max-h-0 opacity-0"
+                        }`}
                       >
                         <div className="pt-4 ">
                           {/* Key Features */}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-utils';
+import { generateSlug } from '@/lib/utils';
 import prisma from '@/lib/prisma';
 
 // CORS headers
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     if (slug) {
       // Fetch single project by slug
       const project = await prisma.homepageProject.findFirst({
-        where: { projectUrl: slug }
+        where: { slug: slug }
       });
 
       if (!project) {
@@ -113,8 +114,7 @@ export async function POST(req: NextRequest) {
       status,
       gradient,
       liveUrl,
-      githubUrl,
-      projectUrl
+      githubUrl
     } = body;
 
     // Validate required fields
@@ -146,8 +146,19 @@ export async function POST(req: NextRequest) {
       githubUrl: githubUrl || '',
     };
 
-    // Always generate slug from title (ignore projectUrl if it's a URL)
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    // Generate slug from title using utility function
+    const projectSlug = generateSlug(title);
+    
+    // Check if slug already exists and make it unique if needed
+    const existingProject = await prisma.homepageProject.findFirst({
+      where: { slug: projectSlug }
+    });
+    
+    let finalSlug = projectSlug;
+    if (existingProject) {
+      // Add timestamp to make it unique
+      finalSlug = `${projectSlug}-${Date.now()}`;
+    }
 
     const newProject = await prisma.homepageProject.create({
       data: {
@@ -160,7 +171,7 @@ export async function POST(req: NextRequest) {
         gradient: gradient || 'from-gray-500/20 to-gray-600/10',
         liveUrl: liveUrl || '',
         githubUrl: githubUrl || '',
-        projectUrl: slug,
+        slug: finalSlug,
         client: client || '',
         duration: duration || '',
         teamSize: teamSize || '',
@@ -218,7 +229,22 @@ export async function PUT(req: NextRequest) {
     // Always generate slug from title if title is being updated
     let updateData = { ...updates };
     if (updates.title) {
-      updateData.projectUrl = updates.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const newSlug = generateSlug(updates.title);
+      
+      // Check if the new slug conflicts with existing projects (excluding current one)
+      const existingProject = await prisma.homepageProject.findFirst({
+        where: { 
+          slug: newSlug,
+          id: { not: id }
+        }
+      });
+      
+      if (existingProject) {
+        // Make slug unique by adding timestamp
+        updateData.slug = `${newSlug}-${Date.now()}`;
+      } else {
+        updateData.slug = newSlug;
+      }
     }
 
     // Update project in database

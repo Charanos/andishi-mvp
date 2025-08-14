@@ -12,7 +12,6 @@ import {
   FaHeart,
   FaShare,
   FaCode,
-  FaRocket,
   FaEdit,
   FaTrash,
   FaPlus,
@@ -102,42 +101,51 @@ export default function LatestInsights() {
     const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
     const title = blog.title;
     const text = `Check out this article: ${title}`;
-    
+
     // Copy to clipboard
-    navigator.clipboard.writeText(url).then(() => {
-      addToast({
-        type: "success",
-        title: "Success",
-        message: "Blog URL copied to clipboard!",
-        duration: 3000,
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        addToast({
+          type: "success",
+          title: "Success",
+          message: "Blog URL copied to clipboard!",
+          duration: 3000,
+        });
+      })
+      .catch(() => {
+        addToast({
+          type: "error",
+          title: "Error",
+          message: "Failed to copy URL to clipboard",
+          duration: 3000,
+        });
       });
-    }).catch(() => {
-      addToast({
-        type: "error",
-        title: "Error",
-        message: "Failed to copy URL to clipboard",
-        duration: 3000,
-      });
-    });
   };
 
   const shareToTwitter = (blog: Blog) => {
     const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
     const text = `Check out this article: ${blog.title}`;
-    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
-    window.open(twitterUrl, '_blank');
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+      url
+    )}&text=${encodeURIComponent(text)}`;
+    window.open(twitterUrl, "_blank");
   };
 
   const shareToLinkedIn = (blog: Blog) => {
     const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
-    window.open(linkedInUrl, '_blank');
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+      url
+    )}`;
+    window.open(linkedInUrl, "_blank");
   };
 
   const shareToFacebook = (blog: Blog) => {
     const url = `${window.location.origin}/blogs/${blog.slug || blog.id}`;
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    window.open(facebookUrl, '_blank');
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      url
+    )}`;
+    window.open(facebookUrl, "_blank");
   };
 
   const confirmDeleteBlog = async () => {
@@ -199,13 +207,13 @@ export default function LatestInsights() {
   const CategoryIcon = ({ category }: { category: string }) => {
     switch (category) {
       case "AI & Future Tech":
-        return <FaRocket className="text-xs" />;
+        return <FaCode className="text-xs" />;
       case "Web3 & Blockchain":
         return <FaCode className="text-xs" />;
       case "Security":
         return <FaBookmark className="text-xs" />;
       default:
-        return <FaRocket className="text-xs" />;
+        return <FaCode className="text-xs" />;
     }
   };
 
@@ -215,7 +223,7 @@ export default function LatestInsights() {
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center">
             <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 rounded-full mb-6">
-              <FaRocket className="text-blue-400 text-sm" />
+              <FaCode className="text-blue-400 text-sm" />
               <span className="text-blue-300 text-sm font-medium">
                 Loading Insights
               </span>
@@ -537,79 +545,84 @@ export default function LatestInsights() {
                           <FaBookmark className="text-xs" />
                         </button>
                         <div className="relative group/share">
-                          <button 
+                          <button
                             className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-300"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               // Show sharing options dropdown
-                              const shareMenu = e.currentTarget.nextElementSibling as HTMLElement;
+                              const shareMenu = e.currentTarget
+                                .nextElementSibling as HTMLElement;
                               if (shareMenu) {
-                                shareMenu.classList.toggle('hidden');
+                                shareMenu.classList.toggle("hidden");
                               }
                             }}
                           >
                             <FaShare className="text-xs" />
                           </button>
                           <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20 hidden">
-                            <button 
+                            <button
                               className="flex items-center space-x-2 w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 shareBlog(blog);
                                 // Hide the menu
-                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                const shareMenu = e.currentTarget
+                                  .parentElement as HTMLElement;
                                 if (shareMenu) {
-                                  shareMenu.classList.add('hidden');
+                                  shareMenu.classList.add("hidden");
                                 }
                               }}
                             >
                               <FaShare className="text-xs" />
                               <span>Copy Link</span>
                             </button>
-                            <button 
+                            <button
                               className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-400 hover:bg-gray-700 hover:text-blue-300 transition-colors duration-200"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 shareToTwitter(blog);
                                 // Hide the menu
-                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                const shareMenu = e.currentTarget
+                                  .parentElement as HTMLElement;
                                 if (shareMenu) {
-                                  shareMenu.classList.add('hidden');
+                                  shareMenu.classList.add("hidden");
                                 }
                               }}
                             >
                               <FaTwitter className="text-xs" />
                               <span>Twitter</span>
                             </button>
-                            <button 
+                            <button
                               className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-500 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 shareToLinkedIn(blog);
                                 // Hide the menu
-                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                const shareMenu = e.currentTarget
+                                  .parentElement as HTMLElement;
                                 if (shareMenu) {
-                                  shareMenu.classList.add('hidden');
+                                  shareMenu.classList.add("hidden");
                                 }
                               }}
                             >
                               <FaLinkedin className="text-xs" />
                               <span>LinkedIn</span>
                             </button>
-                            <button 
+                            <button
                               className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-700 hover:text-blue-500 transition-colors duration-200"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 shareToFacebook(blog);
                                 // Hide the menu
-                                const shareMenu = e.currentTarget.parentElement as HTMLElement;
+                                const shareMenu = e.currentTarget
+                                  .parentElement as HTMLElement;
                                 if (shareMenu) {
-                                  shareMenu.classList.add('hidden');
+                                  shareMenu.classList.add("hidden");
                                 }
                               }}
                             >

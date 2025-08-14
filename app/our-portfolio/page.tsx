@@ -18,7 +18,7 @@ import {
   FiPlay,
 } from "react-icons/fi";
 import { HiSparkles, HiViewGrid, HiViewList } from "react-icons/hi";
-import { FaBolt, FaFire, FaRocket, FaSmile } from "react-icons/fa";
+import { FaBolt, FaFire, FaCode, FaSmile } from "react-icons/fa";
 
 interface Project {
   id: number;
@@ -410,7 +410,7 @@ export default function OurProjectsPage() {
                 label: "Projects Delivered",
                 value: `${projects.length + 26}+`,
                 color: "purple",
-                icon: <FaRocket />,
+                icon: <FaCode />,
               },
               {
                 label: "Satisfied Clients",
@@ -459,187 +459,6 @@ export default function OurProjectsPage() {
       </section>
 
       {/* Enhanced Filters and Controls */}
-      <section className="py-16 border-b border-white/5 relative  bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <FiFilter className="w-6 h-6 text-purple-400" />
-              <h2 className="text-3xl font-semibold">
-                Discover Some of Our Work
-              </h2>
-            </div>
-            <p className="text-gray-400 text-lg">
-              Find the perfect project that matches your interests
-            </p>
-          </div>
-
-          {/* Main Controls Container */}
-          <div className="bg-black/10 backdrop-blur-2xl rounded-3xl border border-white/10 p-8 shadow-2xl">
-            {/* Search Bar */}
-            <div className="mb-8">
-              <div className="relative max-w-2xl mx-auto group">
-                <div
-                  className={`bg-gray-300 text-black ${
-                    isSearchFocused ? "opacity-100" : "opacity-0"
-                  }`}
-                ></div>
-                <div className="relative">
-                  <input
-                    id="project-search"
-                    type="text"
-                    placeholder="Search projects, technologies, clients..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    className="w-full px-6 py-4 pl-14 pr-20 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 focus:bg-white/10 transition-all duration-300 text-lg backdrop-blur-sm"
-                  />
-                  <FiSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery("")}
-                        className="absolute right-16 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors duration-200"
-                      >
-                        <FiX className="cursor-pointer w-6 h-6 text-gray-500" />
-                      </button>
-                    )}
-                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 bg-white/5 border border-white/10 rounded">
-                      ⌘ / CTRL
-                    </kbd>
-                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 bg-white/5 border border-white/10 rounded">
-                      K
-                    </kbd>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Filters Row */}
-            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
-              {/* Category Filter */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-sm font-medium monty uppercase text-gray-400">
-                    Categories:
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {categories.map((category, index) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`group monty relative px-6 py-3 rounded-full border transition-all duration-300 capitalize font-medium text-sm transform hover:scale-105 active:scale-95 ${
-                        selectedCategory === category
-                          ? "bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400/60 text-white shadow-lg shadow-purple-500/25"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
-                      }`}
-                      style={{ animationDelay: `${index * 0.05}s` }}
-                    >
-                      <span className="relative z-10 flex items-center gap-2">
-                        {selectedCategory === category && (
-                          <FaFire className="w-4 h-4" />
-                        )}
-                        {category === "all" ? "All Projects" : category}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sort and View Controls */}
-              <div className="flex items-center gap-4">
-                {/* Sort Dropdown */}
-                <div className="relative ">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none px-5  py-3 pr-12  border border-white/10 rounded-xl text-white focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 font-medium backdrop-blur-sm hover:bg-white/10 transition-all duration-300 min-w-[160px]"
-                  >
-                    <option value="newest">✨ Newest First</option>
-                    <option value="oldest">📅 Oldest First</option>
-                    <option value="name">🔤 Name A-Z</option>
-                    <option value="featured">⭐ Featured First</option>
-                  </select>
-                  <FiChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-
-                {/* View Toggle */}
-                <div className="flex rounded-xl border border-white/10 overflow-hidden bg-white/5">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-3.5 transition-all duration-300 ${
-                      viewMode === "grid"
-                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/10"
-                    }`}
-                    title="Grid View"
-                  >
-                    <HiViewGrid className="w-5 h-5" />
-                  </button>
-                  <div className="w-px bg-white/10"></div>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-3.5 transition-all duration-300 ${
-                      viewMode === "list"
-                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/10"
-                    }`}
-                    title="List View"
-                  >
-                    <HiViewList className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Results Summary */}
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <FiTrendingUp className="w-4 h-4 text-purple-400" />
-                    <span className="text-gray-300">
-                      Showing{" "}
-                      <span className="text-white font-semibold">
-                        {filteredAndSortedProjects.length}
-                      </span>{" "}
-                      of{" "}
-                      <span className="text-white font-semibold">
-                        {projects.length}
-                      </span>{" "}
-                      projects
-                    </span>
-                  </div>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={clearFilters}
-                      className="flex items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-full text-xs text-purple-300 hover:bg-purple-500/30 transition-colors duration-200"
-                    >
-                      <FiX className="w-3 h-3" />
-                      Clear filters
-                    </button>
-                  )}
-                </div>
-
-                {/* Quick Stats */}
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span>Live Projects</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    <span>Featured</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Projects Display */}
       <section className="py-16 relative">

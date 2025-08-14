@@ -12,7 +12,6 @@ import {
   FaHeart,
   FaShare,
   FaCode,
-  FaRocket,
   FaPlus,
   FaEdit,
   FaTrash,
@@ -193,8 +192,8 @@ export default function BlogsSection() {
     try {
       // Immediately update the UI to reflect the change
       setFeaturedBlog(blog);
-      setBlogs(prevBlogs => prevBlogs.filter(b => b.id !== blog.id));
-      
+      setBlogs((prevBlogs) => prevBlogs.filter((b) => b.id !== blog.id));
+
       const response = await fetch(`/api/blogs/featured`, {
         method: "POST",
         headers: {
@@ -202,8 +201,8 @@ export default function BlogsSection() {
         },
         body: JSON.stringify({
           featuredBlogids: [],
-          mainFeaturedBlogid: blog.id
-        })
+          mainFeaturedBlogid: blog.id,
+        }),
       });
 
       if (response.ok) {
@@ -238,7 +237,7 @@ export default function BlogsSection() {
         const { blogs: blogData } = await fetchBlogs();
         if (blogData) {
           setAllBlogs(blogData);
-          
+
           // Fetch current featured blogs from the API endpoint
           const featuredResponse = await fetch("/api/blogs/featured");
           const featuredResult = await featuredResponse.json();
@@ -257,7 +256,7 @@ export default function BlogsSection() {
             setBlogs(blogData.slice(1));
           }
         }
-        
+
         const errorData = await response.json();
         toast.error(
           "Error",
@@ -269,7 +268,7 @@ export default function BlogsSection() {
       const { blogs: blogData } = await fetchBlogs();
       if (blogData) {
         setAllBlogs(blogData);
-        
+
         // Fetch current featured blogs from the API endpoint
         const featuredResponse = await fetch("/api/blogs/featured");
         const featuredResult = await featuredResponse.json();
@@ -288,7 +287,7 @@ export default function BlogsSection() {
           setBlogs(blogData.slice(1));
         }
       }
-      
+
       console.error("Error setting featured blog:", err);
       toast.error("Error", "Failed to update featured blog");
     }
@@ -339,13 +338,13 @@ export default function BlogsSection() {
   const CategoryIcon = ({ category }: { category: string }) => {
     switch (category) {
       case "AI & Future Tech":
-        return <FaRocket className="text-xs" />;
+        return <FaCode className="text-xs" />;
       case "Web3 & Blockchain":
         return <FaCode className="text-xs" />;
       case "Security":
         return <FaBookmark className="text-xs" />;
       default:
-        return <FaRocket className="text-xs" />;
+        return <FaCode className="text-xs" />;
     }
   };
 

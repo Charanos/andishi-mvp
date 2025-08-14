@@ -142,27 +142,6 @@ model Project {
   progress                Int                 @default(0)
 }
 
-model HomepageProject {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String
-  category    String
-  image       String   @default("/images/default-project.jpg")
-  projectImages String[]
-  technologies String[]
-  gradient    String   @default("from-gray-500/20 to-gray-600/10")
-  liveUrl     String   @default("")
-  githubUrl   String   @default("")
-  projectUrl  String   @unique
-  client      String   @default("")
-  duration    String   @default("")
-  teamSize    String   @default("")
-  featured    Boolean  @default(false)
-  status      String   @default("planning") // completed, in-progress, planning
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
 model ProjectAssignment {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   projectId   String   @db.ObjectId
@@ -338,4 +317,25 @@ model ContactFeedback {
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model HomepageProject {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String
+  category      String
+  image         String
+  projectImages String[]
+  technologies  String[]
+  gradient      String   @default("from-gray-500/20 to-gray-600/10")
+  liveUrl       String?
+  githubUrl     String?
+  slug          String?  @unique
+  client        String?
+  duration      String?
+  teamSize      String?
+  featured      Boolean  @default(false)
+  status        String   @default("planning")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

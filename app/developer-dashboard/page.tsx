@@ -7,12 +7,11 @@ import { ProjectAssignment } from "@/types/project";
 import {
   FaUser,
   FaProjectDiagram,
-  FaCode,
   FaStar,
   FaChartLine,
   FaTrophy,
   FaFire,
-  FaRocket,
+  FaCode,
   FaBell,
   FaWallet,
 } from "react-icons/fa";
@@ -320,7 +319,7 @@ export default function EnhancedDeveloperDashboard() {
               onClick={() => router.push("/join-tech-talent")}
               className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 transform hover:scale-105"
             >
-              <FaRocket className="text-lg" />
+              <FaCode className="text-lg" />
               <span>Join Elite Network</span>
             </button>
           </div>
@@ -465,7 +464,7 @@ export default function EnhancedDeveloperDashboard() {
               </div>
             </div>
             <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-4 text-center">
-              <FaRocket className="text-2xl text-purple-400 mx-auto mb-2" />
+              <FaCode className="text-2xl text-purple-400 mx-auto mb-2" />
               <div className="text-2xl font-semibold text-white">
                 {profile.stats.clientRetention}%
               </div>

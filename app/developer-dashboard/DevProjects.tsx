@@ -10,7 +10,6 @@ import {
   FaEdit,
   FaTrash,
   FaPlus,
-  FaCode,
   FaGithub,
   FaShieldAlt,
   FaTools,
@@ -29,7 +28,7 @@ import {
   FaBookmark,
   FaTag,
   FaHeart,
-  FaRocket,
+  FaCode,
   FaLightbulb,
 } from "react-icons/fa";
 import { IoIosGrid, IoIosList } from "react-icons/io";
@@ -676,7 +675,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
                   onClick={() => setSelectedProject(project)}
                   className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
                 >
-                  <FaRocket className="text-xs" />
+                  <FaCode className="text-xs" />
                   <span>View Details</span>
                 </button>
                 <button className="flex items-center space-x-2 px-3 py-1 bg-white/10 text-gray-300 rounded-lg hover:bg-white/20 transition-colors text-sm">

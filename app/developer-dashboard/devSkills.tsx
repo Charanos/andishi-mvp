@@ -3,11 +3,10 @@
 import { Skill } from "@/lib/types";
 import React, { useState } from "react";
 import {
-  FaCode,
   FaAtom,
   FaDatabase,
   FaCloud,
-  FaRocket,
+  FaCode,
   FaCertificate,
   FaGraduationCap,
   FaArrowUp,
@@ -91,7 +90,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       "Version Control": FaTools,
       Containerization: FaShieldAlt,
       Orchestration: FaGlobe,
-      "CI/CD": FaRocket,
+      "CI/CD": FaCode,
       "Build Tool": FaTools,
       IDE: FaLaptopCode,
     };
@@ -559,7 +558,7 @@ const SkillsDashboard = ({ profile }: DevSkillsProps) => {
       {/* Specializations */}
       <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
         <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-          <FaRocket className="mr-2 text-purple-400" />
+          <FaCode className="mr-2 text-purple-400" />
           Specializations
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

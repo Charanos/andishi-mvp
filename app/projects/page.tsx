@@ -18,7 +18,7 @@ import {
   FiPlay,
 } from "react-icons/fi";
 import { HiSparkles, HiViewGrid, HiViewList } from "react-icons/hi";
-import { FaBolt, FaFire, FaRocket, FaSmile } from "react-icons/fa";
+import { FaBolt, FaFire, FaCode, FaSmile } from "react-icons/fa";
 import { useHomepageProjectCRUD } from "@/hooks/useHomepageProjectCRUD";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -34,7 +34,7 @@ interface Project {
   gradient?: string;
   liveUrl?: string;
   githubUrl?: string;
-  projectUrl?: string;
+  slug?: string;
   client: string;
   duration: string;
   teamSize: string;
@@ -105,7 +105,7 @@ export default function ProjectsPage() {
       gradient: "from-blue-500/20 to-cyan-500/10", // Default gradient
       liveUrl: project.liveUrl,
       githubUrl: project.githubUrl,
-      projectUrl: project.projectUrl,
+      slug: project.slug,
       client: project.client,
       duration: project.duration,
       teamSize: project.teamSize,
@@ -261,7 +261,7 @@ export default function ProjectsPage() {
                 label: "Projects Delivered",
                 value: `${projects.length}+`,
                 color: "purple",
-                icon: <FaRocket />,
+                icon: <FaCode />,
               },
               {
                 label: "Satisfied Clients",
@@ -297,7 +297,7 @@ export default function ProjectsPage() {
                     stat.color === "orange" ? "red" : stat.color
                   }-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100`}
                 ></div>
-                <div className="flex flex-col items-center justify-center relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-500 hover:transform hover:scale-105 hover:bg-white/8">
+                <div className="flex flex-col items-center justify-center relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white/8">
                   <div className="text-3xl lg:text-4xl font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 monty">
                     {stat.value}
                   </div>
@@ -313,7 +313,7 @@ export default function ProjectsPage() {
       </section>
 
       {/* Enhanced Filters and Controls */}
-      <section className="py-16 border-b border-white/5 relative ">
+      <section className="py-16 border-b border-white/5 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20 relative">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           {/* Header */}
           <div className="text-center mb-12">
@@ -329,7 +329,7 @@ export default function ProjectsPage() {
           </div>
 
           {/* Main Controls Container */}
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+          <div className="bg-black/10 backdrop-blur-2xl rounded-3xl border border-white/10 p-8 shadow-2xl">
             {/* Search Bar */}
             <div className="mb-8">
               <div className="relative max-w-2xl mx-auto group">
@@ -352,8 +352,19 @@ export default function ProjectsPage() {
                   <FiSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
 
                   <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                    <kbd className="px-2 py-1 text-xs bg-white/10 border border-white/20 rounded text-gray-300">
-                      ⌘K
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute cursor-pointer right-16 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors duration-200"
+                      >
+                        <FiX className="cursor-pointer w-6 h-6 text-gray-500" />
+                      </button>
+                    )}
+                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 bg-white/5 border border-white/10 rounded">
+                      ⌘ / CTRL
+                    </kbd>
+                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 bg-white/5 border border-white/10 rounded">
+                      K
                     </kbd>
                   </div>
                 </div>
@@ -361,102 +372,132 @@ export default function ProjectsPage() {
             </div>
 
             {/* Filters Row */}
-            <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
               {/* Category Filter */}
-              <div className="flex items-center gap-4">
-                <label className="text-sm font-medium text-gray-300">
-                  Category:
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="appearance-none bg-white/5 border border-white/10 rounded-lg px-4 py-2 pr-10 text-white focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 backdrop-blur-sm cursor-pointer"
-                  >
-                    {categories.map((category) => (
-                      <option
-                        key={category}
-                        value={category}
-                        className="bg-gray-800"
-                      >
-                        {category === "all" ? "All Categories" : category}
-                      </option>
-                    ))}
-                  </select>
-                  <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-sm font-medium monty uppercase text-gray-400">
+                    Categories:
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {categories.map((category, index) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`group cursor-pointer monty relative px-6 py-3 rounded-full border transition-all duration-300 capitalize font-medium text-sm transform hover:scale-105 active:scale-95 ${
+                        selectedCategory === category
+                          ? "bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400/60 text-white shadow-lg shadow-purple-500/25"
+                          : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
+                      }`}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        {selectedCategory === category && (
+                          <FaFire className="w-4 h-4" />
+                        )}
+                        {category === "all" ? "All Projects" : category}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Sort Filter */}
+              {/* Sort and View Controls */}
               <div className="flex items-center gap-4">
-                <label className="text-sm font-medium text-gray-300">
-                  Sort by:
-                </label>
-                <div className="relative">
+                {/* Sort Dropdown */}
+                <div className="relative ">
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-white/5 border border-white/10 rounded-lg px-4 py-2 pr-10 text-white focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 backdrop-blur-sm cursor-pointer"
+                    className="appearance-none px-5  py-3 pr-12  border border-white/10 rounded-xl text-white focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 font-medium backdrop-blur-sm hover:bg-white/10 transition-all duration-300 min-w-[160px]"
                   >
-                    <option value="newest" className="bg-gray-800">
+                    <option className="bg-black/60" value="newest">
                       Newest First
                     </option>
-                    <option value="oldest" className="bg-gray-800">
+                    <option className="bg-black/60" value="oldest">
                       Oldest First
                     </option>
-                    <option value="featured" className="bg-gray-800">
+                    <option className="bg-black/60" value="name">
+                      Name A-Z
+                    </option>
+                    <option className="bg-black/60" value="featured">
                       Featured First
                     </option>
-                    <option value="alphabetical" className="bg-gray-800">
-                      A-Z
-                    </option>
                   </select>
-                  <FiTrendingUp className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <FiChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+
+                {/* View Toggle */}
+                <div className="flex rounded-xl border border-white/10 overflow-hidden bg-white/5">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-3.5 cursor-pointer transition-all duration-300 ${
+                      viewMode === "grid"
+                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                    }`}
+                    title="Grid View"
+                  >
+                    <HiViewGrid className="w-5 h-5" />
+                  </button>
+                  <div className="w-px bg-white/10"></div>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-3.5 cursor-pointer transition-all duration-300 ${
+                      viewMode === "list"
+                        ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                    }`}
+                    title="List View"
+                  >
+                    <HiViewList className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
-
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-all duration-200 ${
-                    viewMode === "grid"
-                      ? "bg-purple-500/20 text-purple-400 border border-purple-400/30"
-                      : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  <HiViewGrid className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-all duration-200 ${
-                    viewMode === "list"
-                      ? "bg-purple-500/20 text-purple-400 border border-purple-400/30"
-                      : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  <HiViewList className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Clear Filters */}
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 border border-red-400/30 rounded-lg hover:bg-red-500/20 transition-all duration-200"
-                >
-                  <FiX className="w-4 h-4" />
-                  Clear Filters
-                </button>
-              )}
             </div>
 
-            {/* Results Count */}
-            <div className="mt-6 text-center">
-              <p className="text-gray-400">
-                Showing {filteredAndSortedProjects.length} of {projects.length}{" "}
-                projects
-              </p>
+            {/* Results Summary */}
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <FiTrendingUp className="w-4 h-4 text-purple-400" />
+                    <span className="text-gray-300">
+                      Showing{" "}
+                      <span className="text-white font-semibold">
+                        {filteredAndSortedProjects.length}
+                      </span>{" "}
+                      of{" "}
+                      <span className="text-white font-semibold">
+                        {projects.length}
+                      </span>{" "}
+                      projects
+                    </span>
+                  </div>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="flex cursor-pointer items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-full text-xs text-purple-300 hover:bg-purple-500/30 transition-colors duration-200"
+                    >
+                      <FiX className="w-3 h-3" />
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+
+                {/* Quick Stats */}
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span>Live Projects</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                    <span>Featured</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -477,13 +518,14 @@ export default function ProjectsPage() {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors duration-200"
+                  className="px-6 py-3 cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors duration-200"
                 >
                   Clear All Filters
                 </button>
               )}
             </div>
           ) : (
+            // Replace your existing projects mapping with this:
             <motion.div
               className={`grid gap-8 ${
                 viewMode === "grid"
@@ -502,7 +544,7 @@ export default function ProjectsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className={`group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-500 hover:transform hover:scale-105 hover:bg-white/8 ${
+                    className={`group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white/8 ${
                       viewMode === "list" ? "flex gap-6" : ""
                     }`}
                   >
@@ -521,21 +563,22 @@ export default function ProjectsPage() {
                         src={project.image}
                         alt={project.title}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/images/placeholder-project.webp";
                         }}
                       />
                       {project.featured && (
-                        <div className="absolute top-4 left-4 bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 rounded-full px-3 py-1 flex items-center gap-1">
+                        <div className="absolute top-4 left-4 bg-purple-500/60 backdrop-blur-sm border border-purple-400/30 rounded-full px-3 py-1 flex items-center gap-1">
                           <FiStar className="w-3 h-3 text-purple-400" />
                           <span className="text-xs font-medium text-purple-300">
                             Featured
                           </span>
                         </div>
                       )}
-                      <div className="absolute top-4 right-4 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1">
+                      {/* Status Badge */}
+                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1">
                         <span
                           className={`text-xs font-medium ${
                             project.status === "completed"
@@ -552,22 +595,29 @@ export default function ProjectsPage() {
                             : "Planning"}
                         </span>
                       </div>
+
+                      {/* Category Badge */}
+                      <div className="absolute bottom-4 right-4 bg-purple-900/60 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-1">
+                        <span className="text-xs text-white font-semibold">
+                          {project.category}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Project Content */}
                     <div className="p-6 flex-1">
                       <div className="mb-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="text-xl font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
+                        <div className="mb-2">
+                          <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
                             {project.title}
                           </h3>
-                          <span className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">
-                            {project.category}
-                          </span>
                         </div>
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                          {project.description}
-                        </p>
+                        <div
+                          className="text-gray-300 text-sm my-4 leading-relaxed line-clamp-2"
+                          dangerouslySetInnerHTML={{
+                            __html: project.description,
+                          }}
+                        />
                       </div>
 
                       {/* Technologies */}
@@ -593,18 +643,22 @@ export default function ProjectsPage() {
                       </div>
 
                       {/* Project Meta */}
-                      <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
+                      <div className="flex items-center justify-between text-xs border-y border-gray-400/10 py-4 text-gray-400 my-4">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1">
                             <FiCalendar className="w-3 h-3" />
-                            <span>{project.duration}</span>
+                            <span className="text-xs uppercase">
+                              {project.duration}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <FiUsers className="w-3 h-3" />
-                            <span>{project.teamSize}</span>
+                            <span className="text-xs uppercase">
+                              {project.teamSize}
+                            </span>
                           </div>
                         </div>
-                        <div className="text-purple-400 font-medium">
+                        <div className="text-purple-400 font-medium uppercase truncate max-w-[120px]">
                           {project.client}
                         </div>
                       </div>
@@ -613,10 +667,10 @@ export default function ProjectsPage() {
                       <div className="flex items-center justify-between">
                         <Link
                           href={`/projects/${project.id}`}
-                          className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 text-purple-300 border border-purple-400/30 rounded-lg hover:bg-purple-600/30 transition-all duration-200 text-sm font-medium"
+                          className="flex cursor-pointer items-center gap-2 text-purple-300 hover:text-purple-600/30 transition-all duration-200 text-sm font-medium"
                         >
-                          <FiPlay className="w-4 h-4" />
                           View Details
+                          <FiPlay className="w-4 h-4" />
                         </Link>
 
                         <div className="flex items-center gap-2">

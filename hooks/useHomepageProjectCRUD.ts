@@ -12,7 +12,7 @@ export interface HomepageProjectType {
   gradient: string;
   liveUrl: string;
   githubUrl: string;
-  projectUrl: string;
+  slug: string;
   client: string;
   duration: string;
   teamSize: string;
@@ -37,7 +37,6 @@ export interface HomepageProjectFormData {
   status: 'completed' | 'in-progress' | 'planning';
   liveUrl?: string;
   githubUrl?: string;
-  projectUrl?: string;
 }
 
 export const useHomepageProjectCRUD = () => {

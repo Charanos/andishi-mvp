@@ -6,7 +6,6 @@ import {
   FaCheck,
   FaGithub,
   FaLinkedin,
-  FaRocket,
   FaMapMarkerAlt,
   FaHistory,
   FaTasks,
@@ -30,7 +29,7 @@ import {
   FaCalendarAlt,
   FaLightbulb,
   FaHandshake,
-  FaRocket as FaRocketIcon,
+  FaCode as FaCodeIcon,
   FaChevronRight,
   FaComment,
   FaExclamationTriangle,
@@ -203,7 +202,7 @@ const EnhancedDeveloperOverview = ({
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "project":
-        return <FaRocketIcon className="text-blue-400" />;
+        return <FaCodeIcon className="text-blue-400" />;
       case "achievement":
         return <FaTrophy className="text-yellow-400" />;
       case "message":
@@ -274,7 +273,7 @@ const EnhancedDeveloperOverview = ({
                       href={profile.personalInfo.portfolio}
                       className="text-gray-400 hover:text-white transition-all transform hover:scale-110"
                     >
-                      <FaRocket className="text-xl" />
+                      <FaCode className="text-xl" />
                     </a>
                     <div className="flex items-center text-gray-400">
                       <FaMapMarkerAlt className="mr-2" />
@@ -306,7 +305,7 @@ const EnhancedDeveloperOverview = ({
             {
               label: "Total Projects",
               value: profile.stats.totalProjects,
-              icon: FaRocketIcon,
+              icon: FaCodeIcon,
               color: "blue",
             },
             {
@@ -544,10 +543,11 @@ const EnhancedDeveloperOverview = ({
             {profile.notifications.slice(0, 3).map((notification) => (
               <div
                 key={notification.id}
-                className={`p-3 rounded-lg transition-all ${notification.read
+                className={`p-3 rounded-lg transition-all ${
+                  notification.read
                     ? "bg-white/5"
                     : "bg-blue-500/10 border border-blue-500/20"
-                  }`}
+                }`}
               >
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 mt-1">

@@ -55,7 +55,7 @@ export default function Navbar() {
 
   // Public navigation links
   const publicLinks = [
-    { label: "Our Portfolio", href: "/our-portfolio" },
+    { label: "Our Portfolio", href: "/projects" },
     { label: "Tech Talent Pool", href: "/tech-talent-pool" },
     { label: "About Us", href: "/about-us" },
     { label: "Contact Us", href: "/contact-us" },

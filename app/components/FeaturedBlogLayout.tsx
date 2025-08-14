@@ -17,7 +17,6 @@ import {
   FaArrowRight,
   FaComment,
   FaThumbsUp,
-  FaRocket,
   FaQuoteLeft,
   FaCode,
   FaArrowCircleLeft,
@@ -229,7 +228,7 @@ export default function EnhancedBlogLayout({
           {/* Category Badge */}
           <div className="flex items-center space-x-4 mb-6">
             <div className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full">
-              <FaRocket className="text-blue-400 text-sm" />
+              <FaCode className="text-blue-400 text-sm" />
               <span className="text-blue-300 text-sm font-medium">
                 {blog.category}
               </span>
@@ -250,9 +249,9 @@ export default function EnhancedBlogLayout({
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0 mb-12">
             <div className="flex items-center space-x-4">
               {blog.authorImage ? (
-                <img 
-                  src={blog.authorImage} 
-                  alt={blog.author} 
+                <img
+                  src={blog.authorImage}
+                  alt={blog.author}
                   className="w-12 h-12 rounded-full object-cover"
                 />
               ) : (
@@ -637,7 +636,7 @@ export default function EnhancedBlogLayout({
 
           {/* Newsletter CTA */}
           <div className="mt-16 p-8 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-500/20 rounded-2xl text-center">
-            <FaRocket className="text-4xl text-blue-400 mx-auto mb-4" />
+            <FaCode className="text-4xl text-blue-400 mx-auto mb-4" />
             <h3 className="text-2xl font-medium text-white mb-4">
               Stay Ahead of the Curve
             </h3>

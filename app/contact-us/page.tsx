@@ -23,7 +23,6 @@ import {
   FaQuestionCircle,
   FaChevronDown,
   FaChevronUp,
-  FaRocket,
   FaCode,
   FaBrain,
   FaDollarSign,
@@ -74,7 +73,7 @@ const faqData: FAQItem[] = [
     answer:
       "Andishi is a global tech talent platform that connects companies with pre-vetted senior developers. We specialize in remote hiring, matching you with experts in web development, mobile apps, AI/ML, blockchain, and other cutting-edge technologies. Think of us as your bridge to world-class talent that's ready to contribute from day one.",
     category: "getting-started",
-    icon: <FaRocket className="text-blue-400" />,
+    icon: <FaCode className="text-blue-400" />,
   },
   {
     id: "how-to-get-started",
@@ -82,7 +81,7 @@ const faqData: FAQItem[] = [
     answer:
       "Simple! Visit our website and click 'Get Started' or 'Share Project Details.' Fill out a quick form about what you need, and we'll have one of our advisors reach out within 24 hours to discuss your project and kick off the matching process. You can also email us at info@andishi.dev or give us a call.",
     category: "getting-started",
-    icon: <FaRocket className="text-blue-400" />,
+    icon: <FaCode className="text-blue-400" />,
   },
   {
     id: "how-fast-matching",
@@ -90,7 +89,7 @@ const faqData: FAQItem[] = [
     answer:
       "We promise to show you qualified candidates within 48 hours of receiving your project details. Most clients start interviewing developers within 2-3 days of contacting us. Our AI-powered matching cuts traditional hiring time by about 75%.",
     category: "getting-started",
-    icon: <FaRocket className="text-blue-400" />,
+    icon: <FaCode className="text-blue-400" />,
   },
   {
     id: "what-services",
@@ -144,7 +143,7 @@ const faqData: FAQItem[] = [
 
 const categories = [
   { id: "all", name: "All Questions", icon: <FaQuestionCircle /> },
-  { id: "getting-started", name: "Getting Started", icon: <FaRocket /> },
+  { id: "getting-started", name: "Getting Started", icon: <FaCode /> },
   { id: "services", name: "Services", icon: <FaCode /> },
   { id: "ai", name: "AI & Innovation", icon: <FaBrain /> },
   { id: "pricing", name: "Pricing", icon: <FaDollarSign /> },

@@ -3,7 +3,7 @@
 import React from "react";
 import {
   FaCheck,
-  FaRocket,
+  FaCode,
   FaSlack,
   FaEnvelope,
   FaCalendarAlt,
@@ -37,7 +37,7 @@ export default function ThankYouPage() {
       time: "Within 24 hours",
     },
     {
-      icon: FaRocket,
+      icon: FaCode,
       title: "Project Kickoff",
       description: "Start building your dream project with our expert team",
       time: "Within 48 hours",

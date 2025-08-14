@@ -7,7 +7,7 @@ import {
   FaBullseye,
   FaDollarSign,
   FaGlobe,
-  FaRocket,
+  FaCode,
   FaBrain,
 } from "react-icons/fa";
 import InteractiveTalentVisualization from "../components/InteractiveTalentVisualization";
@@ -39,7 +39,7 @@ export default function WhyAndishi() {
       description: "Access global talent pool across continents",
     },
     {
-      icon: FaRocket,
+      icon: FaCode,
       value: "48hrs",
       label: "First Match",
       description: "Get your first candidate matches within 2 days",

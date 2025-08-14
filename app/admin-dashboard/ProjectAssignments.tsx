@@ -112,38 +112,44 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
     );
 
     // Extract skills from profile data structure
-    const profileSkills = profile?.technicalSkills?.primarySkills || 
-                         profile?.data?.technicalSkills?.primarySkills || 
-                         [];
-    
+    const profileSkills =
+      profile?.technicalSkills?.primarySkills ||
+      profile?.data?.technicalSkills?.primarySkills ||
+      [];
+
     // Fallback skills from developer object if profile skills are empty
     const fallbackSkills = (developer as any).skills || [];
-    const combinedSkills = profileSkills.length > 0 ? profileSkills : fallbackSkills;
+    const combinedSkills =
+      profileSkills.length > 0 ? profileSkills : fallbackSkills;
 
     return {
       ...developer,
       profile,
       // Enhanced fields from profile with better fallbacks
-      title: profile?.professionalInfo?.title || 
-             profile?.data?.professionalInfo?.title || 
-             developer.role || "Developer",
+      title:
+        profile?.professionalInfo?.title ||
+        profile?.data?.professionalInfo?.title ||
+        developer.role ||
+        "Developer",
       skills: combinedSkills,
-      rating: profile?.stats?.averageRating || 
-              profile?.data?.stats?.averageRating || 
-              ((developer.completedProjects || 0) > 0 ? 4.0 : 0),
+      rating:
+        profile?.stats?.averageRating ||
+        profile?.data?.stats?.averageRating ||
+        ((developer.completedProjects || 0) > 0 ? 4.0 : 0),
       hourlyRateProfile:
-        profile?.professionalInfo?.hourlyRate || 
-        profile?.data?.professionalInfo?.hourlyRate || 
-        developer.hourlyRate || 0,
+        profile?.professionalInfo?.hourlyRate ||
+        profile?.data?.professionalInfo?.hourlyRate ||
+        developer.hourlyRate ||
+        0,
       totalProjectsProfile:
-        profile?.stats?.totalProjects || 
-        profile?.data?.stats?.totalProjects || 
+        profile?.stats?.totalProjects ||
+        profile?.data?.stats?.totalProjects ||
         (developer.completedProjects ?? 0),
-      isAvailableProfile: profile?.isAvailable ?? 
-                         (profile?.data?.isAvailable ?? true),
+      isAvailableProfile:
+        profile?.isAvailable ?? profile?.data?.isAvailable ?? true,
       experienceLevel:
-        profile?.professionalInfo?.experienceLevel || 
-        profile?.data?.professionalInfo?.experienceLevel || 
+        profile?.professionalInfo?.experienceLevel ||
+        profile?.data?.professionalInfo?.experienceLevel ||
         "Mid-level",
       busyUntil: profile?.busyUntilDate || profile?.data?.busyUntilDate,
     };
@@ -188,42 +194,57 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   // Get developers available for assignment
   const getFilteredDevelopers = (): SystemUser[] => {
     if (!Array.isArray(developers)) {
-      console.warn('ProjectAssignments: developers prop is not an array:', developers);
+      console.warn(
+        "ProjectAssignments: developers prop is not an array:",
+        developers
+      );
       return [];
     }
 
     const assignedDeveloperIds = new Set(assignments.map((a) => a.developerId));
 
-    let filtered: SystemUser[] = developers.filter(
-      (dev) => {
-        const isDeveloper = dev.role === "developer";
-        const isApproved = dev.developerProfileStatus === "approved";
-        const isPendingOrNull = dev.developerProfileStatus === "pending" || dev.developerProfileStatus === null;
-        const isActiveUser = dev.status === "active" || dev.isActive !== false;
-        const isNotAssigned = !assignedDeveloperIds.has((dev as any)._id ?? (dev as any).id);
-        
-        // Get enhanced developer data to check availability
-        const enhancedDev = getEnhancedDeveloper(dev);
-        const isAvailable = enhancedDev.isAvailableProfile !== false && dev.status !== "inactive" && dev.status !== "suspended";
-        
-        // Show developers if they are approved OR if they are pending/null but active
-        // AND they are available (not busy)
-        const shouldShow = isDeveloper && (isApproved || (isPendingOrNull && isActiveUser)) && isNotAssigned && isAvailable;
-        
-        if (isDeveloper && !shouldShow) {
-          console.log(`Developer ${dev.firstName} ${dev.lastName} filtered out:`, {
+    let filtered: SystemUser[] = developers.filter((dev) => {
+      const isDeveloper = dev.role === "developer";
+      const isApproved = dev.developerProfileStatus === "approved";
+      const isPendingOrNull =
+        dev.developerProfileStatus === "pending" ||
+        dev.developerProfileStatus === null;
+      const isActiveUser = dev.status === "active" || dev.isActive !== false;
+      const isNotAssigned = !assignedDeveloperIds.has(
+        (dev as any)._id ?? (dev as any).id
+      );
+
+      // Get enhanced developer data to check availability
+      const enhancedDev = getEnhancedDeveloper(dev);
+      const isAvailable =
+        enhancedDev.isAvailableProfile !== false &&
+        dev.status !== "inactive" &&
+        dev.status !== "suspended";
+
+      // Show developers if they are approved OR if they are pending/null but active
+      // AND they are available (not busy)
+      const shouldShow =
+        isDeveloper &&
+        (isApproved || (isPendingOrNull && isActiveUser)) &&
+        isNotAssigned &&
+        isAvailable;
+
+      if (isDeveloper && !shouldShow) {
+        console.log(
+          `Developer ${dev.firstName} ${dev.lastName} filtered out:`,
+          {
             profileStatus: dev.developerProfileStatus,
             userStatus: dev.status,
             isActive: dev.isActive,
             isAssigned: !isNotAssigned,
             isAvailable: isAvailable,
-            profileAvailable: enhancedDev.isAvailableProfile
-          });
-        }
-        
-        return shouldShow;
+            profileAvailable: enhancedDev.isAvailableProfile,
+          }
+        );
       }
-    );
+
+      return shouldShow;
+    });
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -274,26 +295,35 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
   };
 
   // Helper function to update project chat participants after assignment
-  const updateProjectChatParticipants = async (assignedDeveloperIds: string[]) => {
+  const updateProjectChatParticipants = async (
+    assignedDeveloperIds: string[]
+  ) => {
     try {
-      console.log(`Updating project chat participants for project ${projectId}...`);
-      const response = await fetch(`/api/project-chat/${projectId}/participants`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "add_developers",
-          developerIds: assignedDeveloperIds,
-        }),
-      });
+      console.log(
+        `Updating project chat participants for project ${projectId}...`
+      );
+      const response = await fetch(
+        `/api/project-chat/${projectId}/participants`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "add_developers",
+            developerIds: assignedDeveloperIds,
+          }),
+        }
+      );
 
       if (!response.ok) {
         console.warn(`Failed to update chat participants: ${response.status}`);
         return false;
       }
 
-      console.log(`Successfully updated chat participants for project ${projectId}`);
+      console.log(
+        `Successfully updated chat participants for project ${projectId}`
+      );
       return true;
     } catch (error) {
       console.error("Error updating chat participants:", error);

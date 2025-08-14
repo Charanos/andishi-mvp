@@ -50,7 +50,6 @@ interface HomepageProjectFormData {
   featured: boolean;
   liveUrl?: string;
   githubUrl?: string;
-  projectUrl?: string;
 }
 
 interface HomepageProjectFormProps {
@@ -90,7 +89,6 @@ export default function HomepageProjectForm({
     featured: false,
     liveUrl: "",
     githubUrl: "",
-    projectUrl: "",
   });
   const [currentTech, setCurrentTech] = useState("");
   const [toasts, setToasts] = useState<ToastNotificationType[]>([]);
@@ -115,7 +113,6 @@ export default function HomepageProjectForm({
         featured: editingProject.featured,
         liveUrl: editingProject.liveUrl || "",
         githubUrl: editingProject.githubUrl || "",
-        projectUrl: editingProject.projectUrl || "",
       });
     } else {
       // Reset form for create mode
@@ -133,7 +130,6 @@ export default function HomepageProjectForm({
         featured: false,
         liveUrl: "",
         githubUrl: "",
-        projectUrl: "",
       });
     }
   }, [editingProject, mode, isOpen]);
@@ -216,18 +212,18 @@ export default function HomepageProjectForm({
           } successfully! Redirecting to projects showcase...`,
           duration: 3000,
         });
-        
+
         // Call onSuccess to refresh the project list
         onSuccess();
-        
+
         // Close the modal and redirect after a short delay
         setTimeout(() => {
           onClose();
           // Redirect to projects page
-          window.location.href = '/projects';
+          window.location.href = "/projects";
         }, 2000);
       } else {
-        throw new Error('Failed to save project');
+        throw new Error("Failed to save project");
       }
     } catch (err) {
       console.error("Error submitting form:", err);
@@ -472,22 +468,6 @@ export default function HomepageProjectForm({
               />
             </div>
 
-            {/* Project URL */}
-            <div>
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                <FaExternalLinkAlt className="text-purple-400" />
-                <span>Project URL</span>
-              </label>
-              <input
-                type="url"
-                name="projectUrl"
-                value={formData.projectUrl}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                placeholder="https://project-demo.com"
-              />
-            </div>
-
             {/* Status */}
             <div>
               <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
@@ -599,7 +579,11 @@ export default function HomepageProjectForm({
               disabled={isLoading || isSubmitting}
               className="flex cursor-pointer items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {(isLoading || isSubmitting) ? <FaSpinner className="animate-spin" /> : <FaSave />}
+              {isLoading || isSubmitting ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <FaSave />
+              )}
               <span>
                 {isSubmitting
                   ? "Saving Project..."

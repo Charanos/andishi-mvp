@@ -3,7 +3,7 @@
 import React from "react";
 import {
   FaCheck,
-  FaRocket,
+  FaCode,
   FaEnvelope,
   FaCalendarAlt,
   FaUsers,

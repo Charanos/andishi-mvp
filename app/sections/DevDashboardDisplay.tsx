@@ -1,12 +1,11 @@
 import Link from "next/link";
 import React, { JSX } from "react";
 import {
-  FaCode,
   FaTasks,
   FaClock,
   FaDollarSign,
   FaGithub,
-  FaRocket,
+  FaCode,
 } from "react-icons/fa";
 
 interface DashboardFeature {
@@ -115,7 +114,7 @@ export default function DevDashboardSection(): JSX.Element {
                 <span className="relative z-10 text-md font-medium text-white tracking-wide monty drop-shadow-sm group-hover:text-orange-100 transition-colors duration-300">
                   Join as Developer
                 </span>
-                <FaRocket className="text-white/80 text-xl group-hover:animate-bounce transition-transform duration-300" />
+                <FaCode className="text-white/80 text-xl group-hover:animate-bounce transition-transform duration-300" />
                 <span className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl pointer-events-none"></span>
               </Link>
             </div>

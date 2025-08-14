@@ -8,7 +8,7 @@ import {
   FaArrowLeft,
   FaCompass,
   FaQuestionCircle,
-  FaRocket,
+  FaCode,
   FaMoon,
   FaStar,
 } from "react-icons/fa";
@@ -37,7 +37,7 @@ export default function NotFound() {
           className="absolute top-1/2 left-1/5 text-white/5 text-3xl animate-bounce"
           style={{ animationDelay: "1s" }}
         >
-          <FaRocket />
+          <FaCode />
         </div>
       </div>
 

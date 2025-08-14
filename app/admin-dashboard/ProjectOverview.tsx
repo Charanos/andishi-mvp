@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 // Shared currency utilities
-import { CurrencyAmount, formatCurrency, extractAmount } from "@/utils/currency";
+import {
+  CurrencyAmount,
+  formatCurrency,
+  extractAmount,
+} from "@/utils/currency";
 import useSWR from "swr";
 import {
   FaArrowCircleLeft,
@@ -200,8 +204,6 @@ const EXCHANGE_RATES: Record<"USD" | "KES", number> = {
 const toUSD = (amount: number, currency: "USD" | "KES" = "USD") => {
   return amount * (EXCHANGE_RATES[currency] ?? 1);
 };
-
-
 
 const formatCurrencyLocal = (amount: number, currency: "USD" | "KES") => {
   const currencySymbol = currency === "USD" ? "$" : "KES ";
@@ -562,14 +564,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   <h3 className="text-lg font-medium text-gray-800">
                     Budget Utilization
                   </h3>
-                  <p>
-                    Total Budget:{" "}
-                    {formatCurrency(totalBudget)}
-                  </p>
-                  <p>
-                    Spent:{" "}
-                    {formatCurrency(spentBudget)}
-                  </p>
+                  <p>Total Budget: {formatCurrency(totalBudget)}</p>
+                  <p>Spent: {formatCurrency(spentBudget)}</p>
                   <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
                     <div
                       className="bg-blue-600 h-2.5 rounded-full"

@@ -223,17 +223,6 @@ export default function ProjectDetailsPage() {
                     <span>View Code</span>
                   </a>
                 )}
-                {project.projectUrl && (
-                  <a
-                    href={project.projectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    <FaEye />
-                    <span>Project Demo</span>
-                  </a>
-                )}
               </div>
             </div>
 

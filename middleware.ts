@@ -16,6 +16,7 @@ const publicRoutes = [
   '/about-us',
   '/contact-us',
   '/our-portfolio',
+  '/projects',
   '/tech-talent-pool',
   '/join-talent-pool',
   '/start-project',
@@ -74,9 +75,15 @@ const getToken = (request: NextRequest): string | null => {
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const method = request.method;
 
   // Allow public routes
   if (isPublicRoute(path)) {
+    return NextResponse.next();
+  }
+
+  // Allow GET requests to homepage projects API (public access)
+  if (path === '/api/homepage-projects' && method === 'GET') {
     return NextResponse.next();
   }
 

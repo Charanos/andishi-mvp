@@ -32,6 +32,7 @@ const ROUTE_CONFIG = {
     "/about-us",
     "/contact-us",
     "/our-portfolio",
+    "/projects",
     "/tech-talent-pool",
     "/join-talent-pool",
     "/start-project",

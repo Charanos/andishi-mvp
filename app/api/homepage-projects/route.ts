@@ -13,17 +13,26 @@ const getCorsHeaders = (req: NextRequest) => {
   };
 };
 
-// GET /api/homepage-projects - Get all homepage projects or a single project by slug
+// GET /api/homepage-projects - Get all homepage projects or a single project by slug/id
 export async function GET(req: NextRequest) {
   try {
+    console.log('Homepage projects API called');
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get('slug');
+    const id = searchParams.get('id');
+    console.log('Query params:', { slug, id });
 
-    if (slug) {
-      // Fetch single project by slug
+    // Test database connection first
+    await prisma.$connect();
+    console.log('Database connected successfully');
+
+    if (slug || id) {
+      console.log('Fetching single project by:', slug ? 'slug' : 'id');
+      // Fetch single project by slug or id
       const project = await prisma.homepageProject.findFirst({
-        where: { slug: slug }
+        where: slug ? { slug: slug } : (id ? { id: id } : undefined)
       });
+      console.log('Project found:', !!project);
 
       if (!project) {
         return new NextResponse(
@@ -50,6 +59,7 @@ export async function GET(req: NextRequest) {
 
       return response;
     } else {
+      console.log('Fetching all projects');
       // Fetch all projects
       const projects = await prisma.homepageProject.findMany({
         orderBy: [
@@ -57,6 +67,7 @@ export async function GET(req: NextRequest) {
           { createdAt: 'desc' }, // Then by creation date
         ],
       });
+      console.log('Projects found:', projects.length);
 
       const response = new NextResponse(JSON.stringify({
         success: true,
@@ -75,14 +86,30 @@ export async function GET(req: NextRequest) {
     }
   } catch (error) {
     console.error('Error fetching homepage projects:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      name: error instanceof Error ? error.name : 'Unknown error type'
+    });
     return new NextResponse(
       JSON.stringify({ 
         success: false, 
-        error: 'Failed to fetch homepage projects' 
+        error: 'Failed to fetch homepage projects',
+        details: error instanceof Error ? error.message : 'Unknown error'
       }), 
       { status: 500, headers: getCorsHeaders(req) }
     );
+  } finally {
+    await prisma.$disconnect();
   }
+}
+
+// OPTIONS handler for CORS
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: getCorsHeaders(req)
+  });
 }
 
 // POST /api/homepage-projects - Create new homepage project (Admin only)

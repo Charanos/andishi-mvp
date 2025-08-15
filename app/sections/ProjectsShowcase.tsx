@@ -17,6 +17,7 @@ import {
   FaExternalLinkAlt,
   FaArrowRight,
   FaCalendarAlt,
+  FaPlay,
 } from "react-icons/fa";
 import ToastNotification from "@/app/components/ToastNotification";
 import { ToastNotification as ToastNotificationType } from "@/app/components/ToastNotification";
@@ -342,9 +343,16 @@ export default function ProjectShowcase({
 
                     {/* Action Buttons */}
                     <div className="flex items-center justify-between">
-                      <button className="flex items-center gap-2  text-purple-300 hover:text-purple-600/30 transition-all duration-200 text-sm font-medium">
+                      <button
+                        onClick={() =>
+                          handleCardClick(
+                            featuredProject.slug || featuredProject.id
+                          )
+                        }
+                        className="flex cursor-pointer items-center gap-2  text-purple-300 hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
+                      >
                         View Details
-                        <FaArrowRight className="w-4 h-4" />
+                        <FaPlay className="w-4 h-4" />
                       </button>
 
                       <div className="flex items-end gap-2">
@@ -536,9 +544,15 @@ export default function ProjectShowcase({
 
                   {/* Action Buttons */}
                   <div className="flex items-center justify-between">
-                    <button className="flex items-center gap-2  text-purple-300 hover:text-purple-600/30 transition-all duration-200 text-sm font-medium">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCardClick(project.slug || project.id);
+                      }}
+                      className="flex cursor-pointer items-center gap-2  text-purple-300 hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
+                    >
                       View Details
-                      <FaArrowRight className="w-4 h-4" />
+                      <FaPlay className="w-4 h-4" />
                     </button>
 
                     <div className="flex items-center gap-2">

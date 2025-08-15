@@ -220,7 +220,7 @@ export default function ProjectsPage() {
       <div className="min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400 mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading our amazing projects...</p>
+          <p className="text-white text-xl">Loading our projects...</p>
         </div>
       </div>
     );
@@ -666,8 +666,8 @@ export default function ProjectsPage() {
                       {/* Action Buttons */}
                       <div className="flex items-center justify-between">
                         <Link
-                          href={`/projects/${project.id}`}
-                          className="flex cursor-pointer items-center gap-2 text-purple-300 hover:text-purple-600/30 transition-all duration-200 text-sm font-medium"
+                          href={`/projects/${project.slug || project.id}`}
+                          className="flex cursor-pointer items-center gap-2 text-purple-300 hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
                         >
                           View Details
                           <FiPlay className="w-4 h-4" />

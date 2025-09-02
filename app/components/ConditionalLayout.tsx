@@ -53,7 +53,16 @@ const ROUTE_CONFIG = {
     "/api/developer-profiles",
     "/api/blogs",
     "/api/blogs/featured",
-    "/api/reviews",
+    "/api/email/send",
+    // Public API routes for email testing and contact form
+    "/api/email/send",
+    "/api/feedback",
+    // Public developer evaluation routes (CTA destination + public API)
+    "/developer-evaluation",
+    "/api/evaluations",
+    "/thank-you-evaluation",
+    "/api/evaluations/validate",
+    "/api/evaluations/submit",
   ],
   DASHBOARD_ROUTES: [
     "/admin-dashboard",
@@ -345,14 +354,17 @@ export default function ConditionalLayout({
   // Determine layout configuration
   const showNavbar = !isAuthRoute && !isMinimalLayout;
   const isBlogRelatedRoute =
-    pathname.startsWith("/blogs") || 
-    pathname.startsWith("/blog-form") || 
+    pathname.startsWith("/blogs") ||
+    pathname.startsWith("/blog-form") ||
     pathname === "/featured-blog";
   const isProjectRelatedRoute =
-    pathname.startsWith("/projects") ||
-    pathname === "/projects";
+    pathname.startsWith("/projects") || pathname === "/projects";
   const showFooter =
-    !isAuthRoute && !isMinimalLayout && !isDashboardRoute && !isBlogRelatedRoute && !isProjectRelatedRoute;
+    !isAuthRoute &&
+    !isMinimalLayout &&
+    !isDashboardRoute &&
+    !isBlogRelatedRoute &&
+    !isProjectRelatedRoute;
   const mainPadding = showNavbar ? "pt-19" : "";
 
   return (

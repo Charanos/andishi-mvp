@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/getSession";
+import { NextRequest, NextResponse } from "next/server";
+import { sendEmail, verifyTransport } from "@/lib/mailer";
+import { renderBaseTemplate } from "@/lib/emailTemplates";
 
 // GET /api/feedback - Get all feedback (admin only)
 export async function GET(req: NextRequest) {
@@ -88,12 +90,76 @@ export async function POST(req: NextRequest) {
         message
       }
     });
-    
+
+    // Attempt to dispatch notification emails (non-blocking for main result)
+    (async () => {
+      try {
+        const ok = await verifyTransport();
+        if (!ok) return;
+
+        const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/admin-dashboard`
+          : "https://andishiacademy.co.ke/admin-dashboard";
+
+        // Admin notification
+        const adminHtml = renderBaseTemplate({
+          title: `New Contact Feedback: ${subject}`,
+          intro: `A new message was submitted via the website contact form.`,
+          bodyHtml: `
+            <div style="font-size:14px;color:#e5e7eb">
+              <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+              <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+              <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
+              <p style="white-space:pre-wrap;margin-top:10px"><strong>Message:</strong><br/>${escapeHtml(message)}</p>
+            </div>
+          `,
+          cta: { label: "Open Admin Dashboard", url: dashboardUrl },
+        });
+        await sendEmail({
+          to: process.env.FEEDBACK_INBOX || "evals@andishiacademy.co.ke",
+          subject: `[Andishi] New Feedback: ${subject}`,
+          html: adminHtml,
+          text: `New feedback from ${name} <${email}>\nSubject: ${subject}\n\n${message}`,
+        });
+
+        // User autoresponder
+        const firstName = String(name || "").split(" ")[0] || name;
+        const userHtml = renderBaseTemplate({
+          title: "Thanks for contacting Andishi Academy",
+          intro: `Hi ${escapeHtml(firstName)}, we've received your message and our team will get back to you shortly.`,
+          bodyHtml: `<p style="margin:0 0 10px">We’ve logged your inquiry with subject “${escapeHtml(
+            subject
+          )}”. Here’s a copy of your message:</p>
+            <blockquote style="margin:10px 0 0;padding-left:12px;border-left:3px solid rgba(255,255,255,.2);opacity:.95">${escapeHtml(
+              message
+            )}</blockquote>`,
+          cta: { label: "Visit Andishi Academy", url: "https://andishiacademy.co.ke" },
+        });
+        await sendEmail({
+          to: email,
+          subject: `We received your message: ${subject}`,
+          html: userHtml,
+          text: `Hi ${firstName}, we received your message and will reply soon.\n\nYour message:\n${message}`,
+        });
+      } catch (e) {
+        console.error("[feedback] email dispatch failed", e);
+      }
+    })();
+
     return NextResponse.json(feedback, { status: 201 });
   } catch (error) {
     console.error("POST /api/feedback", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
+}
+
+function escapeHtml(input: string) {
+  return String(input || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 

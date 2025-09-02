@@ -5,8 +5,6 @@ import ToastContainer from "../components/ToastContainer";
 import useToast from "../../hooks/useToast";
 import { useDeveloperProfiles } from "@/hooks/useDeveloperProfiles";
 import { useUserManagement } from "@/hooks/useUserManagement";
-import { FiTrendingUp, FiX } from "react-icons/fi";
-import { HiViewGrid, HiViewList } from "react-icons/hi";
 import {
   FaUser,
   FaProjectDiagram,
@@ -21,17 +19,13 @@ import {
   FaTimes,
   FaCheck,
   FaClock,
-  FaExclamationTriangle,
   FaUsers,
   FaCode,
   FaChartLine,
   FaDownload,
   FaPlus,
   FaCheckCircle,
-  FaLightbulb,
   FaPause,
-  FaFile,
-  FaTag,
   FaCog,
   FaShieldAlt,
   FaKey,
@@ -41,15 +35,12 @@ import {
   FaCalendarAlt,
   FaChartBar,
   FaServer,
-  FaArrowCircleLeft,
-  FaPhone,
   FaUserEdit,
   FaInfoCircle,
   FaBell,
   FaTachometerAlt,
   FaBuilding,
-  FaFlag,
-  FaBug,
+  FaClipboardCheck,
 } from "react-icons/fa";
 import {
   MoreVertical,
@@ -66,7 +57,6 @@ import {
   formatCurrency,
   extractAmount,
 } from "@/utils/currency";
-import ProjectAssignments from "./ProjectAssignments";
 import AdvancedAnalyticsDashboard from "./renderAnalytics";
 import generateAdvancedAnalytics, {
   EnhancedAnalyticsData,
@@ -93,6 +83,7 @@ import SearchFilter from "./SearchFilter";
 import ConfirmationModal from "../components/ConfirmationModal";
 import DeveloperDebugPanel from "./DeveloperDebugPanel";
 import FeedbackTabEnhanced from "./FeedbackTabEnhanced";
+import AssessmentsTab from "./assessments/AssessmentDashboard";
 
 // Types
 interface SystemUser {
@@ -129,6 +120,7 @@ type ActiveTab =
   | "dev profiles"
   | "clients"
   | "analytics"
+  | "assessments"
   // | "debug"
   | "feedback"
   | "settings";
@@ -3746,6 +3738,11 @@ Generate new credentials to reset password.`;
                     { id: "users", label: "Users", icon: FaUsers },
                     { id: "analytics", label: "Analytics", icon: FaChartBar },
                     {
+                      id: "assessments",
+                      label: "Assessments",
+                      icon: FaClipboardCheck,
+                    },
+                    {
                       id: "dev profiles",
                       label: "Dev Profiles",
                       icon: FaUserEdit,
@@ -3755,7 +3752,7 @@ Generate new credentials to reset password.`;
                       label: "Feedback",
                       icon: FaEnvelope,
                     },
-                    { id: "settings", label: "Settings", icon: FaCog },
+                    // { id: "settings", label: "Settings", icon: FaCog },
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -3797,10 +3794,15 @@ Generate new credentials to reset password.`;
               { id: "projects", label: "Projects", icon: FaProjectDiagram },
               { id: "users", label: "Users", icon: FaUsers },
               { id: "analytics", label: "Analytics", icon: FaChartBar },
-              { id: "devProfiles", label: "Dev Profiles", icon: FaUserEdit },
+              {
+                id: "assessments",
+                label: "Assessments",
+                icon: FaClipboardCheck,
+              },
+              { id: "dev profiles", label: "Dev Profiles", icon: FaUserEdit },
               { id: "feedback", label: "Feedback", icon: FaEnvelope },
               // { id: "debug", label: "Debug", icon: FaBug },
-              { id: "settings", label: "Settings", icon: FaCog },
+              // { id: "settings", label: "Settings", icon: FaCog },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -3867,8 +3869,9 @@ Generate new credentials to reset password.`;
             </div>
           )} */}
 
+          {activeTab === "assessments" && <AssessmentsTab />}
           {activeTab === "feedback" && <FeedbackTabEnhanced />}
-          {activeTab === "settings" && renderSettings()}
+          {/* {activeTab === "settings" && renderSettings()} */}
         </div>
       </div>
 
@@ -3878,7 +3881,7 @@ Generate new credentials to reset password.`;
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-            <span className="text-white font-medium">Processing...</span>
+            <span className="text-white font-medium">Please wait ...</span>
           </div>
         </div>
       )}

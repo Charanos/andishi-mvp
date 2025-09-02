@@ -32,12 +32,6 @@ export default function HeroSection() {
               <span className="text-green-400 font-mediummonty ">Live</span>
             </div>
 
-            <div className="monty px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-white/5 border border-white/10">
-              <span className="text-white font-medium">
-                10 teams building now
-              </span>
-            </div>
-
             <div className="monty px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-purple-500/20 border border-purple-400/30">
               <span className="text-purple-300 font-medium">
                 48hr special pricing
@@ -49,29 +43,29 @@ export default function HeroSection() {
           <div className="space-y-2 mb-10 mt-3">
             <h1 className="text-4xl lg:text-6xl leading-tight">
               <span className="bg-gradient-to-r font-semibold from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
-                Global Tech Excellence,
+                Hire Seamlessly,
               </span>
               <br />
               <span className="bg-gradient-to-r font-medium from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                On Demand
+                Save More.
               </span>
             </h1>
 
             <div className="flex items-center space-x-3">
               <div className="h-1 w-16 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full"></div>
               <p className="sm:text-lg text-md text-gray-300 font-medium tracking-wide uppercase">
-                Connect with vetted developers in 48 hours
+                Connect with vetted global developers in just 48 hours.
               </p>
             </div>
           </div>
 
           {/* Description */}
           <p className="sm:text-lg text-md text-gray-300 my-6 leading-relaxed max-w-2xl">
-            Skip the lengthy recruitment process. Andishi's intelligent talent
-            matching platform connects you with expert developers specializing
-            in web development, mobile apps, AI/ML, blockchain, and SaaS
-            solutions. Our rigorous vetting process ensures you get senior-level
-            talent ready to contribute from day one.
+            Skip the lengthy hiring process. Andishi’s AI-driven platform
+            quickly connects you with vetted, senior developers worldwide in web
+            development, mobile apps, AI/ML, blockchain, and SaaS. Every
+            developer is rigorously vetted so you get top tech talent ready to
+            contribute from day one.
           </p>
 
           {/* CTA Buttons */}
@@ -82,7 +76,7 @@ export default function HeroSection() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <span className="relative flex items-center justify-center space-x-2 uppercase tracking-wide">
-                <span>Share Project Details</span>
+                <span>Let’s Talk & Build</span>
                 <svg
                   className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
                   fill="none"

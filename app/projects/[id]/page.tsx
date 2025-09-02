@@ -124,7 +124,7 @@ export default function ProjectDetailsPage() {
                 <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <FaEye className="text-red-400 text-2xl" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">
+                <h2 className="text-2xl font-semibold text-white mb-4">
                   Project Not Found
                 </h2>
                 <p className="text-gray-300 mb-8 leading-relaxed">{error}</p>
@@ -364,7 +364,7 @@ export default function ProjectDetailsPage() {
               <div className="w-11 h-11 bg-gradient-to-br from-cyan-500/15 to-blue-500/15 rounded-lg flex items-center justify-center border border-cyan-500/20">
                 <FaCode className="text-cyan-400 text-base" />
               </div>
-              <h3 className="text-2xl font-bold text-white">
+              <h3 className="text-2xl font-semibold text-white">
                 Technologies Used
               </h3>
             </div>

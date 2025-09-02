@@ -219,10 +219,6 @@ const COLORS = [
   ANALYTICS_COLORS.neutral,
 ];
 
-
-
-
-
 const formatNumber = (num: number): string => {
   return new Intl.NumberFormat("en-US").format(num);
 };
@@ -415,53 +411,94 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
   }));
 
   // Transform financial data for charts (convert CurrencyAmount objects to numbers)
-  const transformedFinancialData = analyticsData?.financial ? {
-    paymentStatus: (analyticsData.financial.paymentStatus || []).map((status: any) => ({
-      ...status,
-      amount: typeof status.amount === 'object' && status.amount !== null ? extractAmount(status.amount) : (status.amount || 0),
-    })),
-    monthlyTrends: (analyticsData.financial.monthlyTrends || []).map((trend: any) => {
-      const transformedTrend = {
-        ...trend,
-        pending: typeof trend.pending === 'object' && trend.pending !== null ? extractAmount(trend.pending) : (trend.pending || 0),
-        approved: typeof trend.approved === 'object' && trend.approved !== null ? extractAmount(trend.approved) : (trend.approved || 0),
-        completed: typeof trend.completed === 'object' && trend.completed !== null ? extractAmount(trend.completed) : (trend.completed || 0),
-        rejected: typeof trend.rejected === 'object' && trend.rejected !== null ? extractAmount(trend.rejected) : (trend.rejected || 0),
-        outstanding: typeof trend.outstanding === 'object' && trend.outstanding !== null ? extractAmount(trend.outstanding) : (trend.outstanding || 0),
-      };
+  const transformedFinancialData = analyticsData?.financial
+    ? {
+        paymentStatus: (analyticsData.financial.paymentStatus || []).map(
+          (status: any) => ({
+            ...status,
+            amount:
+              typeof status.amount === "object" && status.amount !== null
+                ? extractAmount(status.amount)
+                : status.amount || 0,
+          })
+        ),
+        monthlyTrends: (analyticsData.financial.monthlyTrends || []).map(
+          (trend: any) => {
+            const transformedTrend = {
+              ...trend,
+              pending:
+                typeof trend.pending === "object" && trend.pending !== null
+                  ? extractAmount(trend.pending)
+                  : trend.pending || 0,
+              approved:
+                typeof trend.approved === "object" && trend.approved !== null
+                  ? extractAmount(trend.approved)
+                  : trend.approved || 0,
+              completed:
+                typeof trend.completed === "object" && trend.completed !== null
+                  ? extractAmount(trend.completed)
+                  : trend.completed || 0,
+              rejected:
+                typeof trend.rejected === "object" && trend.rejected !== null
+                  ? extractAmount(trend.rejected)
+                  : trend.rejected || 0,
+              outstanding:
+                typeof trend.outstanding === "object" &&
+                trend.outstanding !== null
+                  ? extractAmount(trend.outstanding)
+                  : trend.outstanding || 0,
+            };
 
-      return transformedTrend;
-    }),
-    paymentMethods: (analyticsData.financial.paymentMethods || []).map((method: any) => ({
-      ...method,
-      amount: typeof method.amount === 'object' && method.amount !== null ? extractAmount(method.amount) : (method.amount || 0),
-    })),
-    kpis: analyticsData.financial.kpis ? {
-      avgPaymentValue: typeof analyticsData.financial.kpis.avgPaymentValue === 'object' && analyticsData.financial.kpis.avgPaymentValue !== null
-        ? extractAmount(analyticsData.financial.kpis.avgPaymentValue) 
-        : (analyticsData.financial.kpis.avgPaymentValue || 0),
-      successRate: analyticsData.financial.kpis.successRate || 0,
-      avgProcessingTime: analyticsData.financial.kpis.avgProcessingTime || 0,
-      outstandingAmount: typeof analyticsData.financial.kpis.outstandingAmount === 'object' && analyticsData.financial.kpis.outstandingAmount !== null
-        ? extractAmount(analyticsData.financial.kpis.outstandingAmount)
-        : (analyticsData.financial.kpis.outstandingAmount || 0),
-    } : {
-      avgPaymentValue: 0,
-      successRate: 0,
-      avgProcessingTime: 0,
-      outstandingAmount: 0,
-    },
-  } : {
-    paymentStatus: [],
-    monthlyTrends: [],
-    paymentMethods: [],
-    kpis: {
-      avgPaymentValue: 0,
-      successRate: 0,
-      avgProcessingTime: 0,
-      outstandingAmount: 0,
-    },
-  };
+            return transformedTrend;
+          }
+        ),
+        paymentMethods: (analyticsData.financial.paymentMethods || []).map(
+          (method: any) => ({
+            ...method,
+            amount:
+              typeof method.amount === "object" && method.amount !== null
+                ? extractAmount(method.amount)
+                : method.amount || 0,
+          })
+        ),
+        kpis: analyticsData.financial.kpis
+          ? {
+              avgPaymentValue:
+                typeof analyticsData.financial.kpis.avgPaymentValue ===
+                  "object" &&
+                analyticsData.financial.kpis.avgPaymentValue !== null
+                  ? extractAmount(analyticsData.financial.kpis.avgPaymentValue)
+                  : analyticsData.financial.kpis.avgPaymentValue || 0,
+              successRate: analyticsData.financial.kpis.successRate || 0,
+              avgProcessingTime:
+                analyticsData.financial.kpis.avgProcessingTime || 0,
+              outstandingAmount:
+                typeof analyticsData.financial.kpis.outstandingAmount ===
+                  "object" &&
+                analyticsData.financial.kpis.outstandingAmount !== null
+                  ? extractAmount(
+                      analyticsData.financial.kpis.outstandingAmount
+                    )
+                  : analyticsData.financial.kpis.outstandingAmount || 0,
+            }
+          : {
+              avgPaymentValue: 0,
+              successRate: 0,
+              avgProcessingTime: 0,
+              outstandingAmount: 0,
+            },
+      }
+    : {
+        paymentStatus: [],
+        monthlyTrends: [],
+        paymentMethods: [],
+        kpis: {
+          avgPaymentValue: 0,
+          successRate: 0,
+          avgProcessingTime: 0,
+          outstandingAmount: 0,
+        },
+      };
 
   // Note: Backend financial analytics may be returning inflated amounts compared to overview data
 
@@ -498,7 +535,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold text-white mb-2">
-              Analytics Command Center
+              Project Analytics
             </h1>
             <p className="text-gray-300 text-lg">
               Real-time insights and performance metrics

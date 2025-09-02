@@ -12,10 +12,8 @@ import {
   FaEdit,
   FaTrash,
   FaStar,
-  FaClock,
   FaUsers,
   FaExternalLinkAlt,
-  FaArrowRight,
   FaCalendarAlt,
   FaPlay,
 } from "react-icons/fa";
@@ -23,6 +21,7 @@ import ToastNotification from "@/app/components/ToastNotification";
 import { ToastNotification as ToastNotificationType } from "@/app/components/ToastNotification";
 import HomepageProjectForm from "@/app/admin-dashboard/HomepageProjectForm";
 import Image from "next/image";
+import { FiPlay } from "react-icons/fi";
 
 interface ProjectShowcaseProps {
   isHomepage?: boolean;
@@ -352,7 +351,7 @@ export default function ProjectShowcase({
                         className="flex cursor-pointer items-center gap-2  text-purple-300 hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
                       >
                         View Details
-                        <FaPlay className="w-4 h-4" />
+                        <FiPlay className="w-2 h-2 text-gray-500" />
                       </button>
 
                       <div className="flex items-end gap-2">
@@ -454,10 +453,7 @@ export default function ProjectShowcase({
 
                   {project.featured && (
                     <div className="absolute top-4 left-4 bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 rounded-full px-3 py-1 flex items-center gap-1">
-                      <FaStar className="w-3 h-3 text-purple-400" />
-                      <span className="text-xs font-medium text-purple-300">
-                        Featured
-                      </span>
+                      <FaStar className="w-3 h-3 text-purple-900" />
                     </div>
                   )}
 

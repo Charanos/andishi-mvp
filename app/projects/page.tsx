@@ -11,7 +11,6 @@ import {
   FiX,
   FiCalendar,
   FiUsers,
-  FiClock,
   FiStar,
   FiExternalLink,
   FiGithub,
@@ -243,7 +242,7 @@ export default function ProjectsPage() {
           <div className="text-center mb-16">
             <div className="flex items-center justify-center gap-3 mb-6">
               <HiSparkles className="w-8 h-8 text-purple-400 animate-pulse" />
-              <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent monty">
+              <h1 className="text-5xl lg:text-7xl font-semibold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent monty">
                 Our Portfolio
               </h1>
               <HiSparkles className="w-8 h-8 text-purple-400 animate-pulse" />

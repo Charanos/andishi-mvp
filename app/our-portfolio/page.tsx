@@ -2,22 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { FiSearch } from "react-icons/fi";
 import React, { useState, useMemo, useEffect } from "react";
-import {
-  FiSearch,
-  FiChevronDown,
-  FiFilter,
-  FiTrendingUp,
-  FiX,
-  FiCalendar,
-  FiUsers,
-  FiClock,
-  FiStar,
-  FiExternalLink,
-  FiGithub,
-  FiPlay,
-} from "react-icons/fi";
-import { HiSparkles, HiViewGrid, HiViewList } from "react-icons/hi";
 import { FaBolt, FaFire, FaCode, FaSmile } from "react-icons/fa";
 
 interface Project {

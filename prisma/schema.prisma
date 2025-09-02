@@ -45,16 +45,42 @@ model User {
 }
 
 model DeveloperProfile {
-  id            String              @id @default(auto()) @map("_id") @db.ObjectId
-  data          Json
-  userId        String?             @unique @db.ObjectId
-  user          User?               @relation("UserProfile", fields: [userId], references: [id])
-  status        String              @default("pending") // pending, approved, rejected
-  isAvailable   Boolean             @default(false)
-  busyUntilDate DateTime? // Date until which developer is considered busy even after project completion
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  assignments   ProjectAssignment[]
+  id                 String                @id @default(auto()) @map("_id") @db.ObjectId
+  data               Json
+  userId             String?               @unique @db.ObjectId
+  user               User?                 @relation("UserProfile", fields: [userId], references: [id])
+  status             String                @default("pending") // pending, approved, rejected
+  isAvailable        Boolean               @default(false)
+  busyUntilDate      DateTime? // Date until which developer is considered busy even after project completion
+  techPoolMember     Boolean               @default(false)
+  poolJoinedDate     DateTime?
+  lastAssessmentDate DateTime?
+  assessmentScore    Float?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  assignments        ProjectAssignment[]
+  assessments        DeveloperAssessment[]
+
+  @@index([techPoolMember])
+}
+
+model DeveloperAssessment {
+  id                   String           @id @default(auto()) @map("_id") @db.ObjectId
+  developerId          String           @db.ObjectId
+  developer            DeveloperProfile @relation(fields: [developerId], references: [id])
+  evaluationType       String // initial, periodic, project_based
+  technicalSkills      Json // Contains specialty, primaryStack, skillRatings, overallTechnicalScore
+  professionalSkills   Json // Contains communication, teamwork, problemSolving, etc.
+  experienceAssessment Json // Contains relevantExperience, projectComplexity, industryKnowledge, portfolioQuality
+  evaluation           Json // Contains overallScore, recommendation, techPoolEligible, strengths, improvements, etc.
+  status               String           @default("draft") // draft, submitted, reviewed, finalized
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  reviewedAt           DateTime?
+  expiresAt            DateTime?
+
+  @@index([developerId])
+  @@index([status])
 }
 
 type Milestone {

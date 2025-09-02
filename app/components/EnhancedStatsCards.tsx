@@ -90,7 +90,7 @@ const EnhancedStatsCards = () => {
 
                   {/* Value with counter animation */}
                   <div
-                    className={`text-2xl monty md:text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-3 md:mb-4 transform group-hover:scale-110 transition-transform duration-300 relative z-10`}
+                    className={`text-2xl monty md:text-3xl font-semibold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-3 md:mb-4 transform group-hover:scale-110 transition-transform duration-300 relative z-10`}
                   >
                     {stat.value}
                   </div>

@@ -166,9 +166,11 @@ const FeedbackTabEnhanced: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-20 flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-        <p className="text-gray-400 monty uppercase">Loading comments...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-white text-xl">Loading Comments...</p>
+        </div>
       </div>
     );
   }

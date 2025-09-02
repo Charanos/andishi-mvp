@@ -38,6 +38,15 @@ const publicRoutes = [
   '/api/blogs',
   '/api/blogs/featured',
   '/api/reviews',
+  // Public API routes for email testing and contact form
+  '/api/email/send',
+  '/api/feedback',
+  // Public developer evaluation routes (CTA destination + public API)
+  '/developer-evaluation',
+  '/thank-you-evaluation',
+  '/api/evaluations',
+  '/api/evaluations/validate',
+  '/api/evaluations/submit',
 ];
 
 // Auth routes (login, register, etc.)

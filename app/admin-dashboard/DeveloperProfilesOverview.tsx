@@ -1,40 +1,33 @@
 "use client";
 
 import React, { JSX, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import DeveloperProfileEditor from "./DeveloperProfileEditor";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { EnhancedDeveloperFilter } from "./EnhancedDeveloperFilter";
+import DeveloperEvaluationForm from "./assessments/DeveloperEvaluationForm";
 
 import {
   FaEdit,
   FaEye,
   FaTrash,
   FaPlus,
-  FaSearch,
-  FaFilter,
   FaStar,
   FaMapMarkerAlt,
   FaClock,
   FaCode,
   FaDollarSign,
   FaUsers,
-  FaChevronDown,
   FaSyncAlt,
   FaExclamationTriangle,
-  FaArrowLeft,
   FaUser,
   FaTimesCircle,
   FaChartLine,
-  FaArrowCircleLeft,
-  FaUserPlus,
   FaPhone,
   FaEnvelope,
   FaGlobe,
   FaCalendarAlt,
   FaProjectDiagram,
-  FaGitAlt,
-  FaBug,
-  FaGraduationCap,
   FaTrophy,
   FaLinkedin,
   FaGithub,
@@ -42,9 +35,8 @@ import {
   FaCertificate,
   FaCheckCircle,
   FaComment,
-  FaCheck,
-  FaTimes,
-  FaInfoCircle,
+  FaClipboardCheck,
+  FaArrowCircleLeft,
 } from "react-icons/fa";
 import AddNewDeveloper from "./AddNewDeveloper";
 import ToastContainer from "../components/ToastContainer";
@@ -66,7 +58,8 @@ interface Props {
   refreshTrigger?: number; // Add refresh trigger prop
 }
 
-type ViewMode = "list" | "detail" | "edit" | "create" | "grid";
+type ViewMode = "list" | "detail" | "edit" | "create" | "grid" | "assess";
+type FilterViewMode = "list" | "detail" | "edit" | "create" | "grid";
 type SortOption = "name" | "rating" | "projects" | "earnings" | "newest";
 type ExperienceLevel = "all" | "junior" | "mid" | "senior" | "lead";
 type AvailabilityStatus = "all" | "available" | "busy" | "unavailable";
@@ -80,6 +73,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
   onDeleteProfile,
   refreshTrigger,
 }) => {
+  const router = useRouter();
   const [profiles, setProfiles] = useState<DeveloperProfile[]>([]);
   const [filteredProfiles, setFilteredProfiles] = useState<DeveloperProfile[]>(
     []
@@ -92,6 +86,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
   const [totalPages, setTotalPages] = useState(1);
   const [selectedProfile, setSelectedProfile] =
     useState<DeveloperProfile | null>(null);
+  const [assessmentDeveloperId, setAssessmentDeveloperId] = useState<
+    string | null
+  >(null);
   const [selectedExperience, setSelectedExperience] =
     useState<ExperienceLevel>("all");
   const [selectedAvailability, setSelectedAvailability] =
@@ -1619,6 +1616,16 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   <span>Edit Profile</span>
                 </button>
                 <button
+                  onClick={() => {
+                    setAssessmentDeveloperId(selectedProfile.id);
+                    setViewMode("assess");
+                  }}
+                  className="cursor-pointer w-full px-4 py-3 bg-white/10 hover:bg-black/20 text-white rounded-lg transition-all flex items-center justify-center space-x-2"
+                >
+                  <FaClipboardCheck className="text-blue-400" />
+                  <span>Assess Developer</span>
+                </button>
+                <button
                   onClick={() =>
                     handleDelete(
                       selectedProfile.id,
@@ -1677,8 +1684,11 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
   const renderListView = (): JSX.Element => {
     if (loading) {
       return (
-        <div className="flex items-center justify-center min-h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500"></div>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400 mx-auto mb-4"></div>
+            <p className="text-white text-xl">Loading Dev Profiles...</p>
+          </div>
         </div>
       );
     }
@@ -1732,8 +1742,22 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             onSkillsChange={setSelectedSkills}
             sortBy={sortBy}
             onSortChange={setSortBy}
-            onViewModeChange={setViewMode}
-            viewMode={viewMode}
+            onViewModeChange={(mode) => {
+              // Handle the type conversion between different ViewMode types
+              if (typeof mode === "function") {
+                setViewMode((prev) => {
+                  const filterMode =
+                    prev === "assess" ? "list" : (prev as FilterViewMode);
+                  const newMode = mode(filterMode);
+                  return newMode as ViewMode;
+                });
+              } else {
+                setViewMode(mode as ViewMode);
+              }
+            }}
+            viewMode={
+              viewMode === "assess" ? "list" : (viewMode as FilterViewMode)
+            }
             languageOptions={allLanguages}
             certificationOptions={allCertifications}
             skillOptions={allSkills}
@@ -1971,6 +1995,17 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     </button>
 
                     <button
+                      onClick={() => {
+                        setAssessmentDeveloperId(profile.id);
+                        setViewMode("assess");
+                      }}
+                      className="cursor-pointer px-3 py-2 bg-white/5 border border-gray-600/50 text-blue-400 hover:bg-white/10 hover:text-blue-300 rounded-lg transition-all duration-200 text-sm"
+                      title="Assess Developer"
+                    >
+                      <FaClipboardCheck />
+                    </button>
+
+                    <button
                       onClick={() =>
                         handleDelete(
                           profile.id,
@@ -2159,12 +2194,43 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
     );
   }
 
-  if (viewMode === "create") {
+  if (viewMode === "assess" && assessmentDeveloperId) {
     return (
-      <AddNewDeveloper
-        onCancel={handleBackToList}
-        onCreate={handleCreateSuccess}
-      />
+      <div className="min-h-screen">
+        {/* header - developer assessments */}
+        <div className="bg-indigo-400/20 rounded-xl mb-8">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => {
+                    setViewMode("list");
+                    setAssessmentDeveloperId(null);
+                  }}
+                  className="cursor-pointer flex items-center space-x-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
+                >
+                  <FaArrowCircleLeft className="w-4 h-4" />
+                  <span>Back to Profiles</span>
+                </button>
+                <div className="w-px h-6 bg-gray-600"></div>
+                <h1 className="text-2xl font-semibold text-white">
+                  Developer Assessment
+                </h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <DeveloperEvaluationForm
+            developerId={assessmentDeveloperId}
+            onComplete={() => {
+              setViewMode("list");
+              setAssessmentDeveloperId(null);
+            }}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -2173,13 +2239,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
       {renderListView()}
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
-        title="Delete Developer Profile"
-        message={`Are you sure you want to delete ${profileToDelete?.name}'s profile? This action cannot be undone.`}
         onConfirm={confirmDelete}
         onCancel={() => {
           setDeleteModalOpen(false);
           setProfileToDelete(null);
         }}
+        title="Delete Developer Profile"
+        message={`Are you sure you want to delete ${profileToDelete?.name}? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"

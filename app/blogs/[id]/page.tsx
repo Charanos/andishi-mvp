@@ -53,22 +53,18 @@ export default function EnhancedBlogPostPage() {
         setLoading(true);
 
         // Fetch blog data and all related data in parallel for better performance
-        const [
-          blogResponse,
-          likeResponse,
-          bookmarkResponse,
-          commentsResponse
-        ] = await Promise.all([
-          fetch(`/api/blogs/${id}`),
-          fetch(`/api/blogs/${id}/like`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }),
-          fetch(`/api/blogs/${id}/bookmark`),
-          fetch(`/api/blogs/${id}/comment`)
-        ]);
+        const [blogResponse, likeResponse, bookmarkResponse, commentsResponse] =
+          await Promise.all([
+            fetch(`/api/blogs/${id}`),
+            fetch(`/api/blogs/${id}/like`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }),
+            fetch(`/api/blogs/${id}/bookmark`),
+            fetch(`/api/blogs/${id}/comment`),
+          ]);
 
         const blogResult = await blogResponse.json();
 
@@ -77,9 +73,11 @@ export default function EnhancedBlogPostPage() {
           setLikeCount(parseInt(blogResult.data.likes) || 0);
 
           // Increment view count (fire and forget)
-          fetch(`/api/blogs/${id}/view`, { method: "POST" }).catch(viewError => {
-            console.error("Error incrementing view count:", viewError);
-          });
+          fetch(`/api/blogs/${id}/view`, { method: "POST" }).catch(
+            (viewError) => {
+              console.error("Error incrementing view count:", viewError);
+            }
+          );
 
           // Check like status
           if (likeResponse.ok) {
@@ -248,7 +246,7 @@ export default function EnhancedBlogPostPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
           <div className="text-6xl text-red-400 mb-4">😞</div>
-          <h1 className="text-2xl font-bold text-white mb-4">
+          <h1 className="text-2xl font-semibold text-white mb-4">
             Blog Post Not Found
           </h1>
           <p className="text-gray-400 mb-6">

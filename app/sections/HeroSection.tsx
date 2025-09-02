@@ -43,7 +43,7 @@ export default function HeroSection() {
 
           {/* Main heading with gradient text */}
           <div className="space-y-2 mb-10 mt-3">
-            <h1 className="text-4xl lg:text-6xl leading-tight">
+            <h1 className="text-5xl lg:text-6xl leading-tight mb-6">
               <span className="bg-gradient-to-r font-semibold from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
                 Hire Seamlessly,
               </span>

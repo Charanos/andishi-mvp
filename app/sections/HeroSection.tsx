@@ -23,18 +23,20 @@ export default function HeroSection() {
         {/* Left column: text & CTAs */}
         <div className="w-full lg:w-2/3 text-white">
           {/* Live indicator with glassmorphic design */}
-          <div className="flex items-center space-x-3 text-sm w-fit group mb-10">
+          <div className="hidden md:flex items-center space-x-3 text-sm w-fit group mb-10">
             <div className="flex items-center space-x-2 px-4  sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-400" />
               </span>
-              <span className="text-green-400 font-mediummonty ">Live</span>
+              <span className="text-green-400 font-medium monty uppercase">
+                Trusted by Startups & Enterprises
+              </span>
             </div>
 
             <div className="monty px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-purple-500/20 border border-purple-400/30">
-              <span className="text-purple-300 font-medium">
-                48hr special pricing
+              <span className="text-purple-300 font-medium monty uppercase">
+                Elite African Developers, Globally Deployed
               </span>
             </div>
           </div>
@@ -72,10 +74,10 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row my-6 gap-4 pt-4">
             <Link
               href="/start-project"
-              className="group relative px-8 md:py-4 py-3 flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
+              className="group relative px-8 py-3 flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-semibold overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span className="relative flex items-center justify-center space-x-2 uppercase tracking-wide">
+              <span className="relative flex items-center justify-center space-x-2 monty tracking-wide">
                 <span>Let’s Talk & Build</span>
                 <svg
                   className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
@@ -95,23 +97,10 @@ export default function HeroSection() {
 
             <Link
               href="/tech-talent-pool"
-              className="group px-8 md:py-4 py-3 backdrop-blur-md bg-white/5 border-2 border-blue-400/50 text-blue-300 rounded-full font-semibold hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 hover:scale-105"
+              className="group px-8 py-3 backdrop-blur-md bg-white/5 border-2 border-blue-400/50 text-blue-300 rounded-full font-semibold hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 hover:scale-105"
             >
-              <span className="flex items-center justify-center space-x-2 uppercase tracking-wide">
+              <span className="flex items-center justify-center space-x-2 monty tracking-wide">
                 <span>Explore Our Talent Pool</span>
-                <svg
-                  className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  />
-                </svg>
               </span>
             </Link>
           </div>

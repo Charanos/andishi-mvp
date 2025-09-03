@@ -95,10 +95,17 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     const evaluationUrl = `${baseUrl}/developer-evaluation/${evaluationToken}`;
 
-    // Update assessment with evaluator email
+    // Update assessment with invitation data
     await prisma.developerAssessment.update({
       where: { id: assessmentId },
       data: {
+        evaluation: {
+          evaluatorEmail,
+          invitationToken: evaluationToken,
+          invitedAt: new Date().toISOString(),
+          invitationStatus: 'sent'
+        },
+        updatedAt: new Date(),
       },
     });
 

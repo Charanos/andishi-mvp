@@ -221,8 +221,19 @@ export default function DeveloperEvaluationForm() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
-          <p className="text-gray-300">Validating evaluation link...</p>
+          <div className="relative">
+            <Loader2 className="w-16 h-16 text-purple-400 animate-spin mx-auto mb-6" />
+            <div className="absolute inset-0 w-16 h-16 mx-auto border-4 border-purple-400/20 rounded-full animate-pulse"></div>
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Validating Evaluation Link</h2>
+          <p className="text-gray-300">Please wait while we verify your access...</p>
+          <div className="mt-4 flex justify-center">
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -245,14 +256,33 @@ export default function DeveloperEvaluationForm() {
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-          <h1 className="text-3xl font-semibold text-white mb-2">Thank You!</h1>
-          <p className="text-gray-300">
-            Your evaluation has been submitted successfully.
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-12 shadow-2xl max-w-md"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.3, type: "spring" }}
+          >
+            <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
+          </motion.div>
+          <h1 className="text-3xl font-semibold text-white mb-4">Evaluation Submitted!</h1>
+          <p className="text-gray-300 mb-4">
+            Thank you for your valuable feedback. Your evaluation has been recorded successfully.
           </p>
-          <p className="text-sm text-gray-400 mt-2">Redirecting...</p>
-        </div>
+          <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 mb-4">
+            <p className="text-green-200 text-sm">
+              The development team will review your feedback to improve their skills and performance.
+            </p>
+          </div>
+          <div className="flex items-center justify-center text-sm text-gray-400">
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            Redirecting to confirmation page...
+          </div>
+        </motion.div>
       </div>
     );
   }

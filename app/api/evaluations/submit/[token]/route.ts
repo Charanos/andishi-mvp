@@ -24,7 +24,8 @@ export async function POST(
     
     let decoded: any;
     try {
-      decoded = jwtVerify(token, secret);
+      const { payload } = await jwtVerify(token, secret);
+      decoded = payload;
       
       // Check if token has expired
       if (decoded.exp && decoded.exp * 1000 < Date.now()) {

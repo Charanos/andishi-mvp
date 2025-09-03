@@ -42,6 +42,9 @@ import {
   SlidersHorizontal,
   Bookmark,
   Star,
+  AlertTriangle,
+  Code,
+  Trophy,
 } from "lucide-react";
 import EvaluationInviteView from "./components/EvaluationInviteView";
 import AutoAssessView from "./components/AutoAssessView";
@@ -56,6 +59,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
+  BarChart,
+  Bar,
 } from "recharts";
 import { format } from "date-fns";
 
@@ -500,12 +506,75 @@ export default function AssessmentDashboard() {
     );
   };
 
+  const handleExport = (format: "csv" | "json" | "pdf") => {
+    const dataToExport =
+      selectedAssessments.length > 0
+        ? sourceAssessments.filter((a) => selectedAssessments.includes(a.id))
+        : filteredAndSortedAssessments;
+
+    if (format === "csv") {
+      const csvContent = [
+        // CSV Headers
+        "Developer Name,Email,Status,Type,Overall Score,Recommendation,Pool Eligible,Created Date,Reviewed Date",
+        // CSV Data
+        ...dataToExport.map((a) =>
+          [
+            a.developerName || "Unknown",
+            a.developerEmail || "",
+            a.status,
+            a.evaluationType,
+            a.evaluation?.overallScore || 0,
+            a.evaluation?.recommendation || "",
+            a.evaluation?.techPoolEligible ? "Yes" : "No",
+            new Date(a.createdAt).toLocaleDateString(),
+            a.reviewedAt ? new Date(a.reviewedAt).toLocaleDateString() : "",
+          ].join(",")
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `assessments-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else if (format === "json") {
+      const jsonContent = JSON.stringify(dataToExport, null, 2);
+      const blob = new Blob([jsonContent], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `assessments-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    setShowExportModal(false);
+    toast.success(
+      "Export completed",
+      `${dataToExport.length} assessments exported as ${format.toUpperCase()}`
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedAssessments.length === filteredAndSortedAssessments.length) {
+      setSelectedAssessments([]);
+    } else {
+      setSelectedAssessments(filteredAndSortedAssessments.map((a) => a.id));
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-semibold">Developer Assessments</h1>
+          <h1 className="text-3xl font-medium">Developer Assessments</h1>
           <p className="text-gray-300">
             Track evaluations, performance and outcomes
           </p>
@@ -652,111 +721,548 @@ export default function AssessmentDashboard() {
                 <p className="text-gray-300 text-xs uppercase tracking-wider">
                   {m.label}
                 </p>
-                <p className="text-xl font-semibold">{m.value}</p>
+                <p className="text-xl font-medium">{m.value}</p>
               </div>
             ))}
           </div>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Status Distribution */}
-            <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold mb-6">Assessment Status</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      {
-                        name: "Draft",
-                        value: sourceAssessments.filter(
-                          (a) => a.status === "draft"
-                        ).length,
-                      },
-                      {
-                        name: "Submitted",
-                        value: sourceAssessments.filter(
-                          (a) => a.status === "submitted"
-                        ).length,
-                      },
-                      {
-                        name: "Reviewed",
-                        value: sourceAssessments.filter(
-                          (a) => a.status === "reviewed"
-                        ).length,
-                      },
-                      {
-                        name: "Finalized",
-                        value: sourceAssessments.filter(
-                          (a) => a.status === "finalized"
-                        ).length,
-                      },
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
+          {/* Enhanced Charts Section */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 my-22">
+            {/* Assessment Status Distribution */}
+            <div className="backdrop-blur-xl bg-black/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">
+                      Assessment Status Distribution
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Overview of assessment progress
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-white">
+                    {stats.total}
+                  </div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider">
+                    Total
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={320}>
+                  <PieChart>
+                    <defs>
+                      <filter
+                        id="shadow"
+                        x="-50%"
+                        y="-50%"
+                        width="200%"
+                        height="200%"
+                      >
+                        <feDropShadow
+                          dx="0"
+                          dy="4"
+                          stdDeviation="8"
+                          floodColor="rgba(0,0,0,0.3)"
+                        />
+                      </filter>
+                    </defs>
+                    <Pie
+                      data={[
+                        {
+                          name: "Draft",
+                          value: sourceAssessments.filter(
+                            (a) => a.status === "draft"
+                          ).length,
+                          fill: "#64748B",
+                        },
+                        {
+                          name: "Submitted",
+                          value: sourceAssessments.filter(
+                            (a) => a.status === "submitted"
+                          ).length,
+                          fill: "#3B82F6",
+                        },
+                        {
+                          name: "Reviewed",
+                          value: sourceAssessments.filter(
+                            (a) => a.status === "reviewed"
+                          ).length,
+                          fill: "#F59E0B",
+                        },
+                        {
+                          name: "Finalized",
+                          value: sourceAssessments.filter(
+                            (a) => a.status === "finalized"
+                          ).length,
+                          fill: "#10B981",
+                        },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={65}
+                      outerRadius={110}
+                      paddingAngle={3}
+                      dataKey="value"
+                      filter="url(#shadow)"
+                    >
+                      {/* Add hover effects */}
+                      <Cell
+                        fill="#64748B"
+                        stroke="rgba(255,255,255,0.1)"
+                        strokeWidth={2}
+                      />
+                      <Cell
+                        fill="#3B82F6"
+                        stroke="rgba(255,255,255,0.1)"
+                        strokeWidth={2}
+                      />
+                      <Cell
+                        fill="#F59E0B"
+                        stroke="rgba(255,255,255,0.1)"
+                        strokeWidth={2}
+                      />
+                      <Cell
+                        fill="#10B981"
+                        stroke="rgba(255,255,255,0.1)"
+                        strokeWidth={2}
+                      />
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "rgba(15,23,42,0.95)",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        borderRadius: "16px",
+                        color: "#fff",
+                        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+                        backdropFilter: "blur(16px)",
+                      }}
+                      labelStyle={{ color: "#fff", fontWeight: "600" }}
+                      formatter={(value: number) => [
+                        `${value} assessments`,
+                        "Count",
+                      ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Center Stats */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-white">
+                      {stats.total}
+                    </div>
+                    <div className="text-sm text-gray-400 uppercase tracking-wider">
+                      Total
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhanced Status Legend */}
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                {[
+                  {
+                    name: "Draft",
+                    color: "#64748B",
+                    count: sourceAssessments.filter((a) => a.status === "draft")
+                      .length,
+                    bgColor: "bg-white/10 backdrop-blur-2xl",
+                  },
+                  {
+                    name: "Submitted",
+                    color: "#3B82F6",
+                    count: sourceAssessments.filter(
+                      (a) => a.status === "submitted"
+                    ).length,
+                    bgColor: "bg-white/10 backdrop-blur-2xl",
+                  },
+                  {
+                    name: "Reviewed",
+                    color: "#F59E0B",
+                    count: sourceAssessments.filter(
+                      (a) => a.status === "reviewed"
+                    ).length,
+                    bgColor: "bg-white/10 backdrop-blur-2xl",
+                  },
+                  {
+                    name: "Finalized",
+                    color: "#10B981",
+                    count: sourceAssessments.filter(
+                      (a) => a.status === "finalized"
+                    ).length,
+                    bgColor: "bg-white/10 backdrop-blur-2xl",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.name}
+                    className={`${item.bgColor} rounded-xl p-4 border border-white/10`}
                   >
-                    {[0, 1, 2, 3].map((i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: "rgba(17,24,39,0.85)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 8,
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full ring-2 ring-white/20"
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <span className="text-sm font-medium text-gray-200">
+                          {item.name}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-white">
+                          {item.count}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {stats.total > 0
+                            ? Math.round((item.count / stats.total) * 100)
+                            : 0}
+                          %
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Score Trend */}
-            <div className="lg:col-span-2 backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold mb-6">Score Trends</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart
-                  data={sourceAssessments.map((a, idx) => ({
-                    name: a.developerName || `Assessment ${idx + 1}`,
-                    score: a.evaluation?.overallScore || 0,
-                  }))}
+            {/* Score Distribution & Trends */}
+            <div className="backdrop-blur-xl bg-black/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">
+                      Score Distribution
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Performance breakdown by score ranges
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-white">
+                    {stats.avgScore}%
+                  </div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider">
+                    Average
+                  </div>
+                </div>
+              </div>
+
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart
+                  data={[
+                    {
+                      range: "0-25%",
+                      count: sourceAssessments.filter(
+                        (a) => (a.evaluation?.overallScore || 0) <= 25
+                      ).length,
+                      fill: "#EF4444",
+                      label: "Poor",
+                    },
+                    {
+                      range: "26-50%",
+                      count: sourceAssessments.filter(
+                        (a) =>
+                          (a.evaluation?.overallScore || 0) > 25 &&
+                          (a.evaluation?.overallScore || 0) <= 50
+                      ).length,
+                      fill: "#F59E0B",
+                      label: "Fair",
+                    },
+                    {
+                      range: "51-75%",
+                      count: sourceAssessments.filter(
+                        (a) =>
+                          (a.evaluation?.overallScore || 0) > 50 &&
+                          (a.evaluation?.overallScore || 0) <= 75
+                      ).length,
+                      fill: "#3B82F6",
+                      label: "Good",
+                    },
+                    {
+                      range: "76-100%",
+                      count: sourceAssessments.filter(
+                        (a) => (a.evaluation?.overallScore || 0) > 75
+                      ).length,
+                      fill: "#10B981",
+                      label: "Excellent",
+                    },
+                  ]}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
                   <defs>
                     <linearGradient
-                      id="scoreGradient"
+                      id="redGradient"
                       x1="0"
                       y1="0"
                       x2="0"
                       y2="1"
                     >
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#FCA5A5" />
+                      <stop offset="100%" stopColor="#EF4444" />
                     </linearGradient>
+                    <linearGradient
+                      id="orangeGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#FCD34D" />
+                      <stop offset="100%" stopColor="#F59E0B" />
+                    </linearGradient>
+                    <linearGradient
+                      id="blueGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#93C5FD" />
+                      <stop offset="100%" stopColor="#3B82F6" />
+                    </linearGradient>
+                    <linearGradient
+                      id="greenGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#6EE7B7" />
+                      <stop offset="100%" stopColor="#10B981" />
+                    </linearGradient>
+                    <filter
+                      id="barShadow"
+                      x="-50%"
+                      y="-50%"
+                      width="200%"
+                      height="200%"
+                    >
+                      <feDropShadow
+                        dx="0"
+                        dy="2"
+                        stdDeviation="4"
+                        floodColor="rgba(0,0,0,0.2)"
+                      />
+                    </filter>
                   </defs>
                   <CartesianGrid
-                    strokeDasharray="3 3"
+                    strokeDasharray="2 4"
                     stroke="rgba(255,255,255,0.1)"
+                    horizontal={true}
+                    vertical={false}
                   />
-                  <XAxis dataKey="name" stroke="#9CA3AF" hide />
-                  <YAxis stroke="#9CA3AF" domain={[0, 100]} />
+                  <XAxis
+                    dataKey="range"
+                    stroke="#9CA3AF"
+                    fontSize={12}
+                    tick={{ fill: "#D1D5DB", fontSize: 12 }}
+                    axisLine={{ stroke: "rgba(255,255,255,0.2)" }}
+                    tickLine={{ stroke: "rgba(255,255,255,0.2)" }}
+                  />
+                  <YAxis
+                    stroke="#9CA3AF"
+                    fontSize={12}
+                    tick={{ fill: "#D1D5DB", fontSize: 12 }}
+                    axisLine={{ stroke: "rgba(255,255,255,0.2)" }}
+                    tickLine={{ stroke: "rgba(255,255,255,0.2)" }}
+                  />
                   <Tooltip
                     contentStyle={{
-                      background: "rgba(17,24,39,0.85)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 8,
+                      background: "rgba(15,23,42,0.95)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: "16px",
+                      color: "#fff",
+                      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+                      backdropFilter: "blur(16px)",
                     }}
+                    labelStyle={{ color: "#fff", fontWeight: "600" }}
+                    formatter={(value: number, name: string, props: any) => [
+                      `${value} assessments`,
+                      props.payload.label || "Score Range",
+                    ]}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#3B82F6"
-                    strokeWidth={3}
-                    fill="url(#scoreGradient)"
-                  />
-                </AreaChart>
+                  <Bar
+                    dataKey="count"
+                    radius={[8, 8, 0, 0]}
+                    filter="url(#barShadow)"
+                  >
+                    <Cell fill="url(#redGradient)" />
+                    <Cell fill="url(#orangeGradient)" />
+                    <Cell fill="url(#blueGradient)" />
+                    <Cell fill="url(#greenGradient)" />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
+
+              {/* Score Range Legend */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+                {[
+                  {
+                    range: "0-25%",
+                    label: "Poor",
+                    color: "#EF4444",
+                    bgColor: "bg-white/10",
+                  },
+                  {
+                    range: "26-50%",
+                    label: "Fair",
+                    color: "#F59E0B",
+                    bgColor: "bg-white/10",
+                  },
+                  {
+                    range: "51-75%",
+                    label: "Good",
+                    color: "#3B82F6",
+                    bgColor: "bg-white/10",
+                  },
+                  {
+                    range: "76-100%",
+                    label: "Excellent",
+                    color: "#10B981",
+                    bgColor: "bg-white/10",
+                  },
+                ].map((item, index) => {
+                  const count = [
+                    sourceAssessments.filter(
+                      (a) => (a.evaluation?.overallScore || 0) <= 25
+                    ).length,
+                    sourceAssessments.filter(
+                      (a) =>
+                        (a.evaluation?.overallScore || 0) > 25 &&
+                        (a.evaluation?.overallScore || 0) <= 50
+                    ).length,
+                    sourceAssessments.filter(
+                      (a) =>
+                        (a.evaluation?.overallScore || 0) > 50 &&
+                        (a.evaluation?.overallScore || 0) <= 75
+                    ).length,
+                    sourceAssessments.filter(
+                      (a) => (a.evaluation?.overallScore || 0) > 75
+                    ).length,
+                  ][index];
+
+                  return (
+                    <div
+                      key={item.range}
+                      className={`${item.bgColor} rounded-xl p-3 border border-white/10`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className="w-3 h-3 rounded-full ring-1 ring-white/20"
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <span className="text-xs font-medium text-gray-200">
+                          {item.label}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-400">{item.range}</div>
+                      <div className="text-lg font-bold text-white">
+                        {count}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Recommendations Overview */}
+          <div className="mb-22">
+            <h3 className="text-xl font-medium text-white mb-6">
+              Recommendations Breakdown
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[
+                {
+                  name: "Approved",
+                  count: sourceAssessments.filter(
+                    (a) => a.evaluation?.recommendation === "approved"
+                  ).length,
+                  color: "bg-white/5 backdrop-blur-2xl",
+                  icon: CheckCircle,
+                  textColor: "text-green-400",
+                },
+                {
+                  name: "Probation",
+                  count: sourceAssessments.filter(
+                    (a) => a.evaluation?.recommendation === "probation"
+                  ).length,
+                  color: "bg-white/5 backdrop-blur-2xl",
+                  icon: AlertTriangle,
+                  textColor: "text-orange-400",
+                },
+                {
+                  name: "Needs Review",
+                  count: sourceAssessments.filter(
+                    (a) => a.evaluation?.recommendation === "needs_review"
+                  ).length,
+                  color: "bg-white/5 backdrop-blur-2xl",
+                  icon: Eye,
+                  textColor: "text-blue-400",
+                },
+                {
+                  name: "Rejected",
+                  count: sourceAssessments.filter(
+                    (a) => a.evaluation?.recommendation === "rejected"
+                  ).length,
+                  color: "bg-white/5 backdrop-blur-2xl",
+                  icon: XCircle,
+                  textColor: "text-red-400",
+                },
+              ].map((rec) => (
+                <div
+                  key={rec.name}
+                  className={`bg-gradient-to-br ${rec.color} border border-gray-400/10 monty uppercase rounded-xl p-4`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <rec.icon className={`w-6 h-6 ${rec.textColor}`} />
+                    <span className="text-2xl font-semibold text-white">
+                      {rec.count}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300">{rec.name}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {stats.total > 0
+                      ? Math.round((rec.count / stats.total) * 100)
+                      : 0}
+                    % of total
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -765,8 +1271,8 @@ export default function AssessmentDashboard() {
       {/* EVALUATIONS TAB (List + Filters) */}
       {activeTab === "evaluations" && (
         <div className="space-y-6">
-          {/* Filters and Search */}
-          <div className="p-6 bg-gray-800/60 border-b border-white/10 rounded-xl">
+          {/* Enhanced Filters and Search */}
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -776,7 +1282,7 @@ export default function AssessmentDashboard() {
                     placeholder="Search by developer name or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-700/70 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
                   />
                 </div>
               </div>
@@ -784,30 +1290,48 @@ export default function AssessmentDashboard() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 bg-gray-700/70 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
               >
-                <option value="all">All Status</option>
-                <option value="draft">Draft</option>
-                <option value="submitted">Submitted</option>
-                <option value="reviewed">Reviewed</option>
-                <option value="finalized">Finalized</option>
+                <option value="all" className="bg-gray-800">
+                  All Status
+                </option>
+                <option value="draft" className="bg-gray-800">
+                  Draft
+                </option>
+                <option value="submitted" className="bg-gray-800">
+                  Submitted
+                </option>
+                <option value="reviewed" className="bg-gray-800">
+                  Reviewed
+                </option>
+                <option value="finalized" className="bg-gray-800">
+                  Finalized
+                </option>
               </select>
 
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 bg-gray-700/70 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
               >
-                <option value="all">All Types</option>
-                <option value="initial">Initial</option>
-                <option value="periodic">Periodic</option>
-                <option value="project_based">Project Based</option>
+                <option value="all" className="bg-gray-800">
+                  All Types
+                </option>
+                <option value="initial" className="bg-gray-800">
+                  Initial
+                </option>
+                <option value="periodic" className="bg-gray-800">
+                  Periodic
+                </option>
+                <option value="project_based" className="bg-gray-800">
+                  Project Based
+                </option>
               </select>
             </div>
           </div>
 
-          {/* Assessments List */}
-          <div className="p-6">
+          {/* Enhanced Assessments List */}
+          <div className="my-22">
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -831,7 +1355,7 @@ export default function AssessmentDashboard() {
               <div className="space-y-4">
                 {/* Bulk Actions Bar */}
                 {selectedAssessments.length > 0 && (
-                  <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 flex items-center justify-between">
+                  <div className="backdrop-blur-xl bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-blue-300 font-medium">
                         {selectedAssessments.length} assessment
@@ -845,6 +1369,16 @@ export default function AssessmentDashboard() {
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleSelectAll}
+                        className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors text-sm flex items-center gap-1"
+                      >
+                        <CheckSquare className="w-3 h-3" />
+                        {selectedAssessments.length ===
+                        filteredAndSortedAssessments.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </button>
                       <button
                         onClick={() => setShowExportModal(true)}
                         className="px-3 py-1 bg-green-600/20 text-green-400 rounded-lg hover:bg-green-600/30 transition-colors text-sm flex items-center gap-1"
@@ -910,7 +1444,7 @@ export default function AssessmentDashboard() {
 
                 {/* Advanced Filters Panel */}
                 {showAdvancedFilters && (
-                  <div className="bg-gray-800/60 border border-gray-700/50 rounded-lg p-4 space-y-4">
+                  <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -925,7 +1459,7 @@ export default function AssessmentDashboard() {
                               from: e.target.value,
                             }))
                           }
-                          className="w-full px-3 py-2 bg-gray-700/70 border border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm text-sm"
                         />
                       </div>
                       <div>
@@ -987,7 +1521,7 @@ export default function AssessmentDashboard() {
                           setDateRange({ from: "", to: "" });
                           setScoreRange({ min: 0, max: 100 });
                         }}
-                        className="px-3 py-1 bg-gray-600/50 text-gray-300 rounded text-sm hover:bg-gray-600/70 transition-colors"
+                        className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors text-sm backdrop-blur-sm"
                       >
                         Clear Filters
                       </button>
@@ -999,9 +1533,9 @@ export default function AssessmentDashboard() {
                   {filteredAndSortedAssessments.map((assessment) => (
                     <div
                       key={assessment.id}
-                      className={`bg-gray-800/70 rounded-lg p-6 hover:bg-gray-750 transition-colors cursor-pointer border border-white/10 ${
+                      className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 cursor-pointer ${
                         selectedAssessments.includes(assessment.id)
-                          ? "ring-2 ring-blue-500/50 bg-blue-900/20"
+                          ? "ring-2 ring-blue-500/50 bg-blue-500/10 border-blue-500/30"
                           : ""
                       }`}
                       onClick={() => setSelectedAssessment(assessment)}
@@ -1100,7 +1634,7 @@ export default function AssessmentDashboard() {
                                   Overall Score:
                                 </span>
                                 <span
-                                  className={`font-semibold ${
+                                  className={`font-medium ${
                                     (assessment.evaluation?.overallScore ||
                                       0) >= 75
                                       ? "text-green-400"
@@ -1252,35 +1786,184 @@ export default function AssessmentDashboard() {
       {/* PERFORMANCE TAB */}
       {activeTab === "performance" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold mb-3">Top Skills</h3>
-              <div className="space-y-3">
-                {Object.entries(
-                  sourceAssessments.reduce<Record<string, number>>((acc, a) => {
-                    a.technicalSkills?.skillRatings?.forEach((s) => {
-                      acc[s.category] = (acc[s.category] || 0) + 1;
-                    });
-                    return acc;
-                  }, {})
-                )
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 8)
-                  .map(([skill, count]) => (
-                    <div
-                      key={skill}
-                      className="flex items-center justify-between"
-                    >
-                      <span className="text-gray-300">{skill}</span>
-                      <span className="text-white font-medium">{count}</span>
-                    </div>
-                  ))}
+          {/* Performance Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-white">
+                  Average Score
+                </h3>
+                <TrendingUp className="w-6 h-6 text-green-400" />
+              </div>
+              <div className="text-3xl font-semibold text-white mb-2">
+                {Math.round(
+                  sourceAssessments.reduce(
+                    (sum, a) => sum + (a.evaluation?.overallScore || 0),
+                    0
+                  ) / Math.max(sourceAssessments.length, 1)
+                )}
+                %
+              </div>
+              <p className="text-sm text-gray-400">
+                Across {sourceAssessments.length} assessments
+              </p>
+            </div>
+
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-white">
+                  Completion Rate
+                </h3>
+                <CheckCircle className="w-6 h-6 text-blue-400" />
+              </div>
+              <div className="text-3xl font-semibold text-white mb-2">
+                {Math.round(
+                  (sourceAssessments.filter((a) => a.status === "finalized")
+                    .length /
+                    Math.max(sourceAssessments.length, 1)) *
+                    100
+                )}
+                %
+              </div>
+              <p className="text-sm text-gray-400">
+                {
+                  sourceAssessments.filter((a) => a.status === "finalized")
+                    .length
+                }{" "}
+                of {sourceAssessments.length} completed
+              </p>
+            </div>
+
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-white">
+                  Pool Eligible
+                </h3>
+                <Award className="w-6 h-6 text-yellow-400" />
+              </div>
+              <div className="text-3xl font-semibold text-white mb-2">
+                {stats.poolMembers}
+              </div>
+              <p className="text-sm text-gray-400">
+                {Math.round(
+                  (stats.poolMembers / Math.max(stats.total, 1)) * 100
+                )}
+                % of total
+              </p>
+            </div>
+
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-white">
+                  Avg Response Time
+                </h3>
+                <Clock className="w-6 h-6 text-purple-400" />
+              </div>
+              <div className="text-3xl font-semibold text-white mb-2">
+                {(() => {
+                  const completedAssessments = sourceAssessments.filter(
+                    (a) =>
+                      a.reviewedAt && a.createdAt && a.status === "finalized"
+                  );
+                  if (completedAssessments.length === 0) return "0";
+                  const avgDays =
+                    completedAssessments.reduce((sum, a) => {
+                      const created = new Date(a.createdAt);
+                      const reviewed = new Date(a.reviewedAt!);
+                      return (
+                        sum +
+                        Math.ceil(
+                          (reviewed.getTime() - created.getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        )
+                      );
+                    }, 0) / completedAssessments.length;
+                  return Math.round(avgDays);
+                })()}
+              </div>
+              <p className="text-sm text-gray-400">Days to complete</p>
+            </div>
+          </div>
+
+          {/* Skills Analysis */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Technical Skills Distribution */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="text-xl font-medium text-white mb-6 flex items-center gap-2">
+                <Code className="w-6 h-6 text-blue-400" />
+                Technical Skills Distribution
+              </h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={(() => {
+                      const skillCounts = sourceAssessments.reduce<
+                        Record<string, { total: number; avgScore: number }>
+                      >((acc, a) => {
+                        a.technicalSkills?.skillRatings?.forEach((s) => {
+                          if (!acc[s.category]) {
+                            acc[s.category] = { total: 0, avgScore: 0 };
+                          }
+                          acc[s.category].total += 1;
+                          acc[s.category].avgScore += s.rating;
+                        });
+                        return acc;
+                      }, {});
+
+                      return Object.entries(skillCounts)
+                        .map(([skill, data]) => ({
+                          skill:
+                            skill.length > 12
+                              ? skill.substring(0, 12) + "..."
+                              : skill,
+                          count: data.total,
+                          avgScore:
+                            Math.round((data.avgScore / data.total) * 10) / 10,
+                        }))
+                        .sort((a, b) => b.count - a.count)
+                        .slice(0, 8);
+                    })()}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(255,255,255,0.1)"
+                    />
+                    <XAxis
+                      dataKey="skill"
+                      stroke="#9CA3AF"
+                      fontSize={11}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis stroke="#9CA3AF" fontSize={12} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "rgba(17,24,39,0.95)",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        borderRadius: "12px",
+                        color: "#fff",
+                      }}
+                      formatter={(value, name) => [
+                        name === "count"
+                          ? `${value} assessments`
+                          : `${value}/5 avg`,
+                        name === "count" ? "Frequency" : "Average Score",
+                      ]}
+                    />
+                    <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold mb-3">Soft Skills (avg)</h3>
-              <div className="space-y-2 text-sm text-gray-300">
+            {/* Professional Skills Radar */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="text-xl font-medium text-white mb-6 flex items-center gap-2">
+                <Users className="w-6 h-6 text-green-400" />
+                Professional Skills Average
+              </h3>
+              <div className="space-y-4">
                 {(() => {
                   const avg = (
                     key: keyof NonNullable<
@@ -1293,38 +1976,307 @@ export default function AssessmentDashboard() {
                         0
                       ) /
                         Math.max(sourceAssessments.length, 1)) *
-                        10
-                    ) / 10;
-                  return [
-                    { label: "Communication", v: avg("communication") },
-                    { label: "Teamwork", v: avg("teamwork") },
-                    { label: "Problem Solving", v: avg("problemSolving") },
-                    { label: "Time Mgmt", v: avg("timeManagement") },
+                        20
+                    ) / 20;
+
+                  const skills = [
+                    {
+                      label: "Communication",
+                      value: avg("communication"),
+                      color: "bg-blue-500",
+                    },
+                    {
+                      label: "Teamwork",
+                      value: avg("teamwork"),
+                      color: "bg-green-500",
+                    },
+                    {
+                      label: "Problem Solving",
+                      value: avg("problemSolving"),
+                      color: "bg-purple-500",
+                    },
+                    {
+                      label: "Time Management",
+                      value: avg("timeManagement"),
+                      color: "bg-yellow-500",
+                    },
                     {
                       label: "Client Interaction",
-                      v: avg("clientInteraction"),
+                      value: avg("clientInteraction"),
+                      color: "bg-pink-500",
                     },
                   ];
-                })().map((row) => (
-                  <div
-                    key={row.label}
-                    className="flex items-center justify-between"
-                  >
-                    <span>{row.label}</span>
-                    <span className="text-white font-medium">{row.v}%</span>
+
+                  return skills.map((skill) => (
+                    <div key={skill.label} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300 font-medium">
+                          {skill.label}
+                        </span>
+                        <span className="text-white font-medium">
+                          {skill.value}/5
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-700/50 rounded-full h-2">
+                        <div
+                          className={`${skill.color} h-2 rounded-full transition-all duration-500`}
+                          style={{ width: `${(skill.value / 5) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Trends */}
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <h3 className="text-xl font-medium text-white mb-6 flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-purple-400" />
+              Score Trends Over Time
+            </h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={(() => {
+                    const monthlyData = sourceAssessments
+                      .filter((a) => a.evaluation?.overallScore)
+                      .sort(
+                        (a, b) =>
+                          new Date(a.createdAt).getTime() -
+                          new Date(b.createdAt).getTime()
+                      )
+                      .reduce<
+                        Record<string, { scores: number[]; count: number }>
+                      >((acc, assessment) => {
+                        const month = format(
+                          new Date(assessment.createdAt),
+                          "MMM yyyy"
+                        );
+                        if (!acc[month]) {
+                          acc[month] = { scores: [], count: 0 };
+                        }
+                        acc[month].scores.push(
+                          assessment.evaluation!.overallScore!
+                        );
+                        acc[month].count += 1;
+                        return acc;
+                      }, {});
+
+                    return Object.entries(monthlyData).map(([month, data]) => ({
+                      month,
+                      avgScore:
+                        Math.round(
+                          (data.scores.reduce((sum, score) => sum + score, 0) /
+                            data.count) *
+                            10
+                        ) / 10,
+                      count: data.count,
+                      maxScore: Math.max(...data.scores),
+                      minScore: Math.min(...data.scores),
+                    }));
+                  })()}
+                >
+                  <defs>
+                    <linearGradient
+                      id="scoreGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                      <stop
+                        offset="100%"
+                        stopColor="#3B82F6"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255,255,255,0.1)"
+                  />
+                  <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
+                  <YAxis stroke="#9CA3AF" fontSize={12} domain={[0, 100]} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "rgba(17,24,39,0.95)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: "12px",
+                      color: "#fff",
+                    }}
+                    formatter={(value, name) => [
+                      `${value}${name === "avgScore" ? "%" : ""}`,
+                      name === "avgScore"
+                        ? "Average Score"
+                        : name === "count"
+                        ? "Assessments"
+                        : name === "maxScore"
+                        ? "Highest Score"
+                        : "Lowest Score",
+                    ]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="avgScore"
+                    stroke="#8B5CF6"
+                    strokeWidth={2}
+                    fill="url(#scoreGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Detailed Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Top Performers */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                Top Performers
+              </h3>
+              <div className="space-y-3">
+                {sourceAssessments
+                  .filter((a) => a.evaluation?.overallScore)
+                  .sort(
+                    (a, b) =>
+                      (b.evaluation?.overallScore || 0) -
+                      (a.evaluation?.overallScore || 0)
+                  )
+                  .slice(0, 5)
+                  .map((assessment, index) => (
+                    <div
+                      key={assessment.id}
+                      className="flex items-center justify-between p-3 bg-white/5 rounded-xl"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                            index === 0
+                              ? "bg-yellow-500 text-black"
+                              : index === 1
+                              ? "bg-gray-400 text-black"
+                              : index === 2
+                              ? "bg-orange-600 text-white"
+                              : "bg-gray-600 text-white"
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-white font-medium text-sm">
+                            {assessment.developerName || "Unknown"}
+                          </p>
+                          <p className="text-gray-400 text-xs">
+                            {assessment.evaluation?.recommendation?.replace(
+                              "_",
+                              " "
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-green-400 font-semibold">
+                        {assessment.evaluation?.overallScore}%
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Assessment Types */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-400" />
+                Assessment Types
+              </h3>
+              <div className="space-y-3">
+                {Object.entries(
+                  sourceAssessments.reduce<Record<string, number>>((acc, a) => {
+                    acc[a.evaluationType] = (acc[a.evaluationType] || 0) + 1;
+                    return acc;
+                  }, {})
+                ).map(([type, count]) => (
+                  <div key={type} className="flex items-center justify-between">
+                    <span className="text-gray-300 capitalize">
+                      {type.replace("_", " ")}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 bg-gray-700/50 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full"
+                          style={{
+                            width: `${
+                              (count / sourceAssessments.length) * 100
+                            }%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-white font-medium text-sm w-8">
+                        {count}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold mb-3">Pool Eligibility</h3>
-              <div className="text-4xl font-semibold">{stats.poolMembers}</div>
-              <div className="text-gray-400 mt-2">
-                {Math.round(
-                  (stats.poolMembers / Math.max(stats.total, 1)) * 100
-                )}
-                % eligible
+            {/* Recent Activity */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-green-400" />
+                Recent Activity
+              </h3>
+              <div className="space-y-3">
+                {sourceAssessments
+                  .sort(
+                    (a, b) =>
+                      new Date(b.updatedAt || b.createdAt).getTime() -
+                      new Date(a.updatedAt || a.createdAt).getTime()
+                  )
+                  .slice(0, 5)
+                  .map((assessment) => (
+                    <div
+                      key={assessment.id}
+                      className="flex items-start gap-3 p-3 bg-white/5 rounded-xl"
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full mt-2 ${
+                          assessment.status === "finalized"
+                            ? "bg-green-400"
+                            : assessment.status === "reviewed"
+                            ? "bg-yellow-400"
+                            : assessment.status === "submitted"
+                            ? "bg-blue-400"
+                            : "bg-gray-400"
+                        }`}
+                      />
+                      <div className="flex-1">
+                        <p className="text-white text-sm font-medium">
+                          {assessment.developerName || "Unknown"}
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          {assessment.status === "finalized"
+                            ? "Assessment completed"
+                            : assessment.status === "reviewed"
+                            ? "Under review"
+                            : assessment.status === "submitted"
+                            ? "Evaluation submitted"
+                            : "Assessment created"}
+                        </p>
+                        <p className="text-gray-500 text-xs">
+                          {format(
+                            new Date(
+                              assessment.updatedAt || assessment.createdAt
+                            ),
+                            "MMM dd, HH:mm"
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
@@ -1356,6 +2308,76 @@ export default function AssessmentDashboard() {
           }}
           assessment={inviteAssessment}
         />
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-medium text-white">
+                Export Assessments
+              </h3>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="text-sm text-gray-300">
+                {selectedAssessments.length > 0
+                  ? `Exporting ${selectedAssessments.length} selected assessments`
+                  : `Exporting ${filteredAndSortedAssessments.length} filtered assessments`}
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  onClick={() => handleExport("csv")}
+                  className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-green-400" />
+                    <div className="text-left">
+                      <div className="text-white font-medium">CSV Format</div>
+                      <div className="text-xs text-gray-400">
+                        Spreadsheet compatible
+                      </div>
+                    </div>
+                  </div>
+                  <Download className="w-4 h-4 text-gray-400" />
+                </button>
+
+                <button
+                  onClick={() => handleExport("json")}
+                  className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <Code className="w-5 h-5 text-blue-400" />
+                    <div className="text-left">
+                      <div className="text-white font-medium">JSON Format</div>
+                      <div className="text-xs text-gray-400">
+                        Full data structure
+                      </div>
+                    </div>
+                  </div>
+                  <Download className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-600/20 text-gray-300 rounded-xl hover:bg-gray-600/30 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

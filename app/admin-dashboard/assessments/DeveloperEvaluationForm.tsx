@@ -33,17 +33,17 @@ export default function DeveloperEvaluationForm({
   const [currentAssessment, setCurrentAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("technical");
-  
+
   // Custom toast notifications state
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
-  
+
   const addNotification = (notification: Omit<ToastNotification, "id">) => {
     const id = Date.now().toString();
-    setNotifications(prev => [...prev, { ...notification, id }]);
+    setNotifications((prev) => [...prev, { ...notification, id }]);
   };
-  
+
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   // Form state
@@ -162,7 +162,7 @@ export default function DeveloperEvaluationForm({
         type: "error",
         title: "Failed to load assessment",
         message: "Could not load assessment data. Please try again.",
-        duration: 6000
+        duration: 6000,
       });
     } finally {
       setLoading(false);
@@ -193,7 +193,7 @@ export default function DeveloperEvaluationForm({
         type: "error",
         title: "Failed to initialize assessment",
         message: "Could not create a new assessment. Please try again.",
-        duration: 6000
+        duration: 6000,
       });
     } finally {
       setLoading(false);
@@ -206,8 +206,9 @@ export default function DeveloperEvaluationForm({
       addNotification({
         type: "warning",
         title: "Missing Technical Skills",
-        message: "Please add at least one technical skill rating before calculating scores.",
-        duration: 5000
+        message:
+          "Please add at least one technical skill rating before calculating scores.",
+        duration: 5000,
       });
       return;
     }
@@ -261,8 +262,11 @@ export default function DeveloperEvaluationForm({
     addNotification({
       type: "success",
       title: "Scores Calculated",
-      message: `Overall score: ${overallScore}% (${recommendation.replace('_', ' ')})`,
-      duration: 4000
+      message: `Overall score: ${overallScore}% (${recommendation.replace(
+        "_",
+        " "
+      )})`,
+      duration: 4000,
     });
   };
 
@@ -272,7 +276,7 @@ export default function DeveloperEvaluationForm({
         type: "error",
         title: "No Assessment Found",
         message: "Please initialize an assessment first.",
-        duration: 5000
+        duration: 5000,
       });
       return;
     }
@@ -282,7 +286,7 @@ export default function DeveloperEvaluationForm({
       type: "info",
       title: "Saving Draft",
       message: "Saving assessment draft...",
-      duration: 2000
+      duration: 2000,
     });
 
     try {
@@ -293,23 +297,25 @@ export default function DeveloperEvaluationForm({
         },
         body: JSON.stringify({ ...formData, status: "draft" }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       addNotification({
         type: "success",
         title: "Draft Saved",
-        message: "Assessment draft saved successfully. You can continue editing later.",
-        duration: 4000
+        message:
+          "Assessment draft saved successfully. You can continue editing later.",
+        duration: 4000,
       });
     } catch (error) {
       addNotification({
         type: "error",
         title: "Failed to Save Draft",
-        message: "Could not save assessment draft. Please check your connection and try again.",
-        duration: 6000
+        message:
+          "Could not save assessment draft. Please check your connection and try again.",
+        duration: 6000,
       });
     } finally {
       setLoading(false);
@@ -322,7 +328,7 @@ export default function DeveloperEvaluationForm({
         type: "error",
         title: "No Assessment Found",
         message: "Please initialize an assessment first.",
-        duration: 5000
+        duration: 5000,
       });
       return;
     }
@@ -333,7 +339,7 @@ export default function DeveloperEvaluationForm({
         type: "warning",
         title: "Missing Specialty",
         message: "Please select a developer specialty before submitting.",
-        duration: 5000
+        duration: 5000,
       });
       return;
     }
@@ -342,8 +348,9 @@ export default function DeveloperEvaluationForm({
       addNotification({
         type: "warning",
         title: "Missing Technical Skills",
-        message: "Please add at least one technical skill rating before submitting.",
-        duration: 5000
+        message:
+          "Please add at least one technical skill rating before submitting.",
+        duration: 5000,
       });
       return;
     }
@@ -353,7 +360,7 @@ export default function DeveloperEvaluationForm({
         type: "warning",
         title: "Missing Comments",
         message: "Please add evaluator comments before submitting.",
-        duration: 5000
+        duration: 5000,
       });
       return;
     }
@@ -363,7 +370,7 @@ export default function DeveloperEvaluationForm({
       type: "info",
       title: "Submitting Assessment",
       message: "Submitting assessment for review...",
-      duration: 3000
+      duration: 3000,
     });
 
     try {
@@ -374,23 +381,25 @@ export default function DeveloperEvaluationForm({
         },
         body: JSON.stringify({ ...formData, status: "submitted" }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       addNotification({
         type: "success",
         title: "Assessment Submitted",
-        message: "Assessment successfully submitted for review. You will be notified of the outcome.",
-        duration: 5000
+        message:
+          "Assessment successfully submitted for review. You will be notified of the outcome.",
+        duration: 5000,
       });
     } catch (error) {
       addNotification({
         type: "error",
         title: "Failed to Submit",
-        message: "Could not submit assessment. Please check your connection and try again.",
-        duration: 6000
+        message:
+          "Could not submit assessment. Please check your connection and try again.",
+        duration: 6000,
       });
     } finally {
       setLoading(false);
@@ -403,36 +412,38 @@ export default function DeveloperEvaluationForm({
         type: "error",
         title: "No Assessment Found",
         message: "Please initialize an assessment first.",
-        duration: 5000
+        duration: 5000,
       });
       return;
     }
 
     // Comprehensive validation
     const validationErrors = [];
-    
+
     if (!formData.technicalSkills.specialty) {
       validationErrors.push("Developer specialty");
     }
-    
+
     if (formData.technicalSkills.skillRatings.length === 0) {
       validationErrors.push("Technical skill ratings");
     }
-    
+
     if (!formData.evaluation.evaluatorComments.trim()) {
       validationErrors.push("Evaluator comments");
     }
-    
+
     if (formData.evaluation.suggestedRate <= 0) {
       validationErrors.push("Suggested hourly rate");
     }
-    
+
     if (validationErrors.length > 0) {
       addNotification({
         type: "warning",
         title: "Incomplete Assessment",
-        message: `Please complete: ${validationErrors.join(", ")} before finalizing.`,
-        duration: 7000
+        message: `Please complete: ${validationErrors.join(
+          ", "
+        )} before finalizing.`,
+        duration: 7000,
       });
       return;
     }
@@ -442,7 +453,7 @@ export default function DeveloperEvaluationForm({
       type: "info",
       title: "Finalizing Assessment",
       message: "Processing final assessment and updating developer status...",
-      duration: 3000
+      duration: 3000,
     });
 
     try {
@@ -461,39 +472,41 @@ export default function DeveloperEvaluationForm({
           }),
         }
       );
-      
+
       if (!result.ok) {
         throw new Error(`HTTP error! status: ${result.status}`);
       }
-      
+
       const data = await result.json();
-      
+
       addNotification({
         type: "success",
         title: "Assessment Finalized",
-        message: data.message || "Assessment finalized successfully. Developer status has been updated.",
+        message:
+          data.message ||
+          "Assessment finalized successfully. Developer status has been updated.",
         duration: 5000,
         action: {
           label: "View Assessments",
           onClick: () => {
             if (onComplete) onComplete();
             if (router) router.push("/admin-dashboard");
-          }
-        }
+          },
+        },
       });
-      
+
       // Auto-redirect after 3 seconds
       setTimeout(() => {
         if (onComplete) onComplete();
         if (router) router.push("/admin-dashboard");
       }, 3000);
-      
     } catch (error) {
       addNotification({
         type: "error",
         title: "Failed to Finalize",
-        message: "Could not finalize assessment. Please check your connection and try again.",
-        duration: 6000
+        message:
+          "Could not finalize assessment. Please check your connection and try again.",
+        duration: 6000,
       });
     } finally {
       setLoading(false);
@@ -536,7 +549,7 @@ export default function DeveloperEvaluationForm({
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen max-w-7xl mx-auto my-22">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold mb-2">
@@ -1001,7 +1014,7 @@ export default function DeveloperEvaluationForm({
           </button>
         </div>
       </div>
-      
+
       {/* Toast Notifications */}
       <ToastContainer
         notifications={notifications}

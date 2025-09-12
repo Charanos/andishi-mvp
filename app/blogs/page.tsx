@@ -486,9 +486,9 @@ export default function BlogsSection() {
                 </div>
 
                 {/* Image */}
-                <div className="relative bg-gradient-to-br from-gray-700 to-gray-800">
+                <div className="relative bg-gradient-to-br from-gray-700/5 to-gray-800/5">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                  <div className="absolute top-6 right-6 w-3 h-3 bg-blue-400/50 rounded-full animate-pulse"></div>
+                  <div className="absolute top-6 right-6 w-3 h-3 bg-blue-400/5 rounded-full animate-pulse"></div>
                   <Image
                     width={5000}
                     height={5000}

@@ -179,7 +179,7 @@ export default function BlogFormPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-transparent flex items-center justify-center">
         <div className="text-center">
           <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-300">Loading...</p>
@@ -190,7 +190,7 @@ export default function BlogFormPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-transparent flex items-center justify-center">
         <div className="text-center max-w-md p-8 bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-none">
           <FaUser className="text-4xl text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">
@@ -212,7 +212,7 @@ export default function BlogFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-transparent py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <Link

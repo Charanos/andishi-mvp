@@ -236,14 +236,16 @@ export default function EnhancedBlogPostPage() {
     return (
       <div className="text-center py-20 flex flex-col items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400 monty uppercase">Loading blog post...</p>
+        <p className="text-gray-600 dark:text-gray-400 monty uppercase">
+          Loading blog post...
+        </p>
       </div>
     );
   }
 
   if (error || !blog) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-transparent flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
           <div className="text-6xl text-red-400 mb-4">😞</div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">

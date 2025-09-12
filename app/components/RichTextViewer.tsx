@@ -39,7 +39,7 @@ export default function RichTextViewer({ html, enhanced = false }: RichTextViewe
   return (
     <div
       ref={containerRef}
-      className={`prose prose-invert max-w-none ${
+      className={`prose prose-invert dark:prose-invert prose-gray max-w-none ${
         enhanced ? 'rich-content-enhanced' : ''
       }`}
       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}

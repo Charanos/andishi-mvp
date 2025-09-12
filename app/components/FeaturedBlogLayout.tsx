@@ -215,7 +215,7 @@ export default function EnhancedBlogLayout({
       {/* Navigation */}
       <nav className="sticky top-20 z-50 p-6">
         <Link href="/blogs">
-          <button className="inline-flex cursor-pointer uppercase text-xs items-center bg-white/5 backdrop-blur-lg border border-white/20 my-3 py-2 px-4 rounded-full space-x-2 text-gray-400 hover:text-white transition-colors duration-300">
+          <button className="inline-flex cursor-pointer uppercase text-xs items-center bg-black/10 dark:bg-white/5 backdrop-blur-lg border border-gray-300 dark:border-white/20 my-3 py-2 px-4 shadow-md rounded-full space-x-2 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300">
             <FaArrowCircleLeft className="text-sm" />
             <span>Back to Articles</span>
           </button>
@@ -236,12 +236,12 @@ export default function EnhancedBlogLayout({
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl lg:text-4xl font-semibold text-white mb-6 leading-tight">
+          <h1 className="text-3xl lg:text-4xl font-semibold text-gray-900 dark:text-white mb-6 leading-tight">
             {blog.title}
           </h1>
 
           {/* Subtitle/Excerpt */}
-          <p className="text-base font-normal text-gray-300 mb-8 leading-relaxed">
+          <p className="text-base font-normal text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">
             {blog.excerpt}
           </p>
 
@@ -262,12 +262,16 @@ export default function EnhancedBlogLayout({
                 </div>
               )}
               <div>
-                <h3 className="text-white font-medium">{blog.author}</h3>
-                <p className="text-gray-400 text-xs monty uppercase">Author</p>
+                <h3 className="text-gray-900 dark:text-white font-medium">
+                  {blog.author}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-xs monty uppercase">
+                  Author
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-6 text-gray-400 text-sm">
+            <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400 text-sm">
               <div className="flex items-center space-x-2">
                 <FaCalendarAlt className="text-xs" />
                 <span className="monty uppercase">
@@ -286,14 +290,14 @@ export default function EnhancedBlogLayout({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-between p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl mb-12">
+          <div className="flex items-center justify-between p-6 bg-gray-100/80 dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl mb-12">
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleLike}
-                className={`cursor-pointer bg-black/50 backdrop-blur-xl flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                className={`cursor-pointer bg-white/70 dark:bg-black/50 backdrop-blur-xl flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
                   localLiked
                     ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                    : " text-gray-400 border border-white/10 hover:border-red-500/30 hover:text-red-400"
+                    : "text-gray-700 dark:text-gray-400 border border-gray-300 dark:border-white/10 hover:border-red-500/30 hover:text-red-400"
                 }`}
               >
                 <FaHeart className="text-sm" />
@@ -302,10 +306,10 @@ export default function EnhancedBlogLayout({
 
               <button
                 onClick={handleBookmark}
-                className={`cursor-pointer bg-black/50 backdrop-blur-xl flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                className={`cursor-pointer bg-white/70 dark:bg-black/50 backdrop-blur-xl flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
                   localBookmarked
                     ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                    : " text-gray-400 border border-white/10 hover:border-blue-500/30 hover:text-blue-400"
+                    : "text-gray-700 dark:text-gray-400 border border-gray-300 dark:border-white/10 hover:border-blue-500/30 hover:text-blue-400"
                 }`}
               >
                 <FaBookmark className="text-sm" />
@@ -314,7 +318,9 @@ export default function EnhancedBlogLayout({
             </div>
 
             <div className="flex items-center space-x-3">
-              <span className="text-gray-400 text-sm">Share:</span>
+              <span className="text-gray-600 dark:text-gray-400 text-sm">
+                Share:
+              </span>
               <button
                 onClick={copyToClipboard}
                 className="cursor-pointer p-2 bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors duration-300"
@@ -370,7 +376,7 @@ export default function EnhancedBlogLayout({
           </article>
 
           {/* Author Bio */}
-          <div className="mt-16 p-8 bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/10 rounded-2xl">
+          <div className="mt-16 p-8 bg-gradient-to-br from-gray-100/80 to-gray-50/90 dark:from-white/5 dark:to-white/10 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl">
             <div className="flex items-start space-x-6">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xl font-medium">
@@ -378,11 +384,13 @@ export default function EnhancedBlogLayout({
                 </span>
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-medium text-white mb-2">
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
                   About {blog.author}
                 </h3>
-                <p className="text-blue-300 text-sm mb-3">Author</p>
-                <p className="text-gray-300 leading-relaxed">
+                <p className="text-blue-600 dark:text-blue-300 text-sm mb-3">
+                  Author
+                </p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   {blog.author} is a contributor to our blog, sharing insights
                   and expertise on {blog.category.toLowerCase()} and related
                   topics.
@@ -408,7 +416,7 @@ export default function EnhancedBlogLayout({
           {/* Related Articles */}
           {relatedArticles.length > 0 && (
             <section className="mt-16 mb-16">
-              <h2 className="text-2xl lg:text-3xl font-medium text-white mb-8 flex items-center space-x-3">
+              <h2 className="text-2xl lg:text-3xl font-medium text-gray-900 dark:text-white mb-8 flex items-center space-x-3">
                 <div className="w-1 h-8 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
                 <span>Related Articles</span>
               </h2>
@@ -432,11 +440,11 @@ export default function EnhancedBlogLayout({
                       </div>
 
                       <div className="relative p-4 space-y-3">
-                        <h3 className="text-lg font-medium text-white group-hover:text-blue-300 transition-colors duration-300 line-clamp-2">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white group-hover:text-blue-300 transition-colors duration-300 line-clamp-2">
                           {article.title}
                         </h3>
 
-                        <div className="flex items-center justify-between text-xs text-gray-400">
+                        <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                           <div className="flex items-center space-x-2">
                             <FaUser className="text-xs" />
                             <span>{article.author}</span>
@@ -463,16 +471,16 @@ export default function EnhancedBlogLayout({
 
           {/* Comments Section */}
           <section className="mt-16">
-            <h2 className="text-2xl lg:text-3xl font-medium text-white mb-8 flex items-center space-x-3">
+            <h2 className="text-2xl lg:text-3xl font-medium text-gray-900 dark:text-white mb-8 flex items-center space-x-3">
               <div className="w-1 h-8 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
               <span>Discussion</span>
-              <span className="text-lg text-gray-400 font-normal">
+              <span className="text-lg text-gray-600 dark:text-gray-400 font-normal">
                 ({comments.length} comments)
               </span>
             </h2>
 
             {/* Comment Form */}
-            <div className="mb-8 p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="mb-8 p-6 bg-gray-100/80 dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl">
               <div className="flex items-start space-x-4">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <FaUser className="text-white text-sm" />
@@ -483,7 +491,7 @@ export default function EnhancedBlogLayout({
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Share your thoughts on this article..."
                     rows={4}
-                    className="w-full px-4 py-3 bg-black/50 backdrop-blur-xl border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors duration-300 resize-none"
+                    className="w-full px-4 py-3 bg-white/90 dark:bg-black/50 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors duration-300 resize-none"
                   />
                   <div className="flex items-center justify-end">
                     <button
@@ -504,7 +512,7 @@ export default function EnhancedBlogLayout({
                 {comments.map((comment) => (
                   <div
                     key={comment.id}
-                    className="p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl"
+                    className="p-6 bg-gray-100/80 dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl"
                   >
                     <div className="flex items-start space-x-4">
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -514,25 +522,25 @@ export default function EnhancedBlogLayout({
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
-                          <h4 className="text-white font-medium">
+                          <h4 className="text-gray-900 dark:text-white font-medium">
                             {comment.author}
                           </h4>
                           {comment.authorTitle && (
-                            <span className="text-blue-400 text-sm">
+                            <span className="text-blue-600 dark:text-blue-400 text-sm">
                               {comment.authorTitle}
                             </span>
                           )}
-                          <span className="text-gray-400 text-sm">
+                          <span className="text-gray-600 dark:text-gray-400 text-sm">
                             {formatDate(comment.createdAt)}
                           </span>
                         </div>
-                        <p className="text-gray-300 leading-relaxed mb-4">
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                           {comment.content}
                         </p>
                         <div className="flex items-center space-x-4">
                           <button
                             onClick={() => onCommentLike?.(comment.id)}
-                            className="cursor-pointer flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
+                            className="cursor-pointer flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-blue-400 transition-colors duration-300"
                           >
                             <FaThumbsUp className="text-sm" />
                             <span className="text-sm">{comment.likes}</span>
@@ -542,7 +550,7 @@ export default function EnhancedBlogLayout({
                               // Set reply target
                               setReplyingTo(comment.id);
                             }}
-                            className="cursor-pointer text-gray-400 hover:text-blue-400 transition-colors duration-300 text-sm"
+                            className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-blue-400 transition-colors duration-300 text-sm"
                           >
                             Reply
                           </button>
@@ -552,7 +560,7 @@ export default function EnhancedBlogLayout({
 
                     {/* Reply Input */}
                     {replyingTo === comment.id && (
-                      <div className="ml-14 mt-4 p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl">
+                      <div className="ml-14 mt-4 p-4 bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-xl">
                         <div className="flex items-start space-x-3">
                           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-white text-xs font-medium">
@@ -564,7 +572,7 @@ export default function EnhancedBlogLayout({
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
                               placeholder="Write your reply..."
-                              className="w-full p-3 bg-black/50 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors duration-300 resize-none"
+                              className="w-full p-3 bg-white/90 dark:bg-black/50 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors duration-300 resize-none"
                               rows={3}
                             />
                             <div className="flex items-center justify-end space-x-3 mt-3">
@@ -573,7 +581,7 @@ export default function EnhancedBlogLayout({
                                   setReplyingTo(null);
                                   setReplyText("");
                                 }}
-                                className="cursor-pointer px-4 py-2 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+                                className="cursor-pointer px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 text-sm"
                               >
                                 Cancel
                               </button>
@@ -602,7 +610,7 @@ export default function EnhancedBlogLayout({
                         {comment.replies.map((reply) => (
                           <div
                             key={reply.id}
-                            className="p-4 bg-white/3 backdrop-blur-sm border border-white/5 rounded-xl"
+                            className="p-4 bg-gray-50/60 dark:bg-white/3 backdrop-blur-sm border border-gray-200 dark:border-white/5 rounded-xl"
                           >
                             <div className="flex items-start space-x-3">
                               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -612,14 +620,14 @@ export default function EnhancedBlogLayout({
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center space-x-3 mb-2">
-                                  <h5 className="text-white font-medium text-sm">
+                                  <h5 className="text-gray-900 dark:text-white font-medium text-sm">
                                     {reply.author}
                                   </h5>
-                                  <span className="text-gray-400 text-xs">
+                                  <span className="text-gray-600 dark:text-gray-400 text-xs">
                                     {formatDate(reply.createdAt)}
                                   </span>
                                 </div>
-                                <p className="text-gray-300 text-sm leading-relaxed">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                                   {reply.content}
                                 </p>
                               </div>
@@ -635,12 +643,12 @@ export default function EnhancedBlogLayout({
           </section>
 
           {/* Newsletter CTA */}
-          <div className="mt-16 p-8 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-500/20 rounded-2xl text-center">
+          <div className="mt-16 p-8 bg-gradient-to-r from-blue-100/80 to-purple-100/80 dark:from-blue-500/10 dark:to-purple-500/10 backdrop-blur-sm border border-blue-200 dark:border-blue-500/20 rounded-2xl text-center">
             <FaCode className="text-4xl text-blue-400 mx-auto mb-4" />
-            <h3 className="text-2xl font-medium text-white mb-4">
+            <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
               Stay Ahead of the Curve
             </h3>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+            <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
               Get weekly insights on the latest tech trends, AI developments,
               and remote work strategies delivered straight to your inbox.
             </p>
@@ -648,13 +656,13 @@ export default function EnhancedBlogLayout({
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors duration-300"
+                className="w-full px-4 py-3 bg-white/90 dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-full text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors duration-300"
               />
               <button className="w-full cursor-pointer sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-full hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 whitespace-nowrap">
                 Subscribe Now
               </button>
             </div>
-            <p className="text-gray-400 text-sm mt-4">
+            <p className="text-gray-600 dark:text-gray-400 text-sm mt-4">
               Join 10,000+ developers. Unsubscribe anytime.
             </p>
           </div>
@@ -667,7 +675,7 @@ export default function EnhancedBlogLayout({
           <div className="flex items-center space-x-4 px-6 py-3 bg-black/80 backdrop-blur-sm border border-white/20 rounded-full">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-              <span className="text-white text-sm">
+              <span className="text-gray-900 dark:text-white text-sm">
                 Reading Progress: {Math.round(scrollProgress)}%
               </span>
             </div>

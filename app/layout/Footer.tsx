@@ -79,14 +79,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative overflow-hidden mt-16">
-      {/* Ambient background effects */}
-      <div className="absolute top-20 left-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
-      <div
-        className="absolute bottom-20 right-10 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl animate-pulse"
-        style={{ animationDelay: "1s" }}
-      ></div>
-
+    <footer className="relative overflow-hidden mt-10 border-t dark:border-gray-400/40 border-gray-400/40 pt-12 bg-transparent">
       <div className="max-w-7xl mx-auto px-6 relative z-10 ">
         {/* Main Footer Content */}
         <div className="py-16">
@@ -182,7 +175,9 @@ export default function Footer() {
             </div>
 
             <div className="flex items-center space-x-6">
-              <span className="text-gray-600 dark:text-gray-500 text-sm">Scroll to top</span>
+              <span className="text-gray-600 dark:text-gray-500 text-sm">
+                Scroll to top
+              </span>
               <button
                 onClick={scrollToTop}
                 className="p-3 rounded-full backdrop-blur-md bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 hover:scale-110 group"

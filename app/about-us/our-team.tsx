@@ -183,15 +183,15 @@ export default function TeamSection() {
   return (
     <section
       id="team"
-      className="py-20 relative my-16 bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
+      className="py-20 relative my-16 bg-white dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
     >
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-medium text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-4">
             Meet Our <span className="text-purple-400">Team</span>
           </h2>
-          <p className="text-lg text-gray-300 max-w-3xl mx-auto mb-8">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
             Passionate innovators and industry veterans driving Andishi's
             mission to transform the digital landscape through cutting-edge
             technology and visionary leadership.
@@ -206,7 +206,7 @@ export default function TeamSection() {
                 className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-150 capitalize ${
                   selectedDepartment === dept
                     ? "bg-purple-500/20 border-purple-400/50 text-purple-300"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-gray-300"
+                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 hover:border-gray-400 dark:hover:border-white/20 hover:text-gray-900 dark:hover:text-gray-300"
                 }`}
               >
                 {dept === "all" ? "All Departments" : dept}
@@ -220,7 +220,7 @@ export default function TeamSection() {
           {filteredMembers.map((member) => (
             <article
               key={member.id}
-              className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-black/10 border border-white/10 hover:border-white/20 transition-all duration-250 hover:scale-[1.01] hover:shadow-lg cursor-pointer"
+              className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white dark:bg-black/10 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-250 hover:scale-[1.01] hover:shadow-lg dark:hover:shadow-xl cursor-pointer shadow-xl dark:shadow-none"
               // style={{
               //   background: `linear-gradient(135deg,
               //     rgba(59, 130, 246, 0.03) 0%,
@@ -240,7 +240,7 @@ export default function TeamSection() {
               />
 
               {/* Profile Image */}
-              <div className="relative h-64 bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden">
+              <div className="relative h-64 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
                 <Image
                   src={member.image}
                   alt={member.name}
@@ -250,11 +250,11 @@ export default function TeamSection() {
                     e.currentTarget.style.display = "none";
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent dark:from-black/70 dark:to-transparent" />
 
                 {/* Department Badge */}
                 <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 bg-purple-500/80 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                  <span className="px-3 py-1 bg-purple-500/90 dark:bg-purple-500/80 backdrop-blur-sm text-white text-xs font-medium rounded-full">
                     {member.department}
                   </span>
                 </div>
@@ -263,7 +263,7 @@ export default function TeamSection() {
                 <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                   <Link
                     href={member.linkedin}
-                    className="p-2 rounded-full backdrop-blur-md bg-white/10 text-white hover:bg-blue-500/20 transition-all duration-150"
+                    className="p-2 rounded-full backdrop-blur-md bg-white/20 dark:bg-white/10 text-white hover:bg-blue-500/30 dark:hover:bg-blue-500/20 transition-all duration-150"
                     aria-label={`${member.name} LinkedIn`}
                   >
                     <svg
@@ -277,7 +277,7 @@ export default function TeamSection() {
                   {member.twitter && (
                     <Link
                       href={member.twitter}
-                      className="p-2 rounded-full backdrop-blur-md bg-white/10 text-white hover:bg-blue-400/20 transition-all duration-150"
+                      className="p-2 rounded-full backdrop-blur-md bg-white/20 dark:bg-white/10 text-white hover:bg-blue-400/30 dark:hover:bg-blue-400/20 transition-all duration-150"
                       aria-label={`${member.name} Twitter`}
                     >
                       <svg
@@ -291,7 +291,7 @@ export default function TeamSection() {
                   )}
                   <Link
                     href={`mailto:${member.email}`}
-                    className="p-2 rounded-full backdrop-blur-md bg-white/10 text-white hover:bg-green-500/20 transition-all duration-150"
+                    className="p-2 rounded-full backdrop-blur-md bg-white/20 dark:bg-white/10 text-white hover:bg-green-500/30 dark:hover:bg-green-500/20 transition-all duration-150"
                     aria-label={`Email ${member.name}`}
                   >
                     <svg
@@ -318,7 +318,7 @@ export default function TeamSection() {
                       : "opacity-0 translate-y-4"
                   }`}
                 >
-                  <div className="bg-black/50 backdrop-blur-md rounded-lg p-3">
+                  <div className="bg-black/60 dark:bg-black/50 backdrop-blur-md rounded-lg p-3">
                     <p className="text-white text-xs italic leading-relaxed">
                       "{member.quote}"
                     </p>
@@ -330,7 +330,7 @@ export default function TeamSection() {
               <div className="relative p-6 space-y-4">
                 {/* Name & Position */}
                 <div>
-                  <h3 className="text-xl font-semibold text-white group-hover:text-purple-300 transition-colors duration-150">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors duration-150">
                     {member.name}
                   </h3>
                   <p className="text-indigo-400 font-medium text-xs monty uppercase">
@@ -339,7 +339,7 @@ export default function TeamSection() {
                 </div>
 
                 {/* Bio */}
-                <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-150 text-sm leading-relaxed line-clamp-3">
+                <p className="text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-150 text-sm leading-relaxed line-clamp-3">
                   {member.bio}
                 </p>
 
@@ -348,30 +348,34 @@ export default function TeamSection() {
                   {member.skills.slice(0, 3).map((skill) => (
                     <span
                       key={skill}
-                      className="px-3 py-1 bg-indigo-500/2 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium"
+                      className="px-3 py-1 bg-purple-100 dark:bg-indigo-500/2 text-purple-600 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30 rounded-full text-xs font-medium"
                     >
                       {skill}
                     </span>
                   ))}
                   {member.skills.length > 3 && (
-                    <span className="px-3 py-1 bg-gray-500/20 text-gray-300 border border-gray-500/30 rounded-full text-xs font-medium">
+                    <span className="px-3 py-1 bg-gray-200 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-500/30 rounded-full text-xs font-medium">
                       +{member.skills.length - 3} more
                     </span>
                   )}
                 </div>
 
                 {/* Stats */}
-                <div className="pt-4 border-t border-white/10">
-                  <div className="grid grid-cols-2 gap-4 text-xs text-gray-400">
+                <div className="pt-4 border-t border-gray-200 dark:border-white/10">
+                  <div className="grid grid-cols-2 gap-4 text-xs text-gray-600 dark:text-gray-400">
                     <div>
-                      <span className="text-gray-500">Experience:</span>
-                      <div className="text-gray-300 font-medium">
+                      <span className="text-gray-500 dark:text-gray-500">
+                        Experience:
+                      </span>
+                      <div className="text-gray-700 dark:text-gray-300 font-medium">
                         {member.experience}
                       </div>
                     </div>
                     <div>
-                      <span className="text-gray-500">Education:</span>
-                      <div className="text-gray-300 font-medium">
+                      <span className="text-gray-500 dark:text-gray-500">
+                        Education:
+                      </span>
+                      <div className="text-gray-700 dark:text-gray-300 font-medium">
                         {member.education}
                       </div>
                     </div>
@@ -386,13 +390,13 @@ export default function TeamSection() {
                     }`}
                   >
                     <div className="space-y-1">
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-gray-500 dark:text-gray-500 text-xs">
                         Key Achievements:
                       </span>
                       {member.achievements.map((achievement, index) => (
                         <div
                           key={index}
-                          className="text-gray-300 text-xs flex items-start space-x-2"
+                          className="text-gray-700 dark:text-gray-300 text-xs flex items-start space-x-2"
                         >
                           <span className="text-purple-400 mt-1">•</span>
                           <span>{achievement}</span>

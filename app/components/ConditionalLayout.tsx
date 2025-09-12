@@ -154,7 +154,7 @@ export default function ConditionalLayout({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center"
+      className="relative min-h-screen bg-background flex items-center justify-center"
     >
       <div className="text-center space-y-6">
         <motion.div
@@ -180,13 +180,15 @@ export default function ConditionalLayout({
           transition={{ delay: 0.5 }}
           className="space-y-3"
         >
-          <h2 className="text-2xl font-semibold uppercase text-white">
+          <h2 className="text-2xl font-semibold uppercase text-foreground">
             {state === LoadingStates.AUTHENTICATING && "Authenticating..."}
             {state === LoadingStates.REDIRECTING && "Access Required"}
             {state === LoadingStates.INITIAL && "Loading..."}
           </h2>
 
-          {message && <p className="text-gray-300 animate-pulse">{message}</p>}
+          {message && (
+            <p className="text-muted-foreground animate-pulse">{message}</p>
+          )}
 
           {/* <div className="flex justify-center space-x-1 mt-4">
             {[0, 1, 2].map((i) => (
@@ -218,13 +220,13 @@ export default function ConditionalLayout({
       exit={{ opacity: 0, y: -50 }}
       className="min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center"
     >
-      <div className="text-center space-y-6 p-8 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 max-w-md mx-4 flex flex-col items-center justify-center">
+      <div className="text-center space-y-6 p-8 bg-card/80 backdrop-blur-lg rounded-2xl border border-border max-w-md mx-4 flex flex-col items-center justify-center">
         <motion.div
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ duration: 0.5, repeat: 3 }}
           className="text-6xl mb-4"
         >
-          <FaUserLock className="text-white" size={64} />
+          <FaUserLock className="text-foreground" size={64} />
         </motion.div>
 
         <div className="space-y-2">
@@ -241,7 +243,7 @@ export default function ConditionalLayout({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push(`/logout`)}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors duration-200 shadow-lg"
+            className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-semibold transition-colors duration-200 shadow-lg"
           >
             Go to Login
           </motion.button>
@@ -250,7 +252,7 @@ export default function ConditionalLayout({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push("/")}
-            className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg font-semibold transition-colors duration-200 border border-white/30"
+            className="px-6 py-3 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-lg font-semibold transition-colors duration-200 border border-border"
           >
             Go Home
           </motion.button>
@@ -267,10 +269,10 @@ export default function ConditionalLayout({
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
-          className="fixed top-0 left-0 right-0 z-[100] bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center text-white text-center py-2 px-4"
+          className="fixed top-0 left-0 right-0 z-[100] bg-card border-b border-border flex items-center justify-center text-foreground text-center py-2 px-4"
         >
           <div className="flex items-center justify-center space-x-2">
-            <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+            <span className="w-2 h-2 bg-foreground rounded-full animate-pulse"></span>
             <span className="font-medium">
               You're offline. Some features may not work.
             </span>
@@ -318,15 +320,15 @@ export default function ConditionalLayout({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center"
+        className="min-h-screen bg-background flex items-center justify-center"
       >
-        <div className="text-center space-y-6 p-8 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 max-w-md mx-4">
+        <div className="text-center space-y-6 p-8 bg-card/80 backdrop-blur-lg rounded-2xl border border-border max-w-md mx-4">
           <div className="text-6xl mb-4">⚠️</div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-2xl font-semibold text-foreground">
               Wrong Dashboard
             </h2>
-            <p className="text-gray-300">
+            <p className="text-muted-foreground">
               You don't have access to this dashboard
             </p>
           </div>
@@ -342,7 +344,7 @@ export default function ConditionalLayout({
                   : "/developer-dashboard"
               )
             }
-            className="px-6 py-3 cursor-pointer bg-blue-600/40 monty hover:bg-blue-700/40 text-white rounded-lg font-semibold transition-colors duration-200 shadow-lg"
+            className="px-6 py-3 cursor-pointer bg-primary/80 monty hover:bg-primary text-primary-foreground rounded-lg font-semibold transition-colors duration-200 shadow-lg"
           >
             Go to Your Dashboard
           </motion.button>

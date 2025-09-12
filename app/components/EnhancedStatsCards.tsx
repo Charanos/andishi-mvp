@@ -60,12 +60,12 @@ const EnhancedStatsCards = () => {
                 <div
                   className={`absolute inset-0 rounded-full bg-gradient-to-r ${stat.color} p-[2px] group-hover:animate-pulse`}
                 >
-                  <div className="w-full h-full rounded-full bg-slate-900/80"></div>
+                  <div className="w-full h-full rounded-full bg-white dark:bg-slate-900/80"></div>
                 </div>
 
                 {/* Card content */}
                 <div
-                  className={`relative bg-gradient-to-br bg-black/70 backdrop-blur-xl border border-white/20 rounded-full w-46 h-46 md:w-54 md:h-54 flex items-center justify-center flex-col shadow-2xl ${stat.shadowColor} $ transition-all duration-500 group-hover:border-white/30`}
+                  className={`relative bg-gradient-to-br bg-white/90 dark:bg-black/70 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-full w-46 h-46 md:w-54 md:h-54 flex items-center justify-center flex-col shadow-xl ${stat.shadowColor} transition-all duration-500 group-hover:border-gray-400 dark:group-hover:border-white/30`}
                 >
                   {/* Floating particles effect */}
                   <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
@@ -84,7 +84,7 @@ const EnhancedStatsCards = () => {
                   </div>
 
                   {/* Icon with pulsing effect */}
-                  <div className="text-3xl md:text-4xl mb-3 md:mb-5 transform group-hover:scale-125 transition-transform duration-300 text-white/40 relative z-10">
+                  <div className="text-3xl md:text-4xl mb-3 md:mb-5 transform group-hover:scale-125 transition-transform duration-300 text-gray-500 dark:text-white/40 relative z-10">
                     {stat.icon}
                   </div>
 
@@ -96,7 +96,7 @@ const EnhancedStatsCards = () => {
                   </div>
 
                   {/* Label */}
-                  <div className="text-gray-300 font-medium monty uppercase text-xs group-hover:text-white transition-colors duration-300 px-6 relative z-10">
+                  <div className="text-gray-600 dark:text-gray-300 font-medium monty uppercase text-xs group-hover:text-gray-800 dark:group-hover:text-white transition-colors duration-300 px-6 relative z-10">
                     {stat.label}
                   </div>
 

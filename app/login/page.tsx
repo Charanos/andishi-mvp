@@ -27,6 +27,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useReviewCrud } from "@/hooks/useReviewCrud";
+import { ReviewType } from "@/types";
 import Image from "next/image";
 
 // Tech icon data for the interactive graphic
@@ -61,8 +63,10 @@ export default function LoginPage() {
     user,
     isLoading: authLoading,
   } = useAuth();
+  const { fetchReviews } = useReviewCrud();
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [reviews, setReviews] = useState<ReviewType[]>([]);
 
   // Form state
   const [formData, setFormData] = useState<LoginFormData>({
@@ -71,49 +75,59 @@ export default function LoginPage() {
     remember: false,
   });
 
-  // Client testimonials data
-  const testimonials = [
+  // Load reviews from API
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const reviewsData = await fetchReviews();
+        setReviews(reviewsData || []);
+      } catch (error) {
+        console.error("Error loading reviews:", error);
+        setReviews([]);
+      }
+    };
+    loadReviews();
+  }, [fetchReviews]);
+
+  // Fallback testimonials if API fails
+  const fallbackTestimonials = [
     {
       name: "Aisha Patel",
-      company: "FintechEdge Inc.",
-      role: "Chief Technology Officer",
-      avatar: "AP",
+      position: "Chief Technology Officer",
+      project: "FintechEdge Inc.",
       rating: 5,
-      text: "Andishi's engineers didn't just build our payments platform—they architected it like fintech veterans. Launched 30% faster than projected, ahead of our biggest competitor.",
-      icon: FaCode,
-      color: "#10B981",
+      review:
+        "Andishi's engineers didn't just build our payments platform—they architected it like fintech veterans. Launched 30% faster than projected, ahead of our biggest competitor.",
     },
     {
       name: "James Carter",
-      company: "UrbanRetail Co.",
-      role: "Founder & CEO",
-      avatar: "JC",
+      position: "Founder & CEO",
+      project: "UrbanRetail Co.",
       rating: 5,
-      text: "Burned through agencies before. Andishi assembled a dream team faster than I could blink—now we're shipping features that actually excite our users again.",
-      icon: FaBuilding,
-      color: "#3B82F6",
+      review:
+        "Burned through agencies before. Andishi assembled a dream team faster than I could blink—now we're shipping features that actually excite our users again.",
     },
     {
       name: "Carlos Mendoza",
-      company: "HealthSync Global",
-      role: "Product Manager",
-      avatar: "CM",
+      position: "Product Manager",
+      project: "HealthSync Global",
       rating: 5,
-      text: "Patient portal was a digital disaster. Their React Native wizard rebuilt it in 48 hours—turned user exodus into 45% engagement boost. Pure magic. ✨",
-      icon: FaGlobe,
-      color: "#8B5CF6",
+      review:
+        "Patient portal was a digital disaster. Their React Native wizard rebuilt it in 48 hours—turned user exodus into 45% engagement boost. Pure magic. ✨",
     },
     {
       name: "Grace Njeri",
-      company: "Andishi",
-      role: "Lead Software Engineer",
-      avatar: "GN",
+      position: "Lead Software Engineer",
+      project: "Andishi",
       rating: 5,
-      text: "Building the tools that make remote collaboration feel effortless. Watching clients transform from chaos to choreography never gets old. This is what we live for",
-      icon: FaCode,
-      color: "#F59E0B",
+      review:
+        "Building the tools that make remote collaboration feel effortless. Watching clients transform from chaos to choreography never gets old. This is what we live for",
     },
   ];
+
+  // Use API reviews or fallback
+  const displayReviews =
+    reviews.length > 0 ? reviews.slice(0, 4) : fallbackTestimonials;
 
   // UI state
   const [showPassword, setShowPassword] = useState(false);
@@ -159,10 +173,7 @@ export default function LoginPage() {
         radius: Math.random() * 2 + 1,
         speedX: (Math.random() - 0.5) * 0.5,
         speedY: (Math.random() - 0.5) * 0.5,
-        color: `rgba(${Math.floor(Math.random() * 100 + 155)}, 
-                  ${Math.floor(Math.random() * 100 + 155)}, 
-                  ${Math.floor(Math.random() * 255)}, 
-                  ${Math.random() * 0.3 + 0.1})`,
+        color: `rgba(60, 60, 80, ${Math.random() * 0.4 + 0.6})`, // Much darker and more opaque particles for high visibility
       });
     }
 
@@ -178,9 +189,7 @@ export default function LoginPage() {
 
           if (distance < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(150, 150, 255, ${
-              0.1 * (1 - distance / 100)
-            })`;
+            ctx.strokeStyle = `rgba(70, 70, 90, ${0.5 * (1 - distance / 100)})`; // Much more visible connecting lines
             ctx.lineWidth = 0.5;
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
@@ -352,10 +361,10 @@ export default function LoginPage() {
   // Don't render if user is already logged in and being redirected
   if (user && !authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-transparent">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-white text-lg monty uppercase">
+          <p className="text-gray-900 dark:text-white text-lg monty uppercase">
             Redirecting to your dashboard...
           </p>
         </div>
@@ -375,17 +384,17 @@ export default function LoginPage() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="dark"
+        theme="auto"
       />
 
       <div className="min-h-screen flex flex-col lg:flex-row">
         {/* Left side - Login Form */}
-        <div className="w-full lg:w-1/2 py-16 px-4 sm:px-6 lg:px-12 flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-indigo-900/10">
+        <div className="w-full lg:w-1/2 py-16 px-4 sm:px-6 lg:px-12 flex flex-col justify-center relative overflow-hidden bg-white dark:bg-transparent">
           {/* Background elements */}
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 w-32 h-32 bg-purple-500/8 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500/8 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-indigo-500/8 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute top-20 left-10 w-32 h-32 bg-purple-200/30 dark:bg-purple-500/8 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-200/30 dark:bg-blue-500/8 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-indigo-200/30 dark:bg-indigo-500/8 rounded-full blur-3xl animate-pulse"></div>
           </div>
 
           <div className="max-w-md w-full mx-auto relative z-10">
@@ -393,18 +402,21 @@ export default function LoginPage() {
               <div className="mx-auto mb-6 bg-gradient-to-r from-blue-500 to-purple-500 w-16 h-16 rounded-full flex items-center justify-center">
                 <FaUser className="text-white text-2xl" />
               </div>
-              <h1 className="text-3xl font-medium text-white mb-2">
-                Welcome to <span className="text-purple-400">Andishi</span>
+              <h1 className="text-3xl font-medium text-gray-900 dark:text-white mb-2">
+                Welcome to{" "}
+                <span className="text-purple-500 dark:text-purple-400">
+                  Andishi
+                </span>
               </h1>
-              <p className="text-lg text-gray-300">
+              <p className="text-lg text-gray-600 dark:text-gray-300">
                 Sign in to access your respective dashboard
               </p>
 
               {/* Show account blocked warning */}
               {isAccountBlocked() && (
                 <div className="mt-4 p-3 bg-red-500/20 border border-red-500/40 rounded-lg flex items-center">
-                  <FaExclamationTriangle className="text-red-400 mr-2" />
-                  <span className="text-red-300 text-sm">
+                  <FaExclamationTriangle className="text-red-500 dark:text-red-400 mr-2" />
+                  <span className="text-red-600 dark:text-red-300 text-sm">
                     Account temporarily blocked. Try again in{" "}
                     {getRemainingBlockTime()} minutes.
                   </span>
@@ -412,25 +424,25 @@ export default function LoginPage() {
               )}
             </div>
 
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl px-8 py-10 shadow-2xl">
+            <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-8 py-10 shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                     Email Address <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaEnvelope className="text-gray-400" />
+                      <FaEnvelope className="text-gray-500 dark:text-gray-400" />
                     </div>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full pl-10 text-sm px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                      className={`w-full pl-10 text-sm px-4 py-3 bg-white dark:bg-white/5 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none transition-colors ${
                         errors.email
                           ? "border-red-400 focus:border-red-400"
-                          : "border-white/10 focus:border-blue-400"
+                          : "border-gray-300 dark:border-white/10 focus:border-blue-400"
                       }`}
                       placeholder="your@email.com"
                       required
@@ -438,27 +450,29 @@ export default function LoginPage() {
                     />
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+                    <p className="mt-1 text-sm text-red-500 dark:text-red-400">
+                      {errors.email}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                     Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaLock className="text-gray-400" />
+                      <FaLock className="text-gray-500 dark:text-gray-400" />
                     </div>
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full pl-10 text-sm pr-10 px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                      className={`w-full pl-10 text-sm pr-10 px-4 py-3 bg-white dark:bg-white/5 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none transition-colors ${
                         errors.password
                           ? "border-red-400 focus:border-red-400"
-                          : "border-white/10 focus:border-blue-400"
+                          : "border-gray-300 dark:border-white/10 focus:border-blue-400"
                       }`}
                       placeholder="Enter your password"
                       required
@@ -467,14 +481,14 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={togglePasswordVisibility}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                       disabled={isAccountBlocked()}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-400">
+                    <p className="mt-1 text-sm text-red-500 dark:text-red-400">
                       {errors.password}
                     </p>
                   )}
@@ -488,12 +502,12 @@ export default function LoginPage() {
                       type="checkbox"
                       checked={formData.remember}
                       onChange={handleChange}
-                      className="h-4 w-4 text-blue-500 bg-white/5 border border-white/10 rounded focus:ring-blue-500"
+                      className="h-4 w-4 text-blue-500 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded focus:ring-blue-500"
                       disabled={isAccountBlocked()}
                     />
                     <label
                       htmlFor="remember"
-                      className="ml-2 block text-sm text-gray-300"
+                      className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
                     >
                       Remember me
                     </label>
@@ -501,7 +515,7 @@ export default function LoginPage() {
                   <div className="text-sm">
                     <Link
                       href="/forgot-password"
-                      className="text-blue-400 hover:text-blue-300 transition-colors"
+                      className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"
                     >
                       Forgot password?
                     </Link>
@@ -513,7 +527,7 @@ export default function LoginPage() {
                   disabled={isLoading || isAccountBlocked()}
                   className={`w-full monty uppercase cursor-pointer py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center ${
                     isLoading || isAccountBlocked()
-                      ? "bg-gray-500/50 text-gray-300 cursor-not-allowed"
+                      ? "bg-gray-400 dark:bg-gray-500/50 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                       : "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:shadow-lg hover:shadow-blue-500/25"
                   }`}
                 >
@@ -550,7 +564,7 @@ export default function LoginPage() {
 
                 {/* Login attempts indicator */}
                 {loginAttempts.attempts > 0 && !isAccountBlocked() && (
-                  <div className="text-center text-xs monty uppercase text-yellow-400">
+                  <div className="text-center text-xs monty uppercase text-yellow-600 dark:text-yellow-400">
                     {loginAttempts.attempts} failed attempt
                     {loginAttempts.attempts > 1 ? "s" : ""}.
                     {5 - loginAttempts.attempts} remaining.
@@ -559,16 +573,16 @@ export default function LoginPage() {
               </form>
 
               {/* Role-based account creation notice */}
-              <div className="mt-8 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <h4 className="!text-blue-300 font-medium mb-2">
+              <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
+                <h4 className="text-blue-700 dark:text-blue-300 font-medium mb-2">
                   Need an Account?
                 </h4>
-                <p className="text-gray-300 text-sm mb-3">
+                <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
                   Create your account based on your role:
                 </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-300 flex items-center gap-2">
+                    <span className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
                       <span>
                         <FaCodeBranch className="ml-1 text-green-400" />
                       </span>
@@ -576,13 +590,13 @@ export default function LoginPage() {
                     </span>
                     <Link
                       href="/join-talent-pool"
-                      className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
                     >
                       Join Talent Pool →
                     </Link>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-300 flex items-center gap-2">
+                    <span className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
                       <span className="">
                         <FaUser className="ml-1 text-indigo-400" />
                       </span>
@@ -590,7 +604,7 @@ export default function LoginPage() {
                     </span>
                     <Link
                       href="/start-project"
-                      className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
                     >
                       Start Project →
                     </Link>
@@ -602,7 +616,7 @@ export default function LoginPage() {
             <div className="mt-12 text-center">
               <Link
                 href="/"
-                className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg"
+                className="flex cursor-pointer mb-4 items-center space-x-2 shadow-md text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200 bg-white dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 px-3 py-2 rounded-lg"
               >
                 <FaArrowCircleLeft className="w-5 h-5" />
                 <span className="text-xs monty uppercase">Back to Home</span>
@@ -612,7 +626,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right side - Interactive Graphic */}
-        <div className="hidden lg:block w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20">
+        <div className="hidden lg:block w-1/2 relative overflow-hidden bg-gray-100 dark:bg-white/5 backdrop-blur-lg">
           {/* Animated background */}
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
@@ -621,9 +635,9 @@ export default function LoginPage() {
             <div className="relative w-96 h-96">
               {/* Central glowing orb */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-48 h-48 rounded-full bg-transparent backdrop-blur-3xl flex items-center justify-center shadow-2xl">
-                  <div className="absolute inset-0 rounded-full bg-blue-400/30 animate-ping opacity-70"></div>
-                  <div className="absolute inset-0 rounded-full border-2 border-white/10"></div>
+                <div className="relative w-48 h-48 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-3xl flex items-center justify-center shadow-xl">
+                  <div className="absolute inset-0 rounded-full bg-blue-300/40 dark:bg-blue-400/30 animate-ping opacity-70"></div>
+                  <div className="absolute inset-0 rounded-full border-2 border-gray-300 dark:border-white/10"></div>
                   <div className=" z-10">
                     <Image
                       src={"/logo.svg"}
@@ -654,7 +668,7 @@ export default function LoginPage() {
                       animationDelay: `${index * 0.5}s`,
                     }}
                   >
-                    <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-125 hover:shadow-xl hover:bg-white/20">
+                    <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-white/10 border border-gray-200 dark:border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-125 hover:shadow-xl hover:bg-white dark:hover:bg-white/20">
                       <tech.icon
                         className="text-xl"
                         style={{ color: tech.color }}
@@ -666,8 +680,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Floating text elements */}
-          {testimonials.map((testimonial, index) => {
+          {/* Floating testimonial cards with glassmorphic design */}
+          {displayReviews.map((review, index) => {
             const positions = [
               { top: "2%", left: "8%" }, // Top-left
               { bottom: "2%", right: "8%" }, // Bottom-right
@@ -675,59 +689,77 @@ export default function LoginPage() {
               { top: "20%", right: "2%" }, // Top-right
             ];
 
+            const colors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B"];
+            const icons = [FaCode, FaBuilding, FaGlobe, FaCode];
+            const avatarLetters = review.name
+              ? review.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .substring(0, 2)
+              : "AN";
+
             return (
               <div
                 key={index}
-                className={`absolute backdrop-blur-md bg-white/8 border border-white/20 rounded-xl p-5 max-w-xs transition-all duration-300 hover:scale-105 hover:bg-white/12 hover:border-white/30 hover:shadow-xl hover:shadow-blue-500/20`}
+                className={`absolute backdrop-blur-xl bg-white/95 dark:bg-white/10 border border-white/30 dark:border-white/20 rounded-2xl p-5 max-w-xs transition-all duration-500 hover:scale-105 hover:bg-white/98 dark:hover:bg-white/15 hover:border-white/50 dark:hover:border-white/30 hover:shadow-2xl hover:shadow-blue-500/25 shadow-lg`}
                 style={{
                   ...positions[index],
                   animation: `float ${4 + index}s ease-in-out infinite`,
                   animationDelay: `${index * 0.5}s`,
+                  backdropFilter: "blur(20px)",
+                  boxShadow:
+                    "0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
                 }}
               >
                 {/* Testimonial Header */}
                 <div className="flex items-center mb-3">
-                  {/* Avatar Placeholder */}
+                  {/* Avatar */}
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3 shadow-lg"
-                    style={{ backgroundColor: testimonial.color }}
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3 shadow-lg backdrop-blur-sm"
+                    style={{ backgroundColor: colors[index] }}
                   >
-                    {testimonial.avatar}
+                    {avatarLetters}
                   </div>
 
                   <div className="flex-1">
-                    <h4 className="text-white font-semibold text-sm">
-                      {testimonial.name}
+                    <h4 className="text-gray-900 dark:text-white font-semibold text-sm">
+                      {review.name}
                     </h4>
-                    <p className="text-gray-300 text-xs">
-                      {testimonial.role} at {testimonial.company}
+                    <p className="text-gray-600 dark:text-gray-300 text-xs">
+                      {review.position}
                     </p>
+                    {review.project && (
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">
+                        {review.project}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Company Icon */}
-                  <testimonial.icon
-                    className="text-lg ml-2"
-                    style={{ color: testimonial.color }}
-                  />
+                  {/* Icon */}
+                  {React.createElement(icons[index], {
+                    className: "text-lg ml-2",
+                    style: { color: colors[index] },
+                  })}
                 </div>
 
                 {/* Star Rating */}
                 <div className="flex mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
+                  {[...Array(review.rating || 5)].map((_, i) => (
                     <FaStar key={i} className="text-yellow-400 text-sm" />
                   ))}
                 </div>
 
                 {/* Testimonial Text */}
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  "{testimonial.text}"
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                  "{review.review}"
                 </p>
 
-                {/* Subtle gradient overlay */}
+                {/* Glassmorphic gradient overlay */}
                 <div
-                  className="absolute inset-0 rounded-xl opacity-10 pointer-events-none"
+                  className="absolute inset-0 rounded-2xl opacity-5 pointer-events-none"
                   style={{
-                    background: `linear-gradient(135deg, ${testimonial.color}20, transparent)`,
+                    background: `linear-gradient(135deg, ${colors[index]}40, transparent)`,
                   }}
                 ></div>
               </div>

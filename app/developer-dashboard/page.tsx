@@ -368,7 +368,7 @@ export default function EnhancedDeveloperDashboard() {
                 </button>
 
                 {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl">
+                  <div className="absolute right-0 mt-2 w-80 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-xl">
                     <div className="p-4 border-b border-white/10">
                       <h3 className="text-white font-semibold">
                         Notifications

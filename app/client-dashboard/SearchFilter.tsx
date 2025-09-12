@@ -312,10 +312,11 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
           {/* Advanced Filters Toggle */}
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className={`flex cursor-pointer items-center space-x-2 px-4 py-2.5 rounded-xl transition-all duration-200 ${showAdvancedFilters || activeFiltersCount > 0
-              ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-              : "bg-black/10 border border-white/10 text-gray-400 hover:text-gray-300 hover:border-white/20"
-              }`}
+            className={`flex cursor-pointer items-center space-x-2 px-4 py-2.5 rounded-xl transition-all duration-200 ${
+              showAdvancedFilters || activeFiltersCount > 0
+                ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                : "bg-black/10 border border-white/10 text-gray-400 hover:text-gray-300 hover:border-white/20"
+            }`}
           >
             <Filter className="w-4 h-4" />
             <span>Filters</span>
@@ -369,20 +370,22 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
           <div className="flex items-center bg-black/10 border border-white/10 rounded-xl p-1">
             <button
               onClick={() => setCurrentView("grid")}
-              className={`cursor-pointer p-2 rounded-lg transition-all duration-200 ${currentView === "grid"
-                ? "bg-purple-500/30 text-purple-300 shadow-lg"
-                : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
-                }`}
+              className={`cursor-pointer p-2 rounded-lg transition-all duration-200 ${
+                currentView === "grid"
+                  ? "bg-purple-500/30 text-purple-300 shadow-lg"
+                  : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+              }`}
               title="Grid view"
             >
               <Grid3X3 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setCurrentView("list")}
-              className={`cursor-pointer p-2 rounded-lg transition-all duration-200 ${currentView === "list"
-                ? "bg-purple-500/30 text-purple-300 shadow-lg"
-                : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
-                }`}
+              className={`cursor-pointer p-2 rounded-lg transition-all duration-200 ${
+                currentView === "list"
+                  ? "bg-purple-500/30 text-purple-300 shadow-lg"
+                  : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+              }`}
               title="List view"
             >
               <List className="w-4 h-4" />

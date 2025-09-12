@@ -9,11 +9,13 @@ This document outlines the steps to implement message actions (edit, delete, rep
 - Add state variables to manage the message being edited, the message being deleted, the message being replied to, the currently hovered message, and the active message for the dropdown.
 
 ```javascript
-const [editingMessage, setEditingMessage] = useState<any | null>(null);
-const [deletingMessage, setDeletingMessage] = useState<any | null>(null);
-const [replyingTo, setReplyingTo] = useState<any | null>(null);
-const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
-const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
+const [editingMessage, setEditingMessage] = (useState < any) | (null > null);
+const [deletingMessage, setDeletingMessage] = (useState < any) | (null > null);
+const [replyingTo, setReplyingTo] = (useState < any) | (null > null);
+const [hoveredMessageId, setHoveredMessageId] =
+  (useState < string) | (null > null);
+const [activeMessageId, setActiveMessageId] =
+  (useState < string) | (null > null);
 ```
 
 ### 1.2. Message Bubble with Actions Button
@@ -23,14 +25,17 @@ const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
 
 ```javascript
 <div
-  className={`relative px-4 py-3 rounded-2xl shadow-lg group ${isOwnMessage
-    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto"
-    : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
-    } ${showAvatar ? "rounded-tl-md" : ""}`}
+  className={`relative px-4 py-3 rounded-2xl shadow-lg group ${
+    isOwnMessage
+      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto"
+      : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
+  } ${showAvatar ? "rounded-tl-md" : ""}`}
 >
   {message.replyToMessage && (
     <div className="p-2 mb-2 bg-gray-700/50 rounded-lg border border-gray-600/50 text-xs text-gray-300">
-      <p className="font-semibold">Replying to {message.replyToMessage.senderName}:</p>
+      <p className="font-semibold">
+        Replying to {message.replyToMessage.senderName}:
+      </p>
       <p className="italic truncate">{message.replyToMessage.content}</p>
     </div>
   )}
@@ -38,18 +43,46 @@ const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
     {message.content}
   </p>
   {isOwnMessage && (
-    <div
-      className="absolute top-0 right-0 mt-1 mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-    >
+    <div className="absolute top-0 right-0 mt-1 mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
       <div className="relative">
-        <button onClick={() => setActiveMessageId(message.id)} className="p-1 rounded-full bg-black/20 hover:bg-black/40">
+        <button
+          onClick={() => setActiveMessageId(message.id)}
+          className="p-1 rounded-full bg-black/20 hover:bg-black/40"
+        >
           <FaEllipsisV className="text-white/70" />
         </button>
         {activeMessageId === message.id && (
           <div className="absolute z-10 top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-xl">
-            <a href="#" onClick={() => { setReplyingTo(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-white hover:bg-gray-800">Reply</a>
-            <a href="#" onClick={() => { setEditingMessage(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-white hover:bg-gray-800">Edit</a>
-            <a href="#" onClick={() => { handleDeleteMessage(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-800">Delete</a>
+            <a
+              href="#"
+              onClick={() => {
+                setReplyingTo(message);
+                setActiveMessageId(null);
+              }}
+              className="block px-4 py-2 text-sm text-white hover:bg-gray-800"
+            >
+              Reply
+            </a>
+            <a
+              href="#"
+              onClick={() => {
+                setEditingMessage(message);
+                setActiveMessageId(null);
+              }}
+              className="block px-4 py-2 text-sm text-white hover:bg-gray-800"
+            >
+              Edit
+            </a>
+            <a
+              href="#"
+              onClick={() => {
+                handleDeleteMessage(message);
+                setActiveMessageId(null);
+              }}
+              className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-800"
+            >
+              Delete
+            </a>
           </div>
         )}
       </div>
@@ -213,7 +246,8 @@ export async function GET(
             timestamp: "asc",
           },
           include: {
-            replyToMessage: { // Include the replied message
+            replyToMessage: {
+              // Include the replied message
               select: {
                 senderName: true,
                 content: true,
@@ -226,7 +260,10 @@ export async function GET(
     });
 
     if (!chat) {
-      return NextResponse.json({ messages: [], participants: [] }, { status: 200 });
+      return NextResponse.json(
+        { messages: [], participants: [] },
+        { status: 200 }
+      );
     }
 
     return NextResponse.json(chat, { status: 200 });

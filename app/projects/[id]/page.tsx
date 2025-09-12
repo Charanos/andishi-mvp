@@ -119,7 +119,7 @@ export default function ProjectDetailsPage() {
       <div className="min-h-screen ">
         <div className="min-h-screen flex items-center justify-center px-6">
           <div className="max-w-md w-full">
-            <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 border border-red-500/30 backdrop-blur-xl rounded-3xl p-8 shadow-2xl">
+            <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 border border-red-500/30 backdrop-blur-xl rounded-3xl p-8 shadow-xl">
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <FaEye className="text-red-400 text-2xl" />
@@ -292,7 +292,7 @@ export default function ProjectDetailsPage() {
             {/* Cover Image - Takes 2 columns */}
             <div className="lg:col-span-2 relative">
               {project.image && (
-                <div className="group relative rounded-2xl overflow-hidden shadow-2xl h-full min-h-[400px] bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-white/5">
+                <div className="group relative rounded-2xl overflow-hidden shadow-xl h-full min-h-[400px] bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-white/5">
                   <div className="absolute inset-0 bg-gradient-to-t from-blue-600/5 to-transparent z-10"></div>
                   <Image
                     src={project.image}
@@ -372,7 +372,7 @@ export default function ProjectDetailsPage() {
               {project.technologies.map((tech, index) => (
                 <span
                   key={index}
-                  className="group px-4 py-2.5 bg-white/3 backdrop-blur-md border border-white/8 text-white/90 rounded-lg text-sm font-medium hover:bg-white/6 hover:border-white/15 hover:scale-[1.02] transition-all duration-300 cursor-default hover:shadow-md hover:shadow-cyan-500/5"
+                  className="group px-4 py-2.5 bg-white/3 backdrop-blur-md border border-white/8 text-white/90 rounded-lg text-sm font-medium hover:bg-white/6 hover:border-white/15 hover:scale-[1.02] transition-all duration-300 cursor-default hover:shadow-xl hover:shadow-cyan-500/5"
                 >
                   {tech}
                 </span>
@@ -445,7 +445,7 @@ export default function ProjectDetailsPage() {
                 <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
               </div>
 
-              <div className="bg-white/3 backdrop-blur-md border border-white/8 rounded-2xl p-6 lg:p-8 shadow-2xl">
+              <div className="bg-white/3 backdrop-blur-md border border-white/8 rounded-2xl p-6 lg:p-8 shadow-xl">
                 <div className="relative w-full h-[400px] lg:h-[600px] rounded-xl overflow-hidden border border-gray-600/20 shadow-inner">
                   <iframe
                     src={project.liveUrl}

@@ -201,7 +201,7 @@ export default function DevProfileModal({
 
           {/* Modal */}
           <motion.div
-            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white/95 dark:bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
             variants={modalVariants}
             initial="hidden"
             animate="visible"
@@ -210,7 +210,7 @@ export default function DevProfileModal({
             {/* Close Button */}
             <motion.button
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 cursor-pointer"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-200/80 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-white transition-all duration-300 cursor-pointer"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -272,10 +272,10 @@ export default function DevProfileModal({
 
                   {/* Name, Role, and Key Stats */}
                   <div className="flex-1">
-                    <h2 className="text-3xl font-semibold text-white mb-2">
+                    <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
                       {developer.name}
                     </h2>
-                    <p className="text-sm text-purple-400 monty uppercase font-medium mb-4">
+                    <p className="text-sm text-purple-600 dark:text-purple-400 monty uppercase font-medium mb-4">
                       {developer.role}
                     </p>
 
@@ -300,7 +300,7 @@ export default function DevProfileModal({
                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                           />
                         </svg>
-                        <span className="text-gray-300">
+                        <span className="text-gray-600 dark:text-gray-300">
                           {developer.location}
                         </span>
                       </div>
@@ -318,13 +318,13 @@ export default function DevProfileModal({
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        <span className="text-gray-300">
+                        <span className="text-gray-600 dark:text-gray-300">
                           {developer.experience}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
                         {renderStars(developer.rating, "header")}
-                        <span className="text-white font-medium ml-2">
+                        <span className="text-gray-900 dark:text-white font-medium ml-2">
                           {developer.rating}
                         </span>
                       </div>
@@ -332,10 +332,10 @@ export default function DevProfileModal({
 
                     <div className="flex flex-wrap gap-4 mb-6">
                       <div className="text-center">
-                        <div className="text-2xl font-semibold text-blue-400">
+                        <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
                           {developer.projectsCompleted}
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           Projects Completed
                         </div>
                       </div>
@@ -367,17 +367,17 @@ export default function DevProfileModal({
 
                 {/* About Section */}
                 <motion.div className="mb-8" variants={itemVariants}>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     About
                   </h3>
-                  <p className="text-gray-300 leading-relaxed">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                     {developer.about}
                   </p>
                 </motion.div>
 
                 {/* Skills Section */}
                 <motion.div className="mb-8" variants={itemVariants}>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Skills & Technologies
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -386,7 +386,7 @@ export default function DevProfileModal({
                         key={`skill-${index}-${skill}`}
                         className={`px-3 py-2 rounded-lg text-sm font-medium border ${
                           skillColors[skill] ||
-                          "bg-gray-500/20 text-gray-300 border-gray-500/30"
+                          "bg-gray-200/50 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-500/30"
                         }`}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -400,20 +400,20 @@ export default function DevProfileModal({
 
                 {/* Specialties Section */}
                 <motion.div className="mb-8" variants={itemVariants}>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Specialties
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {developer.specialties.map((specialty, index) => (
                       <motion.div
                         key={`specialty-${index}-${specialty}`}
-                        className="flex items-center space-x-2 p-3 rounded-lg bg-white/5 border border-white/10"
+                        className="flex items-center space-x-2 p-3 rounded-lg bg-gray-100/80 dark:bg-white/5 border border-gray-200 dark:border-white/10"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                       >
-                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                        <span className="text-gray-300 text-sm">
+                        <div className="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full"></div>
+                        <span className="text-gray-700 dark:text-gray-300 text-sm">
                           {specialty}
                         </span>
                       </motion.div>
@@ -423,34 +423,34 @@ export default function DevProfileModal({
 
                 {/* Project Highlights */}
                 <motion.div className="mb-8" variants={itemVariants}>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Featured Projects
                   </h3>
                   <div className="space-y-4">
                     {developer.projectHighlights.map((project, index) => (
                       <motion.div
                         key={`project-${index}-${project.title}`}
-                        className="p-4 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-300"
+                        className="p-4 rounded-lg bg-gray-100/80 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                       >
                         <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold text-white">
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
                             {project.title}
                           </h4>
-                          <span className="text-xs text-gray-400 bg-gray-500/20 px-2 py-1 rounded">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-500/20 px-2 py-1 rounded">
                             {project.duration}
                           </span>
                         </div>
-                        <p className="text-gray-300 text-sm mb-3">
+                        <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
                           {project.description}
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {project.tech.map((tech, techIndex) => (
                             <span
                               key={`project-${index}-tech-${techIndex}-${tech}`}
-                              className="px-2 py-1 text-xs bg-purple-500/20 text-purple-300 rounded border border-purple-500/30"
+                              className="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded border border-purple-200 dark:border-purple-500/30"
                             >
                               {tech}
                             </span>
@@ -463,14 +463,14 @@ export default function DevProfileModal({
 
                 {/* Testimonials */}
                 <motion.div className="mb-8" variants={itemVariants}>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Client Testimonials
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {developer.testimonials.map((testimonial, index) => (
                       <motion.div
                         key={`testimonial-${index}-${testimonial.client}`}
-                        className="p-4 rounded-lg bg-white/5 border border-white/10"
+                        className="p-4 rounded-lg bg-gray-100/80 dark:bg-white/5 border border-gray-200 dark:border-white/10"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -481,11 +481,11 @@ export default function DevProfileModal({
                             `testimonial-${index}`
                           )}
                         </div>
-                        <p className="text-gray-300 text-sm mb-3 italic">
+                        <p className="text-gray-700 dark:text-gray-300 text-sm mb-3 italic">
                           "{testimonial.feedback}"
                         </p>
-                        <div className="text-xs text-gray-400">
-                          <div className="font-medium text-white">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="font-medium text-gray-900 dark:text-white">
                             {testimonial.client}
                           </div>
                           <div>{testimonial.project}</div>

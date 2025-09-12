@@ -179,10 +179,10 @@ export default function BlogFormPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen  flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
-          <p className="text-gray-300">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     );
@@ -190,18 +190,18 @@ export default function BlogFormPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md p-8 bg-gray-800/50 rounded-2xl border border-gray-700">
+      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 flex items-center justify-center">
+        <div className="text-center max-w-md p-8 bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-none">
           <FaUser className="text-4xl text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-medium text-white mb-2">
+          <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">
             Access Denied
           </h2>
-          <p className="text-gray-300 mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
             You don't have permission to access this page.
           </p>
           <Link
             href="/"
-            className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg"
+            className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 px-3 py-2 rounded-lg"
           >
             <FaArrowCircleLeft className="w-5 h-5" />
             <span className="text-xs monty uppercase">Back to Home</span>
@@ -212,17 +212,17 @@ export default function BlogFormPage() {
   }
 
   return (
-    <div className="min-h-screen  py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <Link
             href={"/blogs"}
-            className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg"
+            className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 px-3 py-2 rounded-lg"
           >
             <FaArrowCircleLeft className="w-5 h-5" />
             <span className="text-xs monty uppercase">Back to Projects</span>
           </Link>
-          <h1 className="text-3xl font-medium text-white mt-4">
+          <h1 className="text-3xl font-medium text-gray-900 dark:text-white mt-4">
             {mode === "create" ? "Create New Blog Post" : "Edit Blog Post"}
           </h1>
         </div>
@@ -247,13 +247,13 @@ export default function BlogFormPage() {
           </div>
         )}
 
-        <div className="bg-black/10 shadow shadow-amber-50/5 border border-gray-700 rounded-2xl p-6 md:p-8">
+        <div className="bg-white dark:bg-black/10 shadow-lg dark:shadow-amber-50/5 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Title */}
               <div className="md:col-span-2">
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                  <FaEdit className="text-blue-400" />
+                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <FaEdit className="text-blue-600 dark:text-blue-400" />
                   <span>Title *</span>
                 </label>
                 <input
@@ -261,7 +261,7 @@ export default function BlogFormPage() {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full px-4 py-3 bg-gray-100 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   placeholder="Enter blog post title"
                   required
                 />
@@ -269,8 +269,8 @@ export default function BlogFormPage() {
 
               {/* Author */}
               <div>
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                  <FaUser className="text-green-400" />
+                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <FaUser className="text-green-600 dark:text-green-400" />
                   <span>Author *</span>
                 </label>
                 <input
@@ -278,7 +278,7 @@ export default function BlogFormPage() {
                   name="author"
                   value={formData.author}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full px-4 py-3 bg-gray-100 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   placeholder="Author name"
                   required
                 />
@@ -286,54 +286,78 @@ export default function BlogFormPage() {
 
               {/* Category */}
               <div>
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                  <FaTag className="text-purple-400" />
+                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <FaTag className="text-purple-600 dark:text-purple-400" />
                   <span>Category *</span>
                 </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full px-4 py-3 bg-gray-100 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   required
                 >
-                  <option className="bg-black/50" value="">
+                  <option className="bg-white dark:bg-black/50" value="">
                     Select a category
                   </option>
-                  <option className="bg-black/50" value="Technology">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="Technology"
+                  >
                     Technology
                   </option>
-                  <option className="bg-black/50" value="Design">
+                  <option className="bg-white dark:bg-black/50" value="Design">
                     Design
                   </option>
-                  <option className="bg-black/50" value="Business">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="Business"
+                  >
                     Business
                   </option>
-                  <option className="bg-black/50" value="Lifestyle">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="Lifestyle"
+                  >
                     Lifestyle
                   </option>
-                  <option className="bg-black/50" value="Career">
+                  <option className="bg-white dark:bg-black/50" value="Career">
                     Career
                   </option>
-                  <option className="bg-black/50" value="AI & Future Tech">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="AI & Future Tech"
+                  >
                     AI & Future Tech
                   </option>
-                  <option className="bg-black/50" value="Team Leadership">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="Team Leadership"
+                  >
                     Team Leadership
                   </option>
-                  <option className="bg-black/50" value="Web3 & Blockchain">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="Web3 & Blockchain"
+                  >
                     Web3 & Blockchain
                   </option>
                   <option
-                    className="bg-black/50"
+                    className="bg-white dark:bg-black/50"
                     value="Cloud & Infrastructure"
                   >
                     Cloud & Infrastructure
                   </option>
-                  <option className="bg-black/50" value="Security">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="Security"
+                  >
                     Security
                   </option>
-                  <option className="bg-black/50" value="Architecture">
+                  <option
+                    className="bg-white dark:bg-black/50"
+                    value="Architecture"
+                  >
                     Architecture
                   </option>
                 </select>
@@ -344,7 +368,9 @@ export default function BlogFormPage() {
                 <ImageUpload
                   label="Article Cover Image"
                   value={formData.image}
-                  onChange={(url) => setFormData(prev => ({ ...prev, image: url }))}
+                  onChange={(url) =>
+                    setFormData((prev) => ({ ...prev, image: url }))
+                  }
                   icon={<FaImage className="text-purple-400" />}
                   type="cover"
                 />
@@ -355,7 +381,9 @@ export default function BlogFormPage() {
                 <ImageUpload
                   label="Author Image"
                   value={formData.authorImage}
-                  onChange={(url) => setFormData(prev => ({ ...prev, authorImage: url }))}
+                  onChange={(url) =>
+                    setFormData((prev) => ({ ...prev, authorImage: url }))
+                  }
                   icon={<FaUser className="text-green-400" />}
                   type="author"
                 />
@@ -364,8 +392,8 @@ export default function BlogFormPage() {
 
             {/* Excerpt */}
             <div>
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                <FaFileAlt className="text-cyan-400" />
+              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <FaFileAlt className="text-cyan-600 dark:text-cyan-400" />
                 <span>Excerpt *</span>
               </label>
               <textarea
@@ -373,7 +401,7 @@ export default function BlogFormPage() {
                 value={formData.excerpt}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
+                className="w-full px-4 py-3 bg-gray-100 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
                 placeholder="Brief description of the blog post..."
                 required
               />
@@ -381,8 +409,8 @@ export default function BlogFormPage() {
 
             {/* Content */}
             <div>
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-300 mb-2">
-                <FaEdit className="text-orange-400" />
+              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <FaEdit className="text-orange-600 dark:text-orange-400" />
                 <span>Content *</span>
               </label>
               <div className="w-full">
@@ -397,10 +425,10 @@ export default function BlogFormPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-700">
+            <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-300 dark:border-gray-700">
               <Link
                 href="/"
-                className="px-6 py-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </Link>

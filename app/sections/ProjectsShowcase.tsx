@@ -21,7 +21,7 @@ import ToastNotification from "@/app/components/ToastNotification";
 import { ToastNotification as ToastNotificationType } from "@/app/components/ToastNotification";
 import HomepageProjectForm from "@/app/admin-dashboard/HomepageProjectForm";
 import Image from "next/image";
-import { FiPlay } from "react-icons/fi";
+import { FiPlay, FiPlayCircle } from "react-icons/fi";
 
 interface ProjectShowcaseProps {
   isHomepage?: boolean;
@@ -156,19 +156,19 @@ export default function ProjectShowcase({
       : sortedProjects;
 
   return (
-    <section className="py-32 relative overflow-hidden">
+    <section className="py-32 relative overflow-hidden bg-white dark:bg-transparent">
       {/* Background Effects */}
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-medium text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-4">
             {isHomepage ? "Featured" : "Our"}{" "}
             <span className="!text-transparent !bg-clip-text !bg-gradient-to-r !from-blue-400 !to-cyan-400">
               {isHomepage ? "Projects" : "Latest Projects"}
             </span>
           </h2>
-          <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             {isHomepage
               ? "Explore our featured projects showcasing innovative solutions and cutting-edge technology."
               : "Discover our recent work showcasing cutting-edge technology solutions and innovative digital experiences."}
@@ -177,8 +177,8 @@ export default function ProjectShowcase({
         {/* Admin Controls */}
         {isAdmin && (
           <div className="flex justify-between items-center mb-8">
-            <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg px-4 py-2">
-              <span className="text-blue-300 text-sm font-medium">
+            <div className="bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/30 rounded-lg px-4 py-2">
+              <span className="text-blue-700 dark:text-blue-300 text-sm font-medium">
                 Admin Mode
               </span>
             </div>
@@ -201,7 +201,7 @@ export default function ProjectShowcase({
                 className={`px-6  cursor-pointer py-3 rounded-full transition-all duration-300 ${
                   selectedCategory === category
                     ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"
-                    : "bg-white/10 backdrop-blur-sm text-white/70 hover:bg-white/20 hover:text-white border border-white/20"
+                    : "bg-gray-200 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-white/70 hover:bg-gray-300 dark:hover:bg-white/20 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-white/20"
                 }`}
               >
                 {category === "all" ? "All Projects" : category}
@@ -211,7 +211,7 @@ export default function ProjectShowcase({
         )}
         {/* Error Message */}
         {error && (
-          <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 text-red-200 mb-8">
+          <div className="bg-red-100 dark:bg-red-500/20 border border-red-400 dark:border-red-500 rounded-lg p-4 text-red-700 dark:text-red-200 mb-8">
             {error}
           </div>
         )}
@@ -219,14 +219,16 @@ export default function ProjectShowcase({
         {isLoading && (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-            <p className="text-gray-300 mt-4">Loading projects...</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-4">
+              Loading projects...
+            </p>
           </div>
         )}
 
         {/* Featured Project - Special Layout */}
         {featuredProject && displayProjects.includes(featuredProject) && (
           <div className="mb-16">
-            <div className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white/8 cursor-pointer max-w-6xl mx-auto shadow-2xl">
+            <div className="group relative bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-gray-50 dark:hover:bg-white/8 cursor-pointer max-w-6xl mx-auto shadow-xl">
               <div className="md:flex h-fit">
                 {/* Featured Project Image */}
                 <div className="relative md:w-3/5">
@@ -283,12 +285,12 @@ export default function ProjectShowcase({
                 {/* Featured Project Content */}
                 <div className="md:w-2/5 p-8 flex flex-col justify-between h-full">
                   <div>
-                    <h3 className="text-xl font-semibold text-white group-hover:text-purple-300 transition-colors duration-300 mb-4 leading-tight">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors duration-300 mb-4 leading-tight">
                       {featuredProject.title}
                     </h3>
 
                     <div
-                      className="text-gray-300 text-sm leading-relaxed my-4"
+                      className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed my-4"
                       dangerouslySetInnerHTML={{
                         __html: featuredProject.description,
                       }}
@@ -302,13 +304,13 @@ export default function ProjectShowcase({
                           .map((tech) => (
                             <span
                               key={tech}
-                              className="px-2 py-1 text-xs rounded-md transition-all duration-200 bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15"
+                              className="px-2 py-1 text-xs rounded-md transition-all duration-200 bg-gray-200 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-white/80 border border-gray-300 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/30 hover:bg-gray-300 dark:hover:bg-white/15"
                             >
                               {tech}
                             </span>
                           ))}
                         {(featuredProject.technologies || []).length > 6 && (
-                          <span className="px-2 py-1 text-xs bg-white/5 text-gray-400 rounded-md">
+                          <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-md">
                             +{(featuredProject.technologies || []).length - 6}{" "}
                             more
                           </span>
@@ -320,7 +322,7 @@ export default function ProjectShowcase({
                   {/* Bottom Section */}
                   <div>
                     {/* Project Meta */}
-                    <div className="flex items-center justify-between text-xs text-gray-400 my-4 border-y border-gray-400/10 py-4">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 my-4 border-y border-gray-300 dark:border-gray-400/10 py-4">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <FaCalendarAlt className="w-3 h-3" />
@@ -335,7 +337,7 @@ export default function ProjectShowcase({
                           </span>
                         </div>
                       </div>
-                      <div className="text-purple-400 font-medium font-montserrat uppercase text-xs">
+                      <div className="text-purple-600 dark:text-purple-400 font-medium font-montserrat uppercase text-xs">
                         {featuredProject.client}
                       </div>
                     </div>
@@ -348,10 +350,10 @@ export default function ProjectShowcase({
                             featuredProject.slug || featuredProject.id
                           )
                         }
-                        className="flex cursor-pointer items-center gap-2  text-purple-300 hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
+                        className="flex cursor-pointer items-center gap-2 text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
                       >
                         View Details
-                        <FiPlay className="w-2 h-2 text-gray-500" />
+                        <FiPlayCircle className="w-[16.5] h-[16.5] text-gray-400 dark:text-gray-500" />
                       </button>
 
                       <div className="flex items-end gap-2">
@@ -360,7 +362,7 @@ export default function ProjectShowcase({
                             href={featuredProject.liveUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200"
+                            className="p-2 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-white/10 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
                             title="View Live Site"
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -372,7 +374,7 @@ export default function ProjectShowcase({
                             href={featuredProject.githubUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200"
+                            className="p-2 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-white/10 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
                             title="View Source Code"
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -394,13 +396,13 @@ export default function ProjectShowcase({
 
                     {/* Admin Controls */}
                     {isAdmin && (
-                      <div className="flex items-center space-x-2 mt-4 pt-4 border-t border-white/10">
+                      <div className="flex items-center space-x-2 mt-4 pt-4 border-t border-gray-300 dark:border-white/10">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEdit(featuredProject);
                           }}
-                          className="p-2 bg-blue-600/20 text-blue-300 border border-blue-400/30 rounded-lg hover:bg-blue-600/30 transition-all duration-200"
+                          className="p-2 bg-blue-100 dark:bg-blue-600/20 text-blue-600 dark:text-blue-300 border border-blue-300 dark:border-blue-400/30 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-600/30 transition-all duration-200"
                         >
                           <FaEdit className="w-4 h-4" />
                         </button>
@@ -409,7 +411,7 @@ export default function ProjectShowcase({
                             e.stopPropagation();
                             handleDelete(featuredProject.id);
                           }}
-                          className="p-2 bg-red-600/20 text-red-300 border border-red-400/30 rounded-lg hover:bg-red-600/30 transition-all duration-200"
+                          className="p-2 bg-red-100 dark:bg-red-600/20 text-red-600 dark:text-red-300 border border-red-300 dark:border-red-400/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-600/30 transition-all duration-200"
                         >
                           <FaTrash className="w-4 h-4" />
                         </button>
@@ -434,7 +436,7 @@ export default function ProjectShowcase({
             .map((project) => (
               <div
                 key={project.id}
-                className="group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white/8 cursor-pointer"
+                className="group relative bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 shadow-xl rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-gray-50 dark:hover:bg-white/8 cursor-pointer"
                 onClick={() => handleCardClick(project.slug)}
               >
                 {/* Project Image */}
@@ -488,12 +490,12 @@ export default function ProjectShowcase({
                 <div className="p-6 flex-1">
                   <div className="mb-4">
                     <div className="mb-2">
-                      <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors duration-300">
                         {project.title}
                       </h3>
                     </div>
                     <div
-                      className="text-gray-300 text-sm my-4 leading-relaxed line-clamp-2"
+                      className="text-gray-600 dark:text-gray-300 text-sm my-4 leading-relaxed line-clamp-2"
                       dangerouslySetInnerHTML={{ __html: project.description }}
                     />
                   </div>
@@ -504,13 +506,13 @@ export default function ProjectShowcase({
                       {(project.technologies || []).slice(0, 4).map((tech) => (
                         <span
                           key={tech}
-                          className="px-2 py-1 text-xs rounded-md transition-all duration-200 bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15"
+                          className="px-2 py-1 text-xs rounded-md transition-all duration-200 bg-gray-200 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-white/80 border border-gray-300 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/30 hover:bg-gray-300 dark:hover:bg-white/15"
                         >
                           {tech}
                         </span>
                       ))}
                       {(project.technologies || []).length > 4 && (
-                        <span className="px-2 py-1 text-xs bg-white/5 text-gray-400 rounded-md">
+                        <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-md">
                           +{(project.technologies || []).length - 4} more
                         </span>
                       )}
@@ -518,7 +520,7 @@ export default function ProjectShowcase({
                   </div>
 
                   {/* Project Meta */}
-                  <div className="flex items-center justify-between text-xs border-y border-gray-400/10 py-4 text-gray-400 my-4">
+                  <div className="flex items-center justify-between text-xs border-y border-gray-300 dark:border-gray-400/10 py-4 text-gray-500 dark:text-gray-400 my-4">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">
                         <FaCalendarAlt className="w-3 h-3" />
@@ -533,7 +535,7 @@ export default function ProjectShowcase({
                         </span>
                       </div>
                     </div>
-                    <div className="text-purple-400 font-medium uppercase truncate max-w-[120px]">
+                    <div className="text-purple-600 dark:text-purple-400 font-medium uppercase truncate max-w-[120px]">
                       {project.client}
                     </div>
                   </div>
@@ -545,10 +547,10 @@ export default function ProjectShowcase({
                         e.stopPropagation();
                         handleCardClick(project.slug || project.id);
                       }}
-                      className="flex cursor-pointer items-center gap-2  text-purple-300 hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
+                      className="flex cursor-pointer items-center gap-2 text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
                     >
                       View Details
-                      <FaPlay className="w-4 h-4" />
+                      <FiPlayCircle className="w-[16.5] h-[16.5] text-gray-400 dark:text-gray-500" />
                     </button>
 
                     <div className="flex items-center gap-2">
@@ -591,13 +593,13 @@ export default function ProjectShowcase({
 
                   {/* Admin Controls */}
                   {isAdmin && (
-                    <div className="flex items-center justify-end space-x-2 mt-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center justify-end space-x-2 mt-4 pt-4 border-t border-gray-300 dark:border-white/10">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEdit(project);
                         }}
-                        className="p-2 bg-blue-600/20 text-blue-300 border border-blue-400/30 rounded-lg hover:bg-blue-600/30 transition-all duration-200"
+                        className="p-2 bg-blue-100 dark:bg-blue-600/20 text-blue-600 dark:text-blue-300 border border-blue-300 dark:border-blue-400/30 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-600/30 transition-all duration-200"
                       >
                         <FaEdit className="w-4 h-4" />
                       </button>
@@ -606,7 +608,7 @@ export default function ProjectShowcase({
                           e.stopPropagation();
                           handleDelete(project.id);
                         }}
-                        className="p-2 bg-red-600/20 text-red-300 border border-red-400/30 rounded-lg hover:bg-red-600/30 transition-all duration-200"
+                        className="p-2 bg-red-100 dark:bg-red-600/20 text-red-600 dark:text-red-300 border border-red-300 dark:border-red-400/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-600/30 transition-all duration-200"
                       >
                         <FaTrash className="w-4 h-4" />
                       </button>
@@ -626,7 +628,7 @@ export default function ProjectShowcase({
               <span>View All Projects</span>
               <FaExternalLinkAlt />
             </a>
-            <p className="text-gray-400 mt-3">
+            <p className="text-gray-500 dark:text-gray-400 mt-3">
               Showing {displayProjects.length} of {sortedProjects.length}{" "}
               projects
               {featuredProject && (
@@ -638,7 +640,7 @@ export default function ProjectShowcase({
         {/* Empty State */}
         {!isLoading && displayProjects.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-500 dark:text-gray-400 text-lg">
               {selectedCategory === "all"
                 ? "No projects found. Create your first project!"
                 : `No projects found in "${selectedCategory}" category.`}

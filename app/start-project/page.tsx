@@ -265,7 +265,9 @@ export default function StartProjectForm() {
   const handleSubmit = async () => {
     // Check if terms are accepted
     if (!clientPrivacyAccepted) {
-      toast.error("Please accept the Terms of Service and Privacy Policy before submitting.");
+      toast.error(
+        "Please accept the Terms of Service and Privacy Policy before submitting."
+      );
       return;
     }
 
@@ -273,13 +275,13 @@ export default function StartProjectForm() {
       const result = await startProjectFormSchema.safeParse(formData);
       if (!result.success) {
         result.error.issues.forEach((issue) => {
-        toast.error(issue.message);
+          toast.error(issue.message);
         });
         return;
       }
 
       setSubmitStatus("loading");
-    toast.info("Submitting your project...");
+      toast.info("Submitting your project...");
 
       try {
         const res = await fetch("/api/start-project", {
@@ -290,18 +292,18 @@ export default function StartProjectForm() {
         const result = await res.json();
 
         if (result.success) {
-        setSubmitStatus("success");
-        toast.success(
-          "Your project has been submitted successfully! Redirecting..."
-        );
+          setSubmitStatus("success");
+          toast.success(
+            "Your project has been submitted successfully! Redirecting..."
+          );
 
           // Redirect to thank you page after a short delay
           setTimeout(() => {
             router.push("/thank-you-start-project");
           }, 2000);
         } else {
-        setSubmitStatus("error");
-        toast.error(result.message || "Submission failed. Please try again.");
+          setSubmitStatus("error");
+          toast.error(result.message || "Submission failed. Please try again.");
         }
       } catch (error) {
         setSubmitStatus("error");
@@ -346,15 +348,18 @@ export default function StartProjectForm() {
       />
       <section className="min-h-screen py-16 relative overflow-hidden">
         {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+        <div className="absolute inset-0 bg-gray-50 dark:bg-transparent"></div>
 
         <div className="max-w-6xl mx-auto px-6 relative z-10 my-16">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-3xl lg:text-4xl font-medium text-white mb-4">
-              Start Your <span className="text-purple-400">Project</span>
+            <h1 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-4">
+              Start Your{" "}
+              <span className="text-purple-600 dark:text-purple-400">
+                Project
+              </span>
             </h1>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Share your project details, and we'll connect you with the ideal
               development team tailored to your needs.
             </p>
@@ -362,7 +367,7 @@ export default function StartProjectForm() {
 
           {/* Progress Steps */}
           <div className="justify-between items-center mb-20 relative hidden md:flex">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-700 -translate-y-1/2"></div>
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 dark:bg-gray-700 -translate-y-1/2"></div>
             <div
               className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 transition-all duration-500"
               style={{
@@ -373,14 +378,15 @@ export default function StartProjectForm() {
             {steps.map((step) => (
               <div key={step.number} className="relative z-10">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.number
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
-                    : "bg-gray-700 text-gray-400"
-                    }`}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    currentStep >= step.number
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
+                      : "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  }`}
                 >
                   <step.icon className="text-lg" />
                 </div>
-                <div className="absolute top-14 left-1/2 -translate-x-1/2 text-sm text-gray-400 whitespace-nowrap monty uppercase">
+                <div className="absolute top-14 left-1/2 -translate-x-1/2 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap monty uppercase">
                   {step.title}
                 </div>
               </div>
@@ -388,18 +394,18 @@ export default function StartProjectForm() {
           </div>
 
           {/* Form Container */}
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl px-8 py-10 shadow-2xl">
+          <div className="backdrop-blur-md bg-white/90 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-2xl px-8 py-10 shadow-xl">
             {/* Step 1: User Info */}
             {currentStep === 1 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center ">
-                  <FaUser className="mr-3 text-blue-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center ">
+                  <FaUser className="mr-3 text-blue-600 dark:text-blue-400" />
                   Tell us about yourself
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       First Name *
                     </label>
                     <input
@@ -408,13 +414,13 @@ export default function StartProjectForm() {
                       onChange={(e) =>
                         updateUserInfo("firstName", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="Enter your first name"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Last Name *
                     </label>
                     <input
@@ -423,42 +429,42 @@ export default function StartProjectForm() {
                       onChange={(e) =>
                         updateUserInfo("lastName", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="Enter your last name"
                     />
                   </div>
 
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaEnvelope className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaEnvelope className="mr-2 text-blue-600 dark:text-blue-400" />
                       Email Address *
                     </label>
                     <input
                       type="email"
                       value={formData.userInfo.email}
                       onChange={(e) => updateUserInfo("email", e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="your@email.com"
                     />
                   </div>
 
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaPhone className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaPhone className="mr-2 text-blue-600 dark:text-blue-400" />
                       Phone Number
                     </label>
                     <input
                       type="tel"
                       value={formData.userInfo.phone}
                       onChange={(e) => updateUserInfo("phone", e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="+254 XXX XXX XXX"
                     />
                   </div>
 
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaBuilding className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaBuilding className="mr-2 text-blue-600 dark:text-blue-400" />
                       Company/Organization
                     </label>
                     <input
@@ -467,39 +473,54 @@ export default function StartProjectForm() {
                       onChange={(e) =>
                         updateUserInfo("company", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="Your company name"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Your Role
                     </label>
                     <select
                       value={formData.userInfo.role}
                       onChange={(e) => updateUserInfo("role", e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                     >
-                      <option value="" className="bg-gray-800">
+                      <option value="" className="bg-white dark:bg-gray-800">
                         Select your role
                       </option>
-                      <option value="CEO/Founder" className="bg-gray-800">
+                      <option
+                        value="CEO/Founder"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         CEO/Founder
                       </option>
-                      <option value="CTO" className="bg-gray-800">
+                      <option value="CTO" className="bg-white dark:bg-gray-800">
                         CTO
                       </option>
-                      <option value="Project Manager" className="bg-gray-800">
+                      <option
+                        value="Project Manager"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Project Manager
                       </option>
-                      <option value="Product Manager" className="bg-gray-800">
+                      <option
+                        value="Product Manager"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Product Manager
                       </option>
-                      <option value="Business Owner" className="bg-gray-800">
+                      <option
+                        value="Business Owner"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Business Owner
                       </option>
-                      <option value="Other" className="bg-gray-800">
+                      <option
+                        value="Other"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Other
                       </option>
                     </select>
@@ -511,14 +532,14 @@ export default function StartProjectForm() {
             {/* Step 2: Project Details */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
-                  <FaProjectDiagram className="mr-3 text-blue-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
+                  <FaProjectDiagram className="mr-3 text-blue-600 dark:text-blue-400" />
                   Project Details
                 </h2>
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Project Title *
                     </label>
                     <input
@@ -527,13 +548,13 @@ export default function StartProjectForm() {
                       onChange={(e) =>
                         updateProjectDetails("title", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="What's your project called?"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Project Category
                     </label>
                     <select
@@ -541,16 +562,16 @@ export default function StartProjectForm() {
                       onChange={(e) =>
                         updateProjectDetails("category", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors cursor-pointer"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors cursor-pointer"
                     >
-                      <option value="" className="bg-gray-800">
+                      <option value="" className="bg-white dark:bg-gray-800">
                         Select project category
                       </option>
                       {categories.map((category) => (
                         <option
                           key={category}
                           value={category}
-                          className="bg-gray-800"
+                          className="bg-white dark:bg-gray-800"
                         >
                           {category}
                         </option>
@@ -559,10 +580,10 @@ export default function StartProjectForm() {
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium my-6">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium my-6">
                       Tech Stack/Services Needed
                     </label>
-                    <p className="text-sm text-gray-400 mb-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                       Select all technologies and services you need for your
                       project
                     </p>
@@ -572,17 +593,18 @@ export default function StartProjectForm() {
                           key={tech}
                           type="button"
                           onClick={() => toggleTechStack(tech)}
-                          className={`px-3 hover:bg-purple-700 cursor-pointer py-2 rounded-lg border transition-all duration-300 text-sm ${formData.projectDetails.techStack.includes(tech)
-                            ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                            }`}
+                          className={`px-3 hover:bg-purple-700 cursor-pointer py-2 rounded-lg border transition-all duration-300 text-sm ${
+                            formData.projectDetails.techStack.includes(tech)
+                              ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                              : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                          }`}
                         >
                           {tech}
                         </button>
                       ))}
                     </div>
                     {formData.projectDetails.techStack.length > 0 && (
-                      <div className="mt-3 text-sm text-blue-300">
+                      <div className="mt-3 text-sm text-blue-600 dark:text-blue-300">
                         Selected: {formData.projectDetails.techStack.length}{" "}
                         services
                       </div>
@@ -590,7 +612,7 @@ export default function StartProjectForm() {
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Project Description *
                     </label>
                     <textarea
@@ -599,15 +621,15 @@ export default function StartProjectForm() {
                         updateProjectDetails("description", e.target.value)
                       }
                       rows={4}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                       placeholder="Describe your project in detail. What problem does it solve? What features do you need?"
                     />
                   </div>
 
                   <div className="grid place-content-center grid-cols-1 items-center md:grid-cols-2 gap-6">
                     <div>
-                      <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                        <FaCalendarAlt className="mr-2 text-blue-400" />
+                      <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                        <FaCalendarAlt className="mr-2 text-blue-600 dark:text-blue-400" />
                         Timeline
                       </label>
                       <select
@@ -615,16 +637,16 @@ export default function StartProjectForm() {
                         onChange={(e) =>
                           updateProjectDetails("timeline", e.target.value)
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors cursor-pointer"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors cursor-pointer"
                       >
-                        <option value="" className="bg-gray-800">
+                        <option value="" className="bg-white dark:bg-gray-800">
                           Select timeline
                         </option>
                         {timelines.map((timeline) => (
                           <option
                             key={timeline}
                             value={timeline}
-                            className="bg-gray-800"
+                            className="bg-white dark:bg-gray-800"
                           >
                             {timeline}
                           </option>
@@ -633,7 +655,7 @@ export default function StartProjectForm() {
                     </div>
 
                     <div>
-                      <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
                         Priority Level
                       </label>
                       <select
@@ -641,15 +663,15 @@ export default function StartProjectForm() {
                         onChange={(e) =>
                           updateProjectDetails("priority", e.target.value)
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors cursor-pointer"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors cursor-pointer"
                       >
-                        <option value="" className="bg-gray-800">
+                        <option value="" className="bg-white dark:bg-gray-800">
                           Select Priority
                         </option>
                         {priorityLevels.map((level) => (
                           <option
                             key={level}
-                            className="bg-gray-800"
+                            className="bg-white dark:bg-gray-800"
                             value={level.split(" - ")[0]}
                           >
                             {level}
@@ -660,7 +682,7 @@ export default function StartProjectForm() {
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Special Requirements
                     </label>
                     <textarea
@@ -669,7 +691,7 @@ export default function StartProjectForm() {
                         updateProjectDetails("requirements", e.target.value)
                       }
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                       placeholder="Any specific technologies, integrations, or requirements we should know about?"
                     />
                   </div>
@@ -680,35 +702,37 @@ export default function StartProjectForm() {
             {/* Step 3: Pricing Structure */}
             {currentStep === 3 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
-                  <FaDollarSign className="mr-3 text-blue-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                  <FaDollarSign className="mr-3 text-blue-600 dark:text-blue-400" />
                   Pricing Structure
                 </h2>
 
                 <div className="space-y-6">
                   {/* Currency Selection */}
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Preferred Currency
                     </label>
                     <div className="flex space-x-4">
                       <button
                         type="button"
                         onClick={() => updatePricing("currency", "USD")}
-                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${formData.pricing.currency === "USD"
-                          ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
-                          }`}
+                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${
+                          formData.pricing.currency === "USD"
+                            ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                            : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20 monty uppercase"
+                        }`}
                       >
                         USD ($)
                       </button>
                       <button
                         type="button"
                         onClick={() => updatePricing("currency", "KES")}
-                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${formData.pricing.currency === "KES"
-                          ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
-                          }`}
+                        className={`px-6 py-3 rounded-lg border transition-all duration-300 ${
+                          formData.pricing.currency === "KES"
+                            ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                            : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20 monty uppercase"
+                        }`}
                       >
                         KES (KSh)
                       </button>
@@ -717,22 +741,23 @@ export default function StartProjectForm() {
 
                   {/* Pricing Options */}
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-4">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                       Choose Your Preferred Pricing Model
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <button
                         type="button"
                         onClick={() => updatePricing("type", "fixed")}
-                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "fixed"
-                          ? "bg-blue-500/20 border-blue-400"
-                          : "bg-white/5 border-white/10 hover:border-white/20"
-                          }`}
+                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${
+                          formData.pricing.type === "fixed"
+                            ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400"
+                            : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20"
+                        }`}
                       >
-                        <div className="text-lg font-semibold text-white mb-2 monty uppercase">
+                        <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2 monty uppercase">
                           Fixed Price
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
                           One total price for the entire project
                         </div>
                       </button>
@@ -740,15 +765,16 @@ export default function StartProjectForm() {
                       <button
                         type="button"
                         onClick={() => updatePricing("type", "milestone")}
-                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "milestone"
-                          ? "bg-blue-500/20 border-blue-400"
-                          : "bg-white/5 border-white/10 hover:border-white/20"
-                          }`}
+                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${
+                          formData.pricing.type === "milestone"
+                            ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400"
+                            : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20"
+                        }`}
                       >
-                        <div className="text-lg font-semibold text-white mb-2 monty uppercase">
+                        <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2 monty uppercase">
                           Milestone Based
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
                           Pay as we complete project milestones
                         </div>
                       </button>
@@ -756,15 +782,16 @@ export default function StartProjectForm() {
                       <button
                         type="button"
                         onClick={() => updatePricing("type", "hourly")}
-                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${formData.pricing.type === "hourly"
-                          ? "bg-blue-500/20 border-blue-400"
-                          : "bg-white/5 border-white/10 hover:border-white/20"
-                          }`}
+                        className={`p-6 rounded-xl border transition-all duration-300 text-left ${
+                          formData.pricing.type === "hourly"
+                            ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400"
+                            : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20"
+                        }`}
                       >
-                        <div className="text-lg font-semibold monty uppercase text-white mb-2">
+                        <div className="text-lg font-semibold monty uppercase text-gray-900 dark:text-white mb-2">
                           Hourly Rate
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
                           Hire a dedicated developer by the hour
                         </div>
                       </button>
@@ -775,7 +802,7 @@ export default function StartProjectForm() {
                   {formData.pricing.type === "fixed" && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Estimated Project Budget ({formData.pricing.currency})
                         </label>
                         <input
@@ -784,7 +811,7 @@ export default function StartProjectForm() {
                           onChange={(e) =>
                             updatePricing("fixedBudget", e.target.value)
                           }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                          className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                           placeholder={`Enter your budget in ${formData.pricing.currency}`}
                         />
                       </div>
@@ -795,13 +822,13 @@ export default function StartProjectForm() {
                   {formData.pricing.type === "milestone" && (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           Project Milestones
                         </h3>
                         <button
                           type="button"
                           onClick={addMilestone}
-                          className="flex items-center space-x-2 px-4 py-2 bg-blue-500/20 border border-blue-400 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors"
+                          className="flex items-center space-x-2 px-4 py-2 bg-blue-100 dark:bg-blue-500/20 border border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-500/30 transition-colors"
                         >
                           <FaPlus className="text-sm" />
                           <span>Add Milestone</span>
@@ -812,10 +839,10 @@ export default function StartProjectForm() {
                         (milestone, index) => (
                           <div
                             key={milestone.id}
-                            className="p-4 bg-white/5 border border-white/10 rounded-lg space-y-4"
+                            className="p-4 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg space-y-4"
                           >
                             <div className="flex justify-between items-center">
-                              <h4 className="text-white font-medium">
+                              <h4 className="text-gray-900 dark:text-white font-medium">
                                 Milestone {index + 1}
                               </h4>
                               <button
@@ -829,7 +856,7 @@ export default function StartProjectForm() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-gray-300 text-sm font-medium mb-1">
+                                <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                                   Milestone Title
                                 </label>
                                 <input
@@ -842,13 +869,13 @@ export default function StartProjectForm() {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px"
+                                  className="w-full px-3 py-2 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px"
                                   placeholder="e.g., Design & Wireframes"
                                 />
                               </div>
 
                               <div>
-                                <label className="block text-gray-300 text-sm font-medium mb-1">
+                                <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                                   Budget ({formData.pricing.currency})
                                 </label>
                                 <input
@@ -861,14 +888,14 @@ export default function StartProjectForm() {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px"
+                                  className="w-full px-3 py-2 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px"
                                   placeholder="Amount"
                                 />
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-gray-300 text-sm font-medium mb-1">
+                              <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                                 Description
                               </label>
                               <textarea
@@ -881,13 +908,13 @@ export default function StartProjectForm() {
                                   )
                                 }
                                 rows={2}
-                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px resize-none"
+                                className="w-full px-3 py-2 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px resize-none"
                                 placeholder="What will be delivered in this milestone?"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-gray-300 text-sm font-medium mb-1">
+                              <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                                 Timeline
                               </label>
                               <input
@@ -900,7 +927,7 @@ export default function StartProjectForm() {
                                     e.target.value
                                   )
                                 }
-                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px"
+                                className="w-full px-3 py-2 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px"
                                 placeholder="e.g., 2 weeks"
                               />
                             </div>
@@ -909,7 +936,7 @@ export default function StartProjectForm() {
                       )}
 
                       {(formData.pricing.milestones || []).length === 0 && (
-                        <div className="text-center py-8 text-gray-400">
+                        <div className="text-center py-8 text-gray-600 dark:text-gray-400">
                           <FaProjectDiagram className="mx-auto text-3xl mb-4 opacity-50" />
                           <p>
                             No milestones added yet. Click "Add Milestone" to
@@ -925,7 +952,7 @@ export default function StartProjectForm() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-gray-300 text-[15.5px font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-[15.5px font-medium mb-2">
                             Preferred Hourly Rate ({formData.pricing.currency})
                           </label>
                           <input
@@ -934,13 +961,13 @@ export default function StartProjectForm() {
                             onChange={(e) =>
                               updatePricing("hourlyRate", e.target.value)
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder={`Rate per hour in ${formData.pricing.currency}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-gray-300 text-[15.5px font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-[15.5px font-medium mb-2">
                             Estimated Hours per Week
                           </label>
                           <input
@@ -949,7 +976,7 @@ export default function StartProjectForm() {
                             onChange={(e) =>
                               updatePricing("estimatedHours", e.target.value)
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="Hours per week"
                           />
                         </div>
@@ -963,44 +990,52 @@ export default function StartProjectForm() {
             {/* Step 4: Review & Submit */}
             {currentStep === 4 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
-                  <FaCheck className="mr-3 text-green-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
+                  <FaCheck className="mr-3 text-green-600 dark:text-green-400" />
                   Review Your Project
                 </h2>
 
                 <div className="space-y-6">
                   {/* User Info Summary */}
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                      <FaUser className="mr-2 text-blue-400" />
+                  <div className="p-6 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                      <FaUser className="mr-2 text-blue-600 dark:text-blue-400" />
                       Contact Information
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[15.5px">
                       <div>
-                        <span className="text-gray-400">Name:</span>
-                        <span className="text-white ml-2">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Name:
+                        </span>
+                        <span className="text-gray-900 dark:text-white ml-2">
                           {formData.userInfo.firstName}{" "}
                           {formData.userInfo.lastName}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-400">Email:</span>
-                        <span className="text-white ml-2">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Email:
+                        </span>
+                        <span className="text-gray-900 dark:text-white ml-2">
                           {formData.userInfo.email}
                         </span>
                       </div>
                       {formData.userInfo.phone && (
                         <div>
-                          <span className="text-gray-400">Phone:</span>
-                          <span className="text-white ml-2">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Phone:
+                          </span>
+                          <span className="text-gray-900 dark:text-white ml-2">
                             {formData.userInfo.phone}
                           </span>
                         </div>
                       )}
                       {formData.userInfo.company && (
                         <div>
-                          <span className="text-gray-400">Company:</span>
-                          <span className="text-white ml-2">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Company:
+                          </span>
+                          <span className="text-gray-900 dark:text-white ml-2">
                             {formData.userInfo.company}
                           </span>
                         </div>
@@ -1009,34 +1044,40 @@ export default function StartProjectForm() {
                   </div>
 
                   {/* Project Details Summary */}
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                      <FaProjectDiagram className="mr-2 text-blue-400" />
+                  <div className="p-6 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                      <FaProjectDiagram className="mr-2 text-blue-600 dark:text-blue-400" />
                       Project Overview
                     </h3>
                     <div className="space-y-3 text-[15.5px">
                       <div>
-                        <span className="text-gray-400">Project:</span>
-                        <span className="text-white ml-2">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Project:
+                        </span>
+                        <span className="text-gray-900 dark:text-white ml-2">
                           {formData.projectDetails.title}
                         </span>
                       </div>
                       {formData.projectDetails.category && (
                         <div>
-                          <span className="text-gray-400">Category:</span>
-                          <span className="text-white ml-2">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Category:
+                          </span>
+                          <span className="text-gray-900 dark:text-white ml-2">
                             {formData.projectDetails.category}
                           </span>
                         </div>
                       )}
                       {formData.projectDetails.techStack.length > 0 && (
                         <div>
-                          <span className="text-gray-400">Tech Stack:</span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Tech Stack:
+                          </span>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {formData.projectDetails.techStack.map((tech) => (
                               <span
                                 key={tech}
-                                className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-sm"
+                                className="px-2 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded text-sm"
                               >
                                 {tech}
                               </span>
@@ -1045,15 +1086,19 @@ export default function StartProjectForm() {
                         </div>
                       )}
                       <div>
-                        <span className="text-gray-400">Description:</span>
-                        <p className="text-white mt-1">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Description:
+                        </span>
+                        <p className="text-gray-900 dark:text-white mt-1">
                           {formData.projectDetails.description}
                         </p>
                       </div>
                       {formData.projectDetails.timeline && (
                         <div>
-                          <span className="text-gray-400">Timeline:</span>
-                          <span className="text-white ml-2">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Timeline:
+                          </span>
+                          <span className="text-gray-900 dark:text-white ml-2">
                             {formData.projectDetails.timeline}
                           </span>
                         </div>
@@ -1062,21 +1107,25 @@ export default function StartProjectForm() {
                   </div>
 
                   {/* Pricing Summary */}
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                      <FaDollarSign className="mr-2 text-green-400" />
+                  <div className="p-6 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                      <FaDollarSign className="mr-2 text-green-600 dark:text-green-400" />
                       Pricing Structure
                     </h3>
                     <div className="space-y-3 text-[15.5px">
                       <div>
-                        <span className="text-gray-400">Model:</span>
-                        <span className="text-white ml-2 capitalize">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Model:
+                        </span>
+                        <span className="text-gray-900 dark:text-white ml-2 capitalize">
                           {formData.pricing.type} Price
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-400">Currency:</span>
-                        <span className="text-white ml-2">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Currency:
+                        </span>
+                        <span className="text-gray-900 dark:text-white ml-2">
                           {formData.pricing.currency}
                         </span>
                       </div>
@@ -1084,8 +1133,10 @@ export default function StartProjectForm() {
                       {formData.pricing.type === "fixed" &&
                         formData.pricing.fixedBudget && (
                           <div>
-                            <span className="text-gray-400">Budget:</span>
-                            <span className="text-white ml-2">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              Budget:
+                            </span>
+                            <span className="text-gray-900 dark:text-white ml-2">
                               {formData.pricing.currency}{" "}
                               {formData.pricing.fixedBudget}
                             </span>
@@ -1096,10 +1147,10 @@ export default function StartProjectForm() {
                         <div className="space-y-2">
                           {formData.pricing.hourlyRate && (
                             <div>
-                              <span className="text-gray-400">
+                              <span className="text-gray-600 dark:text-gray-400">
                                 Hourly Rate:
                               </span>
-                              <span className="text-white ml-2">
+                              <span className="text-gray-900 dark:text-white ml-2">
                                 {formData.pricing.currency}{" "}
                                 {formData.pricing.hourlyRate}/hour
                               </span>
@@ -1107,8 +1158,10 @@ export default function StartProjectForm() {
                           )}
                           {formData.pricing.estimatedHours && (
                             <div>
-                              <span className="text-gray-400">Hours/Week:</span>
-                              <span className="text-white ml-2">
+                              <span className="text-gray-600 dark:text-gray-400">
+                                Hours/Week:
+                              </span>
+                              <span className="text-gray-900 dark:text-white ml-2">
                                 {formData.pricing.estimatedHours} hours
                               </span>
                             </div>
@@ -1120,26 +1173,28 @@ export default function StartProjectForm() {
                         formData.pricing.milestones &&
                         formData.pricing.milestones.length > 0 && (
                           <div>
-                            <span className="text-gray-400">Milestones:</span>
+                            <span className="text-gray-600 dark:text-gray-400">
+                              Milestones:
+                            </span>
                             <div className="mt-2 space-y-2">
                               {formData.pricing.milestones.map(
                                 (milestone, index) => (
                                   <div
                                     key={milestone.id}
-                                    className="p-3 bg-white/5 rounded border-l-2 border-blue-400"
+                                    className="p-3 bg-gray-50 dark:bg-white/5 rounded border-l-2 border-blue-500 dark:border-blue-400"
                                   >
-                                    <div className="font-medium text-white">
+                                    <div className="font-medium text-gray-900 dark:text-white">
                                       {milestone.title ||
                                         `Milestone ${index + 1}`}
                                     </div>
                                     {milestone.budget && (
-                                      <div className="text-sm text-gray-400">
+                                      <div className="text-sm text-gray-600 dark:text-gray-400">
                                         Budget: {formData.pricing.currency}{" "}
                                         {milestone.budget}
                                       </div>
                                     )}
                                     {milestone.timeline && (
-                                      <div className="text-sm text-gray-400">
+                                      <div className="text-sm text-gray-600 dark:text-gray-400">
                                         Timeline: {milestone.timeline}
                                       </div>
                                     )}
@@ -1154,20 +1209,25 @@ export default function StartProjectForm() {
 
                   {/* Client Terms and Privacy Policy */}
 
-                  <div className="p-6 bg-indigo-400/5 border border-white/10 rounded-lg">
+                  <div className="p-6 bg-blue-50 dark:bg-indigo-400/5 border border-blue-200 dark:border-white/10 rounded-lg">
                     <div className="flex items-start space-x-3">
                       <input
                         type="checkbox"
                         id="terms"
                         checked={clientPrivacyAccepted}
-                        onChange={(e) => setClientPrivacyAccepted(e.target.checked)}
-                        className="mt-1 w-4 h-4 text-blue-400 bg-transparent border-2 border-blue-400 rounded focus:ring-blue-400 focus:ring-2"
+                        onChange={(e) =>
+                          setClientPrivacyAccepted(e.target.checked)
+                        }
+                        className="mt-1 w-4 h-4 text-blue-600 dark:text-blue-400 bg-transparent border-2 border-blue-600 dark:border-blue-400 rounded focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-2"
                       />
-                      <label htmlFor="terms" className="text-sm text-gray-300">
+                      <label
+                        htmlFor="terms"
+                        className="text-sm text-gray-700 dark:text-gray-300"
+                      >
                         I agree to the{" "}
                         <Link
                           href="/legal/client-terms-of-service"
-                          className="text-blue-400 hover:text-blue-300 underline"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -1176,15 +1236,14 @@ export default function StartProjectForm() {
                         and{" "}
                         <Link
                           href="/legal/client-privacy-policy"
-                          className="text-blue-400 hover:text-blue-300 underline"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
                           Privacy Policy
                         </Link>
-                        . I understand that this is a project inquiry and
-                        final pricing will be confirmed after initial
-                        consultation.
+                        . I understand that this is a project inquiry and final
+                        pricing will be confirmed after initial consultation.
                       </label>
                     </div>
                   </div>
@@ -1193,21 +1252,22 @@ export default function StartProjectForm() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-16 pt-6 border-t border-white/10">
+            <div className="flex justify-between items-center mt-16 pt-6 border-t border-gray-300 dark:border-white/10">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${currentStep === 1
-                  ? "text-gray-500 cursor-not-allowed"
-                  : "text-gray-300 hover:text-white hover:bg-white/5  cursor-pointer"
-                  }`}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
+                  currentStep === 1
+                    ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer"
+                }`}
               >
                 <FaArrowLeft className="text-[15.5px" />
                 <span>Previous</span>
               </button>
 
-              <div className="text-center text-[15.5px] text-gray-400">
+              <div className="text-center text-[15.5px] text-gray-600 dark:text-gray-400">
                 Step {currentStep} of {steps.length}
               </div>
 
@@ -1216,10 +1276,11 @@ export default function StartProjectForm() {
                   type="button"
                   onClick={nextStep}
                   disabled={!isStepValid()}
-                  className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${isStepValid()
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
-                    : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
-                    }`}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
+                    isStepValid()
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
+                      : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
+                  }`}
                 >
                   <span>Next</span>
                   <FaArrowRight className="text-[15.5px" />

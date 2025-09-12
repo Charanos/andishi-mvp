@@ -262,21 +262,25 @@ export default function ContactUsPage() {
 
   return (
     <>
-      <section className="min-h-screen py-6 sm:py-10 relative overflow-hidden bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-indigo-900/10">
+      <section className="min-h-screen py-6 sm:py-10 relative overflow-hidden bg-white dark:bg-transparent">
         {/* Background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-purple-500/8 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500/8 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-indigo-500/8 rounded-full blur-3xl animate-pulse"></div>
-        </div>
+        {/* <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 via-purple-100/50 to-indigo-100/50 dark:from-transparent dark:via-transparent dark:to-transparent"></div>
+          <div className="absolute top-20 left-10 w-32 h-32 bg-purple-200/20 dark:bg-purple-500/8 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-200/20 dark:bg-blue-500/8 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-indigo-200/20 dark:bg-indigo-500/8 rounded-full blur-3xl animate-pulse"></div>
+        </div> */}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 my-6 sm:my-10">
           {/* Header */}
           <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white mb-4">
-              Contact <span className="text-purple-400">Andishi</span>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-4">
+              Contact{" "}
+              <span className="text-purple-600 dark:text-purple-400">
+                Andishi
+              </span>
             </h1>
-            <p className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto px-4">
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto px-4">
               Get in touch with our team or find answers to common questions
               about our services, partnerships, and more.
             </p>
@@ -284,13 +288,13 @@ export default function ContactUsPage() {
 
           {/* Tab Navigation */}
           <div className="flex justify-center mb-8 sm:mb-12">
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-1 inline-flex">
+            <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-1 inline-flex">
               <button
                 onClick={() => setActiveTab("contact")}
                 className={`px-4 sm:px-6 py-1 sm:py-2 rounded-lg transition-all duration-300 flex items-center cursor-pointer ${
                   activeTab === "contact"
-                    ? "bg-blue-500/20 text-blue-300 border border-blue-400/30"
-                    : "text-gray-300 hover:text-white hover:bg-white/5"
+                    ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-400/30"
+                    : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5"
                 }`}
               >
                 <FaPaperPlane className="mr-2" />
@@ -301,8 +305,8 @@ export default function ContactUsPage() {
                 onClick={() => setActiveTab("faq")}
                 className={`px-4 sm:px-6 py-1 sm:py-2 rounded-lg transition-all duration-300 flex items-center cursor-pointer ${
                   activeTab === "faq"
-                    ? "bg-purple-500/20 text-purple-300 border border-purple-400/30"
-                    : "text-gray-300 hover:text-white hover:bg-white/5"
+                    ? "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-400/30"
+                    : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5"
                 }`}
               >
                 <FaQuestionCircle className="mr-2" />
@@ -316,7 +320,7 @@ export default function ContactUsPage() {
             <>
               {/* Map Section */}
               <div className="w-full mb-8 sm:mb-16">
-                <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
                   <ContactMap className="w-full" height="400px" />
                 </div>
               </div>
@@ -324,9 +328,9 @@ export default function ContactUsPage() {
               {/* Form and Contact Info */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12 mb-8 sm:mb-16">
                 {/* Contact Form */}
-                <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-8 py-6 sm:py-10 shadow-2xl">
-                  <h2 className="text-xl sm:text-2xl font-semibold text-white mb-6 sm:mb-8 flex items-center">
-                    <FaPaperPlane className="mr-3 text-blue-400" />
+                <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl px-4 sm:px-8 py-6 sm:py-10 shadow-xl">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white mb-6 sm:mb-8 flex items-center">
+                    <FaPaperPlane className="mr-3 text-blue-500 dark:text-blue-400" />
                     Send us a message
                   </h2>
 
@@ -336,38 +340,38 @@ export default function ContactUsPage() {
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div>
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Your Name *
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <FaUser className="text-gray-400" />
+                            <FaUser className="text-gray-500 dark:text-gray-400" />
                           </div>
                           <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full pl-10 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full pl-10 px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="Enter your name"
                             required
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Email Address *
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <FaEnvelope className="text-gray-400" />
+                            <FaEnvelope className="text-gray-500 dark:text-gray-400" />
                           </div>
                           <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full pl-10 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full pl-10 px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="your@email.com"
                             required
                           />
@@ -376,26 +380,26 @@ export default function ContactUsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Phone Number
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <FaPhone className="text-gray-400" />
+                          <FaPhone className="text-gray-500 dark:text-gray-400" />
                         </div>
                         <input
                           type="tel"
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full pl-10 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                          className="w-full pl-10 px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                           placeholder="+254 XXX XXX XXX"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Subject
                       </label>
                       <input
@@ -403,13 +407,13 @@ export default function ContactUsPage() {
                         name="subject"
                         value={formData.subject}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                         placeholder="What's this about?"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Message *
                       </label>
                       <textarea
@@ -417,14 +421,14 @@ export default function ContactUsPage() {
                         value={formData.message}
                         onChange={handleChange}
                         rows={5}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                        className="w-full px-4 py-3 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                         placeholder="Tell us about your project or inquiry..."
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Preferred Contact Method
                       </label>
                       <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -435,8 +439,8 @@ export default function ContactUsPage() {
                             onClick={() => toggleContactMethod(method)}
                             className={`px-3 sm:px-4 py-2 rounded-lg border transition-all duration-300 text-sm flex items-center cursor-pointer ${
                               formData.contactMethod.includes(method)
-                                ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                                : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                                ? "bg-blue-100 dark:bg-blue-500/20 border-blue-300 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                                : "bg-white dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
                             }`}
                           >
                             {method}
@@ -474,21 +478,21 @@ export default function ContactUsPage() {
                 {/* Contact Information */}
                 <div className="space-y-6 sm:space-y-8">
                   {/* Contact Cards */}
-                  <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl">
-                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6 flex items-center">
+                  <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
                       Our Contact Info
                     </h3>
 
                     <div className="space-y-4 sm:space-y-6">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1">
-                          <FaMapMarkerAlt className="text-blue-400" />
+                          <FaMapMarkerAlt className="text-blue-500 dark:text-blue-400" />
                         </div>
                         <div className="ml-4">
-                          <h4 className="font-medium uppercase text-sm sm:text-base">
+                          <h4 className="font-medium uppercase text-sm sm:text-base text-gray-900 dark:text-white">
                             Location
                           </h4>
-                          <p className="text-gray-400 text-sm sm:text-base">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
                             Ruiru, Kiambu - Kenya
                           </p>
                         </div>
@@ -496,15 +500,15 @@ export default function ContactUsPage() {
 
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1">
-                          <FaEnvelope className="text-blue-400" />
+                          <FaEnvelope className="text-blue-500 dark:text-blue-400" />
                         </div>
                         <div className="ml-4">
-                          <h4 className="uppercase font-medium text-sm sm:text-base">
+                          <h4 className="uppercase font-medium text-sm sm:text-base text-gray-900 dark:text-white">
                             Email
                           </h4>
                           <a
                             href="mailto:info@andishi.dev"
-                            className="text-gray-400 hover:text-blue-300 transition-colors cursor-pointer text-sm sm:text-base"
+                            className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors cursor-pointer text-sm sm:text-base"
                           >
                             info@andishi.dev
                           </a>
@@ -513,15 +517,15 @@ export default function ContactUsPage() {
 
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1">
-                          <FaPhone className="text-blue-400" />
+                          <FaPhone className="text-blue-500 dark:text-blue-400" />
                         </div>
                         <div className="ml-4">
-                          <h4 className="uppercase font-medium text-sm sm:text-base">
+                          <h4 className="uppercase font-medium text-sm sm:text-base text-gray-900 dark:text-white">
                             Phone / Whatsapp
                           </h4>
                           <a
                             href="tel:+254759912373"
-                            className="text-gray-400 hover:text-blue-300 transition-colors cursor-pointer text-sm sm:text-base"
+                            className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors cursor-pointer text-sm sm:text-base"
                           >
                             +254 759 912 373
                           </a>
@@ -530,13 +534,13 @@ export default function ContactUsPage() {
 
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1">
-                          <FaClock className="text-blue-400" />
+                          <FaClock className="text-blue-500 dark:text-blue-400" />
                         </div>
                         <div className="ml-4">
-                          <h4 className="uppercase font-medium text-sm sm:text-base">
+                          <h4 className="uppercase font-medium text-sm sm:text-base text-gray-900 dark:text-white">
                             Hours
                           </h4>
-                          <p className="text-gray-400 text-sm sm:text-base">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
                             Monday - Friday: 9:00 AM - 5:00 PM EAT
                           </p>
                         </div>
@@ -545,9 +549,9 @@ export default function ContactUsPage() {
                   </div>
 
                   {/* Social Media */}
-                  <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl">
-                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6 flex items-center">
-                      <FaGlobe className="mr-3 text-blue-400" />
+                  <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                      <FaGlobe className="mr-3 text-blue-500 dark:text-blue-400" />
                       Connect With Us
                     </h3>
 
@@ -556,7 +560,7 @@ export default function ContactUsPage() {
                         href="https://www.facebook.com/andishi.dev"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-500/20 hover:border-blue-400 transition-colors cursor-pointer"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 flex items-center justify-center text-gray-700 dark:text-white hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:border-blue-400 dark:hover:border-blue-400 transition-colors cursor-pointer"
                         aria-label="Facebook"
                       >
                         <FaFacebook />
@@ -565,7 +569,7 @@ export default function ContactUsPage() {
                         href="https://linkedin.com/company/andishi"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-500/20 hover:border-blue-400 transition-colors cursor-pointer"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 flex items-center justify-center text-gray-700 dark:text-white hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:border-blue-400 dark:hover:border-blue-400 transition-colors cursor-pointer"
                         aria-label="LinkedIn"
                       >
                         <FaLinkedin />
@@ -574,7 +578,7 @@ export default function ContactUsPage() {
                         href="https://www.instagram.com/andishi.dev/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-gray-500/20 hover:border-gray-400 transition-colors cursor-pointer"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 flex items-center justify-center text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-500/20 hover:border-gray-400 dark:hover:border-gray-400 transition-colors cursor-pointer"
                         aria-label="Instagram"
                       >
                         <FaInstagram />
@@ -583,7 +587,7 @@ export default function ContactUsPage() {
                         href="https://x.com/AndishiSoftware"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-400/20 hover:border-blue-300 transition-colors cursor-pointer"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 flex items-center justify-center text-gray-700 dark:text-white hover:bg-blue-100 dark:hover:bg-blue-400/20 hover:border-blue-300 dark:hover:border-blue-300 transition-colors cursor-pointer"
                         aria-label="Twitter"
                       >
                         <FaTwitter />
@@ -599,9 +603,9 @@ export default function ContactUsPage() {
           {activeTab === "faq" && (
             <div className="space-y-6 sm:space-y-8">
               {/* FAQ Category Filter */}
-              <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl">
-                <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6 flex items-center">
-                  <FaQuestionCircle className="mr-3 text-purple-400" />
+              <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl">
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+                  <FaQuestionCircle className="mr-3 text-purple-600 dark:text-purple-400" />
                   Frequently Asked Questions
                 </h2>
 
@@ -612,8 +616,8 @@ export default function ContactUsPage() {
                       onClick={() => setSelectedCategory(category.id)}
                       className={`px-3 sm:px-4 py-2 rounded-lg border transition-all duration-300 text-xs sm:text-sm flex items-center cursor-pointer ${
                         selectedCategory === category.id
-                          ? "bg-purple-500/20 border-purple-400 text-purple-300"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 hover:text-white"
+                          ? "bg-purple-100 dark:bg-purple-500/20 border-purple-300 dark:border-purple-400 text-purple-700 dark:text-purple-300"
+                          : "bg-white dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
                       <span className="mr-1 sm:mr-2">{category.icon}</span>
@@ -631,28 +635,28 @@ export default function ContactUsPage() {
                 {filteredFAQs.map((faq) => (
                   <div
                     key={faq.id}
-                    className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+                    className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden"
                   >
                     <button
                       onClick={() => toggleFAQ(faq.id)}
-                      className="w-full px-4 sm:px-6 py-4 sm:py-5 text-left flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer"
+                      className="w-full px-4 sm:px-6 py-4 sm:py-5 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center">
                         <span className="mr-3 sm:mr-4">{faq.icon}</span>
-                        <h3 className="text-sm sm:text-lg font-medium text-white">
+                        <h3 className="text-sm sm:text-lg font-medium text-gray-900 dark:text-white">
                           {faq.question}
                         </h3>
                       </div>
                       {expandedFAQ === faq.id ? (
-                        <FaChevronUp className="text-gray-400 flex-shrink-0 ml-2" />
+                        <FaChevronUp className="text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2" />
                       ) : (
-                        <FaChevronDown className="text-gray-400 flex-shrink-0 ml-2" />
+                        <FaChevronDown className="text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2" />
                       )}
                     </button>
 
                     {expandedFAQ === faq.id && (
                       <div className="px-4 sm:px-6 pb-4 sm:pb-5">
-                        <div className="ml-7 sm:ml-10 text-sm sm:text-base text-gray-300 leading-relaxed">
+                        <div className="ml-7 sm:ml-10 text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                           {faq.answer}
                         </div>
                       </div>
@@ -662,11 +666,11 @@ export default function ContactUsPage() {
               </div>
 
               {/* FAQ Call to Action */}
-              <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl text-center">
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
+              <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl text-center">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
                   Still have questions?
                 </h3>
-                <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
+                <p className="text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
                   We're always happy to chat with potential partners. Contact us
                   anytime!
                 </p>
@@ -685,7 +689,7 @@ export default function ContactUsPage() {
           <div className="mt-8 text-center">
             <Link
               href="/"
-              className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg"
+              className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-200 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 shadow-xl px-3 py-2 rounded-lg"
             >
               <FaArrowCircleLeft className="w-5 h-5" />
               <span className="text-xs monty uppercase">Back to Home</span>

@@ -1,4 +1,3 @@
-
 # Replicating Search & Filter UI from Our Portfolio to Admin Dashboard
 
 This document outlines the steps to replace the existing project search and filter functionality in the Admin Dashboard (`/app/admin-dashboard/page.tsx`) with the more advanced and visually appealing UI from the Our Portfolio page (`/app/our-portfolio/page.tsx`).
@@ -56,7 +55,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({
   setPriorityFilter,
 }) => {
   return (
-    <div className="bg-white/5 my-12 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 shadow-2xl">
+    <div className="bg-white/5 my-12 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 shadow-xl">
       <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
         <div className="flex-1 max-w-md">
           <div className="relative group">
@@ -246,6 +245,7 @@ The `our-portfolio` page has a more modern grid and list view. We'll adapt this 
 In `app/admin-dashboard/page.tsx`, inside the `renderProjects` function, locate the `filteredAndSortedProjects.map(...)` section. Replace the existing grid item with the following structure, which is a simplified version of the one from `our-portfolio/page.tsx` adapted for the admin dashboard's data.
 
 Replace this:
+
 ```tsx
 <div
   key={project?._id}
@@ -256,10 +256,11 @@ Replace this:
 ```
 
 With this:
+
 ```tsx
 <article
   key={project.id}
-  className="group relative overflow-hidden rounded-2xl backdrop-blur-xl shadow-md bg-black/10 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
+  className="group relative overflow-hidden rounded-2xl backdrop-blur-xl shadow-xl bg-black/10 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
 >
   {/* ... content from our-portfolio page, adapted for admin dashboard ... */}
 </article>

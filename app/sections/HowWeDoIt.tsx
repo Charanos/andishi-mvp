@@ -49,7 +49,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-20 relative overflow-hidden">
+    <section className="py-20 relative overflow-hidden bg-white dark:bg-transparent">
       {/* Dynamic Background */}
       <div className="absolute inset-0">
         {steps.map((step, index) => (
@@ -61,7 +61,7 @@ export default function HowItWorks() {
                 : "opacity-5 scale-100"
             }`}
             style={{
-              background: `radial-gradient(circle, ${step.color}40 0%, transparent 70%)`,
+              background: `radial-gradient(circle, ${step.color}40 0%, transparent 20%)`,
               top: `${20 + (index % 2) * 60}%`,
               left: `${10 + index * 20}%`,
               animationDelay: `${index * 500}ms`,
@@ -80,11 +80,13 @@ export default function HowItWorks() {
                 : "opacity-0 translate-y-8"
             }`}
           >
-            <h2 className="text-xl lg:text-4xl font-semibold text-white mb-6 leading-tight">
+            <h2 className="text-xl lg:text-4xl font-semibold text-gray-900 dark:text-white mb-6 leading-tight">
               How We Do It in{" "}
-              <span className="text-purple-400">4 Simple Steps</span>
+              <span className="text-purple-600 dark:text-purple-400">
+                4 Simple Steps
+              </span>
             </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               From concept to code, we make developer hiring effortless
             </p>
           </div>
@@ -186,12 +188,12 @@ export default function HowItWorks() {
                       absolute inset-0 rounded-full transition-all duration-700
                       ${
                         isActive
-                          ? `bg-gradient-to-r ${step.gradient} p-1 animate-spin-slow shadow-2xl`
+                          ? `bg-gradient-to-r ${step.gradient} p-1 animate-spin-slow shadow-xl`
                           : "bg-white/10 p-1 hover:bg-white/20"
                       }
                     `}
                     >
-                      <div className="w-full h-full bg-gray-900 rounded-full"></div>
+                      <div className="w-full h-full bg-white dark:bg-gray-900 rounded-full"></div>
                     </div>
 
                     {/* Icon */}
@@ -200,8 +202,8 @@ export default function HowItWorks() {
                       relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500
                       ${
                         isActive
-                          ? `bg-gradient-to-r ${step.gradient} text-white shadow-2xl`
-                          : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"
+                          ? `bg-gradient-to-r ${step.gradient} text-white shadow-xl`
+                          : "bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-300 dark:hover:bg-gray-700"
                       }
                     `}
                     >
@@ -220,7 +222,7 @@ export default function HowItWorks() {
                       ${
                         isActive
                           ? `bg-gradient-to-r ${step.gradient} text-white shadow-lg`
-                          : "bg-gray-700 text-gray-300"
+                          : "bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                       }
                     `}
                     >
@@ -241,7 +243,7 @@ export default function HowItWorks() {
                       ${
                         isActive
                           ? `bg-gradient-to-r ${step.gradient} bg-clip-text text-transparent`
-                          : "text-white hover:text-gray-200"
+                          : "text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-200"
                       }
                     `}
                     >
@@ -251,7 +253,11 @@ export default function HowItWorks() {
                     <p
                       className={`
                       text-sm leading-relaxed transition-colors duration-300
-                      ${isActive ? "text-gray-200" : "text-gray-400"}
+                      ${
+                        isActive
+                          ? "text-gray-600 dark:text-gray-200"
+                          : "text-gray-600 dark:text-gray-400"
+                      }
                     `}
                     >
                       {step.description}
@@ -282,8 +288,8 @@ export default function HowItWorks() {
                   relative w-12 h-2 rounded-full transition-all duration-500 overflow-hidden
                   ${
                     activeStep === index
-                      ? "bg-white"
-                      : "bg-gray-700 hover:bg-gray-600"
+                      ? "bg-gray-900 dark:bg-white"
+                      : "bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600"
                   }
                 `}
               >

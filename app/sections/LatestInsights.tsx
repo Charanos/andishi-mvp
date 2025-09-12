@@ -222,7 +222,7 @@ export default function LatestInsights() {
       <section id="blogs" className="py-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 rounded-full mb-6">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-100 dark:bg-transparent backdrop-blur-sm border border-blue-300 dark:border-blue-500/20 rounded-full mb-6">
               <FaCode className="text-blue-400 text-sm" />
               <span className="text-blue-300 text-sm font-medium">
                 Loading Insights
@@ -269,26 +269,29 @@ export default function LatestInsights() {
   }
 
   return (
-    <section id="blogs" className="py-24 relative overflow-hidden">
+    <section
+      id="blogs"
+      className="py-24 relative overflow-hidden bg-white dark:bg-transparent"
+    >
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 rounded-full mb-6">
-            <FaBookmark className="text-blue-400 text-sm" />
-            <span className="text-blue-300 text-sm font-medium">
+          <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-100 dark:bg-blue-500/10 backdrop-blur-sm border border-blue-300 dark:border-blue-500/20 rounded-full mb-6">
+            <FaBookmark className="text-blue-600 dark:text-blue-400 text-sm" />
+            <span className="text-blue-700 dark:text-blue-300 text-sm font-medium">
               Latest Insights
             </span>
           </div>
 
           <div className="flex items-center justify-center mb-6">
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-4">
+            <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-4">
               Discover the Future of{" "}
               <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                 Tech Innovation
               </span>
             </h2>
           </div>
-          <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
             Stay ahead of the curve with cutting-edge insights on remote work,
             AI, blockchain, and the technologies shaping tomorrow's development
             landscape
@@ -300,7 +303,7 @@ export default function LatestInsights() {
           <div className="mb-16">
             <Link
               href={`/blogs/${mainFeaturedBlog.slug || mainFeaturedBlog.id}`}
-              className="group relative overflow-hidden rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.01] cursor-pointer block"
+              className="group relative overflow-hidden rounded-3xl backdrop-blur-md bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl hover:border-gray-300 dark:hover:border-white/20 transition-all duration-700 hover:scale-[1.01] cursor-pointer block"
             >
               {/* Admin Controls for Featured Blog - Only visible to admins */}
               {isAdmin && (
@@ -346,9 +349,9 @@ export default function LatestInsights() {
                 {/* Content */}
                 <div className="relative p-8 lg:p-12 flex flex-col justify-center space-y-6">
                   <div className="flex items-center justify-between space-x-4">
-                    <div className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full">
+                    <div className="flex items-center space-x-2 px-3 py-1 bg-blue-100 dark:bg-blue-500/20 backdrop-blur-sm border border-blue-300 dark:border-blue-500/30 rounded-full">
                       <CategoryIcon category={mainFeaturedBlog.category} />
-                      <span className="text-blue-300 text-sm font-medium">
+                      <span className="text-blue-700 dark:text-blue-300 text-sm font-medium">
                         {mainFeaturedBlog.category}
                       </span>
                     </div>
@@ -360,16 +363,16 @@ export default function LatestInsights() {
                     </div>
                   </div>
 
-                  <h3 className="text-xl lg:text-3xl font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 leading-tight">
+                  <h3 className="text-xl lg:text-3xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300 leading-tight">
                     {mainFeaturedBlog.title}
                   </h3>
 
-                  <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 leading-relaxed text-lg">
+                  <p className="text-gray-600 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors duration-300 leading-relaxed text-lg">
                     {mainFeaturedBlog.excerpt}
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-6 text-sm text-gray-400">
+                    <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-2">
                         <FaUser className="text-xs" />
                         <span>{mainFeaturedBlog.author}</span>
@@ -391,7 +394,7 @@ export default function LatestInsights() {
                       <FaArrowRight className="text-sm transition-transform duration-300 group-hover/btn:translate-x-1" />
                     </div>
 
-                    <div className="flex items-center space-x-4 text-gray-400">
+                    <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-1">
                         <FaEye className="text-xs" />
                         <span className="text-sm">
@@ -441,7 +444,7 @@ export default function LatestInsights() {
                 <Link
                   key={blog.id}
                   href={`/blogs/${blog.slug || blog.id}`}
-                  className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer block"
+                  className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-lg hover:border-gray-300 dark:hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer block"
                 >
                   {/* Admin Controls */}
                   {isAdmin && (
@@ -493,7 +496,7 @@ export default function LatestInsights() {
                       />
                     )}
                     <div className="absolute top-4 left-4">
-                      <div className="flex items-center space-x-2 px-3 py-1 bg-black/40 backdrop-blur-sm rounded-full border border-white/20">
+                      <div className="flex items-center space-x-2 px-3 py-1 bg-gray-800 dark:bg-black/40 backdrop-blur-sm rounded-full border border-gray-600 dark:border-white/20">
                         <CategoryIcon category={blog.category} />
                         <span className="text-white text-xs font-medium">
                           {blog.category}
@@ -504,15 +507,15 @@ export default function LatestInsights() {
 
                   {/* Content */}
                   <div className="relative p-6 space-y-4">
-                    <h3 className="text-xl font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 line-clamp-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300 line-clamp-2">
                       {blog.title}
                     </h3>
 
-                    <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-300 leading-relaxed line-clamp-3">
+                    <p className="text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300 leading-relaxed line-clamp-3">
                       {blog.excerpt}
                     </p>
 
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center space-x-1">
                           <FaUser className="text-xs" />
@@ -536,17 +539,17 @@ export default function LatestInsights() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300">
+                      <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-300">
                         <span className="text-sm font-medium">Read More</span>
                         <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                        <button className="p-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
                           <FaBookmark className="text-xs" />
                         </button>
                         <div className="relative group/share">
                           <button
-                            className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-300"
+                            className="p-1 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-300"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();

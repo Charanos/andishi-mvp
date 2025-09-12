@@ -50,13 +50,15 @@ const ConfirmationModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-900/95 border border-gray-700 rounded-2xl max-w-md w-full mx-4 p-6">
-        <h3 className="text-lg font-medium mb-4 text-white">{title}</h3>
-        <p className="text-gray-300 mb-6">{message}</p>
+      <div className="bg-white dark:bg-gray-900/95 border border-gray-300 dark:border-gray-700 rounded-2xl max-w-md w-full mx-4 p-6">
+        <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+          {title}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
         <div className="flex gap-4 justify-end">
           <button
             onClick={onCancel}
-            className="cursor-pointer px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+            className="cursor-pointer px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             Cancel
           </button>
@@ -239,11 +241,19 @@ export default function ClientReviews() {
   if (isLoading) {
     return (
       <>
-        <section id="reviews" className="py-32 mt-0 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900"></div>
+        <section
+          id="reviews"
+          className="py-32 mt-0 relative overflow-hidden bg-gray-50 dark:bg-transparent"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:block hidden"></div>
+
+          {/* Light theme background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:hidden block"></div>
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="text-center">
-              <div className="text-white text-xl">Loading reviews...</div>
+              <div className="text-gray-900 dark:text-white text-xl">
+                Loading reviews...
+              </div>
             </div>
           </div>
         </section>
@@ -293,11 +303,19 @@ export default function ClientReviews() {
   if (reviews.length === 0) {
     return (
       <>
-        <section id="reviews" className="py-32 mt-0 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900"></div>
+        <section
+          id="reviews"
+          className="py-32 mt-0 relative overflow-hidden bg-gray-50 dark:bg-transparent"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:block hidden"></div>
+
+          {/* Light theme background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:hidden block"></div>
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="text-center">
-              <div className="text-white text-xl">No reviews available</div>
+              <div className="text-gray-900 dark:text-white text-xl">
+                No reviews available
+              </div>
               {isAdmin && (
                 <button
                   onClick={handleAddReview}
@@ -354,19 +372,25 @@ export default function ClientReviews() {
   }
   return (
     <>
-      <section id="reviews" className="py-32 mt-0 relative overflow-hidden">
-        {/* Enhanced Background Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900"></div>
+      <section
+        id="reviews"
+        className="py-32 mt-0 relative overflow-hidden bg-gray-50 dark:bg-transparent"
+      >
+        {/* Enhanced Background Elements - only show in dark mode */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:block hidden"></div>
+
+        {/* Light theme background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:hidden block"></div>
 
         {/* Animated mesh gradient */}
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-blue-500/10 dark:from-blue-500/20 to-cyan-500/10 dark:to-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
           <div
-            className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"
+            className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-gradient-to-r from-purple-500/10 dark:from-purple-500/20 to-pink-500/10 dark:to-pink-500/20 rounded-full blur-3xl animate-pulse"
             style={{ animationDelay: "2s" }}
           ></div>
           <div
-            className="absolute top-1/2 left-1/3 w-80 h-80 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"
+            className="absolute top-1/2 left-1/3 w-80 h-80 bg-gradient-to-r from-indigo-500/10 dark:from-indigo-500/20 to-blue-500/10 dark:to-blue-500/20 rounded-full blur-3xl animate-pulse"
             style={{ animationDelay: "4s" }}
           ></div>
         </div>
@@ -376,7 +400,7 @@ export default function ClientReviews() {
           {[...Array(20)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-white/10 rounded-full animate-pulse"
+              className="absolute w-1 h-1 bg-gray-300 dark:bg-white/10 rounded-full animate-pulse"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -390,9 +414,9 @@ export default function ClientReviews() {
         <div className="max-w-7xl mx-auto px-6 md:p-0 relative z-10">
           {/* Enhanced Title Section */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-6 py-2 mb-6">
+            <div className="inline-flex items-center gap-3 bg-gray-100 dark:bg-white/5 backdrop-blur-sm border border-gray-300 dark:border-white/10 rounded-full px-6 py-2 mb-6">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-xs text-gray-300 font-medium tracking-wider uppercase">
+              <span className="text-xs text-gray-600 dark:text-gray-300 font-medium tracking-wider uppercase">
                 Client Success Stories
               </span>
             </div>
@@ -405,7 +429,7 @@ export default function ClientReviews() {
               </span>
             </h2>
 
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Real stories from industry leaders who've accelerated their growth
               with our exceptional talent network
             </p>
@@ -456,7 +480,7 @@ export default function ClientReviews() {
                       onMouseLeave={() => setHoveredCard(null)}
                     >
                       {/* Main card with enhanced styling */}
-                      <div className="backdrop-blur-xl w-full bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 rounded-3xl p-8 relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:bg-white/15">
+                      <div className="backdrop-blur-xl w-full bg-white dark:bg-gradient-to-br dark:from-white/10 dark:via-white/5 dark:to-transparent border border-gray-200 dark:border-white/20 rounded-3xl p-8 relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:bg-gray-50 dark:hover:bg-white/15">
                         {/* Quote decoration */}
                         <div className="absolute top-6 right-6 text-6xl text-blue-400/10 font-serif">
                           <FaQuoteRight />
@@ -487,11 +511,11 @@ export default function ClientReviews() {
                                 }`}
                               >
                                 <div className="w-full h-full rounded-2xl bg-slate-800 flex items-center justify-center">
-                                  <FaUser className="text-gray-400 text-xl" />
+                                  <FaUser className="text-gray-500 dark:text-gray-400 text-xl" />
                                 </div>
                               </div>
                               {review.featured && (
-                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-slate-800">
+                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800">
                                   <span className="text-white text-xs">✓</span>
                                 </div>
                               )}
@@ -499,13 +523,13 @@ export default function ClientReviews() {
                           </div>
 
                           <div>
-                            <h4 className="text-white font-semibold text-xl mb-1">
+                            <h4 className="text-gray-900 dark:text-white font-semibold text-xl mb-1">
                               {review.name}
                             </h4>
-                            <p className="text-blue-300 font-medium mb-1">
+                            <p className="text-blue-600 dark:text-blue-300 font-medium mb-1">
                               {review.position}
                             </p>
-                            <div className="flex items-center gap-2 text-gray-400">
+                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                               <FaBuilding className="text-xs" />
                               <span className="text-xs uppercase">
                                 {review.project}
@@ -520,13 +544,13 @@ export default function ClientReviews() {
                               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <button
                                   onClick={() => handleEditReview(review)}
-                                  className="cursor-pointer bg-blue-500/20 backdrop-blur text-blue-300 p-2 rounded-full hover:bg-blue-500/30 transition-all duration-300"
+                                  className="cursor-pointer bg-blue-500/20 backdrop-blur text-blue-600 dark:text-blue-300 p-2 rounded-full hover:bg-blue-500/30 transition-all duration-300"
                                 >
                                   <FaEdit className="text-sm" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteReview(review)}
-                                  className="cursor-pointer bg-red-500/20 backdrop-blur text-red-300 p-2 rounded-full hover:bg-red-500/30 transition-all duration-300"
+                                  className="cursor-pointer bg-red-500/20 backdrop-blur text-red-600 dark:text-red-300 p-2 rounded-full hover:bg-red-500/30 transition-all duration-300"
                                   disabled={isDeleting === review.id}
                                 >
                                   <FaTrash className="text-sm" />
@@ -542,42 +566,42 @@ export default function ClientReviews() {
                             {[...Array(5 - review.rating)].map((_, i) => (
                               <FaStar
                                 key={i + review.rating}
-                                className="text-gray-600 text-sm"
+                                className="text-gray-400 dark:text-gray-600 text-sm"
                               />
                             ))}
                           </div>
                         </div>
 
                         {/* Review text with better typography */}
-                        <blockquote className="text-gray-100 text-lg leading-relaxed mb-8 font-light relative">
+                        <blockquote className="text-gray-700 dark:text-gray-100 text-lg leading-relaxed mb-8 font-light relative">
                           {review.review}
                         </blockquote>
 
                         {/* Enhanced project info cards */}
                         <div className="grid grid-cols-1 items-end justify-baseline md:grid-cols-3 gap-4 mb-6">
-                          <div className="bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-white/10">
+                          <div className="bg-gray-100 dark:bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-gray-300 dark:border-white/10">
                             <div className="text-blue-400 font-semibold text-md mb-1">
                               {review.timeToHire}
                             </div>
-                            <div className="text-gray-200 text-xs tracking-wide uppercase">
+                            <div className="text-gray-500 dark:text-gray-200 text-xs tracking-wide uppercase">
                               Time to Hire
                             </div>
                           </div>
 
-                          <div className="bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-white/10">
+                          <div className="bg-gray-100 dark:bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-gray-300 dark:border-white/10">
                             <div className="text-purple-400 font-semibold text-md mb-1">
                               {review.project}
                             </div>
-                            <div className="text-gray-200 text-xs tracking-wide uppercase">
+                            <div className="text-gray-500 dark:text-gray-200 text-xs tracking-wide uppercase">
                               Project Type
                             </div>
                           </div>
 
-                          <div className="bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-white/10">
+                          <div className="bg-gray-100 dark:bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-gray-300 dark:border-white/10">
                             <div className="text-green-400 font-semibold text-md mb-1">
                               {review.keyResult}
                             </div>
-                            <div className="text-gray-200 text-xs tracking-wide uppercase">
+                            <div className="text-gray-500 dark:text-gray-200 text-xs tracking-wide uppercase">
                               Key Result
                             </div>
                           </div>
@@ -595,14 +619,14 @@ export default function ClientReviews() {
             {/* Enhanced Navigation */}
             <button
               onClick={prevReview}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 -translate-x-6 w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full cursor-pointer flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 hover:border-blue-400/50 group"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 -translate-x-6 w-12 h-12 bg-gray-200 dark:bg-white/10 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-full cursor-pointer flex items-center justify-center text-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20 transition-all duration-300 hover:scale-110 hover:border-blue-500 dark:hover:border-blue-400/50 group"
             >
               <FaChevronLeft className="text-sm group-hover:text-blue-400 transition-colors duration-300" />
             </button>
 
             <button
               onClick={nextReview}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 translate-x-6 w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full cursor-pointer flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 hover:border-blue-400/50 group"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 translate-x-6 w-12 h-12 bg-gray-200 dark:bg-white/10 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-full cursor-pointer flex items-center justify-center text-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20 transition-all duration-300 hover:scale-110 hover:border-blue-500 dark:hover:border-blue-400/50 group"
             >
               <FaChevronRight className="text-sm group-hover:text-blue-400 transition-colors duration-300" />
             </button>
@@ -617,12 +641,12 @@ export default function ClientReviews() {
                   onClick={() => setCurrentIndex(index)}
                   className={`cursor-pointer relative transition-all duration-500 ${
                     currentIndex === index
-                      ? "w-8 h-3 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full"
-                      : "w-3 h-3 bg-white/20 hover:bg-white/40 rounded-full"
+                      ? "w-8 h-3 bg-gradient-to-r from-blue-500 dark:from-blue-400 to-purple-500 dark:to-purple-400 rounded-full"
+                      : "w-3 h-3 bg-gray-300 dark:bg-white/20 hover:bg-gray-400 dark:hover:bg-white/40 rounded-full"
                   }`}
                 >
                   {currentIndex === index && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 dark:from-blue-400 to-purple-500 dark:to-purple-400 rounded-full animate-pulse"></div>
                   )}
                 </button>
               ))}

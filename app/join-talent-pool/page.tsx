@@ -506,15 +506,18 @@ export default function DeveloperRegistrationForm() {
         onRemoveNotification={removeNotification}
         position="top-right"
       />
-      <section className="min-h-screen py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+      <section className="min-h-screen py-16 relative overflow-hidden bg-gray-50 dark:bg-transparent">
+        <div className="absolute inset-0 dark:bg-transparent"></div>
         <div className="max-w-6xl mx-auto px-6 relative z-10 my-16">
           <div className="text-center mb-12">
-            <h1 className="text-3xl lg:text-4xl font-medium text-white mb-4">
-              Join Our <span className="text-purple-400">Developer</span>{" "}
+            <h1 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-4">
+              Join Our{" "}
+              <span className="text-purple-600 dark:text-purple-400">
+                Developer
+              </span>{" "}
               Network
             </h1>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Connect with amazing projects and clients worldwide. Build your
               career with flexible remote opportunities.
             </p>
@@ -522,7 +525,7 @@ export default function DeveloperRegistrationForm() {
 
           {/* Progress Bar */}
           <div className="hidden md:flex justify-between items-center mb-20 relative">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-700 -translate-y-1/2"></div>
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 dark:bg-gray-700 -translate-y-1/2"></div>
             <div
               className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 transition-all duration-500"
               style={{
@@ -535,29 +538,29 @@ export default function DeveloperRegistrationForm() {
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
                     currentStep >= step.number
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
-                      : "bg-gray-700 text-gray-400"
+                      : "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                   }`}
                 >
                   <step.icon className="text-lg" />
                 </div>
-                <div className="absolute top-14 left-1/2 -translate-x-1/2 text-sm text-gray-400 whitespace-nowrap monty uppercase">
+                <div className="absolute top-14 left-1/2 -translate-x-1/2 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap monty uppercase">
                   {step.title}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-2xl px-8 py-10 shadow-2xl">
+          <div className="backdrop-blur-md bg-white/90 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-2xl px-8 py-10 shadow-xl">
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
-                  <FaUser className="mr-3 text-blue-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
+                  <FaUser className="mr-3 text-blue-600 dark:text-blue-400" />
                   Personal Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       First Name *
                     </label>
                     <input
@@ -566,7 +569,7 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("firstName", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="Enter your first name"
                     />
                   </div>
@@ -580,13 +583,13 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("lastName", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="Enter your last name"
                     />
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaEnvelope className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaEnvelope className="mr-2 text-blue-600 dark:text-blue-400" />
                       Email Address *
                     </label>
                     <input
@@ -595,13 +598,13 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("email", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="your@email.com"
                     />
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaPhone className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaPhone className="mr-2 text-blue-600 dark:text-blue-400" />
                       Phone Number
                     </label>
                     <input
@@ -610,13 +613,13 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("phone", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="+254 XXX XXX XXX"
                     />
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaMapMarkerAlt className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaMapMarkerAlt className="mr-2 text-blue-600 dark:text-blue-400" />
                       Location
                     </label>
                     <input
@@ -625,13 +628,13 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("location", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="City, Country"
                     />
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaClock className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaClock className="mr-2 text-blue-600 dark:text-blue-400" />
                       Time Zone
                     </label>
                     <select
@@ -644,29 +647,32 @@ export default function DeveloperRegistrationForm() {
                       <option value="" className="bg-gray-800">
                         Select your timezone
                       </option>
-                      <option value="EAT" className="bg-gray-800">
+                      <option value="EAT" className="bg-white dark:bg-gray-800">
                         East Africa Time (EAT)
                       </option>
-                      <option value="UTC" className="bg-gray-800">
+                      <option value="UTC" className="bg-white dark:bg-gray-800">
                         UTC
                       </option>
-                      <option value="EST" className="bg-gray-800">
+                      <option value="EST" className="bg-white dark:bg-gray-800">
                         Eastern Time (EST)
                       </option>
-                      <option value="PST" className="bg-gray-800">
+                      <option value="PST" className="bg-white dark:bg-gray-800">
                         Pacific Time (PST)
                       </option>
-                      <option value="CET" className="bg-gray-800">
+                      <option value="CET" className="bg-white dark:bg-gray-800">
                         Central European Time (CET)
                       </option>
-                      <option value="Other" className="bg-gray-800">
+                      <option
+                        value="Other"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Other
                       </option>
                     </select>
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaLinkedin className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaLinkedin className="mr-2 text-blue-600 dark:text-blue-400" />
                       LinkedIn Profile
                     </label>
                     <input
@@ -675,13 +681,13 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("linkedin", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="https://linkedin.com/in/yourprofile"
                     />
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaGithub className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaGithub className="mr-2 text-blue-600 dark:text-blue-400" />
                       GitHub Profile
                     </label>
                     <input
@@ -690,7 +696,7 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("github", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="https://github.com/yourusername"
                     />
                   </div>
@@ -715,8 +721,8 @@ export default function DeveloperRegistrationForm() {
             {/* Step 2: Professional Information */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
-                  <FaBriefcase className="mr-3 text-blue-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
+                  <FaBriefcase className="mr-3 text-blue-600 dark:text-blue-400" />
                   Professional Information
                 </h2>
                 <div className="space-y-6">
@@ -730,7 +736,7 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updateProfessionalInfo("title", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       placeholder="e.g., Full Stack Developer, Mobile App Developer"
                     />
                   </div>
@@ -747,16 +753,16 @@ export default function DeveloperRegistrationForm() {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       >
-                        <option value="" className="bg-gray-800">
+                        <option value="" className="bg-white dark:bg-gray-800">
                           Select experience level
                         </option>
                         {experienceLevels.map((level) => (
                           <option
                             key={level}
                             value={level}
-                            className="bg-gray-800"
+                            className="bg-white dark:bg-gray-800"
                           >
                             {level}
                           </option>
@@ -776,7 +782,7 @@ export default function DeveloperRegistrationForm() {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                         placeholder="e.g., 3.5"
                       />
                     </div>
@@ -792,7 +798,7 @@ export default function DeveloperRegistrationForm() {
                         onChange={(e) =>
                           updateProfessionalInfo("currentRole", e.target.value)
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                         placeholder="Your current position"
                       />
                     </div>
@@ -809,7 +815,7 @@ export default function DeveloperRegistrationForm() {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                         placeholder="Company name or 'Freelancer'"
                       />
                     </div>
@@ -828,19 +834,34 @@ export default function DeveloperRegistrationForm() {
                       <option value="" className="bg-gray-800">
                         Select availability
                       </option>
-                      <option value="immediately" className="bg-gray-800">
+                      <option
+                        value="immediately"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Available Immediately
                       </option>
-                      <option value="2weeks" className="bg-gray-800">
+                      <option
+                        value="2weeks"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Available in 2 weeks
                       </option>
-                      <option value="1month" className="bg-gray-800">
+                      <option
+                        value="1month"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Available in 1 month
                       </option>
-                      <option value="2months" className="bg-gray-800">
+                      <option
+                        value="2months"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Available in 2+ months
                       </option>
-                      <option value="not-looking" className="bg-gray-800">
+                      <option
+                        value="not-looking"
+                        className="bg-white dark:bg-gray-800"
+                      >
                         Not actively looking
                       </option>
                     </select>
@@ -864,8 +885,8 @@ export default function DeveloperRegistrationForm() {
                           }
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${
                             formData.professionalInfo.workType.includes(type)
-                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                              ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                              : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
                           }`}
                         >
                           {type}
@@ -874,8 +895,8 @@ export default function DeveloperRegistrationForm() {
                     </div>
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaLanguage className="mr-2 text-blue-400" />
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaLanguage className="mr-2 text-blue-600 dark:text-blue-400" />
                       Languages Spoken
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -893,8 +914,8 @@ export default function DeveloperRegistrationForm() {
                           }
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm cursor-pointer ${
                             formData.professionalInfo.languages.includes(lang)
-                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                              ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                              : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
                           }`}
                         >
                           {lang}
@@ -917,7 +938,7 @@ export default function DeveloperRegistrationForm() {
                     />
                   </div>
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
+                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
                       <FaFileUpload className="mr-2 text-blue-400" />
                       Upload CV (Optional)
                     </label>
@@ -1129,7 +1150,7 @@ export default function DeveloperRegistrationForm() {
                                 e.target.value
                               )
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="Company name"
                           />
                         </div>
@@ -1147,7 +1168,7 @@ export default function DeveloperRegistrationForm() {
                                 e.target.value
                               )
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="Job title"
                           />
                         </div>
@@ -1166,7 +1187,7 @@ export default function DeveloperRegistrationForm() {
                               e.target.value
                             )
                           }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                          className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                           placeholder="e.g., Jan 2022 - Present"
                         />
                       </div>
@@ -1204,7 +1225,7 @@ export default function DeveloperRegistrationForm() {
                                 .filter((tech) => tech.trim())
                             )
                           }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                          className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                           placeholder="React, Node.js, PostgreSQL, etc."
                         />
                       </div>
@@ -1260,7 +1281,7 @@ export default function DeveloperRegistrationForm() {
                             onChange={(e) =>
                               updateProject(project.id, "name", e.target.value)
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="Project name"
                           />
                         </div>
@@ -1274,7 +1295,7 @@ export default function DeveloperRegistrationForm() {
                             onChange={(e) =>
                               updateProject(project.id, "role", e.target.value)
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="e.g., Full Stack Developer, Lead Developer"
                           />
                         </div>
@@ -1312,7 +1333,7 @@ export default function DeveloperRegistrationForm() {
                                 e.target.value
                               )
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="https://project-demo.com"
                           />
                         </div>
@@ -1330,7 +1351,7 @@ export default function DeveloperRegistrationForm() {
                                 e.target.value
                               )
                             }
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                             placeholder="https://github.com/user/repo"
                           />
                         </div>
@@ -1351,7 +1372,7 @@ export default function DeveloperRegistrationForm() {
                                 .filter((tech) => tech.trim())
                             )
                           }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                          className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                           placeholder="React, Node.js, MongoDB, etc."
                         />
                       </div>

@@ -53,14 +53,18 @@ export default function WhyAndishi() {
   ];
 
   return (
-    <section id="why" className="py-32 mt-0 relative overflow-hidden">
+    <section
+      id="why"
+      className="py-32 mt-0 relative overflow-hidden bg-white dark:bg-transparent"
+    >
       <div className="max-w-7xl mx-auto flex flex-col items-center px-6 space-y-8 text-center relative z-10">
-        <h2 className="text-3xl lg:text-4xl font-medium text-white">
-          Why Choose <span className="text-purple-400">Andishi</span> for Remote
-          Tech Hiring?
+        <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white">
+          Why Choose{" "}
+          <span className="text-purple-600 dark:text-purple-400">Andishi</span>{" "}
+          for Remote Tech Hiring?
         </h2>
 
-        <p className="text-lg text-gray-300 mb-16">
+        <p className="text-lg text-gray-600 dark:text-gray-300 mb-16">
           Traditional tech recruiting takes 12+ weeks and costs thousands in
           fees. Our AI-powered talent matching platform revolutionizes how you
           hire remote developers, reducing time-to-hire by 75% while maintaining
@@ -75,16 +79,16 @@ export default function WhyAndishi() {
           {stats.map((stat, index) => (
             <div
               key={index}
-              className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all duration-500 hover:scale-105"
+              className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-500 dark:hover:border-blue-400/30 transition-all duration-500 hover:scale-105 shadow-lg dark:shadow-none"
               style={{
                 background: `linear-gradient(135deg, 
                   rgba(59, 130, 246, 0.1) 0%, 
                   rgba(147, 51, 234, 0.05) 50%, 
                   rgba(236, 72, 153, 0.1) 100%)`,
                 boxShadow: `
-                  0 8px 32px rgba(0, 0, 0, 0.3),
+                  0 2px 6px rgba(0, 0, 0, 0.3),
                   inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                  0 0 20px rgba(59, 130, 246, 0.1)
+                  0 0 2px rgba(59, 130, 246, 0.1)
                 `,
               }}
             >
@@ -93,16 +97,16 @@ export default function WhyAndishi() {
 
               <div className="relative p-4 sm:p-6 text-center space-y-3">
                 <div className="text-3xl sm:text-4xl mb-3 relative flex justify-center">
-                  <stat.icon className="relative z-10 text-blue-400" />
-                  <stat.icon className="absolute inset-0 blur-lg text-blue-400 opacity-50" />
+                  <stat.icon className="relative z-10 text-blue-600 dark:text-blue-400" />
+                  <stat.icon className="absolute inset-0 blur-lg text-blue-600 dark:text-blue-400 opacity-50" />
                 </div>
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white group-hover:text-blue-300 transition-colors duration-300">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300">
                   {stat.value}
                 </div>
-                <div className="monty text-base sm:text-lg font-semibold text-purple-300 group-hover:text-purple-200 transition-colors duration-300">
+                <div className="monty text-base sm:text-lg font-semibold text-purple-600 dark:text-purple-300 group-hover:text-purple-700 dark:group-hover:text-purple-200 transition-colors duration-300">
                   {stat.label}
                 </div>
-                <div className="monty text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300 leading-relaxed px-2">
+                <div className="monty text-xs sm:text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300 leading-relaxed px-2">
                   {stat.description}
                 </div>
               </div>
@@ -120,12 +124,12 @@ export default function WhyAndishi() {
           ))}
         </div>
 
-        <div className="mt-8 p-4 rounded-xl backdrop-blur-sm bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-white/5 text-md">
-          <p className="text-gray-300 ">
+        <div className="mt-8 p-4 rounded-xl backdrop-blur-sm bg-gradient-to-r from-blue-100 dark:from-blue-500/10 to-purple-100 dark:to-purple-500/10 border border-gray-200 dark:border-white/5 text-md">
+          <p className="text-gray-700 dark:text-gray-300">
             Ready to transform your hiring process?
             <Link
               href="/start-project"
-              className="text-blue-400 font-medium ml-1"
+              className="text-blue-600 dark:text-blue-400 font-medium ml-1 hover:underline"
             >
               Get started today
             </Link>
@@ -133,12 +137,12 @@ export default function WhyAndishi() {
         </div>
       </div>
 
-      <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200/40 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div
-        className="absolute bottom-20 right-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+        className="absolute bottom-20 right-10 w-40 h-40 bg-purple-200/40 dark:bg-purple-500/10 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: "1s" }}
       ></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-200/20 dark:from-blue-500/5 to-purple-200/20 dark:to-purple-500/5 rounded-full blur-3xl"></div>
     </section>
   );
 }

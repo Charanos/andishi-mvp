@@ -473,7 +473,7 @@ export default function OurProjectsPage() {
                   // Grid View
                   <article
                     key={project.id}
-                    className="group relative overflow-hidden rounded-2xl backdrop-blur-xl shadow-md bg-black/10 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
+                    className="group relative overflow-hidden rounded-2xl backdrop-blur-xl shadow-xl bg-black/10 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] cursor-pointer"
                   >
                     {/* Colored gradient overlay */}
                     <div

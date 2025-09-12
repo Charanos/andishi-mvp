@@ -60,6 +60,8 @@ model DeveloperProfile {
   updatedAt          DateTime              @updatedAt
   assignments        ProjectAssignment[]
   assessments        DeveloperAssessment[]
+  technicalAssessments TechnicalAssessment[]
+  evaluationSessions EvaluationSession[]
 
   @@index([techPoolMember])
 }
@@ -80,6 +82,85 @@ model DeveloperAssessment {
   expiresAt            DateTime?
 
   @@index([developerId])
+  @@index([status])
+}
+
+model TechnicalAssessment {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  developerId       String   @db.ObjectId
+  developer         DeveloperProfile @relation(fields: [developerId], references: [id])
+  assessmentType    String   // coding_challenge, system_design, specialty_test
+  specialty         String   // frontend, backend, fullstack, mobile, devops
+  challengeId       String   @db.ObjectId // Reference to AssessmentChallenge
+  difficulty        String   // junior, mid, senior, lead
+  timeLimit         Int      // minutes
+  status            String   @default("pending") // pending, in_progress, completed, expired
+  score             Float?
+  maxScore          Float?
+  aiAnalysis        Json?    // AI evaluation results
+  completedAt       DateTime?
+  submittedCode     Json?    // Code submissions with language
+  testResults       Json?    // Automated test case results
+  executionResults  Json?    // Code execution metrics
+  securityScan      Json?    // Security analysis results
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  expiresAt         DateTime
+
+  @@index([developerId])
+  @@index([status])
+  @@index([specialty])
+}
+
+model AssessmentChallenge {
+  id                 String @id @default(auto()) @map("_id") @db.ObjectId
+  title              String
+  description        String
+  specialty          String // frontend, backend, fullstack, mobile
+  difficulty         String // junior, mid, senior, lead
+  type               String // coding, system_design, debugging, optimization
+  
+  // Challenge content
+  problemStatement   String
+  starterCode        Json   // Language-specific starter templates
+  testCases          Json   // Input/output test cases
+  constraints        Json   // Time/memory limits
+  
+  // AI evaluation criteria
+  evaluationCriteria Json
+  sampleSolutions    Json
+  aiPrompts          Json   // Custom prompts for AI evaluation
+  
+  // Metadata
+  timeLimit          Int
+  maxAttempts        Int
+  tags               String[]
+  createdBy          String
+  isActive           Boolean @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([specialty])
+  @@index([difficulty])
+  @@index([isActive])
+}
+
+model EvaluationSession {
+  id                    String @id @default(auto()) @map("_id") @db.ObjectId
+  developerId           String @db.ObjectId
+  developer             DeveloperProfile @relation(fields: [developerId], references: [id])
+  sessionToken          String @unique
+  technicalAssessments  String[] @db.ObjectId // References to TechnicalAssessment
+  referenceEvaluations  String[] @db.ObjectId // References to current DeveloperAssessment
+  portfolioReview       Json?
+  overallScore          Float?
+  recommendation        String? // approved, rejected, needs_review, probation
+  status                String @default("pending") // pending, in_progress, completed
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime @default(now())
+  expiresAt             DateTime
+
   @@index([status])
 }
 

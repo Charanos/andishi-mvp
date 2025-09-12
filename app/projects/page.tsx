@@ -19,6 +19,8 @@ import {
 import { HiSparkles, HiViewGrid, HiViewList } from "react-icons/hi";
 import { FaBolt, FaFire, FaCode, FaSmile } from "react-icons/fa";
 import { useHomepageProjectCRUD } from "@/hooks/useHomepageProjectCRUD";
+import { useReviewCrud } from "@/hooks/useReviewCrud";
+import { ReviewType } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Project {
@@ -50,20 +52,27 @@ export default function ProjectsPage() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { fetchHomepageProjects, isLoading } = useHomepageProjectCRUD();
+  const { fetchReviews, isLoading: reviewsLoading } = useReviewCrud();
   const [rawProjects, setRawProjects] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<ReviewType[]>([]);
 
   useEffect(() => {
-    const loadProjects = async () => {
+    const loadData = async () => {
       try {
-        const projects = await fetchHomepageProjects();
+        const [projects, reviewsData] = await Promise.all([
+          fetchHomepageProjects(),
+          fetchReviews(),
+        ]);
         setRawProjects(projects || []);
+        setReviews(reviewsData || []);
       } catch (error) {
-        console.error("Error loading projects:", error);
+        console.error("Error loading data:", error);
         setRawProjects([]);
+        setReviews([]);
       }
     };
-    loadProjects();
-  }, [fetchHomepageProjects]);
+    loadData();
+  }, [fetchHomepageProjects, fetchReviews]);
 
   // Keyboard shortcut for search
   useEffect(() => {
@@ -214,26 +223,28 @@ export default function ProjectsPage() {
   const hasActiveFilters =
     selectedCategory !== "all" || searchQuery !== "" || sortBy !== "newest";
 
-  if (isLoading) {
+  if (isLoading || reviewsLoading) {
     return (
-      <div className="min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400 mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading our projects...</p>
+          <p className="text-gray-900 dark:text-white text-xl">
+            Loading our projects...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
       {/* Hero Section */}
-      <section className="py-20 lg:py-32 border-b border-white/5 relative overflow-hidden">
+      <section className="py-20 lg:py-32 border-b border-gray-200 dark:border-white/5 relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 dark:bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
           <div
-            className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse"
             style={{ animationDelay: "1s" }}
           ></div>
         </div>
@@ -242,12 +253,12 @@ export default function ProjectsPage() {
           <div className="text-center mb-16">
             <div className="flex items-center justify-center gap-3 mb-6">
               <HiSparkles className="w-8 h-8 text-purple-400 animate-pulse" />
-              <h1 className="text-5xl lg:text-7xl font-semibold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent monty">
+              <h1 className="text-5xl lg:text-7xl font-semibold bg-gradient-to-r from-gray-900 via-purple-600 to-purple-800 dark:from-white dark:via-purple-200 dark:to-purple-400 bg-clip-text text-transparent monty">
                 Our Portfolio
               </h1>
               <HiSparkles className="w-8 h-8 text-purple-400 animate-pulse" />
             </div>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Explore our comprehensive portfolio of innovative solutions across
               various industries and cutting-edge technologies
             </p>
@@ -296,11 +307,11 @@ export default function ProjectsPage() {
                     stat.color === "orange" ? "red" : stat.color
                   }-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100`}
                 ></div>
-                <div className="flex flex-col items-center justify-center relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white/8">
-                  <div className="text-3xl lg:text-4xl font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 monty">
+                <div className="flex flex-col items-center justify-center relative bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-6 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white/90 dark:hover:bg-white/8">
+                  <div className="text-3xl lg:text-4xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-2 monty">
                     {stat.value}
                   </div>
-                  <div className="text-xs monty uppercase text-blue-300 font-medium mb-3">
+                  <div className="text-xs monty uppercase text-blue-600 dark:text-blue-300 font-medium mb-3">
                     {stat.label}
                   </div>
                   <div className="text-2xl">{stat.icon}</div>
@@ -312,23 +323,23 @@ export default function ProjectsPage() {
       </section>
 
       {/* Enhanced Filters and Controls */}
-      <section className="py-16 border-b border-white/5 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20 relative">
+      <section className="py-16 border-b border-gray-200 dark:border-white/5 bg-gradient-to-br from-blue-100/50 via-purple-100/50 to-indigo-100/50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-indigo-900/20 relative">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           {/* Header */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-2 mb-4">
               <FiFilter className="w-6 h-6 text-purple-400" />
-              <h2 className="text-3xl font-semibold">
+              <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
                 Discover Some of Our Work
               </h2>
             </div>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
               Find the perfect project that matches your interests
             </p>
           </div>
 
           {/* Main Controls Container */}
-          <div className="bg-black/10 backdrop-blur-2xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+          <div className="bg-white/80 dark:bg-black/10 backdrop-blur-2xl rounded-3xl border border-gray-200 dark:border-white/10 p-8 shadow-xl">
             {/* Search Bar */}
             <div className="mb-8">
               <div className="relative max-w-2xl mx-auto group">
@@ -346,7 +357,7 @@ export default function ProjectsPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    className="w-full px-6 py-4 pl-14 pr-20 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 focus:bg-white/10 transition-all duration-300 text-lg backdrop-blur-sm"
+                    className="w-full px-6 py-4 pl-14 pr-20 bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 focus:bg-white dark:focus:bg-white/10 transition-all duration-300 text-lg backdrop-blur-sm"
                   />
                   <FiSearch className="absolute left-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
 
@@ -354,15 +365,15 @@ export default function ProjectsPage() {
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
-                        className="absolute cursor-pointer right-16 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors duration-200"
+                        className="absolute cursor-pointer right-16 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors duration-200"
                       >
                         <FiX className="cursor-pointer w-6 h-6 text-gray-500" />
                       </button>
                     )}
-                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 bg-white/5 border border-white/10 rounded">
+                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded">
                       ⌘ / CTRL
                     </kbd>
-                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 bg-white/5 border border-white/10 rounded">
+                    <kbd className=" px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded">
                       K
                     </kbd>
                   </div>
@@ -375,7 +386,7 @@ export default function ProjectsPage() {
               {/* Category Filter */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-sm font-medium monty uppercase text-gray-400">
+                  <span className="text-sm font-medium monty uppercase text-gray-600 dark:text-gray-400">
                     Categories:
                   </span>
                 </div>
@@ -387,7 +398,7 @@ export default function ProjectsPage() {
                       className={`group cursor-pointer monty relative px-6 py-3 rounded-full border transition-all duration-300 capitalize font-medium text-sm transform hover:scale-105 active:scale-95 ${
                         selectedCategory === category
                           ? "bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400/60 text-white shadow-lg shadow-purple-500/25"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
+                          : "bg-white/80 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-900 dark:hover:text-white"
                       }`}
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
@@ -409,7 +420,7 @@ export default function ProjectsPage() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none px-5  py-3 pr-12  border border-white/10 rounded-xl text-white focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 font-medium backdrop-blur-sm hover:bg-white/10 transition-all duration-300 min-w-[160px]"
+                    className="appearance-none px-5  py-3 pr-12 bg-white/90 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white focus:border-purple-400/60 focus:outline-none focus:ring-2 focus:ring-purple-400/20 font-medium backdrop-blur-sm hover:bg-white dark:hover:bg-white/10 transition-all duration-300 min-w-[160px]"
                   >
                     <option className="bg-black/60" value="newest">
                       Newest First
@@ -428,25 +439,25 @@ export default function ProjectsPage() {
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex rounded-xl border border-white/10 overflow-hidden bg-white/5">
+                <div className="flex rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-white/5">
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`p-3.5 cursor-pointer transition-all duration-300 ${
                       viewMode === "grid"
                         ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10"
                     }`}
                     title="Grid View"
                   >
                     <HiViewGrid className="w-5 h-5" />
                   </button>
-                  <div className="w-px bg-white/10"></div>
+                  <div className="w-px bg-gray-200 dark:bg-white/10"></div>
                   <button
                     onClick={() => setViewMode("list")}
                     className={`p-3.5 cursor-pointer transition-all duration-300 ${
                       viewMode === "list"
                         ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10"
                     }`}
                     title="List View"
                   >
@@ -457,18 +468,18 @@ export default function ProjectsPage() {
             </div>
 
             {/* Results Summary */}
-            <div className="mt-6 pt-6 border-t border-white/10">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 text-sm">
                     <FiTrendingUp className="w-4 h-4 text-purple-400" />
-                    <span className="text-gray-300">
+                    <span className="text-gray-600 dark:text-gray-300">
                       Showing{" "}
-                      <span className="text-white font-semibold">
+                      <span className="text-gray-900 dark:text-white font-semibold">
                         {filteredAndSortedProjects.length}
                       </span>{" "}
                       of{" "}
-                      <span className="text-white font-semibold">
+                      <span className="text-gray-900 dark:text-white font-semibold">
                         {projects.length}
                       </span>{" "}
                       projects
@@ -477,7 +488,7 @@ export default function ProjectsPage() {
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
-                      className="flex cursor-pointer items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-full text-xs text-purple-300 hover:bg-purple-500/30 transition-colors duration-200"
+                      className="flex cursor-pointer items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-full text-xs text-purple-600 dark:text-purple-300 hover:bg-purple-500/30 transition-colors duration-200"
                     >
                       <FiX className="w-3 h-3" />
                       Clear filters
@@ -503,13 +514,15 @@ export default function ProjectsPage() {
       </section>
 
       {/* Projects Grid/List */}
-      <section className="py-20 bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
+      <section className="py-20 bg-white dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
         <div className="max-w-7xl mx-auto px-6">
           {filteredAndSortedProjects.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-6xl mb-6">🔍</div>
-              <h3 className="text-2xl font-semibold mb-4">No projects found</h3>
-              <p className="text-gray-400 mb-8">
+              <h3 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+                No projects found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
                 {searchQuery || selectedCategory !== "all"
                   ? "Try adjusting your search criteria or filters"
                   : "No projects available at the moment"}
@@ -543,7 +556,7 @@ export default function ProjectsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className={`group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white/8 ${
+                    className={`group relative bg-white/90 dark:bg-white/5 shadow-lg backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-white/20 transition-all duration-500 hover:transform hover:scale-[1.01] hover:bg-white dark:hover:bg-white/8 ${
                       viewMode === "list" ? "flex gap-6" : ""
                     }`}
                   >
@@ -569,15 +582,15 @@ export default function ProjectsPage() {
                         }}
                       />
                       {project.featured && (
-                        <div className="absolute top-4 left-4 bg-purple-500/60 backdrop-blur-sm border border-purple-400/30 rounded-full px-3 py-1 flex items-center gap-1">
+                        <div className="absolute top-4 left-4 bg-purple-500/80 dark:bg-purple-500/60 backdrop-blur-sm border border-purple-400/30 rounded-full px-3 py-1 flex items-center gap-1">
                           <FiStar className="w-3 h-3 text-purple-400" />
-                          <span className="text-xs font-medium text-purple-300">
+                          <span className="text-xs font-medium text-white dark:text-purple-300">
                             Featured
                           </span>
                         </div>
                       )}
                       {/* Status Badge */}
-                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1">
+                      <div className="absolute top-4 right-4 bg-black/60 dark:bg-black/60 backdrop-blur-sm rounded-full px-3 py-1">
                         <span
                           className={`text-xs font-medium ${
                             project.status === "completed"
@@ -596,8 +609,8 @@ export default function ProjectsPage() {
                       </div>
 
                       {/* Category Badge */}
-                      <div className="absolute bottom-4 right-4 bg-purple-900/60 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-1">
-                        <span className="text-xs text-white font-semibold">
+                      <div className="absolute bottom-4 right-4 bg-purple-900/80 dark:bg-purple-900/60 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-1">
+                        <span className="text-xs text-white dark:text-white font-semibold">
                           {project.category}
                         </span>
                       </div>
@@ -607,12 +620,12 @@ export default function ProjectsPage() {
                     <div className="p-6 flex-1">
                       <div className="mb-4">
                         <div className="mb-2">
-                          <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors duration-300">
                             {project.title}
                           </h3>
                         </div>
                         <div
-                          className="text-gray-300 text-sm my-4 leading-relaxed line-clamp-2"
+                          className="text-gray-600 dark:text-gray-300 text-sm my-4 leading-relaxed line-clamp-2"
                           dangerouslySetInnerHTML={{
                             __html: project.description,
                           }}
@@ -627,14 +640,14 @@ export default function ProjectsPage() {
                               key={tech}
                               className={`px-2 py-1 text-xs rounded-md transition-all duration-200 ${
                                 techColors[tech] ||
-                                "bg-white/10 backdrop-blur-sm text-white/80 border border-white/20 hover:border-white/30 hover:bg-white/15"
+                                "bg-gray-100 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-white/80 border border-gray-200 dark:border-white/20 hover:border-gray-300 dark:hover:border-white/30 hover:bg-gray-200 dark:hover:bg-white/15"
                               }`}
                             >
                               {tech}
                             </span>
                           ))}
                           {project.technologies.length > 4 && (
-                            <span className="px-2 py-1 text-xs bg-white/5 text-gray-400 rounded-md">
+                            <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-md">
                               +{project.technologies.length - 4} more
                             </span>
                           )}
@@ -642,7 +655,7 @@ export default function ProjectsPage() {
                       </div>
 
                       {/* Project Meta */}
-                      <div className="flex items-center justify-between text-xs border-y border-gray-400/10 py-4 text-gray-400 my-4">
+                      <div className="flex items-center justify-between text-xs border-y border-gray-200 dark:border-gray-400/10 py-4 text-gray-500 dark:text-gray-400 my-4">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1">
                             <FiCalendar className="w-3 h-3" />
@@ -657,7 +670,7 @@ export default function ProjectsPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="text-purple-400 font-medium uppercase truncate max-w-[120px]">
+                        <div className="text-purple-600 dark:text-purple-400 font-medium uppercase truncate max-w-[120px]">
                           {project.client}
                         </div>
                       </div>
@@ -666,7 +679,7 @@ export default function ProjectsPage() {
                       <div className="flex items-center justify-between">
                         <Link
                           href={`/projects/${project.slug || project.id}`}
-                          className="flex cursor-pointer items-center gap-2 text-purple-300 hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
+                          className="flex cursor-pointer items-center gap-2 text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200/90 transition-all duration-200 text-sm font-medium"
                         >
                           View Details
                           <FiPlay className="w-4 h-4" />
@@ -678,7 +691,7 @@ export default function ProjectsPage() {
                               href={project.liveUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-2 bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200"
+                              className="p-2 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
                               title="View Live Site"
                             >
                               <FiExternalLink className="w-4 h-4" />
@@ -689,7 +702,7 @@ export default function ProjectsPage() {
                               href={project.githubUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-2 bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200"
+                              className="p-2 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
                               title="View Source Code"
                             >
                               <FiGithub className="w-4 h-4" />
@@ -706,13 +719,16 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      <section className="py-24 overflow-hidden bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20 relative">
+      <section className="py-24 overflow-hidden bg-gradient-to-br from-blue-100/50 via-purple-100/50 to-indigo-100/50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-indigo-900/20 relative">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-2xl lg:text-3xl font-semibold text-white mb-4">
-              What Our <span className="text-purple-400">Clients Say</span>
+            <h2 className="text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+              What Our{" "}
+              <span className="text-purple-600 dark:text-purple-400">
+                Clients Say
+              </span>
             </h2>
-            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Hear from businesses that transformed their operations with our
               solutions
             </p>
@@ -721,10 +737,10 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Video Testimonial Section */}
             <div className="relative group">
-              <div className="aspect-video bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl overflow-hidden border border-white/10">
+              <div className="aspect-video bg-gradient-to-br from-purple-200/50 to-blue-200/50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10">
                 {/* Video placeholder with play button */}
-                <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                  <button className="absolute z-10 w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors duration-300">
+                <div className="w-full h-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                  <button className="absolute z-10 w-16 h-16 bg-purple-500 dark:bg-purple-500 rounded-full flex items-center justify-center group-hover:bg-purple-600 dark:group-hover:bg-purple-600 transition-colors duration-300">
                     <FiPlay className="w-8 h-8 text-white ml-1" />
                   </button>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -739,59 +755,35 @@ export default function ProjectsPage() {
 
               <div className="mt-6 p-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r  from-purple-500 to-blue-500 -z-30"></div>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 -z-30"></div>
                   <div>
-                    <h3 className="text-white font-medium z-20">
-                      Sarah Johnson
+                    <h3 className="text-gray-900 dark:text-white font-medium z-20">
+                      {reviews.length > 0 ? reviews[0].name : "Sarah Johnson"}
                     </h3>
-                    <p className="text-purple-400 text-sm z-20">
-                      CTO, TechInnovate Inc.
+                    <p className="text-purple-600 dark:text-purple-400 text-sm z-20">
+                      {reviews.length > 0
+                        ? reviews[0].position
+                        : "CTO, TechInnovate Inc."}
                     </p>
                   </div>
                 </div>
 
-                <p className="mt-4 text-gray-300 italic z-20">
-                  "The team delivered beyond our expectations. Our platform
-                  handles 3x more traffic with zero downtime."
+                <p className="mt-4 text-gray-600 dark:text-gray-300 italic z-20">
+                  "
+                  {reviews.length > 0
+                    ? reviews[0].review
+                    : "The team delivered beyond our expectations. Our platform handles 3x more traffic with zero downtime."}
+                  "
                 </p>
               </div>
             </div>
 
             {/* Client Reviews Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                {
-                  name: "Michael Chen",
-                  role: "Product Director, FinTech Global",
-                  quote:
-                    "Their blockchain solution reduced transaction costs by 40% and improved security significantly.",
-                  rating: 5,
-                },
-                {
-                  name: "Emma Rodriguez",
-                  role: "CEO, HealthCare Solutions",
-                  quote:
-                    "The healthcare management system streamlined our operations and improved patient care quality.",
-                  rating: 5,
-                },
-                {
-                  name: "David Wilson",
-                  role: "Operations Manager, RetailChain",
-                  quote:
-                    "Our e-commerce platform saw 150% growth in conversions after their AI recommendations implementation.",
-                  rating: 4,
-                },
-                {
-                  name: "Priya Sharma",
-                  role: "Tech Lead, EduTech Innovations",
-                  quote:
-                    "The learning management system transformed how we deliver content to 50,000+ students globally.",
-                  rating: 5,
-                },
-              ].map((review, index) => (
+              {reviews.slice(0, 4).map((review, index) => (
                 <div
-                  key={index}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300"
+                  key={review.id}
+                  className="bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-6 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300"
                 >
                   <div className="flex gap-1 text-yellow-400 mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -805,10 +797,21 @@ export default function ProjectsPage() {
                       />
                     ))}
                   </div>
-                  <p className="text-gray-300 mb-6 italic">"{review.quote}"</p>
-                  <div>
-                    <h3 className="text-white font-medium">{review.name}</h3>
-                    <p className="text-purple-400 text-sm">{review.role}</p>
+                  <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">
+                    "{review.review}"
+                  </p>
+                  <div className="mt-4">
+                    <h4 className="font-medium text-gray-900 dark:text-white">
+                      {review.name}
+                    </h4>
+                    <p className="text-purple-600 dark:text-purple-400 text-sm">
+                      {review.position}
+                    </p>
+                    {review.project && (
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                        Project: {review.project}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -818,13 +821,15 @@ export default function ProjectsPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 relative overflow-hidden ">
+      <section className="py-24 relative overflow-hidden bg-gray-50 dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover">
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10  ">
-          <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
+          <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-6">
             Ready to Start Your{" "}
-            <span className="text-purple-400">Next Project?</span>
+            <span className="text-purple-600 dark:text-purple-400">
+              Next Project?
+            </span>
           </h2>
-          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
             Let's collaborate to bring your vision to life with cutting-edge
             technology and innovative solutions
           </p>
@@ -852,7 +857,7 @@ export default function ProjectsPage() {
 
             <Link
               href="/contact-us"
-              className="group monty uppercase inline-flex items-center justify-center space-x-2 px-8 py-4 bg-white/5 border border-white/10 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+              className="group monty uppercase inline-flex items-center justify-center space-x-2 px-8 py-4 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-medium rounded-full hover:bg-gray-200 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 cursor-pointer"
             >
               <span>Contact Us</span>
               <svg

@@ -57,32 +57,32 @@ export default function ThankYouExistingClientNewProject() {
   ];
 
   return (
-    <section className="min-h-screen py-16 relative overflow-hidden">
+    <section className="min-h-screen py-16 relative overflow-hidden bg-gray-50 dark:bg-transparent">
       {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 via-purple-100/50 to-indigo-100/50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-indigo-900/20"></div>
 
       <div className="max-w-4xl mx-auto px-6 relative z-10">
         {/* Success Animation Container */}
         <div className="text-center mb-16">
           <div className="relative inline-block mb-8">
-            <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-green-500/25 animate-pulse">
+            <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-green-500/25 animate-pulse">
               <FaCheck className="text-3xl text-white" />
             </div>
             <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
           </div>
 
-          <h1 className="text-4xl lg:text-5xl font-semibold text-white mb-6">
+          <h1 className="text-4xl lg:text-5xl font-semibold text-gray-900 dark:text-white mb-6">
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
               New Project Started!
             </span>
           </h1>
 
-          <p className="text-xl text-gray-300 mb-4 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-4 max-w-2xl mx-auto leading-relaxed">
             Your new project has been created. We're excited to work with you
             again!
           </p>
 
-          <div className="flex items-center justify-center space-x-2 text-green-400 font-medium">
+          <div className="flex items-center justify-center space-x-2 text-green-600 dark:text-green-400 font-medium">
             <FaStar className="text-md" />
             <span>
               Project ID: #
@@ -93,17 +93,20 @@ export default function ThankYouExistingClientNewProject() {
         </div>
 
         {/* Main CTA - Go Back to Dashboard */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl mb-12">
+        <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-8 shadow-xl mb-12">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
               <FaTachometerAlt className="text-2xl text-white" />
             </div>
 
-            <h2 className="text-2xl font-semibold text-white mb-4">
-              Back to Your <span className="text-blue-400">Dashboard</span>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              Back to Your{" "}
+              <span className="text-blue-600 dark:text-blue-400">
+                Dashboard
+              </span>
             </h2>
 
-            <p className="text-gray-300 mb-6 max-w-md mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
               Manage all your projects, upload briefs, and track progress from
               your dashboard.
             </p>
@@ -123,9 +126,9 @@ export default function ThankYouExistingClientNewProject() {
             {benefits.map((benefit, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 text-gray-300"
+                className="flex items-center space-x-3 text-gray-600 dark:text-gray-300"
               >
-                <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full flex-shrink-0"></div>
                 <span className="text-md">{benefit}</span>
               </div>
             ))}
@@ -133,9 +136,9 @@ export default function ThankYouExistingClientNewProject() {
         </div>
 
         {/* What Happens Next */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-2xl font-semibold text-white mb-8 text-center flex items-center justify-center">
-            <FaUsers className="mr-3 text-blue-400" />
+        <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-8 shadow-xl">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 text-center flex items-center justify-center">
+            <FaUsers className="mr-3 text-blue-600 dark:text-blue-400" />
             What Happens Next?
           </h2>
 
@@ -145,8 +148,8 @@ export default function ThankYouExistingClientNewProject() {
                 key={index}
                 className={`p-6 rounded-xl border transition-all duration-300 hover:scale-105 ${
                   step.icon === FaFolderPlus
-                    ? "bg-gradient-to-r from-blue-500/20 to-green-500/20 border-blue-400/50 shadow-lg shadow-blue-500/10"
-                    : "bg-white/5 border-white/10 hover:border-white/20"
+                    ? "bg-gradient-to-r from-blue-100/50 to-green-100/50 dark:from-blue-500/20 dark:to-green-500/20 border-blue-300 dark:border-blue-400/50 shadow-lg shadow-blue-500/10"
+                    : "bg-white dark:bg-white/5 border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20"
                 }`}
               >
                 <div className="flex items-start space-x-4">
@@ -161,17 +164,17 @@ export default function ThankYouExistingClientNewProject() {
                   </div>
 
                   <div className="flex-1">
-                    <h3 className="text-white font-semibold mb-2">
+                    <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
                       {step.title}
                     </h3>
-                    <p className="text-gray-400 text-md mb-3 leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-400 text-md mb-3 leading-relaxed">
                       {step.description}
                     </p>
                     <div
                       className={`text-xs font-medium uppercase tracking-wide ${
                         step.icon === FaFolderPlus
-                          ? "text-blue-300"
-                          : "text-green-300"
+                          ? "text-blue-600 dark:text-blue-300"
+                          : "text-green-600 dark:text-green-300"
                       }`}
                     >
                       {step.time}
@@ -184,25 +187,25 @@ export default function ThankYouExistingClientNewProject() {
         </div>
 
         {/* Contact Information */}
-        <div className="text-center mt-12 p-6 backdrop-blur-md bg-white/5 border border-white/10 rounded-xl">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div className="text-center mt-12 p-6 backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Need Assistance?
           </h3>
-          <p className="text-gray-400 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             If you have any questions or need support, your project manager is
             available as always.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-gray-300">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-gray-600 dark:text-gray-300">
             <a
               href="mailto:hello@andishi.co.ke"
-              className="flex items-center space-x-2 hover:text-blue-400 transition-colors"
+              className="flex items-center space-x-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               <FaEnvelope className="text-md" />
               <span>hello@andishi.co.ke</span>
             </a>
-            <div className="hidden sm:block w-px h-4 bg-gray-600"></div>
+            <div className="hidden sm:block w-px h-4 bg-gray-400 dark:bg-gray-600"></div>
             <div className="flex items-center space-x-2">
-              <FaComments className="text-md text-blue-400" />
+              <FaComments className="text-md text-blue-600 dark:text-blue-400" />
               <span className="text-md">Continue on Slack</span>
             </div>
           </div>
@@ -210,17 +213,17 @@ export default function ThankYouExistingClientNewProject() {
       </div>
 
       {/* Ambient background effects */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-green-500/8 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute top-20 left-10 w-32 h-32 bg-green-200/30 dark:bg-green-500/8 rounded-full blur-3xl animate-pulse"></div>
       <div
-        className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500/8 rounded-full blur-3xl animate-pulse"
+        className="absolute bottom-20 right-10 w-40 h-40 bg-blue-200/30 dark:bg-blue-500/8 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: "1s" }}
       ></div>
       <div
-        className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-500/8 rounded-full blur-3xl animate-pulse"
+        className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-200/30 dark:bg-blue-500/8 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: "2s" }}
       ></div>
       <div
-        className="absolute top-1/3 right-1/4 w-28 h-28 bg-green-500/8 rounded-full blur-3xl animate-pulse"
+        className="absolute top-1/3 right-1/4 w-28 h-28 bg-green-200/30 dark:bg-green-500/8 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: "3s" }}
       ></div>
     </section>

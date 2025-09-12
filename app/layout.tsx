@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import ConditionalLayout from "./components/ConditionalLayout";
 import ClientMotionProvider from "./components/ClientMotionProvider";
 import WhatsAppButton from "./components/FloatingWhatsappButton";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 //  font configurations
 const nunito = Nunito({
@@ -40,17 +41,19 @@ export default function RootLayout({
 }) {
 
   return (
-    <html lang="en" className={`${nunito.variable} ${montserrat.variable}`}>
-      <body className="relative font-sans antialiased text-white bg-dark">
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover opacity-75" />
+    <html lang="en" className={`${nunito.variable} ${montserrat.variable}`} suppressHydrationWarning>
+      <body className="relative font-sans antialiased text-gray-900 dark:text-white bg-white dark:bg-dark">
+        <div className="pointer-events-none fixed inset-0 -z-10 bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover opacity-0 dark:opacity-75 transition-opacity duration-300" />
 
-        <AuthProvider>
-          <ClientMotionProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
-            <Analytics />
-            <SpeedInsights />
-          </ClientMotionProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ClientMotionProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+              <Analytics />
+              <SpeedInsights />
+            </ClientMotionProvider>
+          </AuthProvider>
+        </ThemeProvider>
 
         {/* Google Analytics Scripts */}
         <Script

@@ -1,41 +1,46 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 
 export default function HeroSection() {
+
   return (
-    <section className="relative w-full min-h-screen overflow-hidden flex items-center py-12 sm:py:0  px-6 lg:px-0">
-      {/* Background gradient layers */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900/50 to-purple-900/50"></div>
-      <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/30 via-transparent to-blue-900/30"></div>
+    <section className="relative w-full min-h-screen overflow-hidden flex items-center py-12 sm:py:0 px-6 lg:px-0 bg-white dark:bg-transparent">
+      {/* Background gradient layers - only show in dark mode */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900/50 to-purple-900/50 dark:block hidden"></div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/30 via-transparent to-blue-900/30 dark:block hidden"></div>
+
+      {/* Light theme background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:hidden block"></div>
+
 
       {/* Animated background elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200/30 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div
-        className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+        className="absolute bottom-20 right-10 w-96 h-96 bg-purple-200/30 dark:bg-purple-500/10 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: "1s" }}
       ></div>
       <div
-        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl animate-pulse"
+        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-200/20 dark:bg-cyan-500/5 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: "2s" }}
       ></div>
 
-      <div className="relative z-10 min-w-8xl mx-auto flex flex-col-reverse justify-between lg:flex-row items-center h-full">
+      <div className="relative z-20 min-w-8xl mx-auto flex flex-col-reverse justify-between lg:flex-row items-center h-full">
         {/* Left column: text & CTAs */}
-        <div className="w-full lg:w-2/3 text-white">
+        <div className="w-full lg:w-2/3 text-gray-900 dark:text-white">
           {/* Live indicator with glassmorphic design */}
           <div className="hidden md:flex items-center space-x-3 text-sm w-fit group mb-10">
-            <div className="flex items-center space-x-2 px-4  sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+            <div className="flex items-center space-x-2 px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-400" />
               </span>
-              <span className="text-green-400 font-medium monty uppercase">
+              <span className="text-green-600 dark:text-green-400 font-medium monty uppercase">
                 Trusted by Startups & Enterprises
               </span>
             </div>
 
-            <div className="monty px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-purple-500/20 border border-purple-400/30">
-              <span className="text-purple-300 font-medium monty uppercase">
+            <div className="monty px-4 sm:py-2 py-1 text-xs rounded-full backdrop-blur-md bg-purple-100 dark:bg-purple-500/20 border border-purple-300 dark:border-purple-400/30">
+              <span className="text-purple-700 dark:text-purple-300 font-medium monty uppercase">
                 Elite African Developers, Globally Deployed
               </span>
             </div>
@@ -44,25 +49,25 @@ export default function HeroSection() {
           {/* Main heading with gradient text */}
           <div className="space-y-2 mb-10 mt-3">
             <h1 className="text-5xl lg:text-6xl leading-tight mb-6">
-              <span className="bg-gradient-to-r font-semibold from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r font-semibold from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-purple-200 dark:to-cyan-200 bg-clip-text text-transparent">
                 Hire Seamlessly,
               </span>
               <br />
-              <span className="bg-gradient-to-r font-medium from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r font-medium from-purple-600 via-pink-600 to-blue-600 dark:from-purple-400 dark:via-pink-400 dark:to-cyan-400 bg-clip-text text-transparent">
                 Save More.
               </span>
             </h1>
 
             <div className="flex items-center space-x-3">
               <div className="h-1 w-16 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full"></div>
-              <p className="sm:text-lg text-md text-gray-300 font-medium tracking-wide uppercase">
+              <p className="sm:text-lg text-md text-gray-700 dark:text-gray-300 font-medium tracking-wide uppercase">
                 Connect with vetted global developers in just 48 hours.
               </p>
             </div>
           </div>
 
           {/* Description */}
-          <p className="sm:text-lg text-md text-gray-300 my-6 leading-relaxed max-w-2xl">
+          <p className="sm:text-lg text-md text-gray-700 dark:text-gray-300 my-6 leading-relaxed max-w-2xl">
             Skip the lengthy hiring process. Andishi’s AI-driven platform
             quickly connects you with vetted, senior developers worldwide in web
             development, mobile apps, AI/ML, blockchain, and SaaS. Every
@@ -97,7 +102,7 @@ export default function HeroSection() {
 
             <Link
               href="/tech-talent-pool"
-              className="group px-8 py-3 backdrop-blur-md bg-white/5 border-2 border-blue-400/50 text-blue-300 rounded-full font-semibold hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 hover:scale-105"
+              className="group px-8 py-3 backdrop-blur-md bg-blue-50 dark:bg-white/5 border-2 border-blue-500 dark:border-blue-400/50 text-blue-700 dark:text-blue-300 rounded-full font-semibold hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:border-blue-600 dark:hover:border-blue-400 transition-all duration-300 hover:scale-105"
             >
               <span className="flex items-center justify-center space-x-2 monty tracking-wide">
                 <span>Explore Our Talent Pool</span>
@@ -107,12 +112,12 @@ export default function HeroSection() {
 
           {/* Trust indicators */}
           <div className="flex flex-wrap items-center gap-8 pt-8">
-            <div className="flex items-center space-x-2 text-gray-400">
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-gray-800 flex items-center justify-center text-xs font-semibold text-white"
+                    className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-gray-300 dark:border-gray-800 flex items-center justify-center text-xs font-semibold text-white"
                   >
                     {i}
                   </div>
@@ -121,7 +126,7 @@ export default function HeroSection() {
               <span className="text-sm">100+ developers vetted</span>
             </div>
 
-            <div className="flex items-center space-x-2 text-gray-400">
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
               <div className="flex space-x-1">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <svg
@@ -142,7 +147,7 @@ export default function HeroSection() {
         <div className="w-full lg:w-1/3 mb-12 lg:mb-0 hidden lg:flex justify-center">
           <div className="relative group">
             {/* Glassmorphic frame */}
-            <div className="absolute inset-0 rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500"></div>
+            <div className="absolute inset-0 rounded-3xl backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 group-hover:bg-white dark:group-hover:bg-white/10 group-hover:border-gray-300 dark:group-hover:border-white/20 transition-all duration-500"></div>
 
             {/* Glowing effect */}
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
@@ -152,7 +157,7 @@ export default function HeroSection() {
               <img
                 src="/hero-image.jpg"
                 alt="Satellite network illustration representing global tech connectivity"
-                className="w-full max-w-md transform group-hover:scale-105 transition-transform duration-500 drop-shadow-2xl"
+                className="w-full max-w-md transform group-hover:scale-105 transition-transform duration-500 drop-shadow-xl"
               />
 
               {/* Floating elements around image */}
@@ -170,16 +175,6 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Floating particles */}
-      <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400/30 rounded-full animate-pulse"></div>
-      <div
-        className="absolute bottom-1/4 right-1/4 w-1 h-1 bg-purple-400/40 rounded-full animate-pulse"
-        style={{ animationDelay: "1.5s" }}
-      ></div>
-      <div
-        className="absolute top-3/4 left-1/3 w-3 h-3 bg-cyan-400/20 rounded-full animate-pulse"
-        style={{ animationDelay: "3s" }}
-      ></div>
     </section>
   );
 }

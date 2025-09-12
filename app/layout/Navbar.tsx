@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../hooks/useAuth"; // Adjust path as needed
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import { ThemeToggle, ThemeToggleCompact } from "../components/ThemeToggle";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -112,8 +113,8 @@ export default function Navbar() {
       animate="visible"
       className={`fixed inset-x-0 top-0 z-40 transition-all duration-100 ${
         scrolled
-          ? "bg-white/10 backdrop-blur-lg border-b border-white/20 shadow-lg"
-          : "bg-white/5 backdrop-blur-lg border-b border-white/10"
+          ? "bg-white/55 dark:bg-white/10 backdrop-blur-lg border-b border-gray-200 dark:border-white/20 shadow-gray-500/10 shadow-lg"
+          : "bg-white/80 dark:bg-white/5 backdrop-blur-lg border-b border-gray-100 dark:border-white/10"
       }`}
     >
       <div className="mx-auto flex items-center justify-between py-4 px-6 md:px-20">
@@ -124,7 +125,7 @@ export default function Navbar() {
         >
           <Link
             href="/"
-            className="text-2xl font-semibold font-montserrat text-white"
+            className="text-2xl font-semibold font-montserrat text-gray-900 dark:text-white"
             onClick={() => setIsOpen(false)}
           >
             <img src="/logo.svg" alt="logo" className="w-10 h-10" />
@@ -132,138 +133,156 @@ export default function Navbar() {
         </motion.div>
 
         {/* Desktop Links */}
-        <motion.ul
-          className="hidden md:flex items-center gap-8 text-white monty uppercase text-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-          {/* Public Routes */}
-          {publicLinks.map((link) => {
-            const isActive = pathname === link.href;
+        <div className="hidden md:flex items-center gap-6">
+          <motion.ul
+            className="flex items-center gap-8 text-gray-900 dark:text-white monty uppercase text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            {/* Public Routes */}
+            {publicLinks.map((link) => {
+              const isActive = pathname === link.href;
 
-            return (
-              <motion.li
-                key={link.href}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`hover:text-[#96aeff] transition-colors duration-150 cursor-pointer uppercase ${
-                    isActive
-                      ? "text-[#96aeff] underline underline-offset-8"
-                      : ""
-                  }`}
+              return (
+                <motion.li
+                  key={link.href}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {link.label}
-                </Link>
-              </motion.li>
-            );
-          })}
-
-          {/* User Authentication State */}
-          {isLoading ? (
-            <motion.li>
-              <div className="w-20 h-8 bg-white/20 animate-pulse rounded-lg"></div>
-            </motion.li>
-          ) : user ? (
-            // Logged in user - show dashboard and logout
-            <>
-              <motion.li
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  href={getDashboardRoute()}
-                  className="hover:text-[#c156ff] transition-colors duration-150 cursor-pointer uppercase"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Dashboard
-                </Link>
-              </motion.li>
-
-              <motion.li
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs opacity-80 capitalize text-indigo-200">
-                    Hi, {user.name?.split(" ")[0] || user.email?.split("@")[0]}
-                  </span>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                    className="px-4 py-2 bg-red-500/60 rounded-lg font-semibold hover:bg-red-600/60 cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg text-xs"
+                  <Link
+                    href={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`hover:text-blue-600 dark:hover:text-[#96aeff] transition-colors duration-150 cursor-pointer uppercase ${
+                      isActive
+                        ? "text-blue-600 dark:text-[#96aeff] underline underline-offset-8"
+                        : ""
+                    }`}
                   >
-                    Logout
-                  </button>
-                </div>
+                    {link.label}
+                  </Link>
+                </motion.li>
+              );
+            })}
+
+            {/* User Authentication State */}
+            {isLoading ? (
+              <motion.li>
+                <div className="w-20 h-8 bg-gray-200 dark:bg-white/20 animate-pulse rounded-lg"></div>
               </motion.li>
-            </>
-          ) : (
-            // Not logged in - show login CTA
-            <motion.li whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/login"
-                className="px-4 py-2 bg-[#02A4E6] rounded-lg font-semibold hover:bg-[#0291CC] transition-all duration-200 shadow-md hover:shadow-lg"
-                onClick={() => setIsOpen(false)}
+            ) : user ? (
+              // Logged in user - show dashboard and logout
+              <>
+                <motion.li
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link
+                    href={getDashboardRoute()}
+                    className="hover:text-purple-600 dark:hover:text-[#c156ff] transition-colors duration-150 cursor-pointer uppercase"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                </motion.li>
+
+                <motion.li
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs opacity-80 capitalize text-gray-600 dark:text-indigo-200">
+                      Hi,{" "}
+                      {user.name?.split(" ")[0] || user.email?.split("@")[0]}
+                    </span>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsOpen(false);
+                      }}
+                      className="px-4 py-2 bg-red-500 dark:bg-red-500/60 text-white rounded-lg font-semibold hover:bg-red-600 dark:hover:bg-red-600/60 cursor-pointer transition-all duration-200 shadow-xl hover:shadow-lg text-xs"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </motion.li>
+              </>
+            ) : (
+              // Not logged in - show login CTA
+              <motion.li
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Login
-              </Link>
-            </motion.li>
-          )}
-        </motion.ul>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 bg-[#9e02e6] text-white rounded-lg font-semibold hover:bg-[#6a02cc] transition-all duration-200 shadow-xl hover:shadow-lg"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Login
+                </Link>
+              </motion.li>
+            )}
+          </motion.ul>
+
+          {/* Theme Toggle */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.3 }}
+          >
+            <ThemeToggleCompact />
+          </motion.div>
+        </div>
 
         {/* Mobile Menu Button */}
-        <motion.button
-          className="md:hidden text-white cursor-pointer"
-          aria-label="Toggle menu"
-          onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
+        <div className="md:hidden flex items-center gap-3">
+          <ThemeToggleCompact />
+          <motion.button
+            className="text-gray-900 dark:text-white cursor-pointer"
+            aria-label="Toggle menu"
+            onClick={() => setIsOpen(!isOpen)}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
           >
-            {isOpen ? (
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            )}
-          </motion.div>
-        </motion.button>
+            <motion.div
+              animate={{ rotate: isOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {isOpen ? (
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
+            </motion.div>
+          </motion.button>
+        </div>
       </div>
 
       {/* Mobile Links */}
@@ -274,10 +293,10 @@ export default function Navbar() {
             initial="hidden"
             animate="visible"
             exit="hidden"
-            className="md:hidden bg-[#05122273] backdrop-blur-lg border-t border-white/10 monty uppercase text-sm"
+            className="md:hidden bg-white/95 dark:bg-[#05122273] backdrop-blur-lg border-t border-gray-200 dark:border-white/10 monty uppercase text-sm"
           >
             <motion.ul
-              className="flex flex-col gap-4 p-6 text-white"
+              className="flex flex-col gap-4 p-6 text-gray-900 dark:text-white"
               initial="hidden"
               animate="visible"
             >
@@ -287,11 +306,11 @@ export default function Navbar() {
                   key={link.href}
                   custom={index}
                   variants={linkItemVariants}
-                  className="border-b border-white/20 pb-2"
+                  className="border-b border-gray-200 dark:border-white/20 pb-2"
                 >
                   <Link
                     href={link.href}
-                    className="hover:text-[#02A4E6] transition-colors duration-200 w-full text-left uppercase block"
+                    className="hover:text-blue-600 dark:hover:text-[#02A4E6] transition-colors duration-200 w-full text-left uppercase block"
                     onClick={() => setIsOpen(false)}
                   >
                     {link.label}
@@ -302,21 +321,21 @@ export default function Navbar() {
               {/* Authentication Mobile */}
               {isLoading ? (
                 <motion.li custom={publicLinks.length}>
-                  <div className="w-full h-10 bg-white/20 animate-pulse rounded-lg"></div>
+                  <div className="w-full h-10 bg-gray-200 dark:bg-white/20 animate-pulse rounded-lg"></div>
                 </motion.li>
               ) : user ? (
                 <>
                   <motion.li
                     custom={publicLinks.length}
                     variants={linkItemVariants}
-                    className="border-b border-white/20 pb-2"
+                    className="border-b border-gray-200 dark:border-white/20 pb-2"
                   >
-                    <div className="text-xs opacity-80 mb-2 text-indigo-200">
+                    <div className="text-xs opacity-80 mb-2 text-gray-600 dark:text-indigo-200">
                       Welcome, {user.firstName}
                     </div>
                     <Link
                       href={getDashboardRoute()}
-                      className="hover:text-[#02A4E6] transition-colors duration-200 w-full text-left uppercase block"
+                      className="hover:text-blue-600 dark:hover:text-[#02A4E6] transition-colors duration-200 w-full text-left uppercase block"
                       onClick={() => setIsOpen(false)}
                     >
                       Dashboard
@@ -331,7 +350,7 @@ export default function Navbar() {
                         logout();
                         setIsOpen(false);
                       }}
-                      className="cursor-pointer w-fit px-4 py-2 bg-red-500/60 rounded-lg font-semibold hover:bg-red-600/60 transition-all duration-200 shadow-md hover:shadow-lg text-left"
+                      className="cursor-pointer w-fit px-4 py-2 bg-red-500 dark:bg-red-500/60 text-white rounded-lg font-semibold hover:bg-red-600 dark:hover:bg-red-600/60 transition-all duration-200 shadow-xl hover:shadow-lg text-left"
                     >
                       Logout
                     </button>
@@ -344,7 +363,7 @@ export default function Navbar() {
                 >
                   <Link
                     href="/login"
-                    className="inline-block w-full px-4 py-2 bg-[#02A4E6] rounded-lg font-semibold hover:bg-[#0291CC] transition-all duration-200 shadow-md hover:shadow-lg text-center"
+                    className="inline-block w-full px-4 py-2 bg-[#6c02e6] text-white rounded-lg font-semibold hover:bg-[#6a02cc] transition-all duration-200 shadow-xl hover:shadow-lg text-center"
                     onClick={() => setIsOpen(false)}
                   >
                     Login

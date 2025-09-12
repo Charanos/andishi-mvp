@@ -70,13 +70,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#0B0D0E]50 backdrop-blur-xl  flex items-center justify-center z-50">
-      <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover backdrop-blur-md border border-white/10 rounded-2xl p-8 w-full max-w-2xl">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-xl flex items-center justify-center z-50">
+      <div className="bg-white/95 dark:bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl p-8 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-white text-2xl font-semibold">Edit Profile</h2>
+          <h2 className="text-gray-900 dark:text-white text-2xl font-semibold">Edit Profile</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition cursor-pointer"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition cursor-pointer"
           >
             <FaTimes />
           </button>
@@ -87,7 +87,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         >
           {/* Personal Information */}
           <div>
-            <h3 className="text-purple-400 font-semibold mb-2 monty uppercase my-3">
+            <h3 className="text-purple-600 dark:text-purple-400 font-semibold mb-2 monty uppercase my-3">
               Personal Information
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -98,7 +98,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "firstName", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="text"
@@ -107,7 +107,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "lastName", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="email"
@@ -116,7 +116,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "email", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="text"
@@ -125,7 +125,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "phone", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="text"
@@ -134,7 +134,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "location", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="text"
@@ -143,7 +143,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "timeZone", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="url"
@@ -152,7 +152,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "linkedin", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="url"
@@ -161,14 +161,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("personalInfo", "github", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
             </div>
           </div>
 
           {/* Professional Information */}
           <div>
-            <h3 className="text-white font-semibold mb-2">
+            <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
               Professional Information
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -179,7 +179,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 onChange={(e) =>
                   handleInputChange("professionalInfo", "title", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="text"
@@ -192,7 +192,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     e.target.value
                   )
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="text"
@@ -205,7 +205,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     e.target.value
                   )
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
               <input
                 type="text"
@@ -218,7 +218,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     e.target.value
                   )
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white border border-gray-300 dark:border-white/20 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
             </div>
           </div>
@@ -228,13 +228,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-lg bg-white/10 cursor-pointer text-gray-300 hover:bg-white/20 transition"
+              className="px-5 py-2 rounded-lg bg-gray-200 dark:bg-white/10 cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-white/20 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-lg bg-blue-600/55 cursor-pointer text-white hover:bg-blue-700/55 transition"
+              className="px-5 py-2 rounded-lg bg-blue-600 dark:bg-blue-600/55 cursor-pointer text-white hover:bg-blue-700 dark:hover:bg-blue-700/55 transition"
             >
               Save Changes
             </button>

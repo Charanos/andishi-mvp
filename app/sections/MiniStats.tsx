@@ -65,18 +65,20 @@ export default function TrustBadgesSection(): React.JSX.Element {
   ];
 
   return (
-    <section className="py-16 relative overflow-hidden">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+    <section className="py-16 relative overflow-hidden bg-gray-50 dark:bg-transparent">
+      {/* Background gradient overlay - only show in dark mode */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20 dark:block hidden"></div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      {/* Light theme background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 dark:hidden block"></div>
 
+      <div className="max-w-7xl mx-auto px-6 relative z-20">
         {/* Trust Badges Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-6">
           {trustBadges.map((badge: TrustBadge, index: number) => (
             <div
               key={index}
-              className="group relative overflow-hidden rounded-xl backdrop-blur-sm bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 p-4 text-center"
+              className="group relative overflow-hidden rounded-xl backdrop-blur-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 hover:scale-105 p-4 text-center shadow-lg dark:shadow-none"
               style={{
                 background: `linear-gradient(135deg, 
                   rgba(255, 255, 255, 0.02) 0%, 
@@ -95,7 +97,7 @@ export default function TrustBadgesSection(): React.JSX.Element {
               <div className="relative z-10">
                 {/* Icon */}
                 <div className="mb-3 flex justify-center">
-                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/15 transition-all duration-300">
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-white/15 transition-all duration-300">
                     <badge.icon
                       className={`text-lg ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`}
                     />
@@ -103,25 +105,25 @@ export default function TrustBadgesSection(): React.JSX.Element {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-sm font-semibold text-white mb-1 group-hover:text-blue-100 transition-colors duration-300">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-100 transition-colors duration-300">
                   {badge.title}
                 </h3>
 
                 {/* Subtitle */}
-                <p className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
+                <p className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300">
                   {badge.subtitle}
                 </p>
               </div>
 
               {/* Small accent dot */}
-              <div className="absolute top-2 right-2 w-1 h-1 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute top-2 right-2 w-1 h-1 bg-gray-400 dark:bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Minimal background decoration */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-500/2 to-purple-500/2 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-200/30 dark:from-blue-500/2 to-purple-200/30 dark:to-purple-500/2 rounded-full blur-3xl"></div>
     </section>
   );
 }

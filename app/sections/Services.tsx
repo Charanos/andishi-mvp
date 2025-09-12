@@ -186,24 +186,29 @@ export default function ServicesWithDashboard(): React.JSX.Element {
         ></div>
       </div>
       {/* Services Section */}
-      <section id="services" className="py-32 relative overflow-hidden">
-        {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+      <section
+        id="services"
+        className="py-32 relative overflow-hidden bg-white dark:bg-transparent"
+      >
+        {/* Light theme background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30 dark:hidden block"></div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           {/* Title */}
           <div className="text-center mb-24">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-300">Our Expertise</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 mb-6">
+              <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                Our Expertise
+              </span>
             </div>
-            <h2 className="text-3xl lg:text-4xl font-medium text-white mb-6">
+            <h2 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-6">
               Premium{" "}
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Development Services
               </span>
             </h2>
-            <p className="text-lg text-gray-300 mx-auto leading-relaxed">
+            <p className="text-lg text-gray-600 dark:text-gray-300 mx-auto leading-relaxed">
               We connect you with world-class developers who specialize in
               cutting-edge technologies, delivering exceptional solutions that
               drive your business forward
@@ -226,7 +231,7 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                 return (
                   <div
                     key={index}
-                    className={`group h-fit relative overflow-hidden ${shapes[index]} backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl cursor-pointer`}
+                    className={`group h-fit relative overflow-hidden ${shapes[index]} backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-xl cursor-pointer`}
                     onClick={() =>
                       setExpandedService(
                         expandedService === index ? null : index
@@ -238,7 +243,7 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                         rgba(147, 51, 234, 0.02) 50%, 
                         rgba(236, 72, 153, 0.03) 100%)`,
                       boxShadow: `
-                        0 8px 32px rgba(0, 0, 0, 0.2),
+                        0 4px 16px rgba(0, 0, 0, 0.2),
                         inset 0 1px 0 rgba(255, 255, 255, 0.05)
                       `,
                     }}
@@ -253,19 +258,19 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                       <div className="flex items-start space-x-4 mb-4">
                         {/* Icon */}
                         <div className="flex-shrink-0">
-                          <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center group-hover:bg-white/15 transition-colors duration-300 backdrop-blur-sm">
+                          <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center group-hover:bg-white/15 transition-colors duration-300 backdrop-blur-sm shadow-xl">
                             <service.icon
-                              className={`text-2xl ${service.iconColor} group-hover:scale-110 transition-transform duration-300`}
+                              className={`text-2xl ${service.iconColor} group-hover:scale-110 transition-transform duration-300 `}
                             />
                           </div>
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-md font-semibold text-white mb-2 group-hover:text-blue-200 transition-colors duration-300">
+                          <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-200 transition-colors duration-300">
                             {service.title}
                           </h3>
-                          <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-300 leading-relaxed text-sm">
+                          <p className="text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300 leading-relaxed text-sm">
                             {service.description}
                           </p>
                         </div>
@@ -291,7 +296,7 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                           .map((tech, techIndex) => (
                             <span
                               key={techIndex}
-                              className="px-3 py-1 text-xs bg-white/10 text-gray-300 rounded-full backdrop-blur-sm border border-white/5"
+                              className="px-3 py-1 text-xs bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-full backdrop-blur-sm border border-gray-200 dark:border-white/5"
                             >
                               {tech}
                             </span>
@@ -324,7 +329,7 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                                   className="flex items-center gap-2"
                                 >
                                   <FaCheck className="text-md text-green-400" />
-                                  <span className="text-xs text-gray-300">
+                                  <span className="text-xs text-gray-600 dark:text-gray-300">
                                     {feature}
                                   </span>
                                 </div>
@@ -363,13 +368,13 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                 <div className="relative">
                   <div className="w-full h-80 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-tl-[4rem] rounded-br-[4rem] rounded-tr-xl rounded-bl-xl flex items-center justify-center border border-white/10">
                     <div className="text-center">
-                      <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                      <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm shadow-xl">
                         <FaCode className="text-3xl text-blue-400" />
                       </div>
-                      <h3 className="text-lg font-semibold text-white mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         Expert Developers
                       </h3>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
                         Ready to build your vision
                       </p>
                     </div>
@@ -393,10 +398,10 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                 {/* Main CTA */}
                 <div className="relative overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-white/10 p-6">
                   <div className="relative z-10">
-                    <h3 className="text-xl font-semibold text-white mb-3">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                       Ready to Start?
                     </h3>
-                    <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
                       Transform your ideas into reality with our expert
                       development team. Let's discuss your project today.
                     </p>
@@ -419,10 +424,10 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                         <FaCheck className="text-green-400 text-sm" />
                       </div>
                       <div>
-                        <p className="text-white font-medium text-sm monty">
+                        <p className="text-gray-900 dark:text-white font-medium text-sm monty">
                           94% Success Rate
                         </p>
-                        <p className="text-gray-400">
+                        <p className="text-gray-600 dark:text-gray-400">
                           On-time project delivery
                         </p>
                       </div>
@@ -435,10 +440,10 @@ export default function ServicesWithDashboard(): React.JSX.Element {
                         <FaBrain className="text-blue-400 text-sm" />
                       </div>
                       <div>
-                        <p className="text-white font-medium text-sm monty">
+                        <p className="text-gray-900 dark:text-white font-medium text-sm monty">
                           AI-Powered Solutions
                         </p>
-                        <p className="text-gray-400">
+                        <p className="text-gray-600 dark:text-gray-400">
                           Next-gen technology stacks
                         </p>
                       </div>

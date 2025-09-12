@@ -318,7 +318,7 @@ const FeedbackTabEnhanced: React.FC = () => {
             feedback.map((item) => (
               <div
                 key={item.id}
-                className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer hover:shadow-2xl ${
+                className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer hover:shadow-xl ${
                   selectedFeedback?.id === item.id
                     ? "ring-2 ring-blue-500 border-blue-500/50 scale-[1.01] bg-gray-800/50"
                     : !item.read
@@ -552,7 +552,7 @@ const FeedbackTabEnhanced: React.FC = () => {
       {/* Confirmation Modal */}
       {showDeleteModal && feedbackToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+          <div className="bg-gray-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-red-500/20 rounded-lg">
                 <FaExclamationTriangle className="text-red-400 text-xl" />

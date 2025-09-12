@@ -534,13 +534,13 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     switch (trackingView) {
       case "overview":
         return (
-          <div className="bg-gray-900 p-4 rounded-lg shadow-md">
+          <div className="bg-gray-900 p-4 rounded-lg shadow-xl">
             <div className="bg-blue-800 text-white p-4 rounded-t-lg">
               <h2 className="text-3xl font-semibold">Project Overview</h2>
             </div>
             <div className="bg-white p-4 rounded-b-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border p-4 rounded-lg shadow-sm">
+                <div className="border p-4 rounded-lg shadow-lg">
                   <h3 className="text-lg font-medium text-gray-800">
                     Timeline
                   </h3>
@@ -560,7 +560,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </p>
                   <p>Days Active: {daysPassed}</p>
                 </div>
-                <div className="border p-4 rounded-lg shadow-sm">
+                <div className="border p-4 rounded-lg shadow-lg">
                   <h3 className="text-lg font-medium text-gray-800">
                     Budget Utilization
                   </h3>
@@ -573,7 +573,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     ></div>
                   </div>
                 </div>
-                <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
+                <div className="border p-4 rounded-lg shadow-lg md:col-span-2">
                   <h3 className="text-lg font-medium text-gray-800">
                     Technology Stack
                   </h3>
@@ -582,7 +582,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       "N/A"}
                   </p>
                 </div>
-                <div className="border p-4 rounded-lg shadow-sm md:col-span-2">
+                <div className="border p-4 rounded-lg shadow-lg md:col-span-2">
                   <h3 className="text-lg font-medium text-gray-800">
                     Client Information
                   </h3>
@@ -598,7 +598,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 </div>
               </div>
               <div className="flex justify-end mt-4">
-                <button className="bg-blue-600 text-white px-3 py-2 rounded-lg shadow-md focus:outline-none">
+                <button className="bg-blue-600 text-white px-3 py-2 rounded-lg shadow-xl focus:outline-none">
                   Manage Project
                 </button>
               </div>
@@ -3235,7 +3235,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
           {editMilestone && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-              <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover border border-white/20 rounded-3xl p-8 w-full max-w-md shadow-2xl backdrop-blur-xl transform animate-in slide-in-from-bottom-4 duration-300">
+              <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover border border-white/20 rounded-3xl p-8 w-full max-w-md shadow-xl backdrop-blur-xl transform animate-in slide-in-from-bottom-4 duration-300">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Edit Milestone
                 </h3>
@@ -3322,7 +3322,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           {/* Progress Update Modal */}
           {showProgressModal && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-              <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover border border-white/20 rounded-3xl p-8 w-full max-w-md shadow-2xl backdrop-blur-xl transform animate-in slide-in-from-bottom-4 duration-300">
+              <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover border border-white/20 rounded-3xl p-8 w-full max-w-md shadow-xl backdrop-blur-xl transform animate-in slide-in-from-bottom-4 duration-300">
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <svg
@@ -3450,7 +3450,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           {/* Add Update Modal */}
           {showUpdateModal && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-              <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover border border-white/20 rounded-3xl p-8 w-full max-w-lg shadow-2xl backdrop-blur-xl transform animate-in slide-in-from-bottom-4 duration-300">
+              <div className="bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover border border-white/20 rounded-3xl p-8 w-full max-w-lg shadow-xl backdrop-blur-xl transform animate-in slide-in-from-bottom-4 duration-300">
                 <div className="text-center mb-8">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <svg

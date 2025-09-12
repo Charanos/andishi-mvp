@@ -1217,7 +1217,7 @@ export default function EnhancedProjectTracking({
             {/* Project Overview Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
               {/* Project Summary Card */}
-              <div className="bg-gradient-to-br from-gray-800/10 to-gray-700/5 backdrop-blur-xl border border-gray-600/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-gray-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-gray-800/10 to-gray-700/5 backdrop-blur-xl border border-gray-600/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-gray-500/10 transition-all duration-300">
                 <div className="flex flex-col items-start mb-4">
                   <h3 className="text-xl font-semibold text-white mb-2">
                     Project Summary
@@ -1244,7 +1244,7 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Progress Card */}
-              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-blue-500/20 rounded-xl">
                     <Target className="w-6 h-6 text-blue-300" />
@@ -1268,7 +1268,7 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Milestones Card */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-purple-500/20 rounded-xl">
                     <CheckCircle className="w-6 h-6 text-purple-300" />
@@ -1290,7 +1290,7 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Budget Card */}
-              <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-xl border border-green-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-xl border border-green-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-green-500/20 rounded-xl">
                     <DollarSign className="w-6 h-6 text-green-300" />
@@ -1320,7 +1320,7 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Timeline Card */}
-              <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 backdrop-blur-xl border border-orange-500/20 rounded-2xl p-6 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 backdrop-blur-xl border border-orange-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-orange-500/20 rounded-xl">
                     <Calendar className="w-6 h-6 text-orange-300" />
@@ -1373,7 +1373,7 @@ export default function EnhancedProjectTracking({
             {/* Activity and Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Recent Activity */}
-              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
+              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
                     <Activity className="w-5 h-5 text-cyan-300" />
@@ -1410,7 +1410,7 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Project Information */}
-              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
+              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
                     <FileText className="w-5 h-5 text-cyan-300" />
@@ -1497,7 +1497,7 @@ export default function EnhancedProjectTracking({
             </div>
 
             {/* Performance Insights */}
-            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
+            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-gradient-to-br from-teal-500/20 to-green-500/20 rounded-xl">
                   <Target className="w-5 h-5 text-teal-300" />
@@ -1567,7 +1567,7 @@ export default function EnhancedProjectTracking({
             </div>
 
             {/* Technology Stack */}
-            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300">
+            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl">
                   <Code className="w-5 h-5 text-indigo-300" />
@@ -2961,7 +2961,7 @@ export default function EnhancedProjectTracking({
     <div className="min-h-screen">
       <div className="max-w-[1600px] mx-auto px-6 py-8">
         {/* Header */}
-        <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-2xl border border-purple-500/30 rounded-2xl p-8 mb-8 w-full relative overflow-hidden">
+        <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-xl border border-purple-500/30 rounded-2xl p-8 mb-8 w-full relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-50"></div>
           <div className="relative z-10">
             <div className="flex flex-col sm:flex-row items-start justify-between">

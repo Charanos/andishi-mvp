@@ -119,10 +119,16 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [showDetails, setShowDetails] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "resources" | "milestones" | "participants">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "resources" | "milestones" | "participants"
+  >("overview");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { projectDetails, loading: projectLoading, error: projectError } = useProjectDetails(projectId);
+  const {
+    projectDetails,
+    loading: projectLoading,
+    error: projectError,
+  } = useProjectDetails(projectId);
 
   const permissions = {
     canRead: true,
@@ -130,7 +136,8 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     canViewAll: currentUserRole === "admin",
     canManageProject: currentUserRole === "admin",
     canUploadFiles: true,
-    canEditMilestones: currentUserRole === "admin" || currentUserRole === "developer",
+    canEditMilestones:
+      currentUserRole === "admin" || currentUserRole === "developer",
   };
 
   const scrollToBottom = () => {
@@ -184,14 +191,14 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
 
   const formatTime = (timestamp: Date) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString([], {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -271,7 +278,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
   };
 
   const getInitials = (name: string) => {
-    if (!name || name.trim() === '') return "U";
+    if (!name || name.trim() === "") return "U";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -288,7 +295,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
       <div className="flex items-center justify-center py-16">
         <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-          <span className="text-white font-medium">Loading Project Chat...</span>
+          <span className="text-white font-medium">
+            Loading Project Chat...
+          </span>
         </div>
       </div>
     );
@@ -321,7 +330,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     milestones: [],
     resources: [],
     notes: "Loading project information...",
-    lastActivity: new Date()
+    lastActivity: new Date(),
   };
 
   const renderOverviewTab = () => (
@@ -335,19 +344,29 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Status</span>
-            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(displayProjectDetails.status)}`}>
+            <span
+              className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(
+                displayProjectDetails.status
+              )}`}
+            >
               {displayProjectDetails.status}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Priority</span>
-            <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(displayProjectDetails.priority)}`}>
+            <span
+              className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(
+                displayProjectDetails.priority
+              )}`}
+            >
               {displayProjectDetails.priority}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Progress</span>
-            <span className="text-xs text-white font-medium">{displayProjectDetails.progress}%</span>
+            <span className="text-xs text-white font-medium">
+              {displayProjectDetails.progress}%
+            </span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2">
             <div
@@ -367,17 +386,23 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Start Date</span>
-            <span className="text-xs text-white">{formatDate(displayProjectDetails.startDate)}</span>
+            <span className="text-xs text-white">
+              {formatDate(displayProjectDetails.startDate)}
+            </span>
           </div>
           {displayProjectDetails.endDate && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-400">End Date</span>
-              <span className="text-xs text-white">{formatDate(displayProjectDetails.endDate)}</span>
+              <span className="text-xs text-white">
+                {formatDate(displayProjectDetails.endDate)}
+              </span>
             </div>
           )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">Last Activity</span>
-            <span className="text-xs text-white">{formatTime(displayProjectDetails.lastActivity)}</span>
+            <span className="text-xs text-white">
+              {formatTime(displayProjectDetails.lastActivity)}
+            </span>
           </div>
         </div>
       </div>
@@ -390,7 +415,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         </h3>
         <div className="flex flex-wrap gap-2">
           {displayProjectDetails.tags.length === 0 ? (
-            <span className="text-xs text-gray-500 italic">No technologies specified</span>
+            <span className="text-xs text-gray-500 italic">
+              No technologies specified
+            </span>
           ) : (
             displayProjectDetails.tags.map((tag, index) => (
               <span
@@ -411,7 +438,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
             <FaInfoCircle className="mr-2" />
             Notes
           </h3>
-          <p className="text-xs text-gray-400 leading-relaxed">{displayProjectDetails.notes}</p>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            {displayProjectDetails.notes}
+          </p>
         </div>
       )}
     </div>
@@ -435,14 +464,19 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         </div>
       ) : (
         displayProjectDetails.resources.map((resource) => (
-          <div key={resource.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-gray-600/50 transition-all">
+          <div
+            key={resource.id}
+            className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-gray-600/50 transition-all"
+          >
             <div className="flex items-start space-x-3">
               <div className="w-10 h-10 bg-gray-700/50 rounded-lg flex items-center justify-center">
                 {getFileIcon(resource.type)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-white truncate">{resource.name}</h4>
+                  <h4 className="text-sm font-medium text-white truncate">
+                    {resource.name}
+                  </h4>
                   <div className="flex items-center space-x-2">
                     <button className="cursor-pointer p-1 text-gray-400 hover:text-white transition-colors">
                       <FaEye className="text-xs" />
@@ -457,9 +491,13 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">{resource.description}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {resource.description}
+                </p>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-500">by {resource.uploadedBy}</span>
+                  <span className="text-xs text-gray-500">
+                    by {resource.uploadedBy}
+                  </span>
                   <div className="flex items-center space-x-3 text-xs text-gray-500">
                     {resource.size && <span>{resource.size}</span>}
                     <span>{formatDate(resource.uploadedAt)}</span>
@@ -491,17 +529,32 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         </div>
       ) : (
         displayProjectDetails.milestones.map((milestone) => (
-          <div key={milestone.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+          <div
+            key={milestone.id}
+            className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50"
+          >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h4 className="text-sm font-medium text-white">{milestone.title}</h4>
-                <p className="text-xs text-gray-400 mt-1">{milestone.description}</p>
+                <h4 className="text-sm font-medium text-white">
+                  {milestone.title}
+                </h4>
+                <p className="text-xs text-gray-400 mt-1">
+                  {milestone.description}
+                </p>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(milestone.status)}`}>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getStatusColor(
+                    milestone.status
+                  )}`}
+                >
                   {milestone.status}
                 </span>
-                <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(milestone.priority)}`}>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getPriorityColor(
+                    milestone.priority
+                  )}`}
+                >
                   {milestone.priority}
                 </span>
               </div>
@@ -521,31 +574,48 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-gray-300">Team Members</h3>
-        <span className="text-xs text-gray-500">{participants.length} members</span>
+        <span className="text-xs text-gray-500">
+          {participants.length} members
+        </span>
       </div>
 
       {participants.map((participant: any) => (
-        <div key={participant.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
+        <div
+          key={participant.id}
+          className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50"
+        >
           <div className="flex items-center space-x-3">
             <div className="relative">
               <div
-                className={`w-10 h-10 rounded-full bg-gradient-to-r ${getRoleGradient(participant.role)} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-sm shadow-lg`}
+                className={`w-10 h-10 rounded-full bg-gradient-to-r ${getRoleGradient(
+                  participant.role
+                )} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-sm shadow-lg`}
               >
                 {getInitials(participant.name)}
               </div>
               {participant.isOnline && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-lg"></div>
               )}
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-white">{participant.name || 'Unknown User'}</h4>
-                <span className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getRoleBadge(participant.role)}`}>
+                <h4 className="text-sm font-medium text-white">
+                  {participant.name || "Unknown User"}
+                </h4>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs border font-medium uppercase ${getRoleBadge(
+                    participant.role
+                  )}`}
+                >
                   {participant.role}
                 </span>
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                {participant.isOnline ? "Online" : `Last seen ${formatTime(participant.lastSeen || new Date())}`}
+                {participant.isOnline
+                  ? "Online"
+                  : `Last seen ${formatTime(
+                      participant.lastSeen || new Date()
+                    )}`}
               </p>
             </div>
           </div>
@@ -566,7 +636,11 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         confirmText="Delete"
       />
       {/* Chat Panel */}
-      <div className={`flex flex-col transition-all duration-300 ${showDetails ? 'w-2/3' : 'w-full'}`}>
+      <div
+        className={`flex flex-col transition-all duration-300 ${
+          showDetails ? "w-2/3" : "w-full"
+        }`}
+      >
         {/* Chat Header */}
         <div className="bg-black/40 backdrop-blur-sm border-b border-gray-800/50 p-6">
           <div className="flex items-center justify-between">
@@ -576,7 +650,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                   <FaUsers className="text-white text-lg" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Project Chat</h2>
+                  <h2 className="text-xl font-semibold text-white">
+                    Project Chat
+                  </h2>
                   <p className="text-sm text-indigo-400 font-medium uppercase tracking-wide">
                     {projectTitle}
                   </p>
@@ -586,7 +662,12 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => window.open(`/admin-dashboard/project-chat/${projectId}`, '_blank')}
+                  onClick={() =>
+                    window.open(
+                      `/admin-dashboard/project-chat/${projectId}`,
+                      "_blank"
+                    )
+                  }
                   className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
                 >
                   <FaExternalLinkAlt className="text-sm" />
@@ -595,7 +676,11 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                   onClick={toggleDetails}
                   className="cursor-pointer p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
                 >
-                  {showDetails ? <FaChevronRight className="text-sm" /> : <FaChevronLeft className="text-sm" />}
+                  {showDetails ? (
+                    <FaChevronRight className="text-sm" />
+                  ) : (
+                    <FaChevronLeft className="text-sm" />
+                  )}
                 </button>
               </div>
               <div className="flex items-center space-x-3">
@@ -610,12 +695,14 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                       title={`${participant.name} (${participant.role})`}
                     >
                       <div
-                        className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(participant.role)} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-xs shadow-lg hover:scale-110 transition-transform`}
+                        className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(
+                          participant.role
+                        )} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-xs shadow-lg hover:scale-110 transition-transform`}
                       >
                         {getInitials(participant.name)}
                       </div>
                       {participant.isOnline && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-gray-900 shadow-sm"></div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-gray-900 shadow-lg"></div>
                       )}
                     </div>
                   ))}
@@ -647,12 +734,13 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
               messages.map((message: any, index: number) => {
                 const isOwnMessage = message.senderId === currentUserId;
                 const showAvatar =
-                  index === 0 || messages[index - 1].senderId !== message.senderId;
+                  index === 0 ||
+                  messages[index - 1].senderId !== message.senderId;
                 const showTimestamp =
                   index === 0 ||
                   new Date(message.timestamp).getTime() -
-                  new Date(messages[index - 1].timestamp).getTime() >
-                  300000;
+                    new Date(messages[index - 1].timestamp).getTime() >
+                    300000;
                 return (
                   <div key={message.id} className="space-y-2">
                     {showTimestamp && (
@@ -663,40 +751,59 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                       </div>
                     )}
                     <div
-                      className={`flex items-end space-x-3 ${isOwnMessage ? "flex-row-reverse space-x-reverse" : ""}`}
+                      className={`flex items-end space-x-3 ${
+                        isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
+                      }`}
                     >
                       {/* Avatar */}
                       {!isOwnMessage && (
                         <div
-                          className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(message.senderRole)} flex items-center justify-center text-white text-xs font-medium shadow-lg ${showAvatar ? "opacity-100" : "opacity-0"}`}
+                          className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(
+                            message.senderRole
+                          )} flex items-center justify-center text-white text-xs font-medium shadow-lg ${
+                            showAvatar ? "opacity-100" : "opacity-0"
+                          }`}
                         >
                           {getInitials(message.senderName)}
                         </div>
                       )}
                       {/* Message Content */}
-                      <div className={`w-[50%] xl:max-w-2xl ${isOwnMessage ? "ml-auto" : ""}`}>
+                      <div
+                        className={`w-[50%] xl:max-w-2xl ${
+                          isOwnMessage ? "ml-auto" : ""
+                        }`}
+                      >
                         {/* Sender Info */}
                         {!isOwnMessage && showAvatar && (
                           <div className="flex items-center space-x-2 mb-2">
                             <span className="text-sm font-semibold text-white">
                               {message.senderName}
                             </span>
-                            <span className={`px-2 py-1 rounded-full text-xs border uppercase font-medium ${getRoleBadge(message.senderRole)}`}>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs border uppercase font-medium ${getRoleBadge(
+                                message.senderRole
+                              )}`}
+                            >
                               {message.senderRole}
                             </span>
                           </div>
                         )}
                         {/* Message Bubble */}
                         <div
-                          className={`relative px-4 py-3 rounded-2xl shadow-lg group ${isOwnMessage
-                            ? "bg-gradient-to-r from-blue-600/70 to-blue-700/70 text-white ml-auto"
-                            : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
-                            } ${showAvatar ? "rounded-tl-md" : ""}`}
+                          className={`relative px-4 py-3 rounded-2xl shadow-lg group ${
+                            isOwnMessage
+                              ? "bg-gradient-to-r from-blue-600/70 to-blue-700/70 text-white ml-auto"
+                              : "bg-gray-800/80 backdrop-blur-sm text-gray-100 border border-gray-700/50"
+                          } ${showAvatar ? "rounded-tl-md" : ""}`}
                         >
                           {message.replyToMessage && (
                             <div className="p-2 mb-2 bg-black/50 rounded-lg border border-gray-200/10 text-xs text-gray-300">
-                              <p className="font-semibold">Replying to {message.replyToMessage.senderName}:</p>
-                              <p className="italic truncate">{message.replyToMessage.content}</p>
+                              <p className="font-semibold">
+                                Replying to {message.replyToMessage.senderName}:
+                              </p>
+                              <p className="italic truncate">
+                                {message.replyToMessage.content}
+                              </p>
                             </div>
                           )}
                           <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -705,18 +812,50 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                           {isOwnMessage && (
                             <div
                               className="absolute top-0 right-0 mt-1 mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                              onMouseEnter={() => setHoveredMessageId(message.id)}
+                              onMouseEnter={() =>
+                                setHoveredMessageId(message.id)
+                              }
                               onMouseLeave={() => setHoveredMessageId(null)}
                             >
                               <div className="relative">
-                                <button onClick={() => setActiveMessageId(message.id)} className="p-1 cursor-pointer rounded-full bg-black/20 hover:bg-black/40">
+                                <button
+                                  onClick={() => setActiveMessageId(message.id)}
+                                  className="p-1 cursor-pointer rounded-full bg-black/20 hover:bg-black/40"
+                                >
                                   <FaEllipsisV className="text-white/70 w-3 h-3" />
                                 </button>
                                 {activeMessageId === message.id && (
                                   <div className="absolute z-10 top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-xl">
-                                    <a href="#" onClick={() => { setReplyingTo(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-white hover:bg-gray-800">Reply</a>
-                                    <a href="#" onClick={() => { setEditingMessage(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-white hover:bg-gray-800">Edit</a>
-                                    <a href="#" onClick={() => { handleDeleteMessage(message); setActiveMessageId(null); }} className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-800">Delete</a>
+                                    <a
+                                      href="#"
+                                      onClick={() => {
+                                        setReplyingTo(message);
+                                        setActiveMessageId(null);
+                                      }}
+                                      className="block px-4 py-2 text-sm text-white hover:bg-gray-800"
+                                    >
+                                      Reply
+                                    </a>
+                                    <a
+                                      href="#"
+                                      onClick={() => {
+                                        setEditingMessage(message);
+                                        setActiveMessageId(null);
+                                      }}
+                                      className="block px-4 py-2 text-sm text-white hover:bg-gray-800"
+                                    >
+                                      Edit
+                                    </a>
+                                    <a
+                                      href="#"
+                                      onClick={() => {
+                                        handleDeleteMessage(message);
+                                        setActiveMessageId(null);
+                                      }}
+                                      className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-800"
+                                    >
+                                      Delete
+                                    </a>
                                   </div>
                                 )}
                               </div>
@@ -758,7 +897,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                     ></div>
                   </div>
                 </div>
-                <span className="text-xs text-gray-400">Someone is typing...</span>
+                <span className="text-xs text-gray-400">
+                  Someone is typing...
+                </span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -769,9 +910,14 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
           {replyingTo && (
             <div className="flex items-center justify-between p-2 mb-2 bg-blue-900/30 rounded-lg border border-blue-700/50 text-sm text-blue-200">
               <div className="flex-1 truncate">
-                Replying to <span className="font-semibold">{replyingTo.senderName}</span>: {replyingTo.content}
+                Replying to{" "}
+                <span className="font-semibold">{replyingTo.senderName}</span>:{" "}
+                {replyingTo.content}
               </div>
-              <button onClick={() => setReplyingTo(null)} className="ml-2 text-blue-200 hover:text-white">
+              <button
+                onClick={() => setReplyingTo(null)}
+                className="ml-2 text-blue-200 hover:text-white"
+              >
                 <FaTimes className="text-xs" />
               </button>
             </div>
@@ -780,7 +926,14 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
             <div className="flex-1 relative w-full">
               <textarea
                 value={editingMessage ? editingMessage.content : newMessage}
-                onChange={(e) => editingMessage ? setEditingMessage({ ...editingMessage, content: e.target.value }) : setNewMessage(e.target.value)}
+                onChange={(e) =>
+                  editingMessage
+                    ? setEditingMessage({
+                        ...editingMessage,
+                        content: e.target.value,
+                      })
+                    : setNewMessage(e.target.value)
+                }
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
                 className="w-full px-4 py-3 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-white placeholder-gray-400 resize-none scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
@@ -851,8 +1004,12 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
           <div className="bg-black/40 backdrop-blur-sm border-b border-gray-800/50 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-white">Project Details</h3>
-                <p className="text-sm text-gray-400">{displayProjectDetails.description}</p>
+                <h3 className="text-lg font-semibold text-white">
+                  Project Details
+                </h3>
+                <p className="text-sm text-gray-400">
+                  {displayProjectDetails.description}
+                </p>
               </div>
               <button
                 onClick={toggleDetails}
@@ -875,10 +1032,11 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`cursor-pointer flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-xs font-medium transition-all ${activeTab === tab.id
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-                    }`}
+                  className={`cursor-pointer flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-xs font-medium transition-all ${
+                    activeTab === tab.id
+                      ? "bg-blue-600 text-white shadow-lg"
+                      : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                  }`}
                 >
                   <tab.icon className="text-xs" />
                   <span className="hidden sm:inline">{tab.label}</span>

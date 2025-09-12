@@ -363,7 +363,7 @@ export default function BlogsSection() {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20"></div>
+      <div className="absolute inset-0 bg-gray-50 dark:bg-transparent"></div>
       <div className="absolute top-0 left-0 w-full h-full opacity-30">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
         <div
@@ -381,7 +381,7 @@ export default function BlogsSection() {
         <div className="text-center mb-20">
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center space-x-4">
-              <h1 className="text-3xl lg:text-4xl font-medium text-white">
+              <h1 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white">
                 Tech{" "}
                 <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                   Insights
@@ -399,7 +399,7 @@ export default function BlogsSection() {
               )}
             </div>
           </div>
-          <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
             Explore the latest insights on remote work, AI, blockchain, and the
             technologies shaping tomorrow's development landscape
           </p>
@@ -408,15 +408,15 @@ export default function BlogsSection() {
         {/* Featured Article */}
         {featuredBlog && (
           <div className="mb-16">
-            <article className="group relative overflow-hidden rounded-3xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.01] cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <article className="group relative overflow-hidden rounded-3xl backdrop-blur-md bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-700 hover:scale-[1.01] cursor-pointer shadow-lg dark:shadow-none">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 dark:from-blue-500/10 to-purple-500/5 dark:to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
               <div className="relative grid md:grid-cols-2 gap-0 min-h-[400px]">
                 {/* Content */}
                 <div className="relative p-8 lg:p-12 flex flex-col justify-center space-y-6 md-4">
                   <div className="flex items-center justify-between space-x-4">
-                    <div className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-full">
-                      <span className="text-blue-300 text-sm font-medium">
+                    <div className="flex items-center space-x-2 px-3 py-1 bg-blue-100 dark:bg-blue-500/20 backdrop-blur-sm border border-blue-300 dark:border-blue-500/30 rounded-full">
+                      <span className="text-blue-700 dark:text-blue-300 text-sm font-medium">
                         {featuredBlog.category}
                       </span>
                     </div>
@@ -428,16 +428,16 @@ export default function BlogsSection() {
                     </div>
                   </div>
 
-                  <h3 className="text-xl lg:text-3xl font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 leading-tight">
+                  <h3 className="text-xl lg:text-3xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300 leading-tight">
                     {featuredBlog.title}
                   </h3>
 
-                  <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 leading-relaxed text-lg">
+                  <p className="text-gray-600 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors duration-300 leading-relaxed text-lg">
                     {featuredBlog.excerpt}
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-6 text-sm text-gray-400">
+                    <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-2">
                         <FaUser className="text-xs" />
                         <span className="monty uppercase">
@@ -468,7 +468,7 @@ export default function BlogsSection() {
                       <FaArrowRight className="text-sm transition-transform duration-300 group-hover/btn:translate-x-1" />
                     </Link>
 
-                    <div className="flex items-center space-x-4 text-gray-400">
+                    <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-1">
                         <FaEye className="text-xs" />
                         <span className="monty uppercase text-sm">
@@ -510,7 +510,9 @@ export default function BlogsSection() {
         {isLoading && (
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-            <p className="text-gray-400 monty uppercase">Loading blogs...</p>
+            <p className="text-gray-600 dark:text-gray-400 monty uppercase">
+              Loading blogs...
+            </p>
           </div>
         )}
 
@@ -521,7 +523,7 @@ export default function BlogsSection() {
               <h3 className="text-2xl font-medium text-white mb-4">
                 Error Loading Blogs
               </h3>
-              <p className="text-gray-400">{error}</p>
+              <p className="text-gray-600 dark:text-gray-400">{error}</p>
             </div>
           </div>
         )}
@@ -533,7 +535,7 @@ export default function BlogsSection() {
               <Link
                 key={blog.id}
                 href={`/blogs/${blog.slug || blog.id}`}
-                className={`group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-700 hover:scale-[1.02] cursor-pointer block ${getCardSizeClasses(
+                className={`group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-700 hover:scale-[1.02] cursor-pointer block shadow-lg dark:shadow-none ${getCardSizeClasses(
                   blog.size
                 )}`}
                 style={{
@@ -583,7 +585,7 @@ export default function BlogsSection() {
                 )}
 
                 {/* Blog Image */}
-                <div className="relative h-48 bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden">
+                <div className="relative h-48 bg-gradient-to-br from-gray-200 dark:from-gray-700 to-gray-300 dark:to-gray-800 overflow-hidden">
                   {blog.image && (
                     <Image
                       src={blog.image}
@@ -596,9 +598,9 @@ export default function BlogsSection() {
 
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4">
-                    <div className="flex items-center space-x-2 px-3 py-1 bg-black/40 backdrop-blur-sm rounded-full border border-white/20">
+                    <div className="flex items-center space-x-2 px-3 py-1 bg-white/90 dark:bg-black/40 backdrop-blur-sm rounded-full border border-gray-300 dark:border-white/20">
                       <CategoryIcon category={blog.category} />
-                      <span className="text-xs font-medium text-white">
+                      <span className="text-xs font-medium text-gray-900 dark:text-white">
                         {blog.category}
                       </span>
                     </div>
@@ -607,16 +609,16 @@ export default function BlogsSection() {
 
                 {/* Blog Content */}
                 <div className="p-6 space-y-4">
-                  <h3 className="text-xl font-medium text-white group-hover:text-blue-400 transition-colors duration-300 line-clamp-2">
+                  <h3 className="text-xl font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2">
                     {blog.title}
                   </h3>
 
-                  <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3">
                     {blog.excerpt}
                   </p>
 
                   {/* Meta Information */}
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-1">
                         <FaUser className="text-xs" />
@@ -640,17 +642,17 @@ export default function BlogsSection() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-300">
+                    <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-300">
                       <span className="text-sm font-medium">Read More</span>
                       <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                      <button className="p-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
                         <FaBookmark className="text-xs" />
                       </button>
                       <div className="relative group/share">
                         <button
-                          className="p-1 text-gray-400 hover:text-green-400 transition-colors duration-300"
+                          className="p-1 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-300"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -664,9 +666,9 @@ export default function BlogsSection() {
                         >
                           <FaShare className="text-xs" />
                         </button>
-                        <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20 hidden">
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-20 hidden">
                           <button
-                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -683,7 +685,7 @@ export default function BlogsSection() {
                             <span>Copy Link</span>
                           </button>
                           <button
-                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-400 hover:bg-gray-700 hover:text-blue-300 transition-colors duration-200"
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -700,7 +702,7 @@ export default function BlogsSection() {
                             <span>Twitter</span>
                           </button>
                           <button
-                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-500 hover:bg-gray-700 hover:text-blue-400 transition-colors duration-200"
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-600 dark:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-700 dark:hover:text-blue-400 transition-colors duration-200"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -717,7 +719,7 @@ export default function BlogsSection() {
                             <span>LinkedIn</span>
                           </button>
                           <button
-                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-700 hover:text-blue-500 transition-colors duration-200"
+                            className="flex items-center space-x-2 w-full px-4 py-2 text-left text-blue-700 dark:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-800 dark:hover:text-blue-500 transition-colors duration-200"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -753,11 +755,11 @@ export default function BlogsSection() {
         {/* Error State */}
         {!isLoading && error && (
           <div className="text-center py-20">
-            <div className="bg-red-900/30 border border-red-700/50 rounded-2xl p-8 max-w-2xl mx-auto">
-              <h3 className="text-2xl font-medium text-white mb-4">
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 rounded-2xl p-8 max-w-2xl mx-auto">
+              <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
                 Error Loading Blogs
               </h3>
-              <p className="text-red-300 mb-6">{error}</p>
+              <p className="text-red-600 dark:text-red-300 mb-6">{error}</p>
               <button
                 onClick={() => {
                   // Clear error and try to reload
@@ -807,11 +809,11 @@ export default function BlogsSection() {
         {/* Empty State */}
         {!isLoading && !error && blogs.length === 0 && (
           <div className="text-center py-20">
-            <div className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-8 max-w-2xl mx-auto">
-              <h3 className="text-2xl font-medium text-white mb-4">
+            <div className="bg-gray-100 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-700/50 rounded-2xl p-8 max-w-2xl mx-auto">
+              <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
                 No Blogs Found
               </h3>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 There are no blog posts available at the moment.
               </p>
               {isAdmin && (

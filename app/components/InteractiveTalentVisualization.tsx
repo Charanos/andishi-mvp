@@ -59,10 +59,10 @@ const TalentOrb: React.FC = () => {
       <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 animate-spin-slow blur-sm"></div>
 
       {/* Main circular container */}
-      <div className="relative w-full h-full rounded-full bg-gradient-to-br from-slate-900/90 via-blue-900/40 to-purple-900/60 backdrop-blur-md border border-white/20 overflow-hidden">
+      <div className="relative w-full h-full rounded-full bg-gradient-to-br from-gray-100 dark:from-slate-900/90 via-blue-100 dark:via-blue-900/40 to-purple-100 dark:to-purple-900/60 backdrop-blur-md border border-gray-300 dark:border-white/20 overflow-hidden shadow-lg dark:shadow-none">
         {/* Central AI core */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl">
+          <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-xl">
             <FaCog
               className="text-white text-2xl"
               style={{ transform: `rotate(${rotation}deg)` }}
@@ -107,8 +107,8 @@ const TalentOrb: React.FC = () => {
                   backdrop-blur-sm border transition-all duration-300
                   ${
                     isActive
-                      ? "scale-125 border-white/40 bg-white/20 shadow-lg"
-                      : "border-white/20 bg-white/10 hover:scale-110"
+                      ? "scale-125 border-gray-400 dark:border-white/40 bg-gray-200 dark:bg-white/20 shadow-lg"
+                      : "border-gray-300 dark:border-white/20 bg-gray-100 dark:bg-white/10 hover:scale-110"
                   }
                 `}
                 style={{
@@ -117,7 +117,7 @@ const TalentOrb: React.FC = () => {
               >
                 <skill.icon
                   className="text-lg transition-colors duration-300"
-                  style={{ color: isActive ? skill.color : "#94A3B8" }}
+                  style={{ color: isActive ? skill.color : "#64748B" }}
                 />
 
                 {/* Connection line to center */}
@@ -139,7 +139,7 @@ const TalentOrb: React.FC = () => {
 
                 {/* Skill name tooltip */}
                 {isActive && (
-                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-20 animate-fade-in">
+                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-20 animate-fade-in">
                     {skill.name}
                   </div>
                 )}
@@ -152,7 +152,7 @@ const TalentOrb: React.FC = () => {
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-60"
+            className="absolute w-1 h-1 bg-blue-500 dark:bg-blue-400 rounded-full opacity-60"
             style={{
               left: "50%",
               top: "50%",
@@ -165,14 +165,14 @@ const TalentOrb: React.FC = () => {
 
         {/* Data flow animation */}
         <div
-          className="absolute inset-4 rounded-full border border-dashed border-white/10 animate-spin-reverse"
+          className="absolute inset-4 rounded-full border border-dashed border-gray-300 dark:border-white/10 animate-spin-reverse"
           style={{ animationDuration: "20s" }}
         >
-          <div className="absolute w-2 h-2 bg-purple-400 rounded-full -top-1 left-1/2 transform -translate-x-1/2 animate-pulse" />
+          <div className="absolute w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full -top-1 left-1/2 transform -translate-x-1/2 animate-pulse" />
         </div>
 
         {/* Bottom status */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-white/60 text-center">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 dark:text-white/60 text-center">
           AI Talent Matching
         </div>
       </div>

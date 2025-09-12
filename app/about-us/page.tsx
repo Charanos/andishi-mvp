@@ -298,8 +298,8 @@ export default function AndishiAboutPage() {
 
   return (
     <>
-      <div className="min-h-screen relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20" />
+      <div className="min-h-screen relative overflow-hidden bg-white dark:bg-transparent">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/5 via-purple-900/5 to-indigo-900/5 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-indigo-900/20" />
         <div className="relative z-10 pt-4 pb-20">
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
@@ -311,14 +311,14 @@ export default function AndishiAboutPage() {
               }`}
             >
               <div className="max-w-6xl mx-auto px-6 relative z-10 mt-14 mb-10">
-                <h1 className="text-3xl lg:text-4xl font-medium text-white mb-4">
-                  <span className="text-white">About </span>
+                <h1 className="text-3xl lg:text-4xl font-medium text-gray-900 dark:text-white mb-4">
+                  <span className="text-gray-900 dark:text-white">About </span>
                   <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                     Andishi
                   </span>
                 </h1>
 
-                <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
                   Transforming overlooked minds into architects of tomorrow's
                   digital world
                 </p>
@@ -332,7 +332,7 @@ export default function AndishiAboutPage() {
                     className={`px-6 py-3 rounded-full cursor-pointer font-semibold monty uppercase text-sm transition-all duration-300 ${
                       activeSection === section
                         ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
-                        : "bg-white/10 text-gray-300 hover:bg-white/20"
+                        : "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20"
                     }`}
                   >
                     {section.charAt(0).toUpperCase() + section.slice(1)}
@@ -344,15 +344,15 @@ export default function AndishiAboutPage() {
             {/* Mission Section */}
             {activeSection === "mission" && (
               <div className="transition-all duration-500 animate-fade-in">
-                <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
+                <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-8 lg:p-12 shadow-xl mb-12">
                   <div className="text-center mb-12">
                     <div className="flex items-center justify-center mb-6">
                       <FaBullseye className="text-3xl text-blue-400 mr-4" />
-                      <h2 className="text-3xl font-semibold text-white">
+                      <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
                         Our Mission
                       </h2>
                     </div>
-                    <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                    <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
                       We exist to democratize global tech opportunities,
                       discovering and nurturing exceptional talent while
                       creating economic growth that transcends borders.
@@ -363,7 +363,7 @@ export default function AndishiAboutPage() {
                     {missionElements.map((element, index) => (
                       <div
                         key={index}
-                        className="group p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:bg-white/10"
+                        className="group p-8 rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 hover:scale-105 hover:bg-gray-50 dark:hover:bg-white/10 shadow-xl dark:shadow-none"
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
                         <div className="flex items-start space-x-4">
@@ -373,10 +373,10 @@ export default function AndishiAboutPage() {
                             <element.icon className="text-white text-2xl" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-300 transition-colors">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
                               {element.title}
                             </h3>
-                            <p className="text-gray-400 leading-relaxed">
+                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                               {element.description}
                             </p>
                           </div>
@@ -391,15 +391,15 @@ export default function AndishiAboutPage() {
             {/* Vision Section */}
             {activeSection === "vision" && (
               <div className="transition-all duration-500 animate-fade-in">
-                <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
+                <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-8 lg:p-12 shadow-xl mb-12">
                   <div className="text-center mb-12">
                     <div className="flex items-center justify-center mb-6">
                       <FaEye className="text-3xl text-purple-400 mr-4" />
-                      <h2 className="text-3xl font-semibold text-white">
+                      <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
                         Our Vision
                       </h2>
                     </div>
-                    <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                    <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
                       A tech ecosystem where talent is evaluated solely on
                       merit, where geography becomes just a data point, and
                       innovation flows freely across all borders.
@@ -410,18 +410,18 @@ export default function AndishiAboutPage() {
                     {visionElements.map((element, index) => (
                       <div
                         key={index}
-                        className="group relative overflow-hidden p-8 rounded-2xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-500 hover:scale-105"
+                        className="group relative overflow-hidden p-8 rounded-2xl bg-gradient-to-br from-purple-500/5 to-blue-500/5 dark:from-purple-500/10 dark:to-blue-500/10 border border-purple-300 dark:border-purple-500/20 hover:border-purple-400 dark:hover:border-purple-400/40 transition-all duration-500 hover:scale-105 shadow-xl dark:shadow-none"
                         style={{ animationDelay: element.delay }}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 to-blue-500/0 group-hover:from-purple-500/5 group-hover:to-blue-500/5 transition-all duration-500"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 to-blue-500/0 group-hover:from-purple-500/3 dark:group-hover:from-purple-500/5 group-hover:to-blue-500/3 dark:group-hover:to-blue-500/5 transition-all duration-500"></div>
                         <div className="relative z-10">
                           <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                             <element.icon className="text-white text-xl" />
                           </div>
-                          <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                             {element.title}
                           </h3>
-                          <p className="text-gray-400 leading-relaxed">
+                          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                             {element.description}
                           </p>
                         </div>
@@ -435,15 +435,15 @@ export default function AndishiAboutPage() {
             {/* Values Section */}
             {activeSection === "values" && (
               <div className="transition-all duration-500 animate-fade-in">
-                <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
+                <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-8 lg:p-12 shadow-xl mb-12">
                   <div className="text-center mb-12">
                     <div className="flex items-center justify-center mb-6">
                       <FaHeart className="text-3xl text-green-400 mr-4" />
-                      <h2 className="text-3xl font-semibold text-white">
+                      <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
                         Core Values
                       </h2>
                     </div>
-                    <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                    <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
                       These principles guide every decision we make and every
                       connection we facilitate.
                     </p>
@@ -453,7 +453,7 @@ export default function AndishiAboutPage() {
                     {coreValues.map((value, index) => (
                       <div
                         key={index}
-                        className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:bg-white/8"
+                        className="group p-6 rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 hover:scale-105 hover:bg-gray-50 dark:hover:bg-white/8 shadow-xl dark:shadow-none"
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
                         <div
@@ -463,13 +463,13 @@ export default function AndishiAboutPage() {
                         >
                           <value.icon className="text-white text-lg" />
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-300 transition-colors">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
                           {value.title}
                         </h3>
                         <p className="text-sm font-medium text-blue-300 mb-3">
                           {value.subtitle}
                         </p>
-                        <p className="text-gray-400 text-sm leading-relaxed">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                           {value.description}
                         </p>
                       </div>
@@ -482,15 +482,15 @@ export default function AndishiAboutPage() {
             {/* Journey/Timeline Section */}
             {activeSection === "journey" && (
               <div className="transition-all duration-500 animate-fade-in">
-                <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl mb-12">
+                <div className="backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl p-8 lg:p-12 shadow-xl mb-12">
                   <div className="text-center mb-12">
                     <div className="flex items-center justify-center mb-6">
                       <FaClock className="text-3xl text-cyan-400 mr-4" />
-                      <h2 className="text-3xl font-semibold text-white">
+                      <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
                         Our Journey
                       </h2>
                     </div>
-                    <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                    <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
                       From a spark of an idea to transforming lives globally.
                       Here's how we've grown to bridge the talent gap.
                     </p>
@@ -505,7 +505,7 @@ export default function AndishiAboutPage() {
                         className={`px-4 py-2 cursor-pointer rounded-lg text-sm font-medium transition-all duration-300 ${
                           activeTimelineItem === index
                             ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
-                            : "bg-white/10 text-gray-300 hover:bg-white/20"
+                            : "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20"
                         }`}
                       >
                         {event.year} {event.quarter}
@@ -519,7 +519,7 @@ export default function AndishiAboutPage() {
                       {/* Timeline Line */}
                       <div className="absolute left-8 top-20 bottom-0 w-1 bg-gradient-to-b from-cyan-500 to-blue-500 rounded-full opacity-30"></div>
 
-                      <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-8 hover:border-white/30 transition-all duration-500">
+                      <div className="relative bg-gradient-to-br from-white/90 to-white/80 dark:from-white/10 dark:to-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/20 rounded-2xl p-8 hover:border-gray-300 dark:hover:border-white/30 transition-all duration-500 shadow-lg dark:shadow-none">
                         {/* Timeline Dot */}
                         <div className="absolute left-8 top-8 transform -translate-x-1/2">
                           <div
@@ -544,7 +544,7 @@ export default function AndishiAboutPage() {
                                   })()}
                                 </div>
                                 <div>
-                                  <h3 className="text-2xl font-semibold text-white">
+                                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
                                     {timelineEvents[activeTimelineItem].title}
                                   </h3>
                                   <p className="text-cyan-300 font-medium">
@@ -567,14 +567,14 @@ export default function AndishiAboutPage() {
                           </div>
 
                           {/* Description */}
-                          <p className="text-gray-300 leading-relaxed mb-6">
+                          <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
                             {timelineEvents[activeTimelineItem].description}
                           </p>
 
                           {/* Achievements & Impact */}
                           <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                              <h4 className="text-white font-semibold mb-3 flex items-center">
+                              <h4 className="text-gray-900 dark:text-white font-semibold mb-3 flex items-center">
                                 <FaCheckCircle className="text-green-400 mr-2" />
                                 Key Achievements
                               </h4>
@@ -584,7 +584,7 @@ export default function AndishiAboutPage() {
                                 ].achievements.map((achievement, i) => (
                                   <li
                                     key={i}
-                                    className="text-gray-400 text-sm flex items-start"
+                                    className="text-gray-600 dark:text-gray-400 text-sm flex items-start"
                                   >
                                     <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 mr-3 flex-shrink-0"></div>
                                     {achievement}
@@ -594,12 +594,12 @@ export default function AndishiAboutPage() {
                             </div>
 
                             <div>
-                              <h4 className="text-white font-semibold mb-3 flex items-center">
+                              <h4 className="text-gray-900 dark:text-white font-semibold mb-3 flex items-center">
                                 <FaStar className="text-yellow-400 mr-2" />
                                 Impact Created
                               </h4>
                               <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg p-4">
-                                <p className="text-gray-300 text-sm leading-relaxed">
+                                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                                   {timelineEvents[activeTimelineItem].impact}
                                 </p>
                               </div>
@@ -618,7 +618,7 @@ export default function AndishiAboutPage() {
                           )
                         }
                         disabled={activeTimelineItem === 0}
-                        className="flex items-center cursor-pointer px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300"
+                        className="flex items-center cursor-pointer px-6 py-3 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white rounded-lg transition-all duration-300"
                       >
                         <FaArrowRight className="rotate-180 mr-2" />
                         Previous
@@ -636,7 +636,7 @@ export default function AndishiAboutPage() {
                         disabled={
                           activeTimelineItem === timelineEvents.length - 1
                         }
-                        className="flex cursor-pointer items-center px-6 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-300"
+                        className="flex cursor-pointer items-center px-6 py-3 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white rounded-lg transition-all duration-300"
                       >
                         Next
                         <FaArrowRight className="ml-2" />
@@ -652,11 +652,11 @@ export default function AndishiAboutPage() {
 
           <div className="max-w-7xl mx-auto px-6 my-24">
             {/* Call to Action */}
-            <div className="text-center backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
-              <h3 className="text-2xl font-semibold text-white mb-4">
+            <div className="text-center backdrop-blur-md bg-white/90 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-8 shadow-xl">
+              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
                 Ready to Transform the Future?
               </h3>
-              <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+              <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
                 Join us in building a world where exceptional talent thrives
                 without boundaries. Whether you're a developer looking for
                 opportunities or a company seeking top talent, let's create
@@ -672,7 +672,7 @@ export default function AndishiAboutPage() {
                 </Link>
                 <Link
                   href="/start-project"
-                  className="px-8 monty cursor-pointer py-3 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300"
+                  className="px-8 monty cursor-pointer py-3 border border-gray-300 dark:border-white/20 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-300"
                 >
                   Partner With Us
                 </Link>

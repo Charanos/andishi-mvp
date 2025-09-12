@@ -729,7 +729,7 @@ export default function AssessmentDashboard() {
           {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 my-22">
             {/* Assessment Status Distribution */}
-            <div className="backdrop-blur-xl bg-black/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
+            <div className="backdrop-blur-xl bg-black/5 border border-white/20 rounded-3xl p-8 shadow-xl">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
@@ -944,7 +944,7 @@ export default function AssessmentDashboard() {
             </div>
 
             {/* Score Distribution & Trends */}
-            <div className="backdrop-blur-xl bg-black/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
+            <div className="backdrop-blur-xl bg-black/5 border border-white/20 rounded-3xl p-8 shadow-xl">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">

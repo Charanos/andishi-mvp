@@ -236,20 +236,20 @@ export default function EnhancedBlogPostPage() {
     return (
       <div className="text-center py-20 flex flex-col items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-        <p className="text-gray-400 monty uppercase">Loading blog post...</p>
+        <p className="text-gray-600 dark:text-gray-400 monty uppercase">Loading blog post...</p>
       </div>
     );
   }
 
   if (error || !blog) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
           <div className="text-6xl text-red-400 mb-4">😞</div>
-          <h1 className="text-2xl font-semibold text-white mb-4">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             Blog Post Not Found
           </h1>
-          <p className="text-gray-400 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             {error || "The blog post you're looking for doesn't exist."}
           </p>
           <Link
@@ -266,7 +266,7 @@ export default function EnhancedBlogPostPage() {
   return (
     <>
       {/* Progress Bar */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-gray-800 z-50">
+      <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 dark:bg-gray-800 z-50">
         <div
           className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
           style={{ width: `${scrollProgress}%` }}

@@ -44,7 +44,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({
   setPriorityFilter,
 }) => {
   return (
-    <div className="bg-white/5 my-12 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 shadow-2xl">
+    <div className="bg-white/5 my-12 backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 shadow-xl">
       <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
         <div className="flex-1 max-w-md">
           <div className="relative group">

@@ -94,10 +94,10 @@ export default function Footer() {
             {/* Company Info */}
             <div className="lg:col-span-2 space-y-6">
               <div>
-                <h3 className="text-3xl font-semibold !text-gray-100 mb-2 monty uppercase">
+                <h3 className="text-3xl font-semibold text-gray-900 dark:!text-gray-100 mb-2 monty uppercase">
                   Andishi
                 </h3>
-                <p className="text-gray-400 leading-relaxed max-w-md">
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-md">
                   Connecting exceptional remote developers with innovative
                   companies worldwide. Building the future of tech, one perfect
                   match at a time.
@@ -106,17 +106,17 @@ export default function Footer() {
 
               {/* Contact Info */}
               <div className="space-y-3">
-                <div className="flex items-center space-x-3 text-gray-200 transition-colors duration-300">
+                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-200 transition-colors duration-300">
                   <FaMapMarkerAlt className="text-blue-600 flex-shrink-0" />
                   <span className="text-md">
                     Nairobi - Kenya & Remote Worldwide
                   </span>
                 </div>
-                <div className="flex items-center space-x-3 text-gray-200 transition-colors duration-300">
+                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-200 transition-colors duration-300">
                   <FaPhone className="text-blue-600 flex-shrink-0" />
                   <span className="text-md">+254 759 912 373</span>
                 </div>
-                <div className="flex items-center space-x-3 text-gray-200 transition-colors duration-300">
+                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-200 transition-colors duration-300">
                   <FaEnvelope className="text-blue-600 flex-shrink-0" />
                   <span className="text-md">info@andishi.dev</span>
                 </div>
@@ -130,7 +130,7 @@ export default function Footer() {
                     <Link
                       key={social.name}
                       href={social.href}
-                      className={`p-3 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-gray-400 ${social.color} transition-all duration-300 hover:scale-110 hover:bg-white/10 hover:border-white/20`}
+                      className={`p-3 rounded-full backdrop-blur-md bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 ${social.color} transition-all duration-300 hover:scale-110 hover:bg-gray-200 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20`}
                       aria-label={social.name}
                       target="_blank"
                     >
@@ -152,7 +152,7 @@ export default function Footer() {
             {/* Footer Links */}
             {Object.entries(footerLinks).map(([category, links]) => (
               <div key={category} className="space-y-4">
-                <h4 className="text-lg font-semibold !text-gray-400 uppercase">
+                <h4 className="text-lg font-semibold text-gray-600 dark:!text-gray-400 uppercase">
                   {category}
                 </h4>
                 <ul className="space-y-2">
@@ -160,7 +160,7 @@ export default function Footer() {
                     <li key={link.name}>
                       <Link
                         href={link.href}
-                        className="text-gray-200 text-[15.6px] hover:text-purple-400 transition-colors duration-300 hover:translate-x-1 inline-block transform"
+                        className="text-gray-700 dark:text-gray-200 text-[15.6px] hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-300 hover:translate-x-1 inline-block transform"
                       >
                         {link.name}
                       </Link>
@@ -173,19 +173,19 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="py-8 border-t border-white/10">
+        <div className="py-8 border-t border-gray-200 dark:border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex items-center space-x-2 text-gray-400 text-sm">
+            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 text-sm">
               <span>© 2025 Andishi. Made with</span>
-              <FaHeart className="text-red-400 animate-pulse" />
+              <FaHeart className="text-red-500 dark:text-red-400 animate-pulse" />
               <span>for developers worldwide</span>
             </div>
 
             <div className="flex items-center space-x-6">
-              <span className="text-gray-500 text-sm">Scroll to top</span>
+              <span className="text-gray-600 dark:text-gray-500 text-sm">Scroll to top</span>
               <button
                 onClick={scrollToTop}
-                className="p-3 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-110 group"
+                className="p-3 rounded-full backdrop-blur-md bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-300 hover:scale-110 group"
                 aria-label="Scroll to top"
               >
                 <FaArrowUp className="text-sm group-hover:-translate-y-1 transition-transform duration-300" />

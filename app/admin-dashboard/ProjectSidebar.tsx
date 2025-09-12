@@ -38,8 +38,10 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   onBack,
 }) => {
   return (
-    <aside className={`w-70 mr-4 sticky top-22 h-[calc(100vh-10rem)] ${className}`}>
-      <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-2xl border border-purple-500/30 rounded-2xl p-6 h-full flex flex-col space-y-8 overflow-hidden">
+    <aside
+      className={`w-70 mr-4 sticky top-22 h-[calc(100vh-10rem)] ${className}`}
+    >
+      <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-xl border border-purple-500/30 rounded-2xl p-6 h-full flex flex-col space-y-8 overflow-hidden">
         {/* Header */}
         <div className="space-y-4">
           <button

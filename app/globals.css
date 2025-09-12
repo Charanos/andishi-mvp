@@ -8,11 +8,15 @@
 }
 
 body {
+  scroll-behavior: smooth;
+  font-family: "Nunito", sans-serif;
+}
+
+/* Dark theme body styles */
+.dark body {
   color: #ededed;
   background: #0b0d0e url("/bg-gradient-overlay.svg");
   background-size: cover;
-  scroll-behavior: smooth;
-  font-family: "Nunito", sans-serif;
 }
 
 header,
@@ -25,8 +29,21 @@ h6 button,
 input,
 textarea,
 select {
-  color: #ededed;
   font-family: "Montserrat", sans-serif;
+}
+
+/* Dark theme header styles */
+.dark header,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 button,
+.dark input,
+.dark textarea,
+.dark select {
+  color: #ededed;
 }
 
 input,
@@ -104,40 +121,43 @@ html.lenis {
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Light theme - Beautiful, clean, and professional */
+  --background: oklch(0.98 0 0); /* Slightly off-white background */
+  --foreground: oklch(0.15 0 0); /* Dark gray text */
+  --card: oklch(1 0 0); /* Pure white cards */
+  --card-foreground: oklch(0.15 0 0); /* Dark gray text on cards */
+  --popover: oklch(1 0 0); /* White popovers */
+  --popover-foreground: oklch(0.15 0 0); /* Dark text in popovers */
+  --primary: oklch(0.65 0.25 200); /* Bright cyan-blue (matches brand) */
+  --primary-foreground: oklch(1 0 0); /* White text on primary */
+  --secondary: oklch(0.95 0 0); /* Light gray secondary */
+  --secondary-foreground: oklch(0.15 0 0); /* Dark text on secondary */
+  --muted: oklch(0.95 0 0); /* Light gray muted */
+  --muted-foreground: oklch(0.45 0 0); /* Medium gray muted text */
+  --accent: oklch(0.65 0.2 270); /* Purple accent (brand color) */
+  --accent-foreground: oklch(1 0 0); /* White text on accent */
+  --destructive: oklch(0.55 0.25 27); /* Red for errors */
+  --border: oklch(0.9 0 0); /* Light gray borders */
+  --input: oklch(0.95 0 0); /* Light gray input backgrounds */
+  --ring: oklch(0.65 0.25 200); /* Primary color for focus rings */
+  --chart-1: oklch(0.65 0.25 200); /* Cyan-blue */
+  --chart-2: oklch(0.65 0.2 270); /* Purple */
+  --chart-3: oklch(0.75 0.25 320); /* Magenta */
+  --chart-4: oklch(0.7 0.2 150); /* Teal */
+  --chart-5: oklch(0.6 0.25 45); /* Orange */
+  --sidebar: oklch(0.98 0 0); /* Light sidebar */
+  --sidebar-foreground: oklch(0.15 0 0); /* Dark text in sidebar */
+  --sidebar-primary: oklch(0.65 0.25 200); /* Primary in sidebar */
+  --sidebar-primary-foreground: oklch(1 0 0); /* White text on primary */
+  --sidebar-accent: oklch(0.95 0 0); /* Light accent in sidebar */
+  --sidebar-accent-foreground: oklch(0.15 0 0); /* Dark text on accent */
+  --sidebar-border: oklch(0.9 0 0); /* Light borders in sidebar */
+  --sidebar-ring: oklch(0.65 0.25 200); /* Focus ring in sidebar */
+  color-scheme: light;
 }
 
 .dark {
+  /* Dark theme - EXACTLY as it is currently */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -169,13 +189,33 @@ html.lenis {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
+}
+
+/* Light theme overrides - only apply when .light class is present */
+.light body {
+  color: oklch(0.15 0 0) !important;
+  background: oklch(0.98 0 0) !important;
+}
+
+.light header,
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light h5,
+.light h6 button,
+.light input,
+.light textarea,
+.light select {
+  color: oklch(0.15 0 0) !important;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
+  .light body {
     @apply bg-background text-foreground;
   }
 }
@@ -183,47 +223,56 @@ html.lenis {
 /* Custom Scrollbar Styles */
 /* Webkit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(11, 13, 14, 0.8);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-  border-radius: 10px;
-  border: 2px solid rgba(11, 13, 14, 0.8);
-  transition: all 0.3s ease;
+  background: #8b5cf6;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
-  border: 2px solid rgba(11, 13, 14, 0.6);
-  transform: scale(1.05);
+  background: #7c3aed;
 }
 
-::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #a855f7 100%);
+/* Dark mode scrollbar - using :is() for better specificity */
+:is(.dark) ::-webkit-scrollbar-track {
+  background: transparent !important;
 }
 
-::-webkit-scrollbar-corner {
-  background: rgba(11, 13, 14, 0.8);
+:is(.dark) ::-webkit-scrollbar-thumb {
+  background: #8b5cf6 !important;
+  border-radius: 4px;
 }
+
+:is(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed !important;
+}
+
 
 /* Firefox scrollbar styling */
 html {
   scrollbar-width: thin;
-  scrollbar-color: #8b5cf6 rgba(11, 13, 14, 0.8);
+  scrollbar-color: #8b5cf6 transparent;
+}
+
+:is(.dark) html {
+  scrollbar-color: #8b5cf6 transparent !important;
 }
 
 /* Enhanced scrollbar for better visibility */
 ::-webkit-scrollbar-track:hover {
-  background: rgba(11, 13, 14, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border: none;
+}
+
+:is(.dark) ::-webkit-scrollbar-track:hover {
+  background: transparent !important;
+  border: none;
 }
 
 /* Scrollbar for specific containers if needed */
@@ -233,7 +282,13 @@ html {
 }
 
 .custom-scroll::-webkit-scrollbar-track {
-  background: rgba(13, 15, 17, 0.6);
+  background: rgba(243, 244, 246, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+:is(.dark) .custom-scroll::-webkit-scrollbar-track {
+  background: rgba(13, 15, 17, 0.6) !important;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.03);
 }
@@ -251,7 +306,11 @@ html {
 /* Smooth scrolling enhancement */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #8b5cf6 rgba(11, 13, 14, 0.8);
+  scrollbar-color: #8b5cf6 transparent;
+}
+
+:is(.dark) * {
+  scrollbar-color: #8b5cf6 transparent !important;
 }
 
 /* Optional: Hide scrollbar but keep functionality */

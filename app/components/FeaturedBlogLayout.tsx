@@ -371,7 +371,7 @@ export default function EnhancedBlogLayout({
           )}
 
           {/* Article Body */}
-          <article className="prose prose-invert prose-lg max-w-none">
+          <article className="max-w-none">
             <RichTextViewer html={blog.content} enhanced={true} />
           </article>
 

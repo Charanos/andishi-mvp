@@ -118,7 +118,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
   const activeFilterCount = getActiveFilterCount();
 
   return (
-    <div className="bg-white/10 dark:bg-white/5 rounded-xl p-6 mb-6">
+    <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6 mb-6">
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
         {/* Search Input */}
         <div className="flex-1 max-w-lg">
@@ -175,7 +175,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
             className={`relative cursor-pointer flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors ${
               showAdvancedFilters
                 ? "bg-blue-600 text-white"
-                : "bg-white/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/20"
+                : "bg-white/5 dark:bg-black/5 shadow-sm dark:shadow-none backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-black/10 border border-gray-200 dark:border-white/10"
             }`}
             title="Advanced Filters"
           >
@@ -195,7 +195,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
               className={`p-3 transition-colors ${
                 viewMode === "list"
                   ? "bg-blue-600 text-white"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/10 dark:hover:bg-black/10"
               }`}
               title="List View"
             >
@@ -207,7 +207,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
               className={`p-3 transition-colors ${
                 viewMode === "grid"
                   ? "bg-blue-600 text-white"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/10 dark:hover:bg-black/10"
               }`}
               title="Grid View"
             >
@@ -289,7 +289,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-3">
                 Languages
               </label>
-              <div className="bg-white/10 border border-gray-600 rounded-lg p-4 min-h-[120px] max-h-32 overflow-y-auto">
+              <div className="bg-white/5 dark:bg-black/5 shadow-sm dark:shadow-none backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-lg p-4 min-h-[120px] max-h-32 overflow-y-auto">
                 {languageOptions.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {languageOptions.map((language) => (
@@ -319,7 +319,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-3">
                 Certifications
               </label>
-              <div className="bg-white/10 border border-gray-600 rounded-lg p-4 min-h-[120px] max-h-32 overflow-y-auto">
+              <div className="bg-white/5 dark:bg-black/5 shadow-sm dark:shadow-none backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-lg p-4 min-h-[120px] max-h-32 overflow-y-auto">
                 {certificationOptions.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {certificationOptions.map((certification) => (
@@ -350,7 +350,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-3">
                 Technical Skills
               </label>
-              <div className="bg-white/10 border border-gray-600 rounded-lg p-4 min-h-[120px] max-h-32 overflow-y-auto">
+              <div className="bg-white/5 dark:bg-black/5 shadow-sm dark:shadow-none backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-lg p-4 min-h-[120px] max-h-32 overflow-y-auto">
                 {skillOptions.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {skillOptions.map((skill) => (

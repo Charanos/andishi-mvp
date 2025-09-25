@@ -374,14 +374,8 @@ export default function ClientReviews() {
     <>
       <section
         id="reviews"
-        className="py-32 mt-0 relative overflow-hidden bg-black/10 dark:bg-white/5"
+        className="py-32 mt-0 relative overflow-hidden bg-black/5 dark:bg-white/5"
       >
-        {/* Enhanced Background Elements - only show in dark mode */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:block hidden"></div>
-
-        {/* Light theme background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:hidden block"></div>
-
         {/* Animated mesh gradient */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-blue-500/10 dark:from-blue-500/20 to-cyan-500/10 dark:to-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>

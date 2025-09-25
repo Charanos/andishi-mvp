@@ -3,6 +3,7 @@
 import DOMPurify from 'isomorphic-dompurify';
 import { useEffect, useRef } from "react";
 import BlogImage from "./BlogImage";
+import "./rich-content-enhanced.css";
 
 interface RichTextViewerProps {
   html: string;
@@ -39,7 +40,7 @@ export default function RichTextViewer({ html, enhanced = false }: RichTextViewe
   return (
     <div
       ref={containerRef}
-      className={`prose prose-invert dark:prose-invert prose-gray max-w-none ${
+      className={`prose max-w-none prose-gray dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-800 dark:prose-p:text-gray-300 prose-li:text-gray-800 dark:prose-li:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-white prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-pre:bg-gray-900 dark:prose-pre:bg-gray-800 prose-pre:text-gray-100 dark:prose-pre:text-gray-100 ${
         enhanced ? 'rich-content-enhanced' : ''
       }`}
       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}

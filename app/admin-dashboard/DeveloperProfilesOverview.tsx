@@ -1148,7 +1148,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                                   style={{ width: `${project.progress}%` }}
                                 ></div>
                               </div>
-                              <span className="text-white text-sm font-medium">
+                              <span className="text-gray-900 dark:text-white text-sm font-medium">
                                 {project.progress}%
                               </span>
                             </div>
@@ -1161,7 +1161,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                                   .map((tech) => (
                                     <span
                                       key={tech}
-                                      className="bg-black/20 text-gray-300 px-2 py-1 rounded text-xs"
+                                      className="bg-black/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs"
                                     >
                                       {tech}
                                     </span>
@@ -1212,10 +1212,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                               </span>
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-white font-medium">
+                              <h4 className="text-gray-900 dark:text-white font-medium">
                                 {achievement.title}
                               </h4>
-                              <p className="text-gray-300 text-sm mt-1">
+                              <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                                 {achievement.description}
                               </p>
                               <div className="flex items-center justify-between mt-2">
@@ -1258,12 +1258,12 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               <div className="space-y-4">
                 <div className="text-center pb-4 border-b border-gray-700">
                   <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-white font-semibold text-lg">
+                    <span className="text-gray-900 dark:text-white font-semibold text-lg">
                       {selectedProfile.data.personalInfo.firstName[0]}
                       {selectedProfile.data.personalInfo.lastName[0]}
                     </span>
                   </div>
-                  <h4 className="text-white font-semibold mb-1">
+                  <h4 className="text-gray-900 dark:text-white font-semibold mb-1">
                     {selectedProfile.data.personalInfo.firstName}{" "}
                     {selectedProfile.data.personalInfo.lastName}
                   </h4>
@@ -1277,7 +1277,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <FaEnvelope className="text-gray-400" />
                     <div>
                       <p className="text-gray-400 text-sm">Email</p>
-                      <p className="text-white font-medium">
+                      <p className="text-gray-900 dark:text-white font-medium">
                         {selectedProfile.data.personalInfo.email}
                       </p>
                     </div>
@@ -1288,7 +1288,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       <FaPhone className="text-gray-400" />
                       <div>
                         <p className="text-gray-400 text-sm">Phone</p>
-                        <p className="text-white font-medium">
+                        <p className="text-gray-900 dark:text-white font-medium">
                           {selectedProfile.data.personalInfo.phone}
                         </p>
                       </div>
@@ -1299,7 +1299,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     <FaMapMarkerAlt className="text-gray-400" />
                     <div>
                       <p className="text-gray-400 text-sm">Location</p>
-                      <p className="text-white font-medium">
+                      <p className="text-gray-900 dark:text-white font-medium">
                         {selectedProfile.data.personalInfo.location}
                       </p>
                       {selectedProfile.data.personalInfo.timeZone && (
@@ -1794,7 +1794,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               return (
                 <div
                   key={profile.id}
-                  className={`bg-white/10 dark:bg-black/5 rounded-xl p-6 hover:bg-white/20 dark:hover:bg-black/10 transition-all duration-200 border border-gray-200 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/50 relative ${
+                  className={`bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 relative ${
                     isNew ? "border-green-500/50" : ""
                   }`}
                 >
@@ -1824,7 +1824,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1 bg-white/20 dark:bg-white/5 px-3 py-1 rounded-full">
+                    <div className="flex items-center space-x-1 bg-white/5 dark:bg-black/5 shadow-sm dark:shadow-none backdrop-blur-sm px-3 py-1 rounded-full border border-gray-200 dark:border-white/10">
                       <FaStar className="text-yellow-500 dark:text-yellow-400 text-sm" />
                       <span className="text-gray-900 dark:text-white font-medium text-sm">
                         {profile.data.stats.averageRating.toFixed(1)}
@@ -1834,7 +1834,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
                   {/* Profile Stats */}
                   <div className="grid grid-cols-2 gap-3 mb-5">
-                    <div className="bg-white/20 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-gray-700/30">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-3 border border-gray-200 dark:border-white/10">
                       <div className="flex items-center space-x-2 mb-2">
                         <FaCode className="text-blue-500 dark:text-blue-400 text-sm" />
                         <span className="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wide font-medium">
@@ -1845,7 +1845,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         {profile.data.stats.totalProjects}
                       </p>
                     </div>
-                    <div className="bg-white/20 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-gray-700/30">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-3 border border-gray-200 dark:border-white/10">
                       <div className="flex items-center space-x-2 mb-2">
                         <FaBriefcase className="text-green-500 dark:text-green-400 text-sm" />
                         <span className="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wide font-medium">
@@ -1867,7 +1867,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       {getTopSkills(profile).map((skill, index) => (
                         <span
                           key={index}
-                          className="px-3 py-1 bg-white/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-full text-xs border border-gray-300 dark:border-gray-600/30"
+                          className="px-3 py-1 bg-white/5 dark:bg-black/5 shadow-sm dark:shadow-none backdrop-blur-sm text-gray-700 dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10"
                         >
                           {skill}
                         </span>

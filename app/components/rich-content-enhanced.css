@@ -1,6 +1,7 @@
 /* Enhanced Rich Text Content Styling - Featured Blog Style */
 .rich-content-enhanced {
-    color: #e5e7eb;
+    /* Light theme default text */
+    color: #1f2937; /* gray-800 */
     line-height: 1.75;
   }
   
@@ -19,7 +20,7 @@
   .rich-content-enhanced h2 {
     font-size: 1.4rem;
     font-weight: 600;
-    color: white;
+    color: #111827; /* gray-900 in light */
     margin-bottom: 1.5rem;
     margin-top: 3rem;
     line-height: 1.2;
@@ -52,7 +53,7 @@
   .rich-content-enhanced h3 {
     font-size: 1.2rem;
     font-weight: 600;
-    color: white;
+    color: #111827; /* gray-900 in light */
     margin-bottom: 1rem;
     margin-top: 2rem;
     position: relative;
@@ -71,21 +72,21 @@
   .rich-content-enhanced h4 {
     font-size: 1.3rem;
     font-weight: 500;
-    color: white;
+    color: #111827; /* gray-900 in light */
     margin-bottom: 0.75rem;
     margin-top: 1.5rem;
   }
   
   .rich-content-enhanced p {
     font-size: 1.13rem;
-    color: #d1d5db;
+    color: #374151; /* gray-700 */
     margin-bottom: 1.5rem;
     line-height: 1.75;
   }
   
   .rich-content-enhanced p:first-of-type {
     font-size: 1.13rem;
-    color: #e5e7eb;
+    color: #1f2937; /* gray-800 */
     font-weight: 500;
   }
   
@@ -110,7 +111,7 @@
   
   .rich-content-enhanced blockquote p {
     font-size: 1.25rem;
-    color: white;
+    color: #1f2937; /* readable on light gradient */
     font-weight: 500;
     font-style: italic;
     margin-bottom: 0;
@@ -132,7 +133,7 @@
   .rich-content-enhanced ul li,
   .rich-content-enhanced ol li {
     font-size: 1.125rem;
-    color: #d1d5db;
+    color: #374151; /* gray-700 */
     line-height: 1.75;
     position: relative;
     padding-left: 1.5rem;
@@ -192,9 +193,9 @@
   }
   
   .rich-content-enhanced a {
-    color: #60a5fa;
+    color: #1d4ed8; /* blue-700 */
     text-decoration: underline;
-    text-decoration-color: rgba(96, 165, 250, 0.5);
+    text-decoration-color: rgba(29, 78, 216, 0.5);
     transition: color 0.3s ease, text-decoration-color 0.3s ease;
   }
   
@@ -226,7 +227,7 @@
     padding: 0;
     background-color: transparent;
     border: 0;
-    color: #d1d5db;
+    color: #e5e7eb;
   }
   
   .rich-content-enhanced img {
@@ -304,15 +305,59 @@
   
   .rich-content-enhanced th {
     padding: 0.75rem 1rem;
-    background-color: #1f2937;
-    color: white;
+    background-color: #f3f4f6; /* gray-100 */
+    color: #111827;
     font-weight: 600;
     text-align: left;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid #e5e7eb;
   }
   
   .rich-content-enhanced td {
     padding: 0.75rem 1rem;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  /* Dark theme overrides */
+  .dark .rich-content-enhanced {
+    color: #e5e7eb;
+  }
+  .dark .rich-content-enhanced h2,
+  .dark .rich-content-enhanced h3,
+  .dark .rich-content-enhanced h4 {
+    color: white;
+  }
+  .dark .rich-content-enhanced p {
+    color: #d1d5db;
+  }
+  .dark .rich-content-enhanced p:first-of-type {
+    color: #e5e7eb;
+  }
+  .dark .rich-content-enhanced ul li,
+  .dark .rich-content-enhanced ol li {
+    color: #d1d5db;
+  }
+  .dark .rich-content-enhanced blockquote p {
+    color: white;
+  }
+  .dark .rich-content-enhanced strong,
+  .dark .rich-content-enhanced b {
+    color: white;
+  }
+  .dark .rich-content-enhanced em,
+  .dark .rich-content-enhanced i {
+    color: #93c5fd;
+  }
+  .dark .rich-content-enhanced a {
+    color: #60a5fa;
+    text-decoration-color: rgba(96, 165, 250, 0.5);
+  }
+  .dark .rich-content-enhanced th {
+    background-color: #1f2937;
+    color: white;
+    border-bottom: 1px solid #374151;
+  }
+  .dark .rich-content-enhanced td {
     color: #d1d5db;
     border-bottom: 1px solid #1f2937;
   }

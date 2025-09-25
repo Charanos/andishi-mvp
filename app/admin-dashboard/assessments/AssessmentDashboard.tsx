@@ -574,8 +574,10 @@ export default function AssessmentDashboard() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-medium">Developer Assessments</h1>
-          <p className="text-gray-300">
+          <h1 className="text-3xl font-medium text-gray-900 dark:text-white">
+            Developer Assessments
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
             Track evaluations, performance and outcomes
           </p>
         </div>
@@ -583,7 +585,7 @@ export default function AssessmentDashboard() {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white backdrop-blur-xl"
+            className="bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-lg px-4 py-2 text-gray-900 dark:text-white backdrop-blur-xl"
           >
             <option value="7D">Last 7 Days</option>
             <option value="30D">Last 30 Days</option>
@@ -625,14 +627,14 @@ export default function AssessmentDashboard() {
       </div>
 
       {/* Inline Tabs (mirrors analytics) */}
-      <div className="backdrop-blur-xl my-16 bg-white/5 border border-white/10 rounded-2xl p-1">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-1 my-16">
         <div className="flex space-x-1">
           <button
             onClick={() => setActiveTab("overview")}
             className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-2 rounded-xl font-medium transition-all duration-300 ${
               activeTab === "overview"
                 ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-white/10"
+                : "text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/10"
             }`}
           >
             <Target className="h-4 w-4" />
@@ -643,7 +645,7 @@ export default function AssessmentDashboard() {
             className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-2 rounded-xl font-medium transition-all duration-300 ${
               activeTab === "evaluations"
                 ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-white/10"
+                : "text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/10"
             }`}
           >
             <ClipboardCheck className="h-4 w-4" />
@@ -654,7 +656,7 @@ export default function AssessmentDashboard() {
             className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-2 rounded-xl font-medium transition-all duration-300 ${
               activeTab === "performance"
                 ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-white/10"
+                : "text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/10"
             }`}
           >
             <DollarSign className="h-4 w-4" />
@@ -714,14 +716,16 @@ export default function AssessmentDashboard() {
                 className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${m.color} border backdrop-blur-xl p-5`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="p-2 rounded-lg bg-white/10">
-                    <m.icon className="h-5 w-5" />
+                  <div className="p-2 rounded-lg bg-white/20 dark:bg-white/10">
+                    <m.icon className="h-5 w-5 text-gray-700 dark:text-white" />
                   </div>
                 </div>
-                <p className="text-gray-300 text-xs uppercase tracking-wider">
+                <p className="text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wider">
                   {m.label}
                 </p>
-                <p className="text-xl font-medium">{m.value}</p>
+                <p className="text-xl font-medium text-gray-900 dark:text-white">
+                  {m.value}
+                </p>
               </div>
             ))}
           </div>
@@ -729,7 +733,7 @@ export default function AssessmentDashboard() {
           {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 my-22">
             {/* Assessment Status Distribution */}
-            <div className="backdrop-blur-xl bg-black/5 border border-white/20 rounded-3xl p-8 shadow-xl">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-3xl p-8">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
@@ -748,19 +752,19 @@ export default function AssessmentDashboard() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-white">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                       Assessment Status Distribution
                     </h3>
-                    <p className="text-sm text-gray-400 mt-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       Overview of assessment progress
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-white">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.total}
                   </div>
-                  <div className="text-xs text-gray-400 uppercase tracking-wider">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                     Total
                   </div>
                 </div>
@@ -867,10 +871,10 @@ export default function AssessmentDashboard() {
                 {/* Center Stats */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-white">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
                       {stats.total}
                     </div>
-                    <div className="text-sm text-gray-400 uppercase tracking-wider">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Total
                     </div>
                   </div>
@@ -922,15 +926,15 @@ export default function AssessmentDashboard() {
                           className="w-4 h-4 rounded-full ring-2 ring-white/20"
                           style={{ backgroundColor: item.color }}
                         ></div>
-                        <span className="text-sm font-medium text-gray-200">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                           {item.name}
                         </span>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-white">
+                        <div className="text-lg font-bold text-gray-900 dark:text-white">
                           {item.count}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
                           {stats.total > 0
                             ? Math.round((item.count / stats.total) * 100)
                             : 0}
@@ -963,19 +967,19 @@ export default function AssessmentDashboard() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-white">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                       Score Distribution
                     </h3>
-                    <p className="text-sm text-gray-400 mt-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       Performance breakdown by score ranges
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-white">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.avgScore}%
                   </div>
-                  <div className="text-xs text-gray-400 uppercase tracking-wider">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                     Average
                   </div>
                 </div>
@@ -1185,12 +1189,14 @@ export default function AssessmentDashboard() {
                           className="w-3 h-3 rounded-full ring-1 ring-white/20"
                           style={{ backgroundColor: item.color }}
                         ></div>
-                        <span className="text-xs font-medium text-gray-200">
+                        <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
                           {item.label}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-400">{item.range}</div>
-                      <div className="text-lg font-bold text-white">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {item.range}
+                      </div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
                         {count}
                       </div>
                     </div>
@@ -1202,7 +1208,7 @@ export default function AssessmentDashboard() {
 
           {/* Recommendations Overview */}
           <div className="mb-22">
-            <h3 className="text-xl font-medium text-white mb-6">
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-6">
               Recommendations Breakdown
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1246,16 +1252,16 @@ export default function AssessmentDashboard() {
               ].map((rec) => (
                 <div
                   key={rec.name}
-                  className={`bg-gradient-to-br ${rec.color} border border-gray-400/10 monty uppercase rounded-xl p-4`}
+                  className={`bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md border border-gray-300 dark:border-white/10 monty uppercase rounded-xl p-4`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <rec.icon className={`w-6 h-6 ${rec.textColor}`} />
-                    <span className="text-2xl font-semibold text-white">
+                    <span className="text-2xl font-semibold text-gray-900 dark:text-white">
                       {rec.count}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-300">{rec.name}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{rec.name}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {stats.total > 0
                       ? Math.round((rec.count / stats.total) * 100)
                       : 0}
@@ -1272,17 +1278,17 @@ export default function AssessmentDashboard() {
       {activeTab === "evaluations" && (
         <div className="space-y-6">
           {/* Enhanced Filters and Search */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Search by developer name or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
+                    className="w-full pl-10 pr-4 py-3 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
                   />
                 </div>
               </div>
@@ -1290,21 +1296,21 @@ export default function AssessmentDashboard() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
+                className="px-4 py-3 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
               >
-                <option value="all" className="bg-gray-800">
+                <option value="all" className="bg-white dark:bg-gray-800">
                   All Status
                 </option>
-                <option value="draft" className="bg-gray-800">
+                <option value="draft" className="bg-white dark:bg-gray-800">
                   Draft
                 </option>
-                <option value="submitted" className="bg-gray-800">
+                <option value="submitted" className="bg-white dark:bg-gray-800">
                   Submitted
                 </option>
-                <option value="reviewed" className="bg-gray-800">
+                <option value="reviewed" className="bg-white dark:bg-gray-800">
                   Reviewed
                 </option>
-                <option value="finalized" className="bg-gray-800">
+                <option value="finalized" className="bg-white dark:bg-gray-800">
                   Finalized
                 </option>
               </select>
@@ -1312,18 +1318,21 @@ export default function AssessmentDashboard() {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
+                className="px-4 py-3 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm"
               >
-                <option value="all" className="bg-gray-800">
+                <option value="all" className="bg-white dark:bg-gray-800">
                   All Types
                 </option>
-                <option value="initial" className="bg-gray-800">
+                <option value="initial" className="bg-white dark:bg-gray-800">
                   Initial
                 </option>
-                <option value="periodic" className="bg-gray-800">
+                <option value="periodic" className="bg-white dark:bg-gray-800">
                   Periodic
                 </option>
-                <option value="project_based" className="bg-gray-800">
+                <option
+                  value="project_based"
+                  className="bg-white dark:bg-gray-800"
+                >
                   Project Based
                 </option>
               </select>
@@ -1335,18 +1344,20 @@ export default function AssessmentDashboard() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                <p className="mt-4 text-gray-400">Loading assessments...</p>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">
+                  Loading assessments...
+                </p>
               </div>
             ) : filteredAndSortedAssessments.length === 0 ? (
               <div className="text-center py-12">
-                <ClipboardCheck className="w-16 h-16 mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400 mb-2">
+                <ClipboardCheck className="w-16 h-16 mx-auto text-gray-500 dark:text-gray-600 mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 mb-2">
                   {assessments.length === 0
                     ? "No assessments created yet"
                     : "No assessments match your filters"}
                 </p>
                 {assessments.length === 0 && (
-                  <p className="text-gray-500 text-sm">
+                  <p className="text-gray-500 dark:text-gray-500 text-sm">
                     Create your first assessment using the buttons above
                   </p>
                 )}
@@ -1355,15 +1366,15 @@ export default function AssessmentDashboard() {
               <div className="space-y-4">
                 {/* Bulk Actions Bar */}
                 {selectedAssessments.length > 0 && (
-                  <div className="backdrop-blur-xl bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="backdrop-blur-xl bg-blue-500/20 dark:bg-blue-500/10 border border-blue-500/40 dark:border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-blue-300 font-medium">
+                      <span className="text-blue-700 dark:text-blue-300 font-medium">
                         {selectedAssessments.length} assessment
                         {selectedAssessments.length !== 1 ? "s" : ""} selected
                       </span>
                       <button
                         onClick={() => setSelectedAssessments([])}
-                        className="text-blue-400 hover:text-blue-300 text-sm underline"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm underline"
                       >
                         Clear selection
                       </button>
@@ -1371,7 +1382,7 @@ export default function AssessmentDashboard() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleSelectAll}
-                        className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors text-sm flex items-center gap-1"
+                        className="px-3 py-1 bg-blue-600/30 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-600/40 dark:hover:bg-blue-600/30 transition-colors text-sm flex items-center gap-1"
                       >
                         <CheckSquare className="w-3 h-3" />
                         {selectedAssessments.length ===
@@ -1381,14 +1392,14 @@ export default function AssessmentDashboard() {
                       </button>
                       <button
                         onClick={() => setShowExportModal(true)}
-                        className="px-3 py-1 bg-green-600/20 text-green-400 rounded-lg hover:bg-green-600/30 transition-colors text-sm flex items-center gap-1"
+                        className="px-3 py-1 bg-green-600/30 dark:bg-green-600/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-600/40 dark:hover:bg-green-600/30 transition-colors text-sm flex items-center gap-1"
                       >
                         <Download className="w-3 h-3" />
                         Export
                       </button>
                       <button
                         onClick={handleBulkDelete}
-                        className="px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors text-sm flex items-center gap-1"
+                        className="px-3 py-1 bg-red-600/30 dark:bg-red-600/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-600/40 dark:hover:bg-red-600/30 transition-colors text-sm flex items-center gap-1"
                       >
                         <Trash2 className="w-3 h-3" />
                         Delete
@@ -1406,8 +1417,8 @@ export default function AssessmentDashboard() {
                       }
                       className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm ${
                         showAdvancedFilters
-                          ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
-                          : "bg-gray-700/50 text-gray-400 hover:text-white"
+                          ? "bg-blue-600/30 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 border border-blue-500/40 dark:border-blue-500/30"
+                          : "bg-gray-200 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
                       <SlidersHorizontal className="w-4 h-4" />
@@ -1416,12 +1427,12 @@ export default function AssessmentDashboard() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-gray-800/50 rounded-lg p-1">
+                    <div className="flex items-center gap-1 bg-gray-200 dark:bg-gray-800/50 rounded-lg p-1">
                       <button
                         onClick={() =>
                           setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                         }
-                        className="p-1 text-gray-400 hover:text-white transition-colors"
+                        className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                         title={`Sort ${
                           sortOrder === "asc" ? "Descending" : "Ascending"
                         }`}
@@ -1431,7 +1442,7 @@ export default function AssessmentDashboard() {
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as SortBy)}
-                        className="bg-transparent text-sm text-gray-400 border-none outline-none"
+                        className="bg-transparent text-sm text-gray-600 dark:text-gray-400 border-none outline-none"
                       >
                         <option value="date">Date</option>
                         <option value="score">Score</option>
@@ -1444,10 +1455,10 @@ export default function AssessmentDashboard() {
 
                 {/* Advanced Filters Panel */}
                 {showAdvancedFilters && (
-                  <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                  <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Date From
                         </label>
                         <input
@@ -1459,11 +1470,11 @@ export default function AssessmentDashboard() {
                               from: e.target.value,
                             }))
                           }
-                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm text-sm"
+                          className="w-full px-3 py-2 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Date To
                         </label>
                         <input
@@ -1479,7 +1490,7 @@ export default function AssessmentDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Min Score
                         </label>
                         <input
@@ -1497,7 +1508,7 @@ export default function AssessmentDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Max Score
                         </label>
                         <input
@@ -1521,7 +1532,7 @@ export default function AssessmentDashboard() {
                           setDateRange({ from: "", to: "" });
                           setScoreRange({ min: 0, max: 100 });
                         }}
-                        className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors text-sm backdrop-blur-sm"
+                        className="px-4 py-2 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white hover:bg-white/30 dark:hover:bg-white/20 transition-colors text-sm backdrop-blur-sm"
                       >
                         Clear Filters
                       </button>
@@ -1533,9 +1544,9 @@ export default function AssessmentDashboard() {
                   {filteredAndSortedAssessments.map((assessment) => (
                     <div
                       key={assessment.id}
-                      className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 cursor-pointer ${
+                      className={`bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6 hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 cursor-pointer ${
                         selectedAssessments.includes(assessment.id)
-                          ? "ring-2 ring-blue-500/50 bg-blue-500/10 border-blue-500/30"
+                          ? "ring-2 ring-blue-500/50 bg-blue-500/20 dark:bg-blue-500/10 border-blue-500/40 dark:border-blue-500/30"
                           : ""
                       }`}
                       onClick={() => setSelectedAssessment(assessment)}
@@ -1548,18 +1559,18 @@ export default function AssessmentDashboard() {
                               e.stopPropagation();
                               toggleAssessmentSelection(assessment.id);
                             }}
-                            className="mt-1 p-1 hover:bg-gray-600/50 rounded transition-colors"
+                            className="mt-1 p-1 hover:bg-gray-200 dark:hover:bg-gray-600/50 rounded transition-colors"
                           >
                             {selectedAssessments.includes(assessment.id) ? (
                               <CheckSquare className="w-4 h-4 text-blue-400" />
                             ) : (
-                              <Square className="w-4 h-4 text-gray-400" />
+                              <Square className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                             )}
                           </button>
 
                           <div className="flex-1">
                             <div className="flex items-center gap-4 mb-2">
-                              <h3 className="text-xl font-medium">
+                              <h3 className="text-xl font-medium text-gray-900 dark:text-white">
                                 {assessment.developerName ||
                                   "Unknown Developer"}
                               </h3>
@@ -1788,14 +1799,14 @@ export default function AssessmentDashboard() {
         <div className="space-y-6">
           {/* Performance Overview Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                   Average Score
                 </h3>
                 <TrendingUp className="w-6 h-6 text-green-400" />
               </div>
-              <div className="text-3xl font-semibold text-white mb-2">
+              <div className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
                 {Math.round(
                   sourceAssessments.reduce(
                     (sum, a) => sum + (a.evaluation?.overallScore || 0),
@@ -1804,19 +1815,19 @@ export default function AssessmentDashboard() {
                 )}
                 %
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Across {sourceAssessments.length} assessments
               </p>
             </div>
 
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                   Completion Rate
                 </h3>
                 <CheckCircle className="w-6 h-6 text-blue-400" />
               </div>
-              <div className="text-3xl font-semibold text-white mb-2">
+              <div className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
                 {Math.round(
                   (sourceAssessments.filter((a) => a.status === "finalized")
                     .length /
@@ -1825,7 +1836,7 @@ export default function AssessmentDashboard() {
                 )}
                 %
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {
                   sourceAssessments.filter((a) => a.status === "finalized")
                     .length
@@ -1834,17 +1845,17 @@ export default function AssessmentDashboard() {
               </p>
             </div>
 
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                   Pool Eligible
                 </h3>
                 <Award className="w-6 h-6 text-yellow-400" />
               </div>
-              <div className="text-3xl font-semibold text-white mb-2">
+              <div className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
                 {stats.poolMembers}
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {Math.round(
                   (stats.poolMembers / Math.max(stats.total, 1)) * 100
                 )}
@@ -1852,14 +1863,14 @@ export default function AssessmentDashboard() {
               </p>
             </div>
 
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                   Avg Response Time
                 </h3>
                 <Clock className="w-6 h-6 text-purple-400" />
               </div>
-              <div className="text-3xl font-semibold text-white mb-2">
+              <div className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
                 {(() => {
                   const completedAssessments = sourceAssessments.filter(
                     (a) =>
@@ -1881,15 +1892,17 @@ export default function AssessmentDashboard() {
                   return Math.round(avgDays);
                 })()}
               </div>
-              <p className="text-sm text-gray-400">Days to complete</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Days to complete
+              </p>
             </div>
           </div>
 
           {/* Skills Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Technical Skills Distribution */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-medium text-white mb-6 flex items-center gap-2">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <Code className="w-6 h-6 text-blue-400" />
                 Technical Skills Distribution
               </h3>
@@ -1930,13 +1943,18 @@ export default function AssessmentDashboard() {
                     />
                     <XAxis
                       dataKey="skill"
-                      stroke="#9CA3AF"
+                      stroke="#6B7280"
+                      className="dark:stroke-gray-400"
                       fontSize={11}
                       angle={-45}
                       textAnchor="end"
                       height={60}
                     />
-                    <YAxis stroke="#9CA3AF" fontSize={12} />
+                    <YAxis
+                      stroke="#6B7280"
+                      className="dark:stroke-gray-400"
+                      fontSize={12}
+                    />
                     <Tooltip
                       contentStyle={{
                         background: "rgba(17,24,39,0.95)",
@@ -1958,8 +1976,8 @@ export default function AssessmentDashboard() {
             </div>
 
             {/* Professional Skills Radar */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-xl font-medium text-white mb-6 flex items-center gap-2">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <Users className="w-6 h-6 text-green-400" />
                 Professional Skills Average
               </h3>
@@ -2010,10 +2028,10 @@ export default function AssessmentDashboard() {
                   return skills.map((skill) => (
                     <div key={skill.label} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-300 font-medium">
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
                           {skill.label}
                         </span>
-                        <span className="text-white font-medium">
+                        <span className="text-gray-900 dark:text-white font-medium">
                           {skill.value}/5
                         </span>
                       </div>
@@ -2031,8 +2049,8 @@ export default function AssessmentDashboard() {
           </div>
 
           {/* Performance Trends */}
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-medium text-white mb-6 flex items-center gap-2">
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <BarChart3 className="w-6 h-6 text-purple-400" />
               Score Trends Over Time
             </h3>
@@ -2098,8 +2116,18 @@ export default function AssessmentDashboard() {
                     strokeDasharray="3 3"
                     stroke="rgba(255,255,255,0.1)"
                   />
-                  <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
-                  <YAxis stroke="#9CA3AF" fontSize={12} domain={[0, 100]} />
+                  <XAxis
+                    dataKey="month"
+                    stroke="#6B7280"
+                    className="dark:stroke-gray-400"
+                    fontSize={12}
+                  />
+                  <YAxis
+                    stroke="#6B7280"
+                    className="dark:stroke-gray-400"
+                    fontSize={12}
+                    domain={[0, 100]}
+                  />
                   <Tooltip
                     contentStyle={{
                       background: "rgba(17,24,39,0.95)",
@@ -2133,8 +2161,8 @@ export default function AssessmentDashboard() {
           {/* Detailed Analytics */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Top Performers */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-yellow-400" />
                 Top Performers
               </h3>
@@ -2167,10 +2195,10 @@ export default function AssessmentDashboard() {
                           {index + 1}
                         </div>
                         <div>
-                          <p className="text-white font-medium text-sm">
+                          <p className="text-gray-900 dark:text-white font-medium text-sm">
                             {assessment.developerName || "Unknown"}
                           </p>
-                          <p className="text-gray-400 text-xs">
+                          <p className="text-gray-600 dark:text-gray-400 text-xs">
                             {assessment.evaluation?.recommendation?.replace(
                               "_",
                               " "
@@ -2187,8 +2215,8 @@ export default function AssessmentDashboard() {
             </div>
 
             {/* Assessment Types */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-blue-400" />
                 Assessment Types
               </h3>
@@ -2214,7 +2242,7 @@ export default function AssessmentDashboard() {
                           }}
                         />
                       </div>
-                      <span className="text-white font-medium text-sm w-8">
+                      <span className="text-gray-900 dark:text-white font-medium text-sm w-8">
                         {count}
                       </span>
                     </div>
@@ -2224,8 +2252,8 @@ export default function AssessmentDashboard() {
             </div>
 
             {/* Recent Activity */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-green-400" />
                 Recent Activity
               </h3>
@@ -2240,7 +2268,7 @@ export default function AssessmentDashboard() {
                   .map((assessment) => (
                     <div
                       key={assessment.id}
-                      className="flex items-start gap-3 p-3 bg-white/5 rounded-xl"
+                      className="flex items-start gap-3 p-3 bg-white/5 dark:bg-black/5 shadow-sm dark:shadow-none backdrop-blur-sm rounded-xl"
                     >
                       <div
                         className={`w-2 h-2 rounded-full mt-2 ${
@@ -2254,10 +2282,10 @@ export default function AssessmentDashboard() {
                         }`}
                       />
                       <div className="flex-1">
-                        <p className="text-white text-sm font-medium">
+                        <p className="text-gray-900 dark:text-white text-sm font-medium">
                           {assessment.developerName || "Unknown"}
                         </p>
-                        <p className="text-gray-400 text-xs">
+                        <p className="text-gray-600 dark:text-gray-400 text-xs">
                           {assessment.status === "finalized"
                             ? "Assessment completed"
                             : assessment.status === "reviewed"
@@ -2266,7 +2294,7 @@ export default function AssessmentDashboard() {
                             ? "Evaluation submitted"
                             : "Assessment created"}
                         </p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="text-gray-500 dark:text-gray-500 text-xs">
                           {format(
                             new Date(
                               assessment.updatedAt || assessment.createdAt

@@ -51,51 +51,51 @@ export default function EvaluationInviteView({
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={onBack}
-          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+          className="p-2 hover:bg-white/20 dark:hover:bg-white/10 rounded-lg transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-400" />
+          <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
         </button>
         <div>
-          <h2 className="text-2xl font-semibold text-white">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Send Evaluation Invitation
           </h2>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Invite external evaluator for{" "}
             {assessment.developerName || "developer"}
           </p>
         </div>
       </div>
 
-      <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Assessment Info */}
-          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-            <h3 className="text-sm font-medium text-gray-300 mb-2">
+          <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 border border-gray-300 dark:border-white/10">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Assessment Details
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-400">Developer:</span>
-                <span className="ml-2 text-white">
+                <span className="text-gray-600 dark:text-gray-400">Developer:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">
                   {assessment.developerName || "N/A"}
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Type:</span>
-                <span className="ml-2 text-white capitalize">
+                <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                <span className="ml-2 text-gray-900 dark:text-white capitalize">
                   {assessment.evaluationType.replace("_", " ")}
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Email:</span>
-                <span className="ml-2 text-white">
+                <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">
                   {assessment.developerEmail || "N/A"}
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Expires:</span>
-                <span className="ml-2 text-white">7 days</span>
+                <span className="text-gray-600 dark:text-gray-400">Expires:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">7 days</span>
               </div>
             </div>
           </div>

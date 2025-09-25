@@ -79,45 +79,45 @@ export default function AutoAssessView({
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={onBack}
-          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+          className="p-2 hover:bg-white/20 dark:hover:bg-white/10 rounded-lg transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-400" />
+          <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
         </button>
         <div>
-          <h2 className="text-2xl font-semibold text-white flex items-center gap-2">
-            <Zap className="w-6 h-6 text-yellow-400" />
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Zap className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
             Auto-Generate Assessment
           </h2>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Create assessment for {developer.name || 'developer'} using AI analysis
           </p>
         </div>
       </div>
 
-      <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Developer Info */}
-          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-            <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+          <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 border border-gray-300 dark:border-white/10">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
               <User className="w-4 h-4" />
               Developer Information
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-400">Name:</span>
-                <span className="ml-2 text-white">{developer.name || 'N/A'}</span>
+                <span className="text-gray-600 dark:text-gray-400">Name:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">{developer.name || 'N/A'}</span>
               </div>
               <div>
-                <span className="text-gray-400">Email:</span>
-                <span className="ml-2 text-white">{developer.email || 'N/A'}</span>
+                <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">{developer.email || 'N/A'}</span>
               </div>
             </div>
           </div>
 
           {/* Assessment Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               Assessment Type *
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -130,8 +130,8 @@ export default function AutoAssessView({
                   key={type.value}
                   className={`relative flex flex-col p-4 border rounded-lg cursor-pointer transition-all ${
                     formData.evaluationType === type.value
-                      ? 'border-blue-400 bg-blue-500/10'
-                      : 'border-white/20 hover:border-white/30'
+                      ? 'border-blue-500 bg-blue-500/20 dark:bg-blue-500/10'
+                      : 'border-gray-300 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/30'
                   }`}
                 >
                   <input
@@ -145,8 +145,8 @@ export default function AutoAssessView({
                     }))}
                     className="sr-only"
                   />
-                  <span className="text-white font-medium">{type.label}</span>
-                  <span className="text-xs text-gray-400 mt-1">{type.desc}</span>
+                  <span className="text-gray-900 dark:text-white font-medium">{type.label}</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 mt-1">{type.desc}</span>
                   {formData.evaluationType === type.value && (
                     <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-blue-400" />
                   )}
@@ -157,14 +157,14 @@ export default function AutoAssessView({
 
           {/* Resume Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               Resume/CV (Optional)
             </label>
             <div
               className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all ${
                 dragActive
-                  ? 'border-blue-400 bg-blue-500/10'
-                  : 'border-white/20 hover:border-white/30'
+                  ? 'border-blue-500 bg-blue-500/20 dark:bg-blue-500/10'
+                  : 'border-gray-300 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/30'
               }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -182,8 +182,8 @@ export default function AutoAssessView({
                 <div className="flex items-center justify-center gap-3">
                   <FileText className="w-8 h-8 text-green-400" />
                   <div>
-                    <p className="text-white font-medium">{formData.resumeFile.name}</p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-gray-900 dark:text-white font-medium">{formData.resumeFile.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {(formData.resumeFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>

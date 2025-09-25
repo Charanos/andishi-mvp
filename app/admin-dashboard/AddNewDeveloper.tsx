@@ -953,17 +953,17 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
             {onCancel && (
               <button
                 onClick={onCancel}
-                className="bg-gray-500/5  hover:bg-gray-500/40 text-gray-300 px-4 py-2 rounded-full flex items-center gap-2 cursor-pointer transition-colors"
+                className="bg-white/20 dark:bg-gray-500/5 hover:bg-white/30 dark:hover:bg-gray-500/40 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-full flex items-center gap-2 cursor-pointer transition-colors"
               >
                 <IoMdArrowBack className="w-6 h-6" />
               </button>
             )}
-            <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
+            <h1 className="text-3xl font-semibold text-gray-900 dark:text-white flex items-center gap-3">
               Add New Developer
-              <FaUserPlus className="text-blue-400" />
+              <FaUserPlus className="text-blue-600 dark:text-blue-400" />
             </h1>
           </div>
-          <p className="text-gray-300">
+          <p className="text-gray-600 dark:text-gray-300">
             Create a new developer with user account and profile. This will
             generate login credentials and create a comprehensive developer
             profile.
@@ -971,7 +971,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white/10 rounded-lg p-2 mb-8">
+        <div className="bg-white/10 dark:bg-white/10 rounded-lg p-2 mb-8">
           <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -982,7 +982,7 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
                   className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
                     activeTab === tab.id
                       ? "bg-blue-500 text-white shadow-lg"
-                      : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                      : "bg-white/10 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
                   <IconComponent />
@@ -997,13 +997,13 @@ const AddNewDeveloper: React.FC<Props> = ({ onCreate, onCancel }) => {
         <div className="mb-8">{renderTabContent()}</div>
 
         {/* Action Buttons */}
-        <div className="bg-white/5 p-6 rounded-lg">
+        <div className="bg-white/10 dark:bg-white/5 p-6 rounded-lg">
           <div className="flex flex-col sm:flex-row gap-4 justify-end">
             {onCancel && (
               <button
                 onClick={onCancel}
                 disabled={creating}
-                className="px-6 py-3 bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-white/20 dark:bg-gray-500/20 hover:bg-white/30 dark:hover:bg-gray-500/40 text-gray-700 dark:text-gray-300 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FaTimes />
                 Cancel

@@ -317,6 +317,7 @@ export default function ClientDashboardStartProject({}) {
     // Prevent duplicate submissions
     if (submitStatus === "loading") {
       console.log("Submission already in progress, preventing duplicate");
+      toast.error("Submission already in progress, please wait...");
       return;
     }
 
@@ -328,6 +329,27 @@ export default function ClientDashboardStartProject({}) {
       return;
     }
     setLastSubmitTime(now);
+
+    // Enhanced content validation
+    if (formData.projectDetails.title.length > 200) {
+      toast.error("Project title must be 200 characters or less.");
+      return;
+    }
+
+    if (formData.projectDetails.description.length > 10000) {
+      toast.error("Project description must be 10,000 characters or less.");
+      return;
+    }
+
+    if (formData.projectDetails.techStack && formData.projectDetails.techStack.length > 20) {
+      toast.error("Maximum 20 technologies allowed.");
+      return;
+    }
+
+    if (formData.pricing.milestones && formData.pricing.milestones.length > 10) {
+      toast.error("Maximum 10 milestones allowed.");
+      return;
+    }
 
     if (!token) {
       toast.error("Authentication error. Please log in again.");
@@ -375,6 +397,7 @@ export default function ClientDashboardStartProject({}) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
           "user-email": user?.email || "",
+          "X-Submission-Source": "client-dashboard",
         },
         body: JSON.stringify(projectData),
       });
@@ -502,8 +525,14 @@ export default function ClientDashboardStartProject({}) {
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
-                    Project Title *
+                  <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
+                    <span>Project Title *</span>
+                    <span className={`text-xs ${
+                      formData.projectDetails.title.length > 200 ? 'text-red-400' : 
+                      formData.projectDetails.title.length > 180 ? 'text-yellow-400' : 'text-gray-500'
+                    }`}>
+                      {formData.projectDetails.title.length}/200
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -511,9 +540,15 @@ export default function ClientDashboardStartProject({}) {
                     onChange={(e) =>
                       updateProjectDetails("title", e.target.value)
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                    className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                      formData.projectDetails.title.length > 200 ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-blue-400'
+                    }`}
                     placeholder="What's your project called?"
+                    maxLength={250}
                   />
+                  {formData.projectDetails.title.length > 200 && (
+                    <p className="text-red-400 text-xs mt-1">Title is too long. Maximum 200 characters allowed.</p>
+                  )}
                 </div>
 
                 <div>
@@ -543,8 +578,14 @@ export default function ClientDashboardStartProject({}) {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium my-6">
-                    Tech Stack/Services Needed
+                  <label className="flex items-center justify-between text-sm font-medium text-gray-300 my-6">
+                    <span>Tech Stack/Services Needed</span>
+                    <span className={`text-xs ${
+                      (formData.projectDetails.techStack?.length || 0) > 20 ? 'text-red-400' : 
+                      (formData.projectDetails.techStack?.length || 0) > 15 ? 'text-yellow-400' : 'text-gray-500'
+                    }`}>
+                      {formData.projectDetails.techStack?.length || 0}/20
+                    </span>
                   </label>
                   <p className="text-sm text-gray-400 mb-3">
                     Select all technologies and services you need for your
@@ -584,8 +625,14 @@ export default function ClientDashboardStartProject({}) {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
-                    Project Description *
+                  <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
+                    <span>Project Description *</span>
+                    <span className={`text-xs ${
+                      formData.projectDetails.description.length > 10000 ? 'text-red-400' : 
+                      formData.projectDetails.description.length > 9000 ? 'text-yellow-400' : 'text-gray-500'
+                    }`}>
+                      {formData.projectDetails.description.length.toLocaleString()}/10,000
+                    </span>
                   </label>
                   <textarea
                     value={formData.projectDetails.description}
@@ -593,9 +640,15 @@ export default function ClientDashboardStartProject({}) {
                       updateProjectDetails("description", e.target.value)
                     }
                     rows={4}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                    className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors resize-none ${
+                      formData.projectDetails.description.length > 10000 ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-blue-400'
+                    }`}
                     placeholder="Describe your project in detail. What problem does it solve? What features do you need?"
+                    maxLength={10500}
                   />
+                  {formData.projectDetails.description.length > 10000 && (
+                    <p className="text-red-400 text-xs mt-1">Description is too long. Please reduce the content size.</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

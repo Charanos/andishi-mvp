@@ -284,12 +284,59 @@ export default function StartProjectForm({
   >("idle");
 
   const handleSubmit = async () => {
+    // Prevent multiple submissions
+    if (submitStatus === "loading") {
+      addNotification({
+        type: "error",
+        title: "Submission in Progress",
+        message: "Please wait, your project is being submitted...",
+      });
+      return;
+    }
+
     // Check if terms are accepted
     if (!termsAccepted) {
       addNotification({
         type: "error",
         title: "Terms Required",
         message: "Please accept the terms and conditions before submitting.",
+      });
+      return;
+    }
+
+    // Enhanced content validation
+    if (formData.projectDetails.title.length > 200) {
+      addNotification({
+        type: "error",
+        title: "Title Too Long",
+        message: "Project title must be 200 characters or less.",
+      });
+      return;
+    }
+
+    if (formData.projectDetails.description.length > 10000) {
+      addNotification({
+        type: "error",
+        title: "Description Too Long",
+        message: "Project description must be 10,000 characters or less.",
+      });
+      return;
+    }
+
+    if (formData.projectDetails.techStack.length > 20) {
+      addNotification({
+        type: "error",
+        title: "Too Many Technologies",
+        message: "Maximum 20 technologies allowed.",
+      });
+      return;
+    }
+
+    if (formData.pricing.milestones && formData.pricing.milestones.length > 10) {
+      addNotification({
+        type: "error",
+        title: "Too Many Milestones",
+        message: "Maximum 10 milestones allowed.",
       });
       return;
     }
@@ -315,10 +362,20 @@ export default function StartProjectForm({
       });
 
       try {
+        // Add submission timestamp to prevent duplicates
+        const submissionData = {
+          ...formData,
+          submissionId: `admin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          submittedAt: new Date().toISOString(),
+        };
+
         const res = await fetch("/api/start-project", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          headers: { 
+            "Content-Type": "application/json",
+            "X-Submission-Source": "admin-dashboard"
+          },
+          body: JSON.stringify(submissionData),
         });
         const result = await res.json();
 
@@ -349,10 +406,27 @@ export default function StartProjectForm({
         }
       } catch (error) {
         setSubmitStatus("error");
+        
+        let errorMessage = "An error occurred while submitting. Please try again.";
+        let errorTitle = "Submission Error";
+        
+        if (error instanceof Error) {
+          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorTitle = "Network Error";
+            errorMessage = "Network connection failed. Please check your internet and try again.";
+          } else if (error.message.includes('timeout')) {
+            errorTitle = "Request Timeout";
+            errorMessage = "The request timed out. Please try again with smaller content.";
+          } else if (error.message.includes('too large') || error.message.includes('413')) {
+            errorTitle = "Content Too Large";
+            errorMessage = "Your project content is too large. Please reduce description length or remove large attachments.";
+          }
+        }
+        
         addNotification({
           type: "error",
-          title: "Submission Error",
-          message: "An error occurred while submitting. Please try again.",
+          title: errorTitle,
+          message: errorMessage,
         });
       }
     } catch (error) {
@@ -579,8 +653,14 @@ export default function StartProjectForm({
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Project Title *
+                    <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
+                      <span>Project Title *</span>
+                      <span className={`text-xs ${
+                        formData.projectDetails.title.length > 200 ? 'text-red-400' : 
+                        formData.projectDetails.title.length > 180 ? 'text-yellow-400' : 'text-gray-500'
+                      }`}>
+                        {formData.projectDetails.title.length}/200
+                      </span>
                     </label>
                     <input
                       type="text"
@@ -588,9 +668,15 @@ export default function StartProjectForm({
                       onChange={(e) =>
                         updateProjectDetails("title", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                      className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                        formData.projectDetails.title.length > 200 ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-blue-400'
+                      }`}
                       placeholder="What's your project called?"
+                      maxLength={250}
                     />
+                    {formData.projectDetails.title.length > 200 && (
+                      <p className="text-red-400 text-xs mt-1">Title is too long. Maximum 200 characters allowed.</p>
+                    )}
                   </div>
 
                   <div>
@@ -620,8 +706,14 @@ export default function StartProjectForm({
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium my-6">
-                      Tech Stack/Services Needed
+                    <label className="flex items-center justify-between text-sm font-medium text-gray-300 my-6">
+                      <span>Tech Stack/Services Needed</span>
+                      <span className={`text-xs ${
+                        formData.projectDetails.techStack.length > 20 ? 'text-red-400' : 
+                        formData.projectDetails.techStack.length > 15 ? 'text-yellow-400' : 'text-gray-500'
+                      }`}>
+                        {formData.projectDetails.techStack.length}/20
+                      </span>
                     </label>
                     <p className="text-sm text-gray-400 mb-3">
                       Select all technologies and services you need for your
@@ -652,8 +744,14 @@ export default function StartProjectForm({
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Project Description *
+                    <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
+                      <span>Project Description *</span>
+                      <span className={`text-xs ${
+                        formData.projectDetails.description.length > 10000 ? 'text-red-400' : 
+                        formData.projectDetails.description.length > 9000 ? 'text-yellow-400' : 'text-gray-500'
+                      }`}>
+                        {formData.projectDetails.description.length.toLocaleString()}/10,000
+                      </span>
                     </label>
                     <textarea
                       value={formData.projectDetails.description}
@@ -661,9 +759,15 @@ export default function StartProjectForm({
                         updateProjectDetails("description", e.target.value)
                       }
                       rows={4}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                      className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors resize-none ${
+                        formData.projectDetails.description.length > 10000 ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-blue-400'
+                      }`}
                       placeholder="Describe your project in detail. What problem does it solve? What features do you need?"
+                      maxLength={10500}
                     />
+                    {formData.projectDetails.description.length > 10000 && (
+                      <p className="text-red-400 text-xs mt-1">Description is too long. Please reduce the content size.</p>
+                    )}
                   </div>
 
                   <div className="grid place-content-center grid-cols-1 items-center md:grid-cols-2 gap-6">

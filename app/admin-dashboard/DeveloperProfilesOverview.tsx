@@ -6,6 +6,7 @@ import DeveloperProfileEditor from "./DeveloperProfileEditor";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { EnhancedDeveloperFilter } from "./EnhancedDeveloperFilter";
 import DeveloperEvaluationForm from "./assessments/DeveloperEvaluationForm";
+import { formatProjectCurrency, getProjectCurrency } from "@/utils/currency-formatter";
 
 import {
   FaEdit,
@@ -694,28 +695,28 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
     return (
       <div className="min-h-screen">
         {/* Header */}
-        <div className="bg-indigo-400/20 rounded-xl mb-8">
+        <div className="bg-indigo-400/30 dark:bg-indigo-400/20 rounded-xl mb-8">
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={handleBackToList}
-                  className="cursor-pointer flex items-center space-x-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
+                  className="cursor-pointer flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/20 dark:hover:bg-white/10"
                 >
                   <FaArrowCircleLeft className="w-4 h-4" />
                   <span>Back to Profiles</span>
                 </button>
-                <div className="w-px h-6 bg-gray-600"></div>
+                <div className="w-px h-6 bg-gray-400 dark:bg-gray-600"></div>
                 <div>
-                  <h1 className="text-2xl font-semibold text-white">
+                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {selectedProfile.data.personalInfo.firstName}{" "}
                     {selectedProfile.data.personalInfo.lastName}
                   </h1>
-                  <p className="text-gray-400 mt-1">
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
                     {selectedProfile.data.professionalInfo.title}
                   </p>
                   {selectedProfile.data.personalInfo.bio && (
-                    <p className="text-gray-300 text-sm mt-2 max-w-md">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm mt-2 max-w-md">
                       {selectedProfile.data.personalInfo.bio}
                     </p>
                   )}
@@ -724,20 +725,20 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-2">
                   <FaStar className="text-yellow-400" />
-                  <span className="text-white font-medium">
+                  <span className="text-gray-900 dark:text-white font-medium">
                     {selectedProfile.data.stats.averageRating.toFixed(1)}
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-gray-400 text-sm">Hourly Rate</p>
-                  <p className="text-xl font-semibold text-green-400">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Hourly Rate</p>
+                  <p className="text-xl font-semibold text-green-600 dark:text-green-400">
                     ${selectedProfile.data.professionalInfo.hourlyRate}/hr
                   </p>
                 </div>
                 {selectedProfile.data.stats.responseTime && (
                   <div className="text-right">
-                    <p className="text-gray-400 text-sm">Response Time</p>
-                    <p className="text-white font-medium">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Response Time</p>
+                    <p className="text-gray-900 dark:text-white font-medium">
                       {selectedProfile.data.stats.responseTime}
                     </p>
                   </div>
@@ -752,30 +753,30 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Overview */}
-            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
-                <FaUser className="text-gray-400" />
-                <h3 className="text-lg font-semibold !text-indigo-400">
+                <FaUser className="text-gray-500 dark:text-gray-400" />
+                <h3 className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
                   Profile Overview
                 </h3>
               </div>
               <div className="space-y-4">
                 <div>
-                  <h4 className="!text-indigo-400 font-medium mb-2">
+                  <h4 className="text-indigo-600 dark:text-indigo-400 font-medium mb-2">
                     Professional Summary
                   </h4>
-                  <p className="text-gray-300 leading-relaxed">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                     {selectedProfile.data.personalInfo.tagline}
                   </p>
                   {selectedProfile.data.professionalInfo.bio && (
-                    <p className="text-gray-300 leading-relaxed mt-3">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed mt-3">
                       {selectedProfile.data.professionalInfo.bio}
                     </p>
                   )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <p className="text-gray-400 text-sm mb-1">
+                  <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">
                       Experience Level
                     </p>
                     <p
@@ -796,8 +797,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       </p>
                     )}
                   </div>
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <p className="text-gray-400 text-sm mb-1">Availability</p>
+                  <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Availability</p>
                     <p
                       className={`font-medium capitalize ${getAvailabilityColor(
                         selectedProfile.data.professionalInfo.availability
@@ -811,9 +812,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       </p>
                     )}
                   </div>
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <p className="text-gray-400 text-sm mb-1">Location</p>
-                    <p className="text-white font-medium">
+                  <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Location</p>
+                    <p className="text-gray-900 dark:text-white font-medium">
                       {selectedProfile.data.personalInfo.location}
                     </p>
                     {selectedProfile.data.personalInfo.timeZone && (
@@ -827,17 +828,17 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Technical Skills */}
-            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
-                <FaCode className="text-gray-400" />
-                <h3 className="text-lg font-semibold !text-indigo-400">
+                <FaCode className="text-gray-500 dark:text-gray-400" />
+                <h3 className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
                   Technical Skills
                 </h3>
               </div>
 
               {/* Primary Skills */}
               <div className="mb-6">
-                <h4 className="!text-indigo-300 font-medium mb-3">
+                <h4 className="text-indigo-600 dark:text-indigo-300 font-medium mb-3">
                   Primary Skills
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -845,7 +846,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     (skill) => (
                       <div
                         key={skill.name}
-                        className="bg-white/5 rounded-lg p-4 text-center"
+                        className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 text-center"
                       >
                         <div className="relative w-16 h-16 mx-auto mb-3">
                           <svg
@@ -859,7 +860,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                               stroke="currentColor"
                               strokeWidth="6"
                               fill="none"
-                              className="text-gray-700"
+                              className="text-gray-400 dark:text-gray-700"
                             />
                             <circle
                               cx="50"
@@ -869,24 +870,24 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                               strokeWidth="6"
                               fill="none"
                               strokeDasharray={`${skill.level * 21.98} 219.8`}
-                              className="text-blue-400"
+                              className="text-blue-600 dark:text-blue-400"
                               strokeLinecap="round"
                             />
                           </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-white font-medium text-sm">
+                            <span className="text-gray-900 dark:text-white font-medium text-sm">
                               {skill.level}
                             </span>
                           </div>
                         </div>
-                        <h5 className="text-white font-medium mb-1">
+                        <h5 className="text-gray-900 dark:text-white font-medium mb-1">
                           {skill.name}
                         </h5>
-                        <p className="text-gray-400 text-xs">
+                        <p className="text-gray-600 dark:text-gray-400 text-xs">
                           {skill.level}/10
                         </p>
                         {skill.endorsements && (
-                          <p className="text-green-400 text-xs mt-1">
+                          <p className="text-green-600 dark:text-green-400 text-xs mt-1">
                             {skill.endorsements} endorsements
                           </p>
                         )}
@@ -905,7 +906,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               {selectedProfile.data.technicalSkills.frameworks &&
                 selectedProfile.data.technicalSkills.frameworks.length > 0 && (
                   <div className="mb-6">
-                    <h4 className="text-white font-medium mb-3">
+                    <h4 className="text-gray-900 dark:text-white font-medium mb-3">
                       Frameworks & Libraries
                     </h4>
                     <div className="flex flex-wrap gap-2">
@@ -913,7 +914,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         (skill) => (
                           <span
                             key={skill.name}
-                            className="bg-indigo-600/10 text-gray-300 px-3 py-1 rounded-full text-sm"
+                            className="bg-indigo-600/20 dark:bg-indigo-600/10 text-indigo-700 dark:text-gray-300 px-3 py-1 rounded-full text-sm"
                           >
                             {skill.name} ({skill.level}/10)
                           </span>
@@ -926,13 +927,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               {selectedProfile.data.technicalSkills.databases &&
                 selectedProfile.data.technicalSkills.databases.length > 0 && (
                   <div className="mb-6">
-                    <h4 className="text-white font-medium mb-3">Databases</h4>
+                    <h4 className="text-gray-900 dark:text-white font-medium mb-3">Databases</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedProfile.data.technicalSkills.databases.map(
                         (skill) => (
                           <span
                             key={skill.name}
-                            className="bg-purple-600/10 text-gray-300 px-3 py-1 rounded-full text-sm"
+                            className="bg-purple-600/20 dark:bg-purple-600/10 text-purple-700 dark:text-gray-300 px-3 py-1 rounded-full text-sm"
                           >
                             {skill.name} ({skill.level}/10)
                           </span>
@@ -945,7 +946,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               {selectedProfile.data.technicalSkills.tools &&
                 selectedProfile.data.technicalSkills.tools.length > 0 && (
                   <div className="mb-6">
-                    <h4 className="text-white font-medium mb-3">
+                    <h4 className="text-gray-900 dark:text-white font-medium mb-3">
                       Tools & Technologies
                     </h4>
                     <div className="flex flex-wrap gap-2">
@@ -953,7 +954,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         (skill) => (
                           <span
                             key={skill.name}
-                            className="bg-teal-600/10 text-gray-300 px-3 py-1 rounded-full text-sm"
+                            className="bg-teal-600/20 dark:bg-teal-600/10 text-teal-700 dark:text-gray-300 px-3 py-1 rounded-full text-sm"
                           >
                             {skill.name} ({skill.level}/10)
                           </span>
@@ -967,7 +968,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                 selectedProfile.data.technicalSkills.cloudPlatforms.length >
                   0 && (
                   <div className="mb-6">
-                    <h4 className="text-white font-medium mb-3">
+                    <h4 className="text-gray-900 dark:text-white font-medium mb-3">
                       Cloud Platforms
                     </h4>
                     <div className="flex flex-wrap gap-2">
@@ -975,7 +976,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         (platform) => (
                           <span
                             key={platform}
-                            className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm"
+                            className="bg-purple-500/30 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-sm"
                           >
                             {platform}
                           </span>
@@ -989,7 +990,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                 selectedProfile.data.technicalSkills.specializations.length >
                   0 && (
                   <div>
-                    <h4 className="text-white font-medium mb-3">
+                    <h4 className="text-gray-900 dark:text-white font-medium mb-3">
                       Specializations
                     </h4>
                     <div className="flex flex-wrap gap-2">
@@ -997,7 +998,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         (spec) => (
                           <span
                             key={spec}
-                            className="bg-yellow-500/20 text-yellow-300 px-3 py-1 rounded-full text-sm"
+                            className="bg-yellow-500/30 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-sm"
                           >
                             {spec}
                           </span>
@@ -1009,24 +1010,24 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Enhanced Performance Stats */}
-            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-6">
-                <FaChartLine className="text-gray-400" />
-                <h3 className="text-lg font-semibold !text-indigo-400">
+                <FaChartLine className="text-gray-500 dark:text-gray-400" />
+                <h3 className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
                   Performance Statistics
                 </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white/5 rounded-lg p-4">
+                <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="text-gray-400 text-sm">Total Projects</p>
-                      <p className="text-2xl font-semibold text-white">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Total Projects</p>
+                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                         {selectedProfile.data.stats.totalProjects}
                       </p>
                     </div>
-                    <div className="w-10 h-10 bg-blue-400/20 rounded-full flex items-center justify-center">
-                      <FaCode className="text-blue-400" />
+                    <div className="w-10 h-10 bg-blue-400/30 dark:bg-blue-400/20 rounded-full flex items-center justify-center">
+                      <FaCode className="text-blue-600 dark:text-blue-400" />
                     </div>
                   </div>
                   <p className="text-gray-500 text-sm">
@@ -1036,47 +1037,47 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   </p>
                 </div>
 
-                <div className="bg-white/5 rounded-lg p-4">
+                <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="text-gray-400 text-sm">Total Earnings</p>
-                      <p className="text-2xl font-semibold text-green-400">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Total Earnings</p>
+                      <p className="text-2xl font-semibold text-green-600 dark:text-green-400">
                         $
                         {selectedProfile.data.stats.totalEarnings.toLocaleString()}
                       </p>
                     </div>
-                    <div className="w-10 h-10 bg-green-400/20 rounded-full flex items-center justify-center">
-                      <FaDollarSign className="text-green-400" />
+                    <div className="w-10 h-10 bg-green-400/30 dark:bg-green-400/20 rounded-full flex items-center justify-center">
+                      <FaDollarSign className="text-green-600 dark:text-green-400" />
                     </div>
                   </div>
                   <p className="text-gray-500 text-sm">Lifetime earnings</p>
                 </div>
 
-                <div className="bg-white/5 rounded-lg p-4">
+                <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="text-gray-400 text-sm">Average Rating</p>
-                      <p className="text-2xl font-semibold text-yellow-400">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Average Rating</p>
+                      <p className="text-2xl font-semibold text-yellow-600 dark:text-yellow-400">
                         {selectedProfile.data.stats.averageRating.toFixed(1)}
                       </p>
                     </div>
-                    <div className="w-10 h-10 bg-yellow-400/20 rounded-full flex items-center justify-center">
-                      <FaStar className="text-yellow-400" />
+                    <div className="w-10 h-10 bg-yellow-400/30 dark:bg-yellow-400/20 rounded-full flex items-center justify-center">
+                      <FaStar className="text-yellow-600 dark:text-yellow-400" />
                     </div>
                   </div>
                   <p className="text-gray-500 text-sm">Client feedback</p>
                 </div>
 
-                <div className="bg-white/5 rounded-lg p-4">
+                <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="text-gray-400 text-sm">Client Retention</p>
-                      <p className="text-2xl font-semibold text-purple-400">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Client Retention</p>
+                      <p className="text-2xl font-semibold text-purple-600 dark:text-purple-400">
                         {selectedProfile.data.stats.clientRetention}%
                       </p>
                     </div>
-                    <div className="w-10 h-10 bg-purple-400/20 rounded-full flex items-center justify-center">
-                      <FaUsers className="text-purple-400" />
+                    <div className="w-10 h-10 bg-purple-400/30 dark:bg-purple-400/20 rounded-full flex items-center justify-center">
+                      <FaUsers className="text-purple-600 dark:text-purple-400" />
                     </div>
                   </div>
                   <p className="text-gray-500 text-sm">Return rate</p>
@@ -1087,10 +1088,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             {/* Recent Projects */}
             {selectedProfile.data.projects &&
               selectedProfile.data.projects.length > 0 && (
-                <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
+                <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
-                    <FaProjectDiagram className="text-gray-400" />
-                    <h3 className="text-lg font-semibold !text-indigo-400">
+                    <FaProjectDiagram className="text-gray-500 dark:text-gray-400" />
+                    <h3 className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
                       Recent Projects
                     </h3>
                   </div>
@@ -1100,40 +1101,40 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       .map((project) => (
                         <div
                           key={project.id}
-                          className="bg-white/5 rounded-lg p-4"
+                          className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-white font-medium">
+                            <h4 className="text-gray-900 dark:text-white font-medium">
                               {project.title}
                             </h4>
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 project.status === "completed"
-                                  ? "bg-green-500/20 text-green-400"
+                                  ? "bg-green-500/30 dark:bg-green-500/20 text-green-700 dark:text-green-400"
                                   : project.status === "in-progress"
-                                  ? "bg-blue-500/20 text-blue-400"
+                                  ? "bg-blue-500/30 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400"
                                   : project.status === "review"
-                                  ? "bg-yellow-500/20 text-yellow-400"
-                                  : "bg-gray-500/20 text-gray-400"
+                                  ? "bg-yellow-500/30 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
+                                  : "bg-gray-500/30 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400"
                               }`}
                             >
                               {project.status}
                             </span>
                           </div>
-                          <p className="text-gray-300 text-sm mb-3">
+                          <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
                             {project.description}
                           </p>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               <div className="flex items-center space-x-1">
-                                <FaDollarSign className="text-green-400 text-xs" />
-                                <span className="text-green-400 text-sm font-medium">
-                                  ${project.budget?.toLocaleString()}
+                                <FaDollarSign className="text-green-600 dark:text-green-400 text-xs" />
+                                <span className="text-green-600 dark:text-green-400 text-sm font-medium">
+                                  {formatProjectCurrency(project.budget, project)}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-1">
-                                <FaCalendarAlt className="text-gray-400 text-xs" />
-                                <span className="text-gray-400 text-sm">
+                                <FaCalendarAlt className="text-gray-500 dark:text-gray-400 text-xs" />
+                                <span className="text-gray-500 dark:text-gray-400 text-sm">
                                   {new Date(
                                     project?.deadline
                                   ).toLocaleDateString()}
@@ -1498,10 +1499,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             {/* Recent Activity */}
             {selectedProfile.data.recentActivity &&
               selectedProfile.data.recentActivity.length > 0 && (
-                <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
+                <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
-                    <FaClock className="text-gray-400" />
-                    <h3 className="text-lg font-semibold !text-indigo-400">
+                    <FaClock className="text-gray-500 dark:text-gray-400" />
+                    <h3 className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
                       Recent Activity
                     </h3>
                   </div>
@@ -1511,17 +1512,17 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       .map((activity) => (
                         <div
                           key={activity.id}
-                          className="flex items-start space-x-3 p-3 bg-white/5 rounded-lg"
+                          className="flex items-start space-x-3 p-3 bg-white/10 dark:bg-white/5 rounded-lg"
                         >
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center text-xs ${
                               activity.type === "task"
-                                ? "bg-blue-500/20 text-blue-400"
+                                ? "bg-blue-500/30 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400"
                                 : activity.type === "feedback"
-                                ? "bg-green-500/20 text-green-400"
+                                ? "bg-green-500/30 dark:bg-green-500/20 text-green-700 dark:text-green-400"
                                 : activity.type === "code"
-                                ? "bg-purple-500/20 text-purple-400"
-                                : "bg-yellow-500/20 text-yellow-400"
+                                ? "bg-purple-500/30 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
+                                : "bg-yellow-500/30 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
                             }`}
                           >
                             {activity.type === "task" ? (
@@ -1535,10 +1536,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="text-white text-sm">
+                            <p className="text-gray-900 dark:text-white text-sm">
                               {activity.action}
                             </p>
-                            <p className="text-gray-400 text-xs mt-1">
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
                               {new Date(
                                 activity.timestamp
                               ).toLocaleDateString()}
@@ -1553,10 +1554,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             {/* Time Tracking Summary */}
             {selectedProfile.data.timeEntries &&
               selectedProfile.data.timeEntries.length > 0 && (
-                <div className="bg-white/5 rounded-xl p-6">
+                <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-xl p-6">
                   <div className="flex items-center space-x-3 mb-6">
-                    <FaClock className="text-gray-400" />
-                    <h3 className="text-lg font-semibold !text-indigo-400">
+                    <FaClock className="text-gray-500 dark:text-gray-400" />
+                    <h3 className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
                       Time Tracking
                     </h3>
                   </div>
@@ -1566,30 +1567,30 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       .map((entry, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                          className="flex items-center justify-between p-3 bg-white/10 dark:bg-white/5 rounded-lg"
                         >
                           <div>
-                            <p className="text-white text-sm font-medium">
+                            <p className="text-gray-900 dark:text-white text-sm font-medium">
                               {entry.project}
                             </p>
-                            <p className="text-gray-400 text-xs">
+                            <p className="text-gray-500 dark:text-gray-400 text-xs">
                               {entry.description}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-cyan-400 font-medium">
+                            <p className="text-cyan-600 dark:text-cyan-400 font-medium">
                               {entry.hours}h
                             </p>
-                            <p className="text-gray-400 text-xs">
+                            <p className="text-gray-500 dark:text-gray-400 text-xs">
                               {new Date(entry.date).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
                       ))}
-                    <div className="pt-2 border-t border-gray-700">
+                    <div className="pt-2 border-t border-gray-300 dark:border-gray-700">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Total Hours</span>
-                        <span className="text-cyan-400 font-semibold">
+                        <span className="text-gray-500 dark:text-gray-400">Total Hours</span>
+                        <span className="text-cyan-600 dark:text-cyan-400 font-semibold">
                           {selectedProfile.data.timeEntries.reduce(
                             (sum, entry) => sum + entry.hours,
                             0
@@ -1603,16 +1604,16 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               )}
 
             {/* Action Buttons */}
-            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Profile Actions
               </h3>
               <div className="space-y-3">
                 <button
                   onClick={() => handleEdit(selectedProfile.id)}
-                  className="cursor-pointer w-full px-4 py-3 bg-white/10 hover:bg-black/20 text-white rounded-lg transition-all flex items-center justify-center space-x-2"
+                  className="cursor-pointer w-full px-4 py-3 bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-black/20 text-gray-900 dark:text-white rounded-lg transition-all flex items-center justify-center space-x-2"
                 >
-                  <FaEdit className="text-blue-400" />
+                  <FaEdit className="text-blue-600 dark:text-blue-400" />
                   <span>Edit Profile</span>
                 </button>
                 <button
@@ -1620,9 +1621,9 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     setAssessmentDeveloperId(selectedProfile.id);
                     setViewMode("assess");
                   }}
-                  className="cursor-pointer w-full px-4 py-3 bg-white/10 hover:bg-black/20 text-white rounded-lg transition-all flex items-center justify-center space-x-2"
+                  className="cursor-pointer w-full px-4 py-3 bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-black/20 text-gray-900 dark:text-white rounded-lg transition-all flex items-center justify-center space-x-2"
                 >
-                  <FaClipboardCheck className="text-blue-400" />
+                  <FaClipboardCheck className="text-blue-600 dark:text-blue-400" />
                   <span>Assess Developer</span>
                 </button>
                 <button
@@ -1632,7 +1633,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       `${selectedProfile.data.personalInfo.firstName} ${selectedProfile.data.personalInfo.lastName}`
                     )
                   }
-                  className="cursor-pointer w-full px-4 py-3 bg-white/10 hover:bg-black/20 text-white rounded-lg transition-all flex items-center justify-center space-x-2"
+                  className="cursor-pointer w-full px-4 py-3 bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-black/20 text-gray-900 dark:text-white rounded-lg transition-all flex items-center justify-center space-x-2"
                 >
                   <FaTrash className="text-red-400" />
                   <span>Delete Profile</span>
@@ -1641,34 +1642,34 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
             </div>
 
             {/* Enhanced Quick Summary */}
-            <div className="bg-black/10 border border-gray-400/20 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Quick Summary
               </h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-400">Hourly Rate</span>
-                  <span className="text-green-400 font-semibold">
+                <div className="flex justify-between items-center p-3 bg-white/10 dark:bg-white/5 rounded-lg">
+                  <span className="text-gray-500 dark:text-gray-400">Hourly Rate</span>
+                  <span className="text-green-600 dark:text-green-400 font-semibold">
                     ${selectedProfile.data.professionalInfo.hourlyRate}/hr
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-400">Total Projects</span>
-                  <span className="text-blue-400 font-semibold">
+                <div className="flex justify-between items-center p-3 bg-white/10 dark:bg-white/5 rounded-lg">
+                  <span className="text-gray-500 dark:text-gray-400">Total Projects</span>
+                  <span className="text-blue-600 dark:text-blue-400 font-semibold">
                     {selectedProfile.data.stats.totalProjects}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-400">Success Rate</span>
-                  <span className="text-purple-400 font-semibold">
+                <div className="flex justify-between items-center p-3 bg-white/10 dark:bg-white/5 rounded-lg">
+                  <span className="text-gray-500 dark:text-gray-400">Success Rate</span>
+                  <span className="text-purple-600 dark:text-purple-400 font-semibold">
                     {selectedProfile.data.stats.clientRetention}%
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-400">Rating</span>
+                <div className="flex justify-between items-center p-3 bg-white/10 dark:bg-white/5 rounded-lg">
+                  <span className="text-gray-500 dark:text-gray-400">Rating</span>
                   <div className="flex items-center space-x-1">
-                    <FaStar className="text-yellow-400" />
-                    <span className="text-yellow-400 font-semibold">
+                    <FaStar className="text-yellow-600 dark:text-yellow-400" />
+                    <span className="text-yellow-600 dark:text-yellow-400 font-semibold">
                       {selectedProfile.data.stats.averageRating.toFixed(1)}
                     </span>
                   </div>
@@ -1687,7 +1688,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400 mx-auto mb-4"></div>
-            <p className="text-white text-xl">Loading Dev Profiles...</p>
+            <p className="text-gray-900 dark:text-white text-xl">Loading Dev Profiles...</p>
           </div>
         </div>
       );
@@ -1699,10 +1700,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-white mb-2">
+              <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
                 Developer Profiles
               </h1>
-              <p className="text-gray-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 Manage and overview all developers in the talent pool.
               </p>
             </div>
@@ -1793,7 +1794,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
               return (
                 <div
                   key={profile.id}
-                  className={`bg-black/5 rounded-xl p-6 hover:bg-black/10 transition-all duration-200 border border-gray-700/30 hover:border-gray-600/50 relative ${
+                  className={`bg-white/10 dark:bg-black/5 rounded-xl p-6 hover:bg-white/20 dark:hover:bg-black/10 transition-all duration-200 border border-gray-200 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600/50 relative ${
                     isNew ? "border-green-500/50" : ""
                   }`}
                 >
@@ -1807,25 +1808,25 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   {/* Profile Header */}
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center border border-gray-600/50">
-                        <span className="text-white font-semibold text-lg">
+                      <div className="w-14 h-14 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-600/50">
+                        <span className="text-gray-700 dark:text-white font-semibold text-lg">
                           {profile.data.personalInfo.firstName[0]}
                           {profile.data.personalInfo.lastName[0]}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-white font-semibold text-lg mb-1">
+                        <h3 className="text-gray-900 dark:text-white font-semibold text-lg mb-1">
                           {profile.data.personalInfo.firstName}{" "}
                           {profile.data.personalInfo.lastName}
                         </h3>
-                        <p className="text-gray-400 text-sm">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
                           {profile.data.professionalInfo.title}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1 bg-white/5 px-3 py-1 rounded-full">
-                      <FaStar className="text-yellow-400 text-sm" />
-                      <span className="text-white font-medium text-sm">
+                    <div className="flex items-center space-x-1 bg-white/20 dark:bg-white/5 px-3 py-1 rounded-full">
+                      <FaStar className="text-yellow-500 dark:text-yellow-400 text-sm" />
+                      <span className="text-gray-900 dark:text-white font-medium text-sm">
                         {profile.data.stats.averageRating.toFixed(1)}
                       </span>
                     </div>
@@ -1833,25 +1834,25 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
                   {/* Profile Stats */}
                   <div className="grid grid-cols-2 gap-3 mb-5">
-                    <div className="bg-white/5 rounded-lg p-3 border border-gray-700/30">
+                    <div className="bg-white/20 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-gray-700/30">
                       <div className="flex items-center space-x-2 mb-2">
-                        <FaCode className="text-blue-400 text-sm" />
-                        <span className="text-gray-400 text-xs uppercase tracking-wide font-medium">
+                        <FaCode className="text-blue-500 dark:text-blue-400 text-sm" />
+                        <span className="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wide font-medium">
                           Projects
                         </span>
                       </div>
-                      <p className="text-white font-semibold text-lg">
+                      <p className="text-gray-900 dark:text-white font-semibold text-lg">
                         {profile.data.stats.totalProjects}
                       </p>
                     </div>
-                    <div className="bg-white/5 rounded-lg p-3 border border-gray-700/30">
+                    <div className="bg-white/20 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-gray-700/30">
                       <div className="flex items-center space-x-2 mb-2">
-                        <FaBriefcase className="text-green-400 text-sm" />
-                        <span className="text-gray-400 text-xs uppercase tracking-wide font-medium">
+                        <FaBriefcase className="text-green-500 dark:text-green-400 text-sm" />
+                        <span className="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wide font-medium">
                           Level
                         </span>
                       </div>
-                      <p className="text-white font-medium text-sm capitalize">
+                      <p className="text-gray-900 dark:text-white font-medium text-sm capitalize">
                         {profile.data.professionalInfo.experienceLevel}
                       </p>
                     </div>
@@ -1859,14 +1860,14 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
                   {/* Skills */}
                   <div className="mb-5">
-                    <p className="text-gray-400 text-xs mb-3 uppercase tracking-wide font-medium">
+                    <p className="text-gray-600 dark:text-gray-400 text-xs mb-3 uppercase tracking-wide font-medium">
                       Top Skills
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {getTopSkills(profile).map((skill, index) => (
                         <span
                           key={index}
-                          className="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-xs border border-gray-600/30"
+                          className="px-3 py-1 bg-white/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-full text-xs border border-gray-300 dark:border-gray-600/30"
                         >
                           {skill}
                         </span>
@@ -1878,8 +1879,8 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <FaMapMarkerAlt className="text-gray-400 text-xs" />
-                        <span className="text-gray-400 text-sm">
+                        <FaMapMarkerAlt className="text-gray-500 dark:text-gray-400 text-xs" />
+                        <span className="text-gray-600 dark:text-gray-400 text-sm">
                           {profile.data.personalInfo.location}
                         </span>
                       </div>
@@ -1892,7 +1893,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
                     {/* Approval Status */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400 uppercase tracking-wide">
+                      <span className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                         Approval
                       </span>
                       <span
@@ -1913,7 +1914,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
                     {/* Available for Projects */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400 uppercase tracking-wide">
+                      <span className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                         Available
                       </span>
                       <span className="text-xs font-medium flex items-center">
@@ -1932,7 +1933,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     {/* Busy Until Date */}
                     {profile.busyUntilDate && (
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-400 uppercase tracking-wide">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                           Busy Until
                         </span>
                         <span className="text-xs font-medium text-orange-400">
@@ -1953,7 +1954,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleView(profile.id)}
-                      className="cursor-pointer flex-1 px-3 py-2 bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-all duration-200 text-sm font-medium"
+                      className="cursor-pointer flex-1 px-3 py-2 bg-white/20 dark:bg-white/5 border border-gray-300 dark:border-gray-600/50 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all duration-200 text-sm font-medium"
                     >
                       <FaEye className="inline mr-2" />
                       View
@@ -1967,7 +1968,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                         profile.status === "approved"
                           ? "  bg-green-600/20 text-green-400 cursor-not-allowed"
-                          : "bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-green-600/20 hover:text-green-400 cursor-pointer"
+                          : "bg-white/20 dark:bg-white/5 border border-gray-300 dark:border-gray-600/50 text-gray-700 dark:text-gray-300 hover:bg-green-600/30 dark:hover:bg-green-600/20 hover:text-green-600 dark:hover:text-green-400 cursor-pointer"
                       }`}
                     >
                       <FaCheckCircle />
@@ -1981,7 +1982,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                         profile.status === "rejected"
                           ? "bg-red-600/20 text-red-400 cursor-not-allowed"
-                          : "bg-white/5 border border-gray-600/50 text-gray-300 hover:bg-red-600/20 hover:text-red-400 cursor-pointer"
+                          : "bg-white/20 dark:bg-white/5 border border-gray-300 dark:border-gray-600/50 text-gray-700 dark:text-gray-300 hover:bg-red-600/30 dark:hover:bg-red-600/20 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
                       }`}
                     >
                       <FaTimesCircle />
@@ -1989,7 +1990,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
 
                     <button
                       onClick={() => handleEdit(profile.id)}
-                      className="cursor-pointer px-3 py-2 bg-white/5 border border-gray-600/50 text-gray-400 hover:bg-white/10 hover:text-gray-300 rounded-lg transition-all duration-200 text-sm"
+                      className="cursor-pointer px-3 py-2 bg-white/20 dark:bg-white/5 border border-gray-300 dark:border-gray-600/50 text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-gray-300 rounded-lg transition-all duration-200 text-sm"
                     >
                       <FaEdit />
                     </button>
@@ -1999,7 +2000,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                         setAssessmentDeveloperId(profile.id);
                         setViewMode("assess");
                       }}
-                      className="cursor-pointer px-3 py-2 bg-white/5 border border-gray-600/50 text-blue-400 hover:bg-white/10 hover:text-blue-300 rounded-lg transition-all duration-200 text-sm"
+                      className="cursor-pointer px-3 py-2 bg-white/20 dark:bg-white/5 border border-gray-300 dark:border-gray-600/50 text-blue-600 dark:text-blue-400 hover:bg-white/30 dark:hover:bg-white/10 hover:text-blue-800 dark:hover:text-blue-300 rounded-lg transition-all duration-200 text-sm"
                       title="Assess Developer"
                     >
                       <FaClipboardCheck />
@@ -2012,7 +2013,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                           `${profile.data.personalInfo.firstName} ${profile.data.personalInfo.lastName}`
                         )
                       }
-                      className="cursor-pointer px-3 py-2 bg-white/5 border border-gray-600/50 text-gray-400 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200 text-sm"
+                      className="cursor-pointer px-3 py-2 bg-white/20 dark:bg-white/5 border border-gray-300 dark:border-gray-600/50 text-gray-600 dark:text-gray-400 hover:bg-red-600/30 dark:hover:bg-red-600/20 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-all duration-200 text-sm"
                     >
                       <FaTrash />
                     </button>
@@ -2025,11 +2026,11 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
           {/* Empty State */}
           {filteredProfiles.length === 0 && !loading && (
             <div className="text-center py-12">
-              <FaExclamationTriangle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">
+              <FaExclamationTriangle className="mx-auto h-12 w-12 text-gray-500 dark:text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 No developers found
               </h3>
-              <p className="text-gray-400 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Try adjusting your search or filter criteria.
               </p>
               <button
@@ -2115,19 +2116,19 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
           )}
 
           {/* Stats Summary */}
-          <div className="mt-8 bg-black/20 border border-gray-600/20 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="mt-8 bg-white/10 dark:bg-black/20 border border-gray-200 dark:border-gray-600/20 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Summary Statistics
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <div className="text-2xl font-semibold text-blue-400 mb-1">
+              <div className="bg-white/10 dark:bg-white/10 rounded-lg p-4 text-center">
+                <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-1">
                   {profiles.length}
                 </div>
-                <div className="text-gray-400 text-sm">Total Developers</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Total Developers</div>
               </div>
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <div className="text-2xl font-semibold text-green-400 mb-1">
+              <div className="bg-white/10 dark:bg-white/10 rounded-lg p-4 text-center">
+                <div className="text-2xl font-semibold text-green-600 dark:text-green-400 mb-1">
                   {
                     profiles.filter((p) => {
                       const availabilityInfo = getEnhancedAvailabilityInfo(p);
@@ -2135,10 +2136,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     }).length
                   }
                 </div>
-                <div className="text-gray-400 text-sm">Available</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Available</div>
               </div>
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <div className="text-2xl font-semibold text-orange-400 mb-1">
+              <div className="bg-white/10 dark:bg-white/10 rounded-lg p-4 text-center">
+                <div className="text-2xl font-semibold text-orange-600 dark:text-orange-400 mb-1">
                   {
                     profiles.filter((p) => {
                       const availabilityInfo = getEnhancedAvailabilityInfo(p);
@@ -2146,10 +2147,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     }).length
                   }
                 </div>
-                <div className="text-gray-400 text-sm">Busy Until Date</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Busy Until Date</div>
               </div>
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <div className="text-2xl font-semibold text-yellow-400 mb-1">
+              <div className="bg-white/10 dark:bg-white/10 rounded-lg p-4 text-center">
+                <div className="text-2xl font-semibold text-yellow-600 dark:text-yellow-400 mb-1">
                   {profiles.length > 0
                     ? (
                         profiles.reduce(
@@ -2159,10 +2160,10 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       ).toFixed(1)
                     : "0.0"}
                 </div>
-                <div className="text-gray-400 text-sm">Avg Rating</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Avg Rating</div>
               </div>
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <div className="text-2xl font-semibold text-purple-400 mb-1">
+              <div className="bg-white/10 dark:bg-white/10 rounded-lg p-4 text-center">
+                <div className="text-2xl font-semibold text-purple-600 dark:text-purple-400 mb-1">
                   {profiles.length > 0
                     ? profiles.reduce(
                         (sum, p) => sum + p.data.stats.totalProjects,
@@ -2170,7 +2171,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                       )
                     : 0}
                 </div>
-                <div className="text-gray-400 text-sm">Total Projects</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Total Projects</div>
               </div>
             </div>
           </div>
@@ -2198,7 +2199,7 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
     return (
       <div className="min-h-screen">
         {/* header - developer assessments */}
-        <div className="bg-indigo-400/20 rounded-xl mb-8">
+        <div className="bg-indigo-400/30 dark:bg-indigo-400/20 rounded-xl mb-8">
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -2207,13 +2208,13 @@ const DeveloperProfilesOverview: React.FC<Props> = ({
                     setViewMode("list");
                     setAssessmentDeveloperId(null);
                   }}
-                  className="cursor-pointer flex items-center space-x-2 text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
+                  className="cursor-pointer flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/20 dark:hover:bg-white/10"
                 >
                   <FaArrowCircleLeft className="w-4 h-4" />
                   <span>Back to Profiles</span>
                 </button>
-                <div className="w-px h-6 bg-gray-600"></div>
-                <h1 className="text-2xl font-semibold text-white">
+                <div className="w-px h-6 bg-gray-400 dark:bg-gray-600"></div>
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
                   Developer Assessment
                 </h1>
               </div>

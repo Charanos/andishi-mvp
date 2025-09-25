@@ -253,6 +253,19 @@ export async function GET(req: NextRequest) {
 // POST handler to create a new project
 export async function POST(req: NextRequest) {
   try {
+    // Check content length to prevent oversized payloads
+    const contentLength = req.headers.get('content-length');
+    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    if (contentLength && parseInt(contentLength) > maxSize) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          message: 'Request payload too large. Please reduce content size.'
+        }),
+        { status: 413, headers: getCorsHeaders(req) }
+      );
+    }
+
     const userEmail = req.headers.get('user-email');
 
     if (!userEmail) {
@@ -276,6 +289,47 @@ export async function POST(req: NextRequest) {
     }
 
     const projectData = await req.json();
+
+    // Enhanced validation for content lengths
+    if (projectData.title && projectData.title.length > 200) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          message: 'Project title is too long. Maximum 200 characters allowed.'
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
+
+    if (projectData.description && projectData.description.length > 10000) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          message: 'Project description is too long. Maximum 10,000 characters allowed.'
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
+
+    if (projectData.techStack && projectData.techStack.length > 20) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          message: 'Too many technologies selected. Maximum 20 allowed.'
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
+
+    if (projectData.pricing?.milestones && projectData.pricing.milestones.length > 10) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          message: 'Too many milestones. Maximum 10 allowed.'
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
 
     // Check for duplicate submission
     if (projectData.clientSubmissionId) {
@@ -351,13 +405,36 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error creating project:', error);
+    
+    // Handle specific error types
+    let errorMessage = 'Failed to create project';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Payload too large')) {
+        errorMessage = 'Request payload too large. Please reduce content size.';
+        statusCode = 413;
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timeout. Please try again with smaller content.';
+        statusCode = 408;
+      } else if (error.message.includes('duplicate key')) {
+        errorMessage = 'A project with this title already exists. Please use a different title.';
+        statusCode = 409;
+      } else if (error.message.includes('validation')) {
+        errorMessage = 'Validation failed. Please check your input and try again.';
+        statusCode = 400;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return new NextResponse(
       JSON.stringify({
         success: false,
-        message: 'Failed to create project',
+        message: errorMessage,
         error: error instanceof Error ? error.message : error
       }),
-      { status: 500, headers: getCorsHeaders(req) }
+      { status: statusCode, headers: getCorsHeaders(req) }
     );
   }
 }

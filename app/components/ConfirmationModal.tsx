@@ -55,7 +55,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   return (
     <div className="min-h-screen fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white/95 dark:bg-black/80 border border-gray-200 dark:border-white/10 rounded-xl p-6 w-full max-w-md mx-4 relative">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6 w-full max-w-md mx-4 relative">
         {/* Close Button */}
         <button
           onClick={onCancel}

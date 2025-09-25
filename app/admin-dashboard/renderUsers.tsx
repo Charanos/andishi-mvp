@@ -775,7 +775,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       )}
 
       {/* Form */}
-      <div className="backdrop-blur-md bg-black/10 border border-gray-400/20 rounded-xl p-6">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -938,7 +938,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         )}
 
         {/* Form */}
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -1087,7 +1087,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20"></div>
           <div className="relative max-w-7xl mx-auto px-6 py-8">
             {/* Navigation */}
-            <div className="flex items-center justify-between mb-8 cursor-pointer p-2  rounded-full bg-white/10 group-hover:bg-white/20 transition-all">
+            <div className="flex items-center justify-between mb-8 cursor-pointer p-2 rounded-full bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg group-hover:bg-black/10 dark:group-hover:bg-white/10 transition-all">
               <button
                 onClick={() => setViewMode("list")}
                 className="flex items-center space-x-3 text-gray-300 hover:text-white transition-all duration-300 group"
@@ -1100,7 +1100,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
               {/* User Status and Role */}
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+                <div className="flex items-center space-x-2 px-4 py-2 bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-lg rounded-full border border-gray-300 dark:border-white/20">
                   <FaUser className="text-blue-400" />
                   <span className="text-white font-medium text-sm monty uppercase">
                     {selectedUser.role}
@@ -1144,7 +1144,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
             {/* Left Column - User Information */}
             <div className="lg:col-span-2 space-y-8">
               {/* Personal Information Card */}
-              <div className="bg-black/10 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
@@ -1360,7 +1360,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 ) : (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-xl p-4 border border-gray-300 dark:border-white/10">
                         <p className="text-blue-300 text-sm monty uppercase font-medium mb-2">
                           Contact Information
                         </p>
@@ -1382,7 +1382,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         </div>
                       </div>
 
-                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-xl p-4 border border-gray-300 dark:border-white/10">
                         <p className="text-blue-300 monty uppercase text-sm font-medium mb-2">
                           Professional Details
                         </p>
@@ -1428,7 +1428,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
               {/* Login Credentials Card */}
               {/* Enhanced Login Credentials Card */}
-              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-black/10 transition-all duration-300">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300">
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
                     <FaKey className="text-white text-sm" />
@@ -1448,7 +1448,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-xl p-6 border border-gray-300 dark:border-white/10">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-base font-semibold text-white">
                           Email
@@ -1479,7 +1479,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       </p>
                     </div>
 
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-xl p-6 border border-gray-300 dark:border-white/10">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-base font-semibold text-white">
                           Password
@@ -1813,7 +1813,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
               </div>
 
               {/* Developer Statistics Card */}
-              <div className="bg-black/10 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8">
                 <h3 className="text-xl font-semibold text-white mb-6">
                   {selectedUser.role === "developer"
                     ? "Developer Statistics"
@@ -1823,7 +1823,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 <div className="space-y-6">
                   {/* Profile Status for Developers */}
                   {selectedUser.role === "developer" && (
-                    <div className="bg-black/20 rounded-lg p-4">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-gray-300 text-sm">
                           Profile Status
@@ -1875,13 +1875,13 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
                   {/* Project Statistics */}
                   <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="bg-black/20 rounded-lg p-4">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                       <div className="text-2xl font-semibold text-blue-400 mb-1">
                         {selectedUser.projectsCount || 0}
                       </div>
                       <p className="text-gray-400 text-xs uppercase">Total</p>
                     </div>
-                    <div className="bg-black/20 rounded-lg p-4">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                       <div className="text-2xl font-semibold text-green-400 mb-1">
                         {selectedUser.completedProjects || 0}
                       </div>
@@ -1889,7 +1889,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         Completed
                       </p>
                     </div>
-                    <div className="bg-black/20 rounded-lg p-4">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                       <div className="text-2xl font-semibold text-yellow-400 mb-1">
                         {selectedUser.activeProjects || 0}
                       </div>
@@ -1901,7 +1901,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   {selectedUser.role === "developer" && (
                     <div className="space-y-4">
                       {selectedUser.hourlyRate && (
-                        <div className="bg-black/20 rounded-lg p-4 text-center">
+                        <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 text-center">
                           <div className="text-2xl font-semibold text-emerald-400 mb-1">
                             ${selectedUser.hourlyRate}/hr
                           </div>
@@ -1911,7 +1911,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
                       {selectedUser.skills &&
                         selectedUser.skills.length > 0 && (
-                          <div className="bg-black/20 rounded-lg p-4">
+                          <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4">
                             <h4 className="text-white text-sm font-medium mb-3">
                               Primary Skills
                             </h4>
@@ -1939,7 +1939,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
                   {/* Earnings */}
                   {selectedUser.totalEarnings && (
-                    <div className="bg-black/20 rounded-lg p-4 text-center border-t border-white/10">
+                    <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 text-center border-t border-gray-300 dark:border-white/10">
                       <div className="text-2xl font-semibold text-emerald-400 mb-1">
                         ${selectedUser.totalEarnings.toLocaleString()}
                       </div>
@@ -1998,14 +1998,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
       {/* User Management Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-semibold text-white mb-2">
+          <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
             {activeTab === "clients"
               ? "Client Management"
               : activeTab === "dev profiles"
               ? "Developer Management"
               : "User Management"}
           </h2>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             {activeTab === "clients"
               ? "Manage client accounts and information"
               : activeTab === "dev profiles"
@@ -2024,23 +2024,23 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
       {/* Error display */}
       {error && (
-        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-          <p className="text-red-400">{error}</p>
+        <div className="bg-red-500/30 dark:bg-red-500/20 border border-red-500/60 dark:border-red-500/50 rounded-lg p-4">
+          <p className="text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 
       {/* User Filters */}
-      <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search users..."
                 value={userSearchTerm}
                 onChange={(e) => setUserSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                className="w-full pl-10 pr-4 py-2 bg-white/20 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
             </div>
           </div>
@@ -2049,18 +2049,18 @@ const UserManagement: React.FC<UserManagementProps> = ({
               <select
                 value={userRoleFilter}
                 onChange={(e) => setUserRoleFilter(e.target.value)}
-                className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                className="px-3 py-2 bg-white/20 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               >
-                <option value="all" className="bg-gray-800">
+                <option value="all" className="bg-white dark:bg-gray-800">
                   All Roles
                 </option>
-                <option value="admin" className="bg-gray-800">
+                <option value="admin" className="bg-white dark:bg-gray-800">
                   Admin
                 </option>
-                <option value="developer" className="bg-gray-800">
+                <option value="developer" className="bg-white dark:bg-gray-800">
                   Developer
                 </option>
-                <option value="client" className="bg-gray-800">
+                <option value="client" className="bg-white dark:bg-gray-800">
                   Client
                 </option>
               </select>
@@ -2068,18 +2068,18 @@ const UserManagement: React.FC<UserManagementProps> = ({
             <select
               value={userStatusFilter}
               onChange={(e) => setUserStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400"
+              className="px-3 py-2 bg-white/20 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
             >
-              <option value="all" className="bg-gray-800">
+              <option value="all" className="bg-white dark:bg-gray-800">
                 All Status
               </option>
-              <option value="active" className="bg-gray-800">
+              <option value="active" className="bg-white dark:bg-gray-800">
                 Active
               </option>
-              <option value="inactive" className="bg-gray-800">
+              <option value="inactive" className="bg-white dark:bg-gray-800">
                 Inactive
               </option>
-              <option value="suspended" className="bg-gray-800">
+              <option value="suspended" className="bg-white dark:bg-gray-800">
                 Suspended
               </option>
             </select>
@@ -2088,31 +2088,33 @@ const UserManagement: React.FC<UserManagementProps> = ({
       </div>
 
       {/* Users Table */}
-      <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl overflow-hidden">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
         {paginatedUsers.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-400 monty uppercase">No users found</p>
+            <p className="text-gray-600 dark:text-gray-400 monty uppercase">
+              No users found
+            </p>
           </div>
         ) : (
           <>
             {/* Mobile Card View */}
             <div className="block lg:hidden">
-              <div className="divide-y divide-white/10">
+              <div className="divide-y divide-gray-200 dark:divide-white/10">
                 {paginatedUsers.map((user) => (
                   <div
                     key={user.id}
-                    className="p-4 hover:bg-white/5 transition-colors"
+                    className="p-4 hover:bg-white/10 dark:hover:bg-white/5 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm monty font-medium text-white">
+                        <div className="text-sm monty font-medium text-gray-900 dark:text-white">
                           {user.firstName} {user.lastName}
                         </div>
-                        <div className="text-sm text-gray-400 truncate">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
                           {user.email}
                         </div>
                         {user.phone && (
-                          <div className="text-xs monty text-gray-500 mt-1">
+                          <div className="text-xs monty text-gray-500 dark:text-gray-500 mt-1">
                             {user.phone}
                           </div>
                         )}
@@ -2123,7 +2125,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             setSelectedUser(user);
                             setViewMode("detail");
                           }}
-                          className="text-blue-400/70 hover:text-blue-300/70 cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
+                          className="text-blue-600 dark:text-blue-400/70 hover:text-blue-700 dark:hover:text-blue-300/70 cursor-pointer p-2 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 transition-colors"
                           title="View Details"
                         >
                           <FaEye className="w-3 h-3" />
@@ -2144,17 +2146,17 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             });
                             setViewMode("edit");
                           }}
-                          className="text-green-400/70 hover:text-green-300/80 cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
+                          className="text-green-600 dark:text-green-400/70 hover:text-green-700 dark:hover:text-green-300/80 cursor-pointer p-2 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 transition-colors"
                           title="Edit User"
                         >
                           <FaEdit className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => toggleUserStatus(user.id, user.status)}
-                          className={`cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors ${
+                          className={`cursor-pointer p-2 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 transition-colors ${
                             user.status === "active"
-                              ? "text-yellow-400/70 hover:text-yellow-300/70"
-                              : "text-lime-400/70 hover:text-lime-300/80"
+                              ? "text-yellow-600 dark:text-yellow-400/70 hover:text-yellow-700 dark:hover:text-yellow-300/70"
+                              : "text-lime-600 dark:text-lime-400/70 hover:text-lime-700 dark:hover:text-lime-300/80"
                           }`}
                           title={
                             user.status === "active"
@@ -2174,7 +2176,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             setUserToDelete(user.id);
                             setDeleteModalOpen(true);
                           }}
-                          className="text-red-400/70 hover:text-red-300/80 cursor-pointer p-2 rounded-lg hover:bg-white/10 transition-colors"
+                          className="text-red-600 dark:text-red-400/70 hover:text-red-700 dark:hover:text-red-300/80 cursor-pointer p-2 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 transition-colors"
                           title="Delete User"
                           disabled={loading}
                         >
@@ -2185,7 +2187,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
-                        <span className="text-gray-500 block mb-1">Role</span>
+                        <span className="text-gray-500 dark:text-gray-500 block mb-1">
+                          Role
+                        </span>
                         <span
                           className={`px-2 monty uppercase py-1 rounded text-xs border ${getRoleColor(
                             user.role
@@ -2195,7 +2199,9 @@ const UserManagement: React.FC<UserManagementProps> = ({
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-500 block mb-1">Status</span>
+                        <span className="text-gray-500 dark:text-gray-500 block mb-1">
+                          Status
+                        </span>
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(user.status)}
                           <span
@@ -2259,47 +2265,47 @@ const UserManagement: React.FC<UserManagementProps> = ({
             {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-white/5">
+                <thead className="bg-black/5 dark:bg-white/5">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       Approved
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       Availability
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       Joined
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
+                <tbody className="divide-y bg-gray-100 divide-gray-100 dark:divide-white/10">
                   {paginatedUsers.map((user) => (
                     <tr
                       key={user.id}
-                      className="hover:bg-white/5 transition-colors"
+                      className="hover:bg-gray-200 dark:hover:bg-white/5 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm monty font-medium text-white">
+                          <div className="text-sm monty font-medium text-gray-900 dark:text-white">
                             {user.firstName} {user.lastName}
                           </div>
-                          <div className="text-sm text-gray-400">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
                             {user.email}
                           </div>
                           {user.phone && (
-                            <div className="text-xs monty text-gray-500">
+                            <div className="text-xs monty text-gray-500 dark:text-gray-500">
                               {user.phone}
                             </div>
                           )}
@@ -2331,21 +2337,21 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           user.developerProfileStatus === "approved" ? (
                             <div className="flex items-center space-x-2">
                               <FaCheckCircle className="text-green-500" />
-                              <span className="text-xs text-green-400 monty uppercase">
+                              <span className="text-xs text-green-600 dark:text-green-400 monty uppercase">
                                 Approved
                               </span>
                             </div>
                           ) : user.developerProfileStatus === "rejected" ? (
                             <div className="flex items-center space-x-2">
                               <FaTimesCircle className="text-red-500" />
-                              <span className="text-xs text-red-400 monty uppercase">
+                              <span className="text-xs text-red-600 dark:text-red-400 monty uppercase">
                                 Rejected
                               </span>
                             </div>
                           ) : (
                             <div className="flex items-center space-x-2">
                               <FaUserTimes className="text-yellow-500" />
-                              <span className="text-xs text-yellow-400 monty uppercase">
+                              <span className="text-xs text-yellow-600 dark:text-yellow-400 monty uppercase">
                                 Pending
                               </span>
                             </div>
@@ -2400,7 +2406,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           <span className="text-gray-500">N/A</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                         {formatDate(user.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -2410,7 +2416,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                               setSelectedUser(user);
                               setViewMode("detail");
                             }}
-                            className="cursor-pointer text-blue-400/70 hover:text-blue-300/70 p-1 rounded hover:bg-white/10 transition-colors"
+                            className="cursor-pointer text-blue-600 dark:text-blue-400/70 hover:text-blue-700 dark:hover:text-blue-300/70 p-1 rounded hover:bg-white/20 dark:hover:bg-white/10 transition-colors"
                             title="View Details"
                           >
                             <FaEye />
@@ -2431,7 +2437,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                               });
                               setViewMode("edit");
                             }}
-                            className="cursor-pointer text-green-400/70 hover:text-green-300/80 p-1 rounded hover:bg-white/10 transition-colors"
+                            className="cursor-pointer text-green-600 dark:text-green-400/70 hover:text-green-700 dark:hover:text-green-300/80 p-1 rounded hover:bg-white/20 dark:hover:bg-white/10 transition-colors"
                             title="Edit User"
                           >
                             <FaEdit />
@@ -2440,10 +2446,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
                             onClick={() =>
                               toggleUserStatus(user.id, user.status)
                             }
-                            className={`cursor-pointer p-1 rounded hover:bg-white/10 transition-colors ${
+                            className={`cursor-pointer p-1 rounded hover:bg-white/20 dark:hover:bg-white/10 transition-colors ${
                               user.status === "active"
-                                ? "text-yellow-400/70 hover:text-yellow-300/70"
-                                : "text-lime-400/70 hover:text-lime-300/80"
+                                ? "text-yellow-600 dark:text-yellow-400/70 hover:text-yellow-700 dark:hover:text-yellow-300/70"
+                                : "text-lime-600 dark:text-lime-400/70 hover:text-lime-700 dark:hover:text-lime-300/80"
                             }`}
                             title={
                               user.status === "active"
@@ -2463,7 +2469,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                               setUserToDelete(user.id);
                               setDeleteModalOpen(true);
                             }}
-                            className="cursor-pointer text-red-400/70 hover:text-red-300/80 p-1 rounded hover:bg-white/10 transition-colors"
+                            className="cursor-pointer text-red-600 dark:text-red-400/70 hover:text-red-700 dark:hover:text-red-300/80 p-1 rounded hover:bg-white/20 dark:hover:bg-white/10 transition-colors"
                             title="Delete User"
                             disabled={loading}
                           >
@@ -2481,20 +2487,20 @@ const UserManagement: React.FC<UserManagementProps> = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-y border-white/10 px-6 py-4 my-16">
+        <div className="flex items-center justify-between border-y border-gray-200 dark:border-white/10 px-6 py-4 my-16">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
               className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
                 currentPage === 1
-                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
-                  : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+                  ? "cursor-not-allowed bg-white/10 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-500 dark:text-gray-400 opacity-50"
+                  : "cursor-pointer bg-white/10 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-400 hover:bg-white/20 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-gray-300"
               }`}
             >
               Previous
             </button>
-            <span className="text-gray-400 text-sm">
+            <span className="text-gray-600 dark:text-gray-400 text-sm">
               Page {currentPage} of {totalPages}
             </span>
             <button
@@ -2504,14 +2510,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
                 currentPage === totalPages
-                  ? "cursor-not-allowed bg-white/5 border border-white/10 text-gray-400 opacity-50"
-                  : "cursor-pointer bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+                  ? "cursor-not-allowed bg-white/10 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-500 dark:text-gray-400 opacity-50"
+                  : "cursor-pointer bg-white/10 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-400 hover:bg-white/20 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-gray-300"
               }`}
             >
               Next
             </button>
           </div>
-          <div className="text-gray-400 text-sm">
+          <div className="text-gray-600 dark:text-gray-400 text-sm">
             Showing {(currentPage - 1) * 10 + 1} to{" "}
             {Math.min(currentPage * 10, totalCount)} of {totalCount} users
           </div>
@@ -2520,29 +2526,37 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
       {/* User Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl monty font-semibold text-white">
+        <div className="backdrop-blur-md bg-white/10 shadow-md dark:bg-black/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+          <div className="text-2xl monty font-semibold text-gray-900 dark:text-white">
             {users.length}
           </div>
-          <div className="text-sm monty text-gray-400">Total Users</div>
+          <div className="text-sm monty text-gray-600 dark:text-gray-400">
+            Total Users
+          </div>
         </div>
-        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-semibold monty text-green-400">
+        <div className="backdrop-blur-md shadow-md bg-white/10 dark:bg-black/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+          <div className="text-2xl font-semibold monty text-green-600 dark:text-green-400">
             {users.filter((u) => u.status === "active").length}
           </div>
-          <div className="text-sm text-gray-400 monty">Active Users</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 monty">
+            Active Users
+          </div>
         </div>
-        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-semibold text-blue-400 monty">
+        <div className="backdrop-blur-md shadow-md bg-white/10 dark:bg-black/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+          <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400 monty">
             {users.filter((u) => u.role === "client").length}
           </div>
-          <div className="text-sm text-gray-400 monty">Clients</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 monty">
+            Clients
+          </div>
         </div>
-        <div className="backdrop-blur-md bg-black/5 border border-white/10 rounded-xl p-4">
-          <div className="text-2xl font-semibold text-purple-400 monty">
+        <div className="backdrop-blur-md shadow-md bg-white/10 dark:bg-black/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+          <div className="text-2xl font-semibold text-purple-600 dark:text-purple-400 monty">
             {users.filter((u) => u.role === "developer").length}
           </div>
-          <div className="text-sm text-gray-400 monty">Developers</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 monty">
+            Developers
+          </div>
         </div>
       </div>
       <ToastContainer

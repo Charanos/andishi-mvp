@@ -626,7 +626,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right side - Interactive Graphic */}
-        <div className="hidden lg:block w-1/2 relative overflow-hidden bg-gray-100 dark:bg-white/5 backdrop-blur-lg">
+        <div className="hidden lg:block w-1/2 relative overflow-hidden bg-black/5 dark:bg-white/5">
           {/* Animated background */}
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
@@ -668,7 +668,7 @@ export default function LoginPage() {
                       animationDelay: `${index * 0.5}s`,
                     }}
                   >
-                    <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-white/10 border border-gray-200 dark:border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-125 hover:shadow-xl hover:bg-white dark:hover:bg-white/20">
+                    <div className="w-12 h-12 rounded-full bg-black/15 dark:bg-white/10 border border-gray-200 dark:border-white/20 backdrop-blur-lg flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-125 hover:shadow-xl hover:bg-white dark:hover:bg-white/20">
                       <tech.icon
                         className="text-xl"
                         style={{ color: tech.color }}
@@ -702,7 +702,7 @@ export default function LoginPage() {
             return (
               <div
                 key={index}
-                className={`absolute backdrop-blur-xl bg-white/95 dark:bg-white/10 border border-white/30 dark:border-white/20 rounded-2xl p-5 max-w-xs transition-all duration-500 hover:scale-105 hover:bg-white/98 dark:hover:bg-white/15 hover:border-white/50 dark:hover:border-white/30 hover:shadow-2xl hover:shadow-blue-500/25 shadow-lg`}
+                className={`absolute !z-50 backdrop-blur-md  bg-white/10 dark:bg-white/10 border border-white/30 dark:border-white/20 rounded-2xl p-5 max-w-xs transition-all duration-500 hover:scale-105 hover:bg-white/30 dark:hover:bg-white/15 hover:border-white/50 dark:hover:border-white/30 hover:shadow-2xl hover:shadow-blue-500/25 shadow-lg`}
                 style={{
                   ...positions[index],
                   animation: `float ${4 + index}s ease-in-out infinite`,

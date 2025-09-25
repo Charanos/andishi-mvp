@@ -547,19 +547,21 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
       <>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div>
-            <h3 className="text-2xl font-semibold text-white flex items-center">
-              <FaUsers className="mr-3 text-blue-400" />
+            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center">
+              <FaUsers className="mr-3 text-blue-600 dark:text-blue-400" />
               Project Assignments
             </h3>
-            <p className="text-gray-400 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Manage team members for{" "}
-              <span className="text-blue-400 font-medium">{projectTitle}</span>
+              <span className="text-blue-600 dark:text-blue-400 font-medium">
+                {projectTitle}
+              </span>
             </p>
           </div>
 
           {selectedDevelopers.length > 0 && !readOnly && (
             <div className="flex items-center space-x-3">
-              <div className="px-3 py-1 bg-blue-500/20 rounded-full text-blue-400 text-sm font-medium">
+              <div className="px-3 py-1 bg-blue-500/30 dark:bg-blue-500/20 rounded-full text-blue-700 dark:text-blue-400 text-sm font-medium">
                 {selectedDevelopers.length} selected
               </div>
               <button
@@ -582,7 +584,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
             </div>
           )}
           {readOnly && (
-            <div className="px-3 py-1 bg-black/20 rounded-full text-gray-400 text-sm font-medium">
+            <div className="px-3 py-1 bg-gray-200 dark:bg-black/20 rounded-full text-gray-600 dark:text-gray-400 text-sm font-medium">
               View Only
             </div>
           )}
@@ -591,12 +593,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
       {/* Enhanced Assigned Developers Section */}
       {getAssignedDevelopers().length > 0 && (
-        <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl p-6 border border-green-500/20">
+        <div className="bg-gradient-to-br from-green-500/20 dark:from-green-500/10 to-emerald-500/20 dark:to-emerald-500/10 rounded-2xl p-6 border border-green-500/30 dark:border-green-500/20">
           <div className="flex items-center mb-4">
-            <div className="p-2 bg-green-500/20 rounded-xl mr-3">
-              <FaCheckCircle className="w-5 h-5 text-green-400" />
+            <div className="p-2 bg-green-500/30 dark:bg-green-500/20 rounded-xl mr-3">
+              <FaCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
-            <h4 className="text-xl font-medium text-white">
+            <h4 className="text-xl font-medium text-gray-900 dark:text-white">
               Assigned Team ({getAssignedDevelopers().length})
             </h4>
           </div>
@@ -608,7 +610,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
               return (
                 <div
                   key={developer.id}
-                  className="bg-black/50 rounded-xl p-4 border border-gray-700/50 hover:border-green-500/30 transition-all duration-200 relative"
+                  className="bg-white/10 dark:bg-black/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700/50 hover:border-green-500/40 dark:hover:border-green-500/30 transition-all duration-200 relative"
                 >
                   {/* Unassign Button */}
                   {!readOnly && (
@@ -620,7 +622,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         )
                       }
                       disabled={isUnassigning}
-                      className="absolute top-3 cursor-pointer right-3 p-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 hover:text-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="absolute top-3 cursor-pointer right-3 p-1.5 bg-red-500/30 dark:bg-red-500/20 hover:bg-red-500/40 dark:hover:bg-red-500/30 border border-red-500/40 dark:border-red-500/30 rounded-lg text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Unassign from project"
                     >
                       {isUnassigning ? (
@@ -638,17 +640,17 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         <FaUser className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h5 className="font-semibold text-white">
+                        <h5 className="font-semibold text-gray-900 dark:text-white">
                           {developer.firstName} {developer.lastName}
                         </h5>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {enhancedDev.title}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-1">
                       <FaStar className="text-yellow-400 w-4 h-4" />
-                      <span className="text-sm text-gray-300 font-medium">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                         {enhancedDev.rating > 0
                           ? enhancedDev.rating.toFixed(1)
                           : "N/A"}
@@ -667,7 +669,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         | undefined;
                       if (isBusy) {
                         return (
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/30 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border border-yellow-500/40 dark:border-yellow-500/30">
                             {busyUntil
                               ? `Busy until ${new Date(
                                   busyUntil
@@ -677,14 +679,14 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                         );
                       }
                       return (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/30 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/40 dark:border-green-500/30">
                           Available
                         </span>
                       );
                     })()}
 
                     {/* Assignment Status */}
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/30 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/40 dark:border-green-500/30">
                       <FaCheckCircle className="inline mr-1" />
                       Assigned
                     </span>
@@ -699,7 +701,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                             `${developer.firstName} ${developer.lastName}`
                           );
                         }}
-                        className="ml-2 px-1.5 py-0.5 text-xs bg-red-500/20 border border-red-500/40 text-red-300 rounded hover:bg-red-500/30"
+                        className="ml-2 px-1.5 py-0.5 text-xs bg-red-500/30 dark:bg-red-500/20 border border-red-500/50 dark:border-red-500/40 text-red-700 dark:text-red-300 rounded hover:bg-red-500/40 dark:hover:bg-red-500/30"
                       >
                         Unassign
                       </button>
@@ -708,20 +710,22 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
                   {/* Skills */}
                   <div className="mb-3">
-                    <p className="text-xs text-gray-400 mb-2">Primary Skills</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      Primary Skills
+                    </p>
                     <div className="flex flex-wrap gap-1">
                       {(developer.skills || [])
                         .slice(0, 3)
                         .map((skill: any, index: number) => (
                           <span
                             key={index}
-                            className="px-2 py-1 bg-gray-600/30 rounded text-xs text-gray-300 border border-gray-600/30"
+                            className="px-2 py-1 bg-gray-200 dark:bg-gray-600/30 rounded text-xs text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600/30"
                           >
                             {typeof skill === "string" ? skill : skill.name}
                           </span>
                         ))}
                       {(developer.skills?.length || 0) > 3 && (
-                        <span className="px-2 py-1 bg-gray-600/30 rounded text-xs text-gray-400 border border-gray-600/30">
+                        <span className="px-2 py-1 bg-gray-200 dark:bg-gray-600/30 rounded text-xs text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600/30">
                           +{(developer.skills?.length || 0) - 3} more
                         </span>
                       )}
@@ -730,46 +734,50 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
                   {/* Developer Stats */}
                   <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="text-center p-2 bg-gray-700/30 rounded-lg">
+                    <div className="text-center p-2 bg-gray-100 dark:bg-gray-700/30 rounded-lg">
                       <div className="flex items-center justify-center space-x-1 mb-1">
-                        <FaCode className="text-blue-400 w-3 h-3" />
-                        <span className="text-white font-semibold text-sm">
+                        <FaCode className="text-blue-600 dark:text-blue-400 w-3 h-3" />
+                        <span className="text-gray-900 dark:text-white font-semibold text-sm">
                           {enhancedDev.totalProjectsProfile || 0}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">Projects</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Projects
+                      </p>
                     </div>
-                    <div className="text-center p-2 bg-gray-700/30 rounded-lg">
+                    <div className="text-center p-2 bg-gray-100 dark:bg-gray-700/30 rounded-lg">
                       <div className="flex items-center justify-center space-x-1 mb-1">
-                        <FaClock className="text-green-400 w-3 h-3" />
-                        <span className="text-white font-semibold text-sm">
+                        <FaClock className="text-green-600 dark:text-green-400 w-3 h-3" />
+                        <span className="text-gray-900 dark:text-white font-semibold text-sm">
                           ${enhancedDev.hourlyRateProfile || "N/A"}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">Per Hour</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Per Hour
+                      </p>
                     </div>
                   </div>
 
                   {/* Contact Information */}
                   <div className="space-y-2">
-                    <div className="flex items-center text-xs text-gray-400">
+                    <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
                       <FaEnvelope className="mr-2 w-3 h-3" />
                       <span className="truncate">{developer.email}</span>
                     </div>
                     {developer.phone && (
-                      <div className="flex items-center text-xs text-gray-400">
+                      <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
                         <FaPhone className="mr-2 w-3 h-3" />
                         <span>{developer.phone}</span>
                       </div>
                     )}
                     {developer.company && (
-                      <div className="flex items-center text-xs text-gray-400">
+                      <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
                         <FaGlobe className="mr-2 w-3 h-3" />
                         <span>{developer.company}</span>
                       </div>
                     )}
                     {enhancedDev.experienceLevel && (
-                      <div className="flex items-center text-xs text-gray-400">
+                      <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
                         <FaUser className="mr-2 w-3 h-3" />
                         <span>{enhancedDev.experienceLevel}</span>
                       </div>
@@ -777,10 +785,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                   </div>
 
                   {/* Assignment Status */}
-                  <div className="mt-3 pt-3 border-t border-gray-700/50">
-                    <div className="flex items-center justify-between text-xs text-gray-400">
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700/50">
+                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                       <span>Status: Assigned to Project</span>
-                      <span className="text-green-400">Active</span>
+                      <span className="text-green-600 dark:text-green-400">
+                        Active
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -792,23 +802,23 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
       {/* Enhanced Search and Filters */}
       {!readOnly && (
-        <div className="bg-white/10 rounded-2xl p-6 border border-gray-700/50">
+        <div className="bg-white/10  shadow-lg dark:shadow-none dark:bg-white/10 rounded-2xl p-6 border border-gray-200 dark:border-gray-700/50">
           <div className="flex gap-3 flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex-1 relative">
-              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search developers by name, email, or company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-600/50 rounded-xl focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 transition-all duration-200"
+                className="w-full pl-12 pr-4 py-3 bg-white/20 dark:bg-black/50 border border-gray-300 dark:border-gray-600/50 rounded-xl focus:border-blue-500 focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
               />
             </div>
 
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 px-4 py-3 bg-black/50 border border-gray-600/50 rounded-xl hover:bg-gray-600/50 transition-colors text-white"
+                className="flex items-center space-x-2 px-4 py-3 bg-white/20 dark:bg-black/50 border border-gray-300 dark:border-gray-600/50 rounded-xl hover:bg-white/30 dark:hover:bg-gray-600/50 transition-colors text-gray-900 dark:text-white"
               >
                 <FaFilter />
                 <FaChevronDown
@@ -821,43 +831,52 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           </div>
 
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-700/50">
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/50">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <label className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl hover:bg-gray-600/30 transition-colors cursor-pointer">
+                <label className="flex items-center space-x-3 p-3 bg-gray-100 dark:bg-gray-700/30 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600/30 transition-colors cursor-pointer">
                   <input
                     type="checkbox"
                     checked={filterAvailable}
                     onChange={(e) => setFilterAvailable(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-white">
+                  <span className="text-gray-900 dark:text-white">
                     Available only (exclude assigned)
                   </span>
                 </label>
 
-                <div className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-xl">
-                  <FaSort className="text-gray-400" />
+                <div className="flex items-center space-x-3 p-3 bg-gray-100 dark:bg-gray-700/30 rounded-xl">
+                  <FaSort className="text-gray-500 dark:text-gray-400" />
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="bg-transparent text-white focus:outline-none"
+                    className="bg-transparent text-gray-900 dark:text-white focus:outline-none"
                   >
-                    <option value="compatibility" className="bg-black/50">
+                    <option
+                      value="compatibility"
+                      className="bg-white dark:bg-black/50"
+                    >
                       Sort by Compatibility
                     </option>
-                    <option value="rating" className="bg-black/50">
+                    <option
+                      value="rating"
+                      className="bg-white dark:bg-black/50"
+                    >
                       Sort by Rating
                     </option>
-                    <option value="projects" className="bg-black/50">
+                    <option
+                      value="projects"
+                      className="bg-white dark:bg-black/50"
+                    >
                       Sort by Projects
                     </option>
-                    <option value="rate" className="bg-black/50">
+                    <option value="rate" className="bg-white dark:bg-black/50">
                       Sort by Rate
                     </option>
                   </select>
                 </div>
 
-                <div className="flex items-center justify-center p-3 bg-gray-700/30 rounded-xl text-gray-400">
+                <div className="flex items-center justify-center p-3 bg-gray-100 dark:bg-gray-700/30 rounded-xl text-gray-600 dark:text-gray-400">
                   Showing {getFilteredDevelopers().length} of{" "}
                   {getFilteredDevelopers().length} available
                 </div>
@@ -872,11 +891,11 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
           {/* Enhanced Available Developers */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h4 className="text-xl font-semibold text-white flex items-center">
-                <FaBolt className="mr-2 text-yellow-400" />
+              <h4 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <FaBolt className="mr-2 text-yellow-600 dark:text-yellow-400" />
                 Available Developers
               </h4>
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {getFilteredDevelopers().length} of{" "}
                 {getFilteredDevelopers().length} available
               </div>
@@ -884,13 +903,13 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
             {getFilteredDevelopers().length === 0 ? (
               <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-700/50 rounded-full mb-4">
-                  <FaUsers className="w-8 h-8 text-gray-400" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-200 dark:bg-gray-700/50 rounded-full mb-4">
+                  <FaUsers className="w-8 h-8 text-gray-500 dark:text-gray-400" />
                 </div>
-                <p className="text-gray-400 text-lg">
+                <p className="text-gray-600 dark:text-gray-400 text-lg">
                   No developers match the current filters
                 </p>
-                <p className="text-gray-500 text-sm mt-2">
+                <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
                   Try adjusting your search criteria
                 </p>
               </div>
@@ -911,12 +930,12 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                     <div
                       key={devId}
                       onClick={() => toggleDeveloperSelection(devId)}
-                      className={`group w-full relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] cursor-pointer ${
+                      className={`group w-full relative p-6 flex items-center justify-between min-h-100 rounded-2xl border transition-all duration-300 shadow-lg dark:shadow-none hover:shadow-xl transform hover:scale-[1.02] cursor-pointer backdrop-blur-lg ${
                         isSelected
-                          ? "border-blue-500 bg-black/30 shadow-lg"
+                          ? "border-blue-500 bg-blue-500/20 dark:bg-black/30 shadow-lg"
                           : isAssigned
-                          ? "border-green-500 bg-gradient-to-br from-green-500/20 to-emerald-500/20"
-                          : "border-gray-700 hover:border-gray-600 bg-black/50"
+                          ? "border-green-500 bg-gradient-to-br from-green-500/30 dark:from-green-500/20 to-emerald-500/30 dark:to-emerald-500/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-black/5 dark:bg-white/5"
                       }`}
                     >
                       {/* Compatibility Score Badge */}
@@ -942,10 +961,10 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                 <FaUser className="w-6 h-6 text-white" />
                               </div>
                               <div>
-                                <h5 className="font-semibold text-white text-lg">
+                                <h5 className="font-semibold text-gray-900 dark:text-white text-lg">
                                   {developer.firstName} {developer.lastName}
                                 </h5>
-                                <p className="text-gray-400">
+                                <p className="text-gray-600 dark:text-gray-400">
                                   {enhancedDev.title}
                                 </p>
                               </div>
@@ -964,7 +983,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                 .busyUntil as string | undefined;
                               if (isBusy) {
                                 return (
-                                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+                                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/30 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border border-yellow-500/40 dark:border-yellow-500/30">
                                     {busyUntil
                                       ? `Busy until ${new Date(
                                           busyUntil
@@ -974,18 +993,18 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                 );
                               }
                               return (
-                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/30 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/40 dark:border-green-500/30">
                                   Available
                                 </span>
                               );
                             })()}
 
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-600/30 text-gray-300 border border-gray-600/30">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-600/30 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600/30">
                               {developer.role}
                             </span>
 
                             {isAssigned && (
-                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/30 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/40 dark:border-green-500/30">
                                 <FaCheckCircle className="inline mr-1" />
                                 Assigned
                               </span>
@@ -994,7 +1013,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
 
                           {/* Skills */}
                           <div className="mb-4">
-                            <p className="text-xs text-gray-400 mb-2">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                               Primary Skills
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -1003,7 +1022,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                 .map((skill: any, index: number) => (
                                   <span
                                     key={index}
-                                    className="px-2 py-1 bg-gray-600/30 rounded-lg text-xs text-gray-300 border border-gray-600/30"
+                                    className="px-2 py-1 bg-gray-200 dark:bg-gray-600/30 rounded-lg text-xs text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600/30"
                                   >
                                     {typeof skill === "string"
                                       ? skill
@@ -1011,7 +1030,7 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                                   </span>
                                 ))}
                               {(developer.skills?.length || 0) > 4 && (
-                                <span className="px-2 py-1 bg-gray-600/30 rounded-lg text-xs text-gray-400 border border-gray-600/30">
+                                <span className="px-2 py-1 bg-gray-200 dark:bg-gray-600/30 rounded-lg text-xs text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600/30">
                                   +{(developer.skills?.length || 0) - 4} more
                                 </span>
                               )}
@@ -1019,17 +1038,17 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                           </div>
 
                           {/* Stats */}
-                          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-700/50">
+                          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700/50">
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-1 mb-1">
                                 <FaStar className="text-yellow-400 w-4 h-4" />
-                                <span className="text-white font-semibold">
+                                <span className="text-gray-900 dark:text-white font-semibold">
                                   {enhancedDev.rating > 0
                                     ? enhancedDev.rating.toFixed(1)
                                     : "N/A"}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
                                 Avg. Rating
                               </p>
                             </div>
@@ -1037,21 +1056,23 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-1 mb-1">
                                 <FaCode className="text-blue-400 w-4 h-4" />
-                                <span className="text-white font-semibold">
+                                <span className="text-gray-900 dark:text-white font-semibold">
                                   {enhancedDev.totalProjectsProfile || 0}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-400">Projects</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
+                                Projects
+                              </p>
                             </div>
 
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-1 mb-1">
                                 <FaUser className="text-purple-400 w-4 h-4" />
-                                <span className="text-white font-semibold">
+                                <span className="text-gray-900 dark:text-white font-semibold">
                                   {enhancedDev.experienceLevel}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
                                 Experience
                               </p>
                             </div>
@@ -1059,18 +1080,20 @@ const ProjectAssignments: React.FC<ProjectAssignmentsProps> = ({
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-1 mb-1">
                                 <FaClock className="text-green-400 w-4 h-4" />
-                                <span className="text-white font-semibold">
+                                <span className="text-gray-900 dark:text-white font-semibold">
                                   ${enhancedDev.hourlyRateProfile || "N/A"}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-400">Per Hour</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
+                                Per Hour
+                              </p>
                             </div>
                           </div>
 
                           {/* Location */}
-                          <div className="mt-4 pt-4 border-t border-gray-700/50">
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/50">
                             <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center text-gray-400">
+                              <div className="flex items-center text-gray-600 dark:text-gray-400">
                                 <FaGlobe className="mr-2" />
                                 {developer.email}
                               </div>

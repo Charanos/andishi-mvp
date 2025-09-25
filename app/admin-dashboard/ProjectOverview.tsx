@@ -7,31 +7,28 @@ import {
 } from "@/utils/currency";
 import useSWR from "swr";
 import {
-  FaArrowCircleLeft,
   FaProjectDiagram,
   FaDollarSign,
   FaUser,
   FaEnvelope,
   FaPhone,
-  FaCheck,
-  FaEye,
-  FaTimes,
   FaFileAlt,
-  FaCreditCard,
+  FaTimesCircle,
+  FaClock,
+  FaPlay,
+  FaCheckCircle,
+  FaPlus,
   FaEdit,
   FaUpload,
-  FaComment,
-  FaCheckCircle,
-  FaClock,
-  FaPlus,
-  FaTimesCircle,
-  FaPlay,
   FaUsers,
-  FaSearch,
-  FaStar,
-  FaCode,
   FaBars,
+  FaCreditCard,
+  FaComment,
 } from "react-icons/fa";
+import {
+  formatProjectCurrency,
+  getProjectCurrency,
+} from "@/utils/currency-formatter";
 import ProjectAssignments from "./ProjectAssignments";
 import ProjectChatComponent from "./ProjectChat";
 import ProjectSidebar from "./ProjectSidebar";
@@ -206,7 +203,7 @@ const toUSD = (amount: number, currency: "USD" | "KES" = "USD") => {
 };
 
 const formatCurrencyLocal = (amount: number, currency: "USD" | "KES") => {
-  const currencySymbol = currency === "USD" ? "$" : "KES ";
+  const currencySymbol = currency === "USD" ? "$" : "KSh";
   return `${currencySymbol}${amount.toLocaleString()}`;
 };
 
@@ -534,23 +531,23 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
     switch (trackingView) {
       case "overview":
         return (
-          <div className="bg-gray-900 p-4 rounded-lg shadow-xl">
-            <div className="bg-blue-800 text-white p-4 rounded-t-lg">
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8">
+            <div className="bg-white/20 dark:bg-blue-800 text-gray-900 dark:text-white p-4 rounded-t-lg border border-gray-300 dark:border-blue-700/50">
               <h2 className="text-3xl font-semibold">Project Overview</h2>
             </div>
-            <div className="bg-white p-4 rounded-b-lg">
+            <div className="bg-white/90 dark:bg-white/5 p-4 rounded-b-lg border border-gray-200 dark:border-white/10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border p-4 rounded-lg shadow-lg">
-                  <h3 className="text-lg font-medium text-gray-800">
+                <div className="bg-white/70 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 rounded-lg shadow-lg backdrop-blur-sm">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-800">
                     Timeline
                   </h3>
-                  <p>
+                  <p className="text-gray-700 dark:text-gray-300">
                     Start Date:{" "}
                     {projectData.startDate
                       ? new Date(projectData.startDate).toLocaleDateString()
                       : "N/A"}
                   </p>
-                  <p>
+                  <p className="text-gray-700 dark:text-gray-300">
                     Estimated Completion:{" "}
                     {projectData.estimatedCompletionDate
                       ? new Date(
@@ -558,47 +555,47 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                         ).toLocaleDateString()
                       : "N/A"}
                   </p>
-                  <p>Days Active: {daysPassed}</p>
+                  <p className="text-gray-700 dark:text-gray-300">Days Active: {daysPassed}</p>
                 </div>
-                <div className="border p-4 rounded-lg shadow-lg">
-                  <h3 className="text-lg font-medium text-gray-800">
+                <div className="bg-white/70 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 rounded-lg shadow-lg backdrop-blur-sm">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-800">
                     Budget Utilization
                   </h3>
-                  <p>Total Budget: {formatCurrency(totalBudget)}</p>
-                  <p>Spent: {formatCurrency(spentBudget)}</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                  <p className="text-gray-700 dark:text-gray-300">Total Budget: {formatCurrency(totalBudget)}</p>
+                  <p className="text-gray-700 dark:text-gray-300">Spent: {formatCurrency(spentBudget)}</p>
+                  <div className="w-full bg-gray-300 dark:bg-gray-200 rounded-full h-2.5 mb-4">
                     <div
                       className="bg-blue-600 h-2.5 rounded-full"
                       style={{ width: `${budgetProgress}%` }}
                     ></div>
                   </div>
                 </div>
-                <div className="border p-4 rounded-lg shadow-lg md:col-span-2">
-                  <h3 className="text-lg font-medium text-gray-800">
+                <div className="bg-white/70 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 rounded-lg shadow-lg md:col-span-2 backdrop-blur-sm">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-800">
                     Technology Stack
                   </h3>
-                  <p>
+                  <p className="text-gray-700 dark:text-gray-300">
                     {(projectData.projectDetails?.techStack || []).join(", ") ||
                       "N/A"}
                   </p>
                 </div>
-                <div className="border p-4 rounded-lg shadow-lg md:col-span-2">
-                  <h3 className="text-lg font-medium text-gray-800">
+                <div className="bg-white/70 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 rounded-lg shadow-lg md:col-span-2 backdrop-blur-sm">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-800">
                     Client Information
                   </h3>
-                  <p>Client ID: {projectData.clientId}</p>
-                  <p>
+                  <p className="text-gray-700 dark:text-gray-300">Client ID: {projectData.clientId}</p>
+                  <p className="text-gray-700 dark:text-gray-300">
                     Client: {projectData.userInfo?.firstName}{" "}
                     {projectData.userInfo?.lastName}
                   </p>
                   {projectData.userInfo?.company && (
-                    <p>Company: {projectData.userInfo.company}</p>
+                    <p className="text-gray-700 dark:text-gray-300">Company: {projectData.userInfo.company}</p>
                   )}
-                  <p>Status: {projectData.status}</p>
+                  <p className="text-gray-700 dark:text-gray-300">Status: {projectData.status}</p>
                 </div>
               </div>
               <div className="flex justify-end mt-4">
-                <button className="bg-blue-600 text-white px-3 py-2 rounded-lg shadow-xl focus:outline-none">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-xl focus:outline-none transition-colors duration-200">
                   Manage Project
                 </button>
               </div>
@@ -607,8 +604,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         );
       case "milestones":
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-semibold text-white mb-6">
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
               Milestones
             </h2>
             <div className="space-y-4">
@@ -618,13 +615,13 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
                 >
                   <div>
-                    <h3 className="font-semibold text-white">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
                       {milestone.title}
                     </h3>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {milestone.description}
                     </p>
-                    <div className="text-xs text-gray-500 mt-2">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       Due:{" "}
                       {milestone.dueDate
                         ? new Date(milestone.dueDate).toLocaleDateString()
@@ -639,7 +636,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     >
                       {milestone.status.replace("_", " ")}
                     </div>
-                    <div className="text-lg font-semibold text-white mt-2">
+                    <div className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
                       {formatCurrency(parseFloat(milestone.budget))}
                     </div>
                   </div>
@@ -648,10 +645,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               {(projectData.milestones || []).length === 0 && (
                 <div className="text-center py-12">
                   <Target className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     No Milestones
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400">
                     This project does not have any milestones yet.
                   </p>
                 </div>
@@ -661,8 +658,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         );
       case "budget":
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-semibold text-white mb-6">Payments</h2>
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">Payments</h2>
             <div className="space-y-4">
               {(projectData.payments || []).map((payment) => (
                 <div
@@ -670,16 +667,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   className="bg-white/[0.03] p-4 rounded-lg border border-white/10 flex justify-between items-center"
                 >
                   <div>
-                    <h3 className="font-semibold text-white">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
                       {payment.description || "Payment"}
                     </h3>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Method:{" "}
                       {formatPaymentMethodLabel(
                         payment.method as PaymentMethodType
                       )}
                     </p>
-                    <div className="text-xs text-gray-500 mt-2">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       Date:{" "}
                       {payment.date
                         ? new Date(payment.date).toLocaleDateString()
@@ -694,7 +691,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     >
                       {payment.status?.replace("_", " ") || "pending"}
                     </div>
-                    <div className="text-lg font-semibold text-white mt-2">
+                    <div className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
                       {formatCurrency(payment.amount)}
                     </div>
                   </div>
@@ -703,10 +700,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               {(projectData.payments || []).length === 0 && (
                 <div className="text-center py-12">
                   <DollarSign className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     No Payments
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400">
                     There are no recorded payments for this project yet.
                   </p>
                 </div>
@@ -716,7 +713,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         );
       case "assignments":
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8">
             <ProjectAssignments
               projectId={selectedProject._id}
               projectTitle={selectedProject.projectDetails.title}
@@ -732,7 +729,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
           return <div>Authenticating...</div>;
         }
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8">
             <ProjectChat
               projectId={selectedProject._id}
               projectTitle={selectedProject.projectDetails.title}
@@ -748,8 +745,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         );
       case "activity":
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <h2 className="text-2xl font-semibold text-white mb-6">
+          <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
               Recent Activity
             </h2>
 
@@ -758,16 +755,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 <div className="flex items-center justify-center py-12">
                   <div className="flex items-center space-x-3">
                     <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-gray-400">Loading activity...</span>
+                    <span className="text-gray-600 dark:text-gray-400">Loading activity...</span>
                   </div>
                 </div>
               ) : activityError ? (
                 <div className="text-center py-12">
                   <Activity className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     Error Loading Activity
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400">
                     There was an error loading the activity. Please try again
                     later.
                   </p>
@@ -806,14 +803,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-white font-medium">
+                      <h3 className="text-gray-900 dark:text-white font-medium">
                         {activity.title}
                       </h3>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
                         {activity.description}
                       </p>
                       <div className="flex items-center space-x-4 mt-2">
-                        <p className="text-gray-500 text-xs">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs">
                           {(typeof activity.createdAt === "string"
                             ? new Date(activity.createdAt)
                             : activity.createdAt
@@ -825,7 +822,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                           ).toLocaleTimeString()}
                         </p>
                         {activity.actor && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             by {activity.actor.name}
                           </span>
                         )}
@@ -836,10 +833,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
               ) : (
                 <div className="text-center py-12">
                   <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     No Activity Yet
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400">
                     Activity will appear here as the project progresses.
                   </p>
                 </div>
@@ -1554,21 +1551,21 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   <div className="">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
-                          <FaProjectDiagram className="text-white text-lg" />
+                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-300 dark:border-gray-600/50">
+                          <FaProjectDiagram className="text-gray-700 dark:text-white text-lg" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-semibold text-white">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             Project Overview
                           </h3>
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">
                             Project details and progress
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setShowProgressModal(true)}
-                        className="px-4 py-2 bg-white/5 cursor-pointer hover:bg-white/10 text-gray-300 hover:text-white rounded-lg border border-gray-600/50 hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
+                        className="px-4 py-2 bg-white/10 dark:bg-white/5 cursor-pointer hover:bg-white/20 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg border border-gray-300 dark:border-gray-600/50 hover:border-gray-400 dark:hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
                       >
                         <FaEdit className="w-4 h-4" />
                         <span className="font-medium">Update Progress</span>
@@ -1578,11 +1575,11 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     <div className="space-y-6">
                       {/* Description Section */}
                       <div>
-                        <h4 className="text-lg font-medium text-white mb-3">
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
                           Description
                         </h4>
-                        <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
-                          <p className="text-gray-300 leading-relaxed">
+                        <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 border border-gray-300 dark:border-white/10">
+                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                             {selectedProject.projectDetails.description}
                           </p>
                         </div>
@@ -1590,39 +1587,39 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
                       {/* Stats Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                        <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 border border-gray-300 dark:border-white/10">
                           <div className="mb-2">
-                            <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm font-medium uppercase tracking-wide">
                               Timeline
                             </p>
                           </div>
-                          <p className="text-white font-medium">
+                          <p className="text-gray-900 dark:text-white font-medium">
                             {selectedProject.projectDetails.timeline}
                           </p>
                         </div>
 
-                        <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                        <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 border border-gray-300 dark:border-white/10">
                           <div className="mb-2">
-                            <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm font-medium uppercase tracking-wide">
                               Priority
                             </p>
                           </div>
-                          <p className="text-white font-medium capitalize">
+                          <p className="text-gray-900 dark:text-white font-medium capitalize">
                             {selectedProject.projectDetails.priority}
                           </p>
                         </div>
 
-                        <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
+                        <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 border border-gray-300 dark:border-white/10">
                           <div className="mb-2">
-                            <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm font-medium uppercase tracking-wide">
                               Progress
                             </p>
                           </div>
                           <div className="flex items-center space-x-3">
-                            <p className="text-white font-medium">
+                            <p className="text-gray-900 dark:text-white font-medium">
                               {selectedProject.progress}%
                             </p>
-                            <div className="flex-1 bg-gray-700 rounded-full h-2">
+                            <div className="flex-1 bg-gray-300 dark:bg-gray-700 rounded-full h-2">
                               <div
                                 className="h-full bg-blue-500 rounded-full transition-all duration-300"
                                 style={{
@@ -1638,7 +1635,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {(selectedProject.projectDetails?.techStack || [])
                         .length > 0 && (
                         <div>
-                          <h4 className="text-lg font-medium text-white mb-3">
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
                             Technology Stack
                           </h4>
                           <div className="flex flex-wrap gap-2">
@@ -1647,7 +1644,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                             ).map((tech, index) => (
                               <span
                                 key={index}
-                                className="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm border border-gray-600/30"
+                                className="px-3 py-1 bg-white/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-full text-sm border border-gray-300 dark:border-gray-600/30"
                               >
                                 {tech}
                               </span>
@@ -1658,15 +1655,15 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
                       {/* Requirements */}
                       <div>
-                        <h4 className="text-lg font-medium text-white mb-3">
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
                           Requirements
                         </h4>
-                        <div className="bg-white/5 rounded-lg p-4 border border-gray-700/30">
-                          <p className="text-gray-300 leading-relaxed">
+                        <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md rounded-lg p-4 border border-gray-300 dark:border-white/10">
+                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                             {selectedProject.projectDetails.requirements ? (
                               selectedProject.projectDetails.requirements
                             ) : (
-                              <span className="text-gray-500 italic">
+                              <span className="text-gray-500 dark:text-gray-400 italic">
                                 No requirements provided.
                               </span>
                             )}
@@ -1680,21 +1677,21 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   <div className="mt-22">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
-                          <FaDollarSign className="text-white text-lg" />
+                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-300 dark:border-gray-600/50">
+                          <FaDollarSign className="text-gray-700 dark:text-white text-lg" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-semibold text-white">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             Pricing Details
                           </h3>
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">
                             Budget and payment information
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setShowPaymentModal(true)}
-                        className="px-4 py-2 bg-white/5 cursor-pointer hover:bg-white/10 text-gray-300 hover:text-white rounded-lg border border-gray-600/50 hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
+                        className="px-4 py-2 bg-white/10 dark:bg-white/5 cursor-pointer hover:bg-white/20 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg border border-gray-300 dark:border-gray-600/50 hover:border-gray-400 dark:hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
                       >
                         <FaCreditCard className="w-4 h-4" />
                         <span className="font-medium">Record Payment</span>
@@ -1704,18 +1701,18 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     <div className="space-y-8">
                       {/* Main Budget Display */}
                       <div className="relative">
-                        <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300">
+                        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-8 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300">
                           <div className="text-center">
-                            <p className="text-green-300 text-sm font-semibold tracking-wide uppercase mb-3">
+                            <p className="text-green-600 dark:text-green-300 text-sm font-semibold tracking-wide uppercase mb-3">
                               Total Project Budget
                             </p>
-                            <p className="text-3xl font-semibold bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent group-hover/budget:from-green-300 group-hover/budget:via-emerald-300 group-hover/budget:to-teal-300 transition-all duration-300">
+                            <p className="text-3xl font-semibold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent group-hover/budget:from-green-500 group-hover/budget:via-emerald-500 group-hover/budget:to-teal-500 dark:group-hover/budget:from-green-300 dark:group-hover/budget:via-emerald-300 dark:group-hover/budget:to-teal-300 transition-all duration-300">
                               {formatCurrencyLocal(
                                 calculateProjectBudget(selectedProject),
                                 selectedProject.pricing.currency
                               )}
                             </p>
-                            <div className="mt-4 h-1 w-32 mx-auto bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-full opacity-60"></div>
+                            <div className="mt-4 h-1 w-32 mx-auto bg-gradient-to-r from-green-400/30 to-emerald-400/30 dark:from-green-400/20 dark:to-emerald-400/20 rounded-full opacity-60"></div>
                           </div>
                         </div>
                       </div>
@@ -1723,26 +1720,26 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {/* Pricing Model Section */}
                       <div className="relative">
                         <div className="flex items-center space-x-3 mb-4">
-                          <h4 className="text-lg font-medium !bg-gradient-to-r from-green-200 to-emerald-200 !bg-clip-text !text-transparent">
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-white">
                             Pricing Model
                           </h4>
                         </div>
 
-                        <div className=" h-fit bg-white/10 rounded-2xl px-4 py-3 border border-green-500/20 backdrop-blur-sm">
+                        <div className="h-fit bg-white/10 dark:bg-white/10 rounded-2xl px-4 py-3 border border-green-500/30 dark:border-green-500/20 backdrop-blur-sm">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                               <div>
-                                <p className="text-green-300 text-sm font-semibold tracking-wide uppercase monty">
+                                <p className="text-green-700 dark:text-green-300 text-sm font-semibold tracking-wide uppercase monty">
                                   Billing Type
                                 </p>
-                                <p className="text-white font-medium text-base capitalize mt-1">
+                                <p className="text-gray-900 dark:text-white font-medium text-base capitalize mt-1">
                                   {selectedProject.pricing.type}
                                 </p>
                               </div>
                             </div>
 
-                            <div className="px-3 py-1 rounded-xl border border-green-500/40 backdrop-blur-sm">
-                              <span className="text-green-100 font-semibold text-sm uppercase tracking-wider">
+                            <div className="px-3 py-1 rounded-xl border border-green-500/50 dark:border-green-500/40 backdrop-blur-sm">
+                              <span className="text-green-800 dark:text-green-100 font-semibold text-sm uppercase tracking-wider">
                                 {selectedProject.pricing.currency}
                               </span>
                             </div>
@@ -1752,24 +1749,24 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
                       {/* Payment Status or Additional Info */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="group/stat bg-gradient-to-br from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20 rounded-2xl px-4 py-3 h-fit border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 backdrop-blur-sm">
+                        <div className="group/stat bg-gradient-to-br from-blue-500/20 to-indigo-500/20 dark:from-blue-500/10 dark:to-indigo-500/10 hover:from-blue-500/30 hover:to-indigo-500/30 dark:hover:from-blue-500/20 dark:hover:to-indigo-500/20 rounded-2xl px-4 py-3 h-fit border border-blue-500/40 dark:border-blue-500/30 hover:border-blue-400/60 dark:hover:border-blue-400/50 transition-all duration-300 backdrop-blur-sm">
                           <div className="flex items-center space-x-3 mb-3">
-                            <p className="text-blue-300 text-sm monty font-semibold tracking-wide uppercase">
+                            <p className="text-blue-700 dark:text-blue-300 text-sm monty font-semibold tracking-wide uppercase">
                               Payment Status
                             </p>
                           </div>
-                          <p className="text-white font-medium text-base group-hover/stat:text-blue-100 transition-colors">
+                          <p className="text-gray-900 dark:text-white font-medium text-base group-hover/stat:text-blue-800 dark:group-hover/stat:text-blue-100 transition-colors">
                             Active
                           </p>
                         </div>
 
-                        <div className="group/stat bg-gradient-to-br from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 rounded-2xl px-4 py-3 h-fit border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 backdrop-blur-sm">
+                        <div className="group/stat bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/10 dark:to-pink-500/10 hover:from-purple-500/30 hover:to-pink-500/30 dark:hover:from-purple-500/20 dark:hover:to-pink-500/20 rounded-2xl px-4 py-3 h-fit border border-purple-500/40 dark:border-purple-500/30 hover:border-purple-400/60 dark:hover:border-purple-400/50 transition-all duration-300 backdrop-blur-sm">
                           <div className="flex items-center space-x-3 mb-3">
-                            <p className="text-purple-300 text-sm font-semibold tracking-wide uppercase monty">
+                            <p className="text-purple-700 dark:text-purple-300 text-sm font-semibold tracking-wide uppercase monty">
                               Last Updated
                             </p>
                           </div>
-                          <p className="text-white font-medium text-base group-hover/stat:text-purple-100 transition-colors">
+                          <p className="text-gray-900 dark:text-white font-medium text-base group-hover/stat:text-purple-800 dark:group-hover/stat:text-purple-100 transition-colors">
                             Today
                           </p>
                         </div>
@@ -1781,17 +1778,17 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                 {/* Right Column - Client Info & Actions */}
                 <div className="space-y-8">
                   {/* Client Information Card */}
-                  <div className="bg-black/5 border border-gray-700/30 rounded-xl p-6">
+                  <div className="bg-white/10 dark:bg-black/5 border border-gray-200 dark:border-gray-700/30 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
-                          <FaUser className="text-white text-lg" />
+                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-300 dark:border-gray-600/50">
+                          <FaUser className="text-gray-700 dark:text-white text-lg" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-semibold text-white">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             Client Details
                           </h3>
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">
                             Contact information and profile
                           </p>
                         </div>
@@ -1801,18 +1798,18 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                     <div className="space-y-6">
                       {/* Client Profile Section */}
                       <div>
-                        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-4 border border-gray-700/30">
+                        <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/10 dark:to-pink-500/10 rounded-2xl p-4 border border-gray-300 dark:border-gray-700/30">
                           <div className="text-center">
                             <div className="relative inline-block mb-4">
-                              <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
-                                <span className="text-white font-medium text-lg">
+                              <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                                <span className="text-gray-700 dark:text-white font-medium text-lg">
                                   {selectedProject.userInfo?.firstName?.[0] ||
                                     "U"}
                                   {selectedProject.userInfo?.lastName?.[0] ||
                                     "U"}
                                 </span>
                               </div>
-                              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-gray-800">
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800">
                                 <svg
                                   className="w-3 h-3 text-white"
                                   fill="none"
@@ -1829,14 +1826,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               </div>
                             </div>
 
-                            <h4 className="text-xl font-medium text-white mb-2">
+                            <h4 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
                               {selectedProject.userInfo?.firstName || "Unknown"}{" "}
                               {selectedProject.userInfo?.lastName || ""}
                             </h4>
 
-                            <div className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-600/50">
+                            <div className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600/50">
                               <svg
-                                className="w-4 h-4 text-gray-400 mr-2"
+                                className="w-4 h-4 text-gray-500 dark:text-gray-400 mr-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1848,7 +1845,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                   d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                                 />
                               </svg>
-                              <p className="text-gray-100 font-medium text-sm">
+                              <p className="text-gray-800 dark:text-gray-100 font-medium text-sm">
                                 {selectedProject.userInfo?.company ||
                                   "Independent Client"}
                               </p>
@@ -1860,23 +1857,23 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {/* Contact Information Grid */}
                       <div>
                         <div className="mb-4">
-                          <h4 className="text-lg font-medium text-white">
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-white">
                             Contact Information
                           </h4>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">
                           {/* Email Contact */}
-                          <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
+                          <div className="bg-white/10 dark:bg-black/10 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700/30">
                             <div className="flex items-center space-x-4">
-                              <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
-                                <FaEnvelope className="text-gray-300 text-md" />
+                              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                <FaEnvelope className="text-gray-600 dark:text-gray-300 text-md" />
                               </div>
                               <div className="flex-1">
-                                <p className="text-gray-400 text-sm font-medium uppercase mb-1">
+                                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase mb-1">
                                   Email Address
                                 </p>
-                                <p className="text-white font-medium text-base">
+                                <p className="text-gray-900 dark:text-white font-medium text-base">
                                   {selectedProject.userInfo?.email ||
                                     "No email provided"}
                                 </p>
@@ -1885,16 +1882,16 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                           </div>
 
                           {/* Phone Number */}
-                          <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
+                          <div className="bg-white/10 dark:bg-black/10 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700/30">
                             <div className="flex items-center space-x-4">
-                              <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
-                                <FaPhone className="text-gray-300 text-md" />
+                              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                <FaPhone className="text-gray-600 dark:text-gray-300 text-md" />
                               </div>
                               <div className="flex-1">
-                                <p className="text-gray-400 text-sm font-medium uppercase mb-1">
+                                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase mb-1">
                                   Phone Number
                                 </p>
-                                <p className="text-white font-medium text-base">
+                                <p className="text-gray-900 dark:text-white font-medium text-base">
                                   {selectedProject.userInfo?.phone ||
                                     "No number provided"}
                                 </p>
@@ -1906,24 +1903,24 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 
                       {/* Client Status */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
+                        <div className="bg-white/10 dark:bg-black/10 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700/30">
                           <div className="mb-2">
-                            <p className="text-gray-400 text-sm font-medium uppercase">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">
                               Status
                             </p>
                           </div>
-                          <p className="text-white font-medium text-base">
+                          <p className="text-gray-900 dark:text-white font-medium text-base">
                             Active Client
                           </p>
                         </div>
 
-                        <div className="bg-black/10 rounded-lg px-4 py-3 border border-gray-700/30">
+                        <div className="bg-white/10 dark:bg-black/10 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700/30">
                           <div className="mb-2">
-                            <p className="text-gray-400 text-sm font-medium uppercase">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">
                               Since
                             </p>
                           </div>
-                          <p className="text-white font-medium text-base">
+                          <p className="text-gray-900 dark:text-white font-medium text-base">
                             Jan 2025
                           </p>
                         </div>
@@ -1932,12 +1929,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                   </div>
 
                   {/* Action Buttons Card */}
-                  <div className="bg-black/5 border border-gray-700/30 rounded-xl p-6">
+                  <div className="bg-white/10 dark:bg-black/5 border border-gray-200 dark:border-gray-700/30 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center border border-gray-600/50">
+                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-300 dark:border-gray-600/50">
                           <svg
-                            className="w-6 h-6 text-white"
+                            className="w-6 h-6 text-gray-700 dark:text-white"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1951,17 +1948,17 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                           </svg>
                         </div>
                         <div>
-                          <h3 className="text-xl font-semibold text-white">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             Project Actions
                           </h3>
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">
                             Manage project status and updates
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setShowUpdateModal(true)}
-                        className="p-3 bg-white/5 cursor-pointer hover:bg-white/10 text-gray-300 hover:text-white rounded-lg border border-gray-600/50 hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
+                        className="p-3 bg-white/10 dark:bg-white/5 cursor-pointer hover:bg-white/20 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg border border-gray-300 dark:border-gray-600/50 hover:border-gray-400 dark:hover:border-gray-500/70 transition-all duration-200 flex items-center space-x-2"
                       >
                         <FaComment className="w-4 h-4" />
                         {/* <span className="font-medium">Updates</span> */}
@@ -1972,13 +1969,13 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {/* Quick Status Overview */}
                       <div>
                         <div className="mb-4">
-                          <h4 className="text-lg font-medium text-white">
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-white">
                             Current Status
                           </h4>
                         </div>
 
-                        <div className="bg-white/5 rounded-lg p-3 border border-gray-700/30">
-                          <span className="font-medium text-sm uppercase text-gray-300">
+                        <div className="bg-white/10 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-gray-700/30">
+                          <span className="font-medium text-sm uppercase text-gray-700 dark:text-gray-300">
                             {selectedProject.status}
                           </span>
                         </div>
@@ -1987,7 +1984,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       {/* Action Buttons */}
                       <div>
                         <div className="mb-4">
-                          <h4 className="text-lg font-medium text-white">
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-white">
                             Available Actions
                           </h4>
                         </div>
@@ -2020,7 +2017,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                     "rejected"
                                   )
                                 }
-                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
+                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/10 dark:bg-white/5 hover:bg-red-600/30 dark:hover:bg-red-600/20 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 cursor-pointer border border-gray-300 dark:border-gray-600/50 hover:border-red-500/60 dark:hover:border-red-500/50"
                               >
                                 <FaTimesCircle className="text-sm" />
                                 <span className="font-medium">
@@ -2039,7 +2036,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                   setProgressValue(100);
                                   setShowProgressModal(true);
                                 }}
-                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-blue-600/20 text-gray-300 hover:text-blue-400 cursor-pointer border border-gray-600/50 hover:border-blue-500/50"
+                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/10 dark:bg-white/5 hover:bg-blue-600/30 dark:hover:bg-blue-600/20 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer border border-gray-300 dark:border-gray-600/50 hover:border-blue-500/60 dark:hover:border-blue-500/50"
                               >
                                 <FaCheckCircle className="text-sm" />
                                 <span className="font-medium">
@@ -2051,7 +2048,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                 onClick={() =>
                                   onStatusUpdate(selectedProject._id, "on_hold")
                                 }
-                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-orange-600/20 text-gray-300 hover:text-orange-400 cursor-pointer border border-gray-600/50 hover:border-orange-500/50"
+                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/10 dark:bg-white/5 hover:bg-orange-600/30 dark:hover:bg-orange-600/20 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 cursor-pointer border border-gray-300 dark:border-gray-600/50 hover:border-orange-500/60 dark:hover:border-orange-500/50"
                               >
                                 <FaClock className="text-sm" />
                                 <span className="font-medium">Put On Hold</span>
@@ -2085,7 +2082,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                     "in-progress"
                                   )
                                 }
-                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-green-600/20 text-gray-300 hover:text-green-400 cursor-pointer border border-gray-600/50 hover:border-green-500/50"
+                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/10 dark:bg-white/5 hover:bg-green-600/30 dark:hover:bg-green-600/20 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 cursor-pointer border border-gray-300 dark:border-gray-600/50 hover:border-green-500/60 dark:hover:border-green-500/50"
                               >
                                 <FaPlay className="text-sm" />
                                 <span className="font-medium">
@@ -2100,7 +2097,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                     "cancelled"
                                   )
                                 }
-                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/5 hover:bg-red-600/20 text-gray-300 hover:text-red-400 cursor-pointer border border-gray-600/50 hover:border-red-500/50"
+                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 bg-white/10 dark:bg-white/5 hover:bg-red-600/30 dark:hover:bg-red-600/20 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 cursor-pointer border border-gray-300 dark:border-gray-600/50 hover:border-red-500/60 dark:hover:border-red-500/50"
                               >
                                 <FaTimesCircle className="text-sm" />
                                 <span className="font-medium">
@@ -2114,7 +2111,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                           {(selectedProject.status === "completed" ||
                             selectedProject.status === "cancelled" ||
                             selectedProject.status === "rejected") && (
-                            <div className="text-center text-gray-400 p-4 bg-black/20 rounded-2xl border border-white/10">
+                            <div className="text-center text-gray-500 dark:text-gray-400 p-4 bg-white/10 dark:bg-black/20 rounded-2xl border border-gray-200 dark:border-white/10">
                               <p>
                                 No further actions available for this project.
                               </p>
@@ -2133,14 +2130,14 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             {trackingView === "milestones" && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-semibold text-white">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                     Milestones & Approvals
                   </h2>
                 </div>
 
                 {/* Milestone Approval Section */}
-                <div className="bg-black/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">
+                <div className="bg-white/10 dark:bg-black/10 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Pending Milestone Approvals
                   </h3>
                   {(projectData.milestones || []).filter(
@@ -2155,43 +2152,46 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                         .map((milestone) => (
                           <div
                             key={milestone.id}
-                            className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4"
+                            className="bg-yellow-500/20 dark:bg-yellow-500/10 border border-yellow-500/40 dark:border-yellow-500/30 rounded-xl p-4"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center space-x-2 mb-2">
-                                  <span className="text-white font-medium">
+                                  <span className="text-gray-900 dark:text-white font-medium">
                                     {milestone.title}
                                   </span>
-                                  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs border border-yellow-500/30">
+                                  <span className="px-2 py-1 bg-yellow-500/30 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 rounded text-xs border border-yellow-500/40 dark:border-yellow-500/30">
                                     Pending Approval
                                   </span>
                                 </div>
-                                <p className="text-gray-300 mb-3">
+                                <p className="text-gray-700 dark:text-gray-300 mb-3">
                                   {milestone.description}
                                 </p>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                   <div>
-                                    <span className="text-gray-400">
+                                    <span className="text-gray-500 dark:text-gray-400">
                                       Budget:
                                     </span>
-                                    <p className="text-white font-medium">
-                                      ${milestone.budget}
+                                    <p className="text-gray-900 dark:text-white font-medium">
+                                      {formatProjectCurrency(
+                                        milestone.budget,
+                                        selectedProject
+                                      )}
                                     </p>
                                   </div>
                                   <div>
-                                    <span className="text-gray-400">
+                                    <span className="text-gray-500 dark:text-gray-400">
                                       Timeline:
                                     </span>
-                                    <p className="text-white font-medium">
+                                    <p className="text-gray-900 dark:text-white font-medium">
                                       {milestone.timeline}
                                     </p>
                                   </div>
                                   <div>
-                                    <span className="text-gray-400">
+                                    <span className="text-gray-500 dark:text-gray-400">
                                       Due Date:
                                     </span>
-                                    <p className="text-white font-medium">
+                                    <p className="text-gray-900 dark:text-white font-medium">
                                       {milestone.dueDate
                                         ? new Date(
                                             milestone.dueDate
@@ -2200,10 +2200,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                     </p>
                                   </div>
                                   <div>
-                                    <span className="text-gray-400">
+                                    <span className="text-gray-500 dark:text-gray-400">
                                       Submitted By:
                                     </span>
-                                    <p className="text-white font-medium">
+                                    <p className="text-gray-900 dark:text-white font-medium">
                                       Client
                                     </p>
                                   </div>
@@ -2234,7 +2234,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                         ))}
                     </div>
                   ) : (
-                    <p className="text-gray-400">
+                    <p className="text-gray-600 dark:text-gray-400">
                       No pending milestone approvals
                     </p>
                   )}
@@ -2247,7 +2247,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                       .map((milestone, index) => (
                         <div
                           key={milestone.id}
-                          className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300"
+                          className="bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-6 hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex items-start space-x-4 flex-1">
@@ -2256,18 +2256,18 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center space-x-3 mb-2">
-                                  <h3 className="text-lg font-semibold text-white">
+                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                     {milestone.title}
                                   </h3>
                                   <span
                                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                                       milestone.status === "completed"
-                                        ? "bg-green-500/20 text-green-300"
+                                        ? "bg-green-500/30 dark:bg-green-500/20 text-green-700 dark:text-green-300"
                                         : milestone.status === "in-progress"
-                                        ? "bg-blue-500/20 text-blue-300"
+                                        ? "bg-blue-500/30 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
                                         : milestone.status === "cancelled"
-                                        ? "bg-red-500/20 text-red-300"
-                                        : "bg-gray-500/20 text-gray-300"
+                                        ? "bg-red-500/30 dark:bg-red-500/20 text-red-700 dark:text-red-300"
+                                        : "bg-gray-500/30 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300"
                                     }`}
                                   >
                                     {(milestone.status ?? "pending").replace(
@@ -2276,10 +2276,10 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                     )}
                                   </span>
                                 </div>
-                                <p className="text-gray-300 mb-3">
+                                <p className="text-gray-700 dark:text-gray-300 mb-3">
                                   {milestone.description}
                                 </p>
-                                <div className="flex items-center space-x-4 text-sm text-gray-400">
+                                <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                                   <span>Due: {milestone.timeline}</span>
                                   {milestone.completedAt && (
                                     <span>
@@ -2293,7 +2293,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                               </div>
                             </div>
                             <div className="text-right ml-6">
-                              <p className="text-green-400 font-semibold text-xl">
+                              <p className="text-green-600 dark:text-green-400 font-semibold text-xl">
                                 {formatCurrencyLocal(
                                   parseFloat(milestone.budget),
                                   selectedProject.pricing.currency
@@ -2318,7 +2318,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                         }
                                       )
                                     }
-                                    className="px-3 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded text-xs border border-indigo-500/30 transition-all"
+                                    className="px-3 py-1 bg-indigo-500/30 dark:bg-indigo-500/20 hover:bg-indigo-500/40 dark:hover:bg-indigo-500/30 text-indigo-700 dark:text-indigo-300 rounded text-xs border border-indigo-500/40 dark:border-indigo-500/30 transition-all"
                                   >
                                     {milestone.status === "in-progress"
                                       ? "Complete"
@@ -2335,7 +2335,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                                       timeline: milestone.timeline,
                                     });
                                   }}
-                                  className="px-3 py-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 rounded text-xs border border-yellow-500/30 transition-all"
+                                  className="px-3 py-1 bg-yellow-500/30 dark:bg-yellow-500/20 hover:bg-yellow-500/40 dark:hover:bg-yellow-500/30 text-yellow-700 dark:text-yellow-300 rounded text-xs border border-yellow-500/40 dark:border-yellow-500/30 transition-all"
                                 >
                                   Edit
                                 </button>

@@ -118,23 +118,23 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
   const activeFilterCount = getActiveFilterCount();
 
   return (
-    <div className="bg-white/5 rounded-xl p-6 mb-6">
+    <div className="bg-white/10 dark:bg-white/5 rounded-xl p-6 mb-6">
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
         {/* Search Input */}
         <div className="flex-1 max-w-lg">
           <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
             <input
               type="text"
               placeholder="Search developers by name, skills, or expertise..."
-              className="w-full bg-black/50 border border-gray-600 rounded-lg py-3 px-4 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="w-full bg-white/20 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 pl-10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
             />
             {searchTerm && (
               <button
                 onClick={() => onSearchChange("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <FaTimes className="w-4 h-4" />
               </button>
@@ -148,25 +148,25 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value as SortOption)}
-              className="w-full bg-black/50 border border-gray-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none min-w-[140px]"
+              className="w-full bg-white/20 dark:bg-black/50 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none min-w-[140px]"
             >
-              <option value="name" className="bg-black">
+              <option value="name" className="bg-white dark:bg-black">
                 Name
               </option>
-              <option value="rating" className="bg-black">
+              <option value="rating" className="bg-white dark:bg-black">
                 Rating
               </option>
-              <option value="projects" className="bg-black">
+              <option value="projects" className="bg-white dark:bg-black">
                 Projects
               </option>
-              <option value="earnings" className="bg-black">
+              <option value="earnings" className="bg-white dark:bg-black">
                 Earnings
               </option>
-              <option value="newest" className="bg-black">
+              <option value="newest" className="bg-white dark:bg-black">
                 Newest
               </option>
             </select>
-            <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none" />
           </div>
 
           {/* Filter Toggle Button */}
@@ -175,7 +175,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
             className={`relative cursor-pointer flex items-center space-x-2 px-4 py-3 rounded-lg transition-colors ${
               showAdvancedFilters
                 ? "bg-blue-600 text-white"
-                : "bg-white/10 text-gray-300 hover:bg-white/20"
+                : "bg-white/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/20"
             }`}
             title="Advanced Filters"
           >
@@ -189,13 +189,13 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
           </button>
 
           {/* View Toggle */}
-          <div className="flex rounded-lg border border-gray-600 overflow-hidden bg-black/50">
+          <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden bg-white/20 dark:bg-black/50">
             <button
               onClick={() => onViewModeChange("list")}
               className={`p-3 transition-colors ${
                 viewMode === "list"
                   ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10"
               }`}
               title="List View"
             >
@@ -207,7 +207,7 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
               className={`p-3 transition-colors ${
                 viewMode === "grid"
                   ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10"
               }`}
               title="Grid View"
             >

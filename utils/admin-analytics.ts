@@ -230,9 +230,12 @@ export const calculateProjectBudget = (project: ProjectData): number => {
     });
   
     // Revenue activities
+    const amount = (Math.random() * 20000 + 5000).toFixed(0);
+    const currency = Math.random() > 0.5 ? 'USD' : 'KES';
+    const symbol = currency === 'USD' ? '$' : 'KSh';
     activities.push({
       type: 'revenue',
-      message: `Payment of $${(Math.random() * 20000 + 5000).toFixed(0)} received`,
+      message: `Payment of ${symbol}${amount} received`,
       time: '1 hour ago',
       icon: 'DollarSign'
     });

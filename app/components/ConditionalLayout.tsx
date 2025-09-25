@@ -394,7 +394,7 @@ export default function ConditionalLayout({
       <motion.main
         className={`flex-1 ${mainPadding} ${
           isDashboardRoute
-            ? "inset-0 bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
+            ? "inset-0 bg-gray-50 dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover"
             : ""
         }`}
         initial={{ opacity: 0 }}

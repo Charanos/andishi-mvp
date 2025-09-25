@@ -126,6 +126,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check content length to prevent oversized payloads
+    const contentLength = req.headers.get('content-length');
+    const maxSize = 50 * 1024 * 1024; // 50MB limit
+    if (contentLength && parseInt(contentLength) > maxSize) {
+      return new NextResponse(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Request payload too large. Please reduce image sizes or content length.' 
+        }),
+        { status: 413, headers: getCorsHeaders(req) }
+      );
+    }
+
     const body = await req.json();
     const { 
       title, 
@@ -144,7 +157,7 @@ export async function POST(req: NextRequest) {
       githubUrl
     } = body;
 
-    // Validate required fields
+    // Enhanced validation for required fields and content length
     if (!title || !description || !category) {
       return new NextResponse(
         JSON.stringify({ 
@@ -155,23 +168,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create new project in database
-    // Extract nested fields from projectDetails
-    const projectDetails = {
-      title,
-      description,
-      category,
-      technologies: technologies || [],
-      image: image || '/images/default-project.jpg',
-      client: client || '',
-      duration: duration || '',
-      teamSize: teamSize || '',
-      featured: featured || false,
-      status: status || 'planning',
-      gradient: gradient || 'from-gray-500/20 to-gray-600/10',
-      liveUrl: liveUrl || '',
-      githubUrl: githubUrl || '',
-    };
+    // Validate content lengths to prevent database issues
+    if (title.length > 200) {
+      return new NextResponse(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Title is too long. Maximum 200 characters allowed.' 
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
+
+    if (description.length > 100000) { // 100KB limit for description
+      return new NextResponse(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Description is too long. Please reduce the content size.' 
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
+
+    // Validate array fields
+    if (technologies && technologies.length > 20) {
+      return new NextResponse(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Too many technologies. Maximum 20 allowed.' 
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
+
+    if (projectImages && projectImages.length > 10) {
+      return new NextResponse(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Too many project images. Maximum 10 allowed.' 
+        }),
+        { status: 400, headers: getCorsHeaders(req) }
+      );
+    }
 
     // Generate slug from title using utility function
     const projectSlug = generateSlug(title);
@@ -215,14 +252,36 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error creating homepage project:', error);
+    
+    // Handle specific error types
+    let errorMessage = 'Failed to create homepage project';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Payload too large')) {
+        errorMessage = 'Request payload too large. Please reduce image sizes or content length.';
+        statusCode = 413;
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timeout. Please try again with smaller content.';
+        statusCode = 408;
+      } else if (error.message.includes('duplicate key')) {
+        errorMessage = 'A project with this title already exists. Please use a different title.';
+        statusCode = 409;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return new NextResponse(
       JSON.stringify({
         success: false,
-        message: 'Failed to create homepage project',
+        message: errorMessage,
         error: error instanceof Error ? error.message : 'Unknown error'
       }),
-      { status: 500, headers: getCorsHeaders(req) }
+      { status: statusCode, headers: getCorsHeaders(req) }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

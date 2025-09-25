@@ -642,7 +642,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         }`}
       >
         {/* Chat Header */}
-        <div className="bg-black/40 backdrop-blur-sm border-b border-gray-800/50 p-6">
+        <div className="bg-white/10 dark:bg-black/40 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800/50 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
@@ -650,10 +650,10 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                   <FaUsers className="text-white text-lg" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Project Chat
                   </h2>
-                  <p className="text-sm text-indigo-400 font-medium uppercase tracking-wide">
+                  <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wide">
                     {projectTitle}
                   </p>
                 </div>
@@ -684,7 +684,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                 </button>
               </div>
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-400 font-medium">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                   {participants.length} members
                 </span>
                 <div className="flex -space-x-2">
@@ -697,17 +697,17 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                       <div
                         className={`w-8 h-8 rounded-full bg-gradient-to-r ${getRoleGradient(
                           participant.role
-                        )} flex items-center justify-center border-2 border-gray-900 font-medium text-white text-xs shadow-lg hover:scale-110 transition-transform`}
+                        )} flex items-center justify-center border-2 border-gray-200 dark:border-gray-900 font-medium text-white text-xs shadow-lg hover:scale-110 transition-transform`}
                       >
                         {getInitials(participant.name)}
                       </div>
                       {participant.isOnline && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-gray-900 shadow-lg"></div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-gray-200 dark:border-gray-900 shadow-lg"></div>
                       )}
                     </div>
                   ))}
                   {participants.length > 3 && (
-                    <div className="w-8 h-8 rounded-full bg-gray-700 border-2 border-gray-900 flex items-center justify-center text-xs text-gray-300 font-medium shadow-lg">
+                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-900 flex items-center justify-center text-xs text-gray-700 dark:text-gray-300 font-medium shadow-lg">
                       +{participants.length - 3}
                     </div>
                   )}
@@ -721,12 +721,12 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
         <div className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <div className="flex flex-col items-center justify-center h-full text-gray-600 dark:text-gray-400">
+                <div className="w-20 h-20 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                   <FaUsers className="text-3xl" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">No messages yet</h3>
-                <p className="text-sm text-center">
+                <h3 className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No messages yet</h3>
+                <p className="text-sm text-center text-gray-600 dark:text-gray-400">
                   Start the conversation and get your project moving!
                 </p>
               </div>
@@ -745,7 +745,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({
                   <div key={message.id} className="space-y-2">
                     {showTimestamp && (
                       <div className="flex justify-center">
-                        <span className="text-xs text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full">
+                        <span className="text-xs text-gray-600 dark:text-gray-500 bg-gray-200 dark:bg-gray-800/50 px-3 py-1 rounded-full">
                           {formatTime(message.timestamp)}
                         </span>
                       </div>

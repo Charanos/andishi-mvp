@@ -432,12 +432,12 @@ export default function BlogsSection() {
                     {featuredBlog.title}
                   </h3>
 
-                  <p className="text-gray-600 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors duration-300 leading-relaxed text-lg">
+                  <p className="text-gray-700 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-300 leading-relaxed text-lg">
                     {featuredBlog.excerpt}
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
                       <div className="flex items-center space-x-2">
                         <FaUser className="text-xs" />
                         <span className="monty uppercase">
@@ -468,7 +468,7 @@ export default function BlogsSection() {
                       <FaArrowRight className="text-sm transition-transform duration-300 group-hover/btn:translate-x-1" />
                     </Link>
 
-                    <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-400">
                       <div className="flex items-center space-x-1">
                         <FaEye className="text-xs" />
                         <span className="monty uppercase text-sm">
@@ -613,12 +613,12 @@ export default function BlogsSection() {
                     {blog.title}
                   </h3>
 
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">
                     {blog.excerpt}
                   </p>
 
                   {/* Meta Information */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-1">
                         <FaUser className="text-xs" />
@@ -647,12 +647,12 @@ export default function BlogsSection() {
                       <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button className="p-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
+                      <button className="p-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
                         <FaBookmark className="text-xs" />
                       </button>
                       <div className="relative group/share">
                         <button
-                          className="p-1 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-300"
+                          className="p-1 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-300"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();

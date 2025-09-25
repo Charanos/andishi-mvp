@@ -182,13 +182,65 @@ export default function HomepageProjectForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    
+    // Prevent multiple submissions
+    if (isSubmitting || isLoading) {
+      return;
+    }
+    
     setIsSubmitting(true);
 
+    // Enhanced validation
     if (!formData.title || !formData.description || !formData.category) {
       addToast({
         type: "error",
-        title: "Error",
+        title: "Validation Error",
         message: "Please fill in all required fields",
+        duration: 5000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Check content length limits
+    if (formData.title.length > 200) {
+      addToast({
+        type: "error",
+        title: "Title Too Long",
+        message: "Title must be 200 characters or less",
+        duration: 5000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.description.length > 100000) {
+      addToast({
+        type: "error",
+        title: "Description Too Long",
+        message: "Description is too long. Please reduce the content size.",
+        duration: 5000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.technologies.length > 20) {
+      addToast({
+        type: "error",
+        title: "Too Many Technologies",
+        message: "Maximum 20 technologies allowed",
+        duration: 5000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.projectImages.length > 10) {
+      addToast({
+        type: "error",
+        title: "Too Many Images",
+        message: "Maximum 10 project images allowed",
         duration: 5000,
       });
       setIsSubmitting(false);
@@ -227,11 +279,37 @@ export default function HomepageProjectForm({
       }
     } catch (err) {
       console.error("Error submitting form:", err);
+      
+      // Enhanced error handling with specific messages
+      let errorMessage = "Failed to save project. Please try again.";
+      let errorTitle = "Error";
+      
+      if (err instanceof Error) {
+        if (err.message.includes('too large') || err.message.includes('Payload too large')) {
+          errorTitle = "Content Too Large";
+          errorMessage = "Your project content is too large. Please reduce image sizes or description length.";
+        } else if (err.message.includes('timeout')) {
+          errorTitle = "Request Timeout";
+          errorMessage = "The request timed out. Please try again with smaller content.";
+        } else if (err.message.includes('duplicate') || err.message.includes('already exists')) {
+          errorTitle = "Duplicate Title";
+          errorMessage = "A project with this title already exists. Please use a different title.";
+        } else if (err.message.includes('Unauthorized')) {
+          errorTitle = "Authentication Error";
+          errorMessage = "Your session has expired. Please refresh the page and try again.";
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorTitle = "Network Error";
+          errorMessage = "Network connection issue. Please check your internet and try again.";
+        } else {
+          errorMessage = err.message || errorMessage;
+        }
+      }
+      
       addToast({
         type: "error",
-        title: "Error",
-        message: "Failed to save project. Please try again.",
-        duration: 5000,
+        title: errorTitle,
+        message: errorMessage,
+        duration: 8000, // Longer duration for error messages
       });
     } finally {
       setIsSubmitting(false);

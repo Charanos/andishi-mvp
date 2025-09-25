@@ -280,10 +280,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
           </div>
         </div>
         <div>
-          <p className="text-gray-400 text-sm font-medium uppercase monty tracking-wider">
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium uppercase monty tracking-wider">
             {label}
           </p>
-          <p className="text-xl font-semibold text-white mt-1">{value}</p>
+          <p className="text-xl font-semibold text-gray-900 dark:text-white mt-1">{value}</p>
         </div>
       </div>
     </div>
@@ -522,7 +522,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading Analytics...</p>
+          <p className="text-gray-900 dark:text-white text-xl">Loading Analytics...</p>
         </div>
       </div>
     );
@@ -534,10 +534,10 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold text-white mb-2">
+            <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
               Project Analytics
             </h1>
-            <p className="text-gray-300 text-lg">
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
               Real-time insights and performance metrics
             </p>
           </div>
@@ -545,7 +545,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-              className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white backdrop-blur-xl"
+              className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-gray-900 dark:text-white backdrop-blur-xl"
             >
               <option value="7D">Last 7 Days</option>
               <option value="30D">Last 30 Days</option>
@@ -560,14 +560,14 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="backdrop-blur-xl my-16 bg-white/5 border border-white/10 rounded-2xl p-1">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-1 my-16">
           <div className="flex space-x-1">
             <button
               onClick={() => setAnalyticsTab("overview")}
               className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-2 rounded-xl font-medium transition-all duration-300 ${
                 analyticsTab === "overview"
                   ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                  : "text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/10"
               }`}
             >
               <Briefcase className="h-4 w-4" />
@@ -580,7 +580,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-2 rounded-xl font-medium transition-all duration-300 ${
                 analyticsTab === "financial"
                   ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                  : "text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/10"
               }`}
             >
               <DollarSign className="h-4 w-4" />
@@ -593,7 +593,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               className={`flex-1 cursor-pointer flex items-center justify-center space-x-2 px-6 py-2 rounded-xl font-medium transition-all duration-300 ${
                 analyticsTab === "performance"
                   ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                  : "text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/10"
               }`}
             >
               <Target className="h-4 w-4" />
@@ -646,15 +646,15 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Revenue Trend - Enhanced */}
-              <div className="lg:col-span-2 backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+              <div className="lg:col-span-2 bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Revenue Analytics
                   </h3>
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-1">
                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm text-gray-400">Revenue</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Revenue</span>
                     </div>
                   </div>
                 </div>
@@ -719,8 +719,8 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Project Status Distribution */}
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   Project Status
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -765,9 +765,9 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                             backgroundColor: COLORS[index % COLORS.length],
                           }}
                         ></div>
-                        <span className="text-gray-300">{item.name}</span>
+                        <span className="text-gray-600 dark:text-gray-300">{item.name}</span>
                       </div>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 dark:text-white font-medium">
                         {item.value}
                       </span>
                     </div>
@@ -788,7 +788,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                   Array.from({ length: 5 }).map((_, index) => (
                     <div
                       key={index}
-                      className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-xl p-4 animate-pulse"
+                      className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-4 animate-pulse"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
@@ -804,22 +804,22 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                     (status: any, index: number) => (
                       <div
                         key={status.status}
-                        className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-xl p-4 hover:bg-black/20 transition-all duration-300"
+                        className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-4 hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: status.color }}
                           ></div>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
                             {status.count} payments
                           </span>
                         </div>
                         <div>
-                          <p className="text-gray-400 text-sm font-medium uppercase tracking-wider">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium uppercase tracking-wider">
                             {status.status}
                           </p>
-                          <p className="text-lg font-semibold text-white mt-1">
+                          <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
                             {formatCurrency(status.amount)}
                           </p>
                         </div>
@@ -831,8 +831,8 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             {/* Financial Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Payment Methods */}
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   Payment Methods
                 </h3>
                 <div className="space-y-4">
@@ -851,15 +851,15 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                                 backgroundColor: COLORS[index % COLORS.length],
                               }}
                             ></div>
-                            <span className="text-gray-300">
+                            <span className="text-gray-600 dark:text-gray-300">
                               {method.method}
                             </span>
                           </div>
                           <div className="text-right">
-                            <p className="text-white font-semibold">
+                            <p className="text-gray-900 dark:text-white font-semibold">
                               {formatCurrency(method.amount)}
                             </p>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm">
                               {method.percentage}%
                             </p>
                           </div>
@@ -868,10 +868,10 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                     )
                   ) : (
                     <div className="text-center py-8">
-                      <div className="text-gray-400 text-sm mb-2">
+                      <div className="text-gray-600 dark:text-gray-400 text-sm mb-2">
                         No payment methods yet
                       </div>
-                      <div className="text-gray-500 text-xs">
+                      <div className="text-gray-500 dark:text-gray-400 text-xs">
                         Payment methods will appear here once payments are
                         recorded
                       </div>
@@ -880,8 +880,8 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                 </div>
                 <div className="mt-6 pt-4 border-t border-white/10">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Total Revenue</span>
-                    <span className="text-white font-semibold">
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">Total Revenue</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">
                       {formatCurrency(
                         (transformedFinancialData?.paymentMethods || []).reduce(
                           (sum: number, method: any) => sum + method.amount,
@@ -894,9 +894,9 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Monthly Payment Trends */}
-              <div className="lg:col-span-2 backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+              <div className="lg:col-span-2 bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Monthly Payment Trends
                   </h3>
                   <div className="flex items-center space-x-4">
@@ -905,35 +905,35 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: "#F59E0B" }}
                       ></div>
-                      <span className="text-gray-400">Pending</span>
+                      <span className="text-gray-600 dark:text-gray-400">Pending</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm">
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: "#3B82F6" }}
                       ></div>
-                      <span className="text-gray-400">Approved</span>
+                      <span className="text-gray-600 dark:text-gray-400">Approved</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm">
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: "#3B82F6" }}
                       ></div>
-                      <span className="text-gray-400">Completed</span>
+                      <span className="text-gray-600 dark:text-gray-400">Completed</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm">
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: "#EF4444" }}
                       ></div>
-                      <span className="text-gray-400">Rejected</span>
+                      <span className="text-gray-600 dark:text-gray-400">Rejected</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm">
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: "#8B5CF6" }}
                       ></div>
-                      <span className="text-gray-400">Outstanding</span>
+                      <span className="text-gray-600 dark:text-gray-400">Outstanding</span>
                     </div>
                   </div>
                 </div>
@@ -1024,9 +1024,9 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             {/* Payment Methods & Financial KPIs */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Payment Status Distribution */}
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Payment Status Distribution
                   </h3>
                   <DollarSign className="h-5 w-5 text-green-400" />
@@ -1074,9 +1074,9 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: item.color }}
                           ></div>
-                          <span className="text-gray-300">{item.status}</span>
+                          <span className="text-gray-600 dark:text-gray-300">{item.status}</span>
                         </div>
-                        <span className="text-white font-medium">
+                        <span className="text-gray-900 dark:text-white font-medium">
                           {item.count}
                         </span>
                       </div>
@@ -1086,8 +1086,8 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Financial KPIs */}
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   Financial KPIs
                 </h3>
                 <div className="space-y-6">
@@ -1096,7 +1096,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                       <p className="text-green-400 text-sm font-medium">
                         Average Payment Value
                       </p>
-                      <p className="text-white text-2xl font-semibold">
+                      <p className="text-gray-900 dark:text-white text-2xl font-semibold">
                         {formatCurrency(
                           transformedFinancialData?.kpis?.avgPaymentValue || 0
                         )}
@@ -1112,7 +1112,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                       <p className="text-blue-400 text-sm font-medium">
                         Payment Success Rate
                       </p>
-                      <p className="text-white text-2xl font-semibold">
+                      <p className="text-gray-900 dark:text-white text-2xl font-semibold">
                         {Math.round(
                           (transformedFinancialData?.kpis?.successRate || 0) *
                             10
@@ -1130,7 +1130,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                       <p className="text-purple-400 text-sm font-medium">
                         Avg. Processing Time
                       </p>
-                      <p className="text-white text-2xl font-semibold">
+                      <p className="text-gray-900 dark:text-white text-2xl font-semibold">
                         {Math.round(
                           (transformedFinancialData?.kpis?.avgProcessingTime ||
                             0) * 10
@@ -1148,7 +1148,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                       <p className="text-orange-400 text-sm font-medium">
                         Outstanding Payments
                       </p>
-                      <p className="text-white text-2xl font-semibold">
+                      <p className="text-gray-900 dark:text-white text-2xl font-semibold">
                         {formatCurrency(
                           transformedFinancialData?.kpis?.outstandingAmount || 0
                         )}
@@ -1169,8 +1169,8 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
           <div className="space-y-6">
             {/* Performance Metrics Radar Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   Performance Metrics
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -1213,8 +1213,8 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Skills Demand Chart */}
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                   Skills in Demand
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -1258,9 +1258,9 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             {/* Top Performers Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top Clients */}
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Top Clients
                   </h3>
                   <Award className="h-5 w-5 text-yellow-400" />
@@ -1283,10 +1283,10 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                           )}
                         </div>
                         <div>
-                          <p className="text-white font-semibold">
+                          <p className="text-gray-900 dark:text-white font-semibold">
                             {client.name}
                           </p>
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">
                             {client.projectCount} projects
                           </p>
                         </div>
@@ -1298,7 +1298,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                         <p className="text-yellow-400 text-sm">
                           {formatCurrency(client.pendingAmount, true)} pending
                         </p>
-                        <p className="text-gray-400 text-xs">
+                        <p className="text-gray-600 dark:text-gray-400 text-xs">
                           {formatCurrency(client.totalValue, true)} total value
                         </p>
                       </div>
@@ -1308,9 +1308,9 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
               </div>
 
               {/* Top Developers */}
-              <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+              <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Top Developers
                   </h3>
                   <Zap className="h-5 w-5 text-purple-400" />
@@ -1335,10 +1335,10 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                             )}
                           </div>
                           <div>
-                            <p className="text-white font-semibold">
+                            <p className="text-gray-900 dark:text-white font-semibold">
                               {developer.name}
                             </p>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm">
                               {developer.completedProjects} projects completed
                             </p>
                           </div>
@@ -1346,7 +1346,7 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                         <div className="text-right">
                           <div className="flex items-center space-x-1">
                             <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="text-white font-semibold">
+                            <span className="text-gray-900 dark:text-white font-semibold">
                               {developer.rating}
                             </span>
                           </div>
@@ -1366,9 +1366,9 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
             </div>
 
             {/* Real-time Activity Feed */}
-            <div className="backdrop-blur-xl bg-black/10 border border-white/10 rounded-2xl p-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Live Activity Feed
                 </h3>
                 <div className="flex items-center space-x-2">
@@ -1387,14 +1387,14 @@ const AdvancedAnalyticsDashboard: React.FC<RenderAnalyticsProps> = ({
                         <activity.icon className="h-4 w-4 text-blue-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-white text-sm">{activity.message}</p>
-                        <p className="text-gray-400 text-xs">{activity.time}</p>
+                        <p className="text-gray-900 dark:text-white text-sm">{activity.message}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-xs">{activity.time}</p>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-400">No recent activities</p>
+                    <p className="text-gray-600 dark:text-gray-400">No recent activities</p>
                   </div>
                 )}
               </div>

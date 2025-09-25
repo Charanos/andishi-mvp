@@ -241,7 +241,7 @@ export default function EnhancedBlogLayout({
           </h1>
 
           {/* Subtitle/Excerpt */}
-          <p className="text-base font-normal text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">
+          <p className="text-base font-normal text-gray-800 dark:text-gray-300 mb-8 leading-relaxed">
             {blog.excerpt}
           </p>
 
@@ -271,7 +271,7 @@ export default function EnhancedBlogLayout({
               </div>
             </div>
 
-            <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400 text-sm">
+            <div className="flex items-center space-x-6 text-gray-700 dark:text-gray-400 text-sm">
               <div className="flex items-center space-x-2">
                 <FaCalendarAlt className="text-xs" />
                 <span className="monty uppercase">
@@ -318,7 +318,7 @@ export default function EnhancedBlogLayout({
             </div>
 
             <div className="flex items-center space-x-3">
-              <span className="text-gray-600 dark:text-gray-400 text-sm">
+              <span className="text-gray-700 dark:text-gray-400 text-sm">
                 Share:
               </span>
               <button
@@ -390,7 +390,7 @@ export default function EnhancedBlogLayout({
                 <p className="text-blue-600 dark:text-blue-300 text-sm mb-3">
                   Author
                 </p>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p className="text-gray-800 dark:text-gray-300 leading-relaxed">
                   {blog.author} is a contributor to our blog, sharing insights
                   and expertise on {blog.category.toLowerCase()} and related
                   topics.
@@ -444,7 +444,7 @@ export default function EnhancedBlogLayout({
                           {article.title}
                         </h3>
 
-                        <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-400">
                           <div className="flex items-center space-x-2">
                             <FaUser className="text-xs" />
                             <span>{article.author}</span>
@@ -534,13 +534,13 @@ export default function EnhancedBlogLayout({
                             {formatDate(comment.createdAt)}
                           </span>
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                        <p className="text-gray-800 dark:text-gray-300 leading-relaxed mb-4">
                           {comment.content}
                         </p>
                         <div className="flex items-center space-x-4">
                           <button
                             onClick={() => onCommentLike?.(comment.id)}
-                            className="cursor-pointer flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-blue-400 transition-colors duration-300"
+                            className="cursor-pointer flex items-center space-x-2 text-gray-700 dark:text-gray-400 hover:text-blue-400 transition-colors duration-300"
                           >
                             <FaThumbsUp className="text-sm" />
                             <span className="text-sm">{comment.likes}</span>
@@ -550,7 +550,7 @@ export default function EnhancedBlogLayout({
                               // Set reply target
                               setReplyingTo(comment.id);
                             }}
-                            className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-blue-400 transition-colors duration-300 text-sm"
+                            className="cursor-pointer text-gray-700 dark:text-gray-400 hover:text-blue-400 transition-colors duration-300 text-sm"
                           >
                             Reply
                           </button>
@@ -581,7 +581,7 @@ export default function EnhancedBlogLayout({
                                   setReplyingTo(null);
                                   setReplyText("");
                                 }}
-                                className="cursor-pointer px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 text-sm"
+                                className="cursor-pointer px-4 py-2 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 text-sm"
                               >
                                 Cancel
                               </button>
@@ -623,11 +623,11 @@ export default function EnhancedBlogLayout({
                                   <h5 className="text-gray-900 dark:text-white font-medium text-sm">
                                     {reply.author}
                                   </h5>
-                                  <span className="text-gray-600 dark:text-gray-400 text-xs">
+                                  <span className="text-gray-700 dark:text-gray-400 text-xs">
                                     {formatDate(reply.createdAt)}
                                   </span>
                                 </div>
-                                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                                <p className="text-gray-800 dark:text-gray-300 text-sm leading-relaxed">
                                   {reply.content}
                                 </p>
                               </div>
@@ -648,7 +648,7 @@ export default function EnhancedBlogLayout({
             <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
               Stay Ahead of the Curve
             </h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+            <p className="text-gray-800 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
               Get weekly insights on the latest tech trends, AI developments,
               and remote work strategies delivered straight to your inbox.
             </p>
@@ -662,7 +662,7 @@ export default function EnhancedBlogLayout({
                 Subscribe Now
               </button>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-4">
+            <p className="text-gray-700 dark:text-gray-400 text-sm mt-4">
               Join 10,000+ developers. Unsubscribe anytime.
             </p>
           </div>

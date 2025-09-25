@@ -951,20 +951,20 @@ const DeveloperProfileEditor: React.FC<Props> = ({
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg mb-8">
+          <div className="bg-white/10 dark:bg-white/10 backdrop-blur-md p-6 rounded-lg mb-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-semibold text-white mb-2">
+                <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
                   Developer Profile Editor
                 </h1>
-                <p className="text-gray-300">
+                <p className="text-gray-600 dark:text-gray-300">
                   Manage your professional developer profile
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <button
                   onClick={onCancel}
-                  className="bg-white/10 cursor-pointer hover:bg-white/20 text-slate-300 hover:text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
+                  className="bg-white/20 dark:bg-white/10 cursor-pointer hover:bg-white/30 dark:hover:bg-white/20 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <FaTimes className="mr-2" />
                   Cancel
@@ -982,7 +982,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
           </div>
 
           {/* Navigation Tabs */}
-          <div className="bg-white/10 backdrop-blur-md p-2 rounded-lg mb-8">
+          <div className="bg-white/10 dark:bg-white/10 backdrop-blur-md p-2 rounded-lg mb-8">
             <div className="flex flex-wrap gap-2">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
@@ -993,7 +993,7 @@ const DeveloperProfileEditor: React.FC<Props> = ({
                     className={`flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                       activeTab === tab.id
                         ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-white/10"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-white/10"
                     }`}
                   >
                     <IconComponent />
@@ -1014,11 +1014,11 @@ const DeveloperProfileEditor: React.FC<Props> = ({
 
           {/* Footer */}
           <div className="mt-12 text-center">
-            <div className="bg-white/5 p-4 rounded-lg">
-              <p className="text-gray-400 text-sm">
+            <div className="bg-white/10 dark:bg-white/5 p-4 rounded-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 Last updated: {new Date().toLocaleDateString()}
               </p>
-              <p className="text-gray-500 text-xs mt-2">
+              <p className="text-gray-500 dark:text-gray-500 text-xs mt-2">
                 Your profile information is securely stored and can be updated
                 at any time.
               </p>

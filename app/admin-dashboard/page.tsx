@@ -11,9 +11,6 @@ import {
   FaDollarSign,
   FaEnvelope,
   FaEye,
-  FaEdit,
-  FaTrash,
-  FaSearch,
   FaSortAmountDown,
   FaSortAmountUp,
   FaTimes,
@@ -1505,17 +1502,17 @@ export default function EnhancedAdminDashboard(): ReactNode {
         ].map((metric, index) => (
           <div
             key={index}
-            className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6 cursor-pointer hover:bg-black/20 transition-all duration-300"
+            className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6 cursor-pointer hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-300"
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-gray-200/50 dark:bg-white/10 rounded-full flex items-center justify-center mb-4">
                   {metric.icon}
                 </div>
-                <p className="text-gray-400 text-sm uppercase tracking-wide">
+                <p className="text-gray-600 dark:text-gray-400 text-sm uppercase tracking-wide">
                   {metric.label}
                 </p>
-                <p className="text-2xl font-semibold text-white mt-1">
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
                   {metric.value}
                 </p>
                 <div className="flex items-center mt-2">
@@ -1540,8 +1537,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       {/* Project Status Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Project Status Distribution
           </h3>
           <div className="space-y-4">
@@ -1554,23 +1551,23 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   <div key={status} className="relative">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center">
                           {getStatusIcon(status)}
                         </div>
-                        <span className="text-white font-medium capitalize">
+                        <span className="text-gray-900 dark:text-white font-medium capitalize">
                           {status}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-gray-400 text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 text-sm">
                           {count} projects
                         </span>
-                        <span className="text-white font-semibold">
+                        <span className="text-gray-900 dark:text-white font-semibold">
                           {percentage}%
                         </span>
                       </div>
                     </div>
-                    <div className="w-full bg-gray-700/50 rounded-full h-2">
+                    <div className="w-full bg-gray-300 dark:bg-gray-700/50 rounded-full h-2">
                       <div
                         className={`${getStatusColor(
                           status
@@ -1586,8 +1583,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
         </div>
 
         {/* User Role Distribution */}
-        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             User Role Distribution
           </h3>
           <div className="space-y-4">
@@ -1599,23 +1596,23 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 <div key={role} className="relative">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center">
                         <FaUser className={getRoleColor(role)} />
                       </div>
-                      <span className="text-white font-medium capitalize">
+                      <span className="text-gray-900 dark:text-white font-medium capitalize">
                         {role}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">
                         {count} users
                       </span>
-                      <span className="text-white font-semibold">
+                      <span className="text-gray-900 dark:text-white font-semibold">
                         {percentage}%
                       </span>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-700/50 rounded-full h-2">
+                  <div className="w-full bg-gray-300 dark:bg-gray-700/50 rounded-full h-2">
                     <div
                       className={`${getRoleColor(
                         role
@@ -1633,13 +1630,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
       {/* Top Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Clients */}
-        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Top Clients</h3>
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Top Clients
+          </h3>
           <div className="space-y-3">
             {analytics.topClients.slice(0, 5).map((client, index) => (
               <div
                 key={`client-${index}-${client.name}`}
-                className="flex items-center justify-between p-3 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5 backdrop-blur-md"
+                className="flex items-center justify-between p-3 bg-gradient-to-r from-white/20 dark:from-white/5 to-transparent rounded-xl hover:from-white/30 dark:hover:from-white/10 transition-all duration-300 border border-gray-200 dark:border-white/5 backdrop-blur-md"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
@@ -1648,8 +1647,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     </span>
                   </div>
                   <div>
-                    <p className="text-white font-medium">{client.name}</p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-900 dark:text-white font-medium">
+                      {client.name}
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                       {client.projectCount || client.projects || 0} projects
                     </p>
                   </div>
@@ -1668,15 +1669,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
         </div>
 
         {/* Top Developers */}
-        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Top Developers
           </h3>
           <div className="space-y-3">
             {analytics.topDevelopers.slice(0, 5).map((dev, index) => (
               <div
                 key={`developer-${index}-${dev.name}`}
-                className="flex items-center justify-between p-3 bg-gradient-to-r from-white/5 to-transparent rounded-xl hover:from-white/10 transition-all duration-300 border border-white/5 backdrop-blur-md"
+                className="flex items-center justify-between p-3 bg-gradient-to-r from-white/20 dark:from-white/5 to-transparent rounded-xl hover:from-white/30 dark:hover:from-white/10 transition-all duration-300 border border-gray-200 dark:border-white/5 backdrop-blur-md"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
@@ -1685,15 +1686,17 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     </span>
                   </div>
                   <div>
-                    <p className="text-white font-medium">{dev.name}</p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-900 dark:text-white font-medium">
+                      {dev.name}
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                       {dev.completedProjects || dev.projects || 0} projects
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-1">
                   <span className="text-yellow-400">★</span>
-                  <span className="text-white">
+                  <span className="text-gray-900 dark:text-white">
                     {(dev.rating || 0).toFixed(1)}
                   </span>
                 </div>
@@ -1780,10 +1783,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
           <div className="mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
-                <h1 className="text-3xl font-semibold text-white mb-2 flex items-center gap-3">
+                <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
                   Client Projects
                 </h1>
-                <p className="text-gray-300">
+                <p className="text-gray-600 dark:text-gray-300">
                   Manage and track all client projects with real-time insights
                 </p>
                 {/* Create Project Button */}
@@ -1797,30 +1800,30 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
               {/* Quick Stats */}
               <div className="flex gap-4">
-                <div className="flex items-center gap-3  backdrop-blur-sm border border-blue-400/30 rounded-xl p-4 min-w-[120px]">
-                  <div className="text-2xl monty font-semibold text-blue-400">
+                <div className="flex items-center gap-3 bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md border border-blue-400/40 dark:border-blue-400/30 rounded-xl p-4 min-w-[120px]">
+                  <div className="text-2xl monty font-semibold text-blue-600 dark:text-blue-400">
                     {projects?.filter((p) => p?.status === "in-progress")
                       .length || 0}
                   </div>
-                  <div className="text-xs text-blue-300 monty uppercase">
+                  <div className="text-xs text-blue-600 dark:text-blue-300 monty uppercase">
                     Active
                   </div>
                 </div>
-                <div className="flex items-center gap-3 backdrop-blur-sm border border-green-400/30 rounded-xl p-4 min-w-[120px]">
-                  <div className="text-2xl monty font-semibold text-green-400">
+                <div className="flex items-center gap-3 bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md border border-green-400/40 dark:border-green-400/30 rounded-xl p-4 min-w-[120px]">
+                  <div className="text-2xl monty font-semibold text-green-600 dark:text-green-400">
                     {projects?.filter((p) => p?.status === "completed")
                       .length || 0}
                   </div>
-                  <div className="text-xs text-green-300 monty uppercase">
+                  <div className="text-xs text-green-600 dark:text-green-300 monty uppercase">
                     Completed
                   </div>
                 </div>
-                <div className="flex items-center gap-3  backdrop-blur-sm border border-orange-400/30 rounded-xl p-4 min-w-[120px]">
-                  <div className="text-2xl monty font-semibold text-orange-400">
+                <div className="flex items-center gap-3 bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md border border-orange-400/40 dark:border-orange-400/30 rounded-xl p-4 min-w-[120px]">
+                  <div className="text-2xl monty font-semibold text-orange-600 dark:text-orange-400">
                     {projects?.filter((p) => p?.status === "pending").length ||
                       0}
                   </div>
-                  <div className="text-xs text-orange-300 monty uppercase">
+                  <div className="text-xs text-orange-600 dark:text-orange-300 monty uppercase">
                     Pending
                   </div>
                 </div>
@@ -1862,34 +1865,34 @@ export default function EnhancedAdminDashboard(): ReactNode {
               return viewMode === "grid" ? (
                 <div
                   key={project?._id}
-                  className="group relative overflow-hidden rounded-xl bg-black/10 border border-slate-700/50 hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
+                  className="group relative overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
                 >
                   {/* Project Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-white group-hover:text-slate-300 transition-colors duration-300">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-slate-300 transition-colors duration-300">
                         {project?.projectDetails?.title ?? "Untitled Project"}
                       </h3>
-                      <p className="text-slate-400 text-sm mt-1 line-clamp-2">
+                      <p className="text-gray-600 dark:text-slate-400 text-sm mt-1 line-clamp-2">
                         {project?.projectDetails?.description ??
                           "No description"}
                       </p>
                       <div className="flex items-center gap-4 mt-2">
-                        <p className="text-sm text-slate-400 flex items-center gap-2">
-                          <FaUser className="text-slate-300" />
+                        <p className="text-sm text-gray-600 dark:text-slate-400 flex items-center gap-2">
+                          <FaUser className="text-gray-500 dark:text-slate-300" />
                           {project?.userInfo?.firstName ?? "Unknown"}{" "}
                           {project?.userInfo?.lastName ?? ""}
                         </p>
                         {project?.userInfo?.company && (
-                          <p className="text-sm text-slate-400 flex items-center gap-2">
-                            <FaBuilding className="text-slate-300" />
+                          <p className="text-sm text-gray-600 dark:text-slate-400 flex items-center gap-2">
+                            <FaBuilding className="text-gray-500 dark:text-slate-300" />
                             {project?.userInfo?.company}
                           </p>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button className="p-1 text-gray-400 hover:text-white transition-colors">
+                      <button className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
@@ -1919,12 +1922,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-400">Progress</span>
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Progress
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {progress}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
                         style={{ width: `${progress}%` }}
@@ -1948,13 +1953,13 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             .map((tech: string, index: number) => (
                               <span
                                 key={index}
-                                className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30"
+                                className="px-2 py-1 bg-gray-200 dark:bg-slate-700/40 text-gray-700 dark:text-slate-300 text-xs rounded-md border border-gray-300 dark:border-slate-600/30"
                               >
                                 {tech}
                               </span>
                             ))}
                           {techStack.length > 3 && (
-                            <span className="px-2 py-1 bg-slate-700/40 text-slate-300 text-xs rounded-md border border-slate-600/30">
+                            <span className="px-2 py-1 bg-gray-200 dark:bg-slate-700/40 text-gray-700 dark:text-slate-300 text-xs rounded-md border border-gray-300 dark:border-slate-600/30">
                               +{techStack.length - 3} more
                             </span>
                           )}
@@ -2011,10 +2016,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
                           <>
                             <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center space-x-2">
-                                <DollarSign className="w-4 h-4 text-emerald-400" />
-                                <span className="text-slate-400">Budget:</span>
+                                <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span className="text-gray-600 dark:text-slate-400">
+                                  Budget:
+                                </span>
                               </div>
-                              <span className="text-white font-medium">
+                              <span className="text-gray-900 dark:text-white font-medium">
                                 {statusInfo.budgetDisplay}
                               </span>
                             </div>
@@ -2024,9 +2031,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
                                 <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
                                   <div className="w-2 h-2 rounded-full bg-sky-400"></div>
                                 </div>
-                                <span className="text-slate-400">Paid:</span>
+                                <span className="text-gray-600 dark:text-slate-400">
+                                  Paid:
+                                </span>
                               </div>
-                              <span className="text-sky-400 font-medium">
+                              <span className="text-sky-600 dark:text-sky-400 font-medium">
                                 {statusInfo.paidDisplay}
                               </span>
                             </div>
@@ -2036,15 +2045,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
                                 <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
                                   <div className="w-2 h-2 rounded-full bg-amber-400"></div>
                                 </div>
-                                <span className="text-slate-400">
+                                <span className="text-gray-600 dark:text-slate-400">
                                   Remaining:
                                 </span>
                               </div>
                               <span
                                 className={`font-medium ${
                                   statusInfo.remaining > 0
-                                    ? "text-amber-400"
-                                    : "text-emerald-400"
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-emerald-600 dark:text-emerald-400"
                                 }`}
                               >
                                 {statusInfo.remainingDisplay}
@@ -2054,10 +2063,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             {/* Budget Progress Bar */}
                             <div className="mt-2">
                               <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs text-slate-500">
+                                <span className="text-xs text-gray-500 dark:text-slate-500">
                                   Budget Progress
                                 </span>
-                                <span className="text-xs text-slate-400">
+                                <span className="text-xs text-gray-600 dark:text-slate-400">
                                   {statusInfo.totalBudget > 0
                                     ? Math.min(
                                         Math.round(
@@ -2071,7 +2080,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                                   %
                                 </span>
                               </div>
-                              <div className="w-full bg-slate-700 rounded-full h-1.5">
+                              <div className="w-full bg-gray-300 dark:bg-slate-700 rounded-full h-1.5">
                                 <div
                                   className="bg-gradient-to-r from-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
                                   style={{
@@ -2101,7 +2110,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
                               <div className="w-2 h-2 rounded-full bg-violet-400"></div>
                             </div>
-                            <span className="text-slate-400">Milestones:</span>
+                            <span className="text-gray-600 dark:text-slate-400">
+                              Milestones:
+                            </span>
                           </div>
                           <span className="text-violet-400 font-medium">
                             {
@@ -2116,8 +2127,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
                     {project?.createdAt && (
                       <div className="flex items-center space-x-2 text-sm">
-                        <Calendar className="w-4 h-4 text-slate-300" />
-                        <span className="text-slate-400">
+                        <Calendar className="w-4 h-4 text-gray-500 dark:text-slate-300" />
+                        <span className="text-gray-600 dark:text-slate-400">
                           Created: {formatDate(project.createdAt)}
                         </span>
                       </div>
@@ -2125,7 +2136,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-slate-700/30">
+                  <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-gray-200 dark:border-slate-700/30">
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={(e) => {
@@ -2133,7 +2144,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                           setSelectedProject(project);
                           setProjectViewMode("detail");
                         }}
-                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-slate-600/20 text-slate-300 text-sm rounded-md hover:bg-slate-600/30 transition-colors"
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-gray-200 dark:bg-slate-600/20 text-gray-700 dark:text-slate-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-slate-600/30 transition-colors"
                       >
                         <Eye className="w-3 h-3" />
                         <span>View</span>
@@ -2147,7 +2158,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             setProjectDeleteModalOpen(true);
                           }
                         }}
-                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/20 text-rose-300 text-sm rounded-md hover:bg-rose-500/30 transition-colors"
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/30 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-sm rounded-md hover:bg-rose-500/40 dark:hover:bg-rose-500/30 transition-colors"
                       >
                         <Trash2 className="w-3 h-3" />
                         <span>Delete</span>
@@ -2157,16 +2168,16 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     <div className="flex flex-col items-end">
                       <div className="flex items-center space-x-2 mb-1">
                         {project?.updates && project.updates.length > 0 && (
-                          <div className="flex items-center space-x-1 text-xs text-sky-400">
+                          <div className="flex items-center space-x-1 text-xs text-sky-600 dark:text-sky-400">
                             <MessageSquare className="w-3 h-3" />
                             <span>{project.updates.length}</span>
                           </div>
                         )}
 
                         {project?.files && project.files.length > 0 && (
-                          <div className="flex items-center space-x-1 text-xs text-emerald-400">
-                            <div className="w-3 h-3 rounded bg-emerald-400 flex items-center justify-center">
-                              <span className="text-xs font-semibold text-emerald-900">
+                          <div className="flex items-center space-x-1 text-xs text-emerald-600 dark:text-emerald-400">
+                            <div className="w-3 h-3 rounded bg-emerald-600 dark:bg-emerald-400 flex items-center justify-center">
+                              <span className="text-xs font-semibold text-emerald-100 dark:text-emerald-900">
                                 {project.files.length}
                               </span>
                             </div>
@@ -2175,9 +2186,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         )}
 
                         {project?.payments && project.payments.length > 0 && (
-                          <div className="flex items-center space-x-1 text-xs text-amber-400">
-                            <div className="w-3 h-3 rounded bg-amber-400 flex items-center justify-center">
-                              <span className="text-xs font-semibold text-amber-900">
+                          <div className="flex items-center space-x-1 text-xs text-amber-600 dark:text-amber-400">
+                            <div className="w-3 h-3 rounded bg-amber-600 dark:bg-amber-400 flex items-center justify-center">
+                              <span className="text-xs font-semibold text-amber-100 dark:text-amber-900">
                                 {project.payments.length}
                               </span>
                             </div>
@@ -2186,7 +2197,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         )}
                       </div>
 
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-gray-500 dark:text-slate-500">
                         Updated{" "}
                         {project?.updatedAt
                           ? formatDate(project.updatedAt)
@@ -2194,7 +2205,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       </div>
                       {project?.pricing?.type === "milestone" &&
                         project?.milestones && (
-                          <div className="text-xs text-violet-400 mt-1">
+                          <div className="text-xs text-violet-600 dark:text-violet-400 mt-1">
                             Next:{" "}
                             {project.milestones.find(
                               (m: any) => m.status === "pending"
@@ -2208,29 +2219,29 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 // List View
                 <div
                   key={project?._id}
-                  className="group relative rounded-xl border border-slate-700/50 bg-black/10 hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
+                  className="group relative rounded-xl border border-gray-200 dark:border-white/10 bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg hover:border-gray-300 dark:hover:border-slate-600/60 transition-all duration-300 hover:scale-[1.01] p-6 cursor-pointer"
                 >
                   <div className="flex items-start justify-between">
                     {/* List View Project Header */}
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-white group-hover:text-slate-300 transition-colors duration-300">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-slate-300 transition-colors duration-300">
                         {project?.projectDetails?.title ?? "Untitled Project"}
                       </h3>
-                      <p className="text-slate-400 text-sm mt-1 line-clamp-2">
+                      <p className="text-gray-600 dark:text-slate-400 text-sm mt-1 line-clamp-2">
                         {project?.projectDetails?.description ??
                           "No description"}
                       </p>
 
                       {/* Client Info */}
                       <div className="flex items-center gap-4 mt-2">
-                        <p className="text-sm text-slate-400 flex items-center gap-2">
-                          <FaUser className="text-slate-300" />
+                        <p className="text-sm text-gray-600 dark:text-slate-400 flex items-center gap-2">
+                          <FaUser className="text-gray-500 dark:text-slate-300" />
                           {project?.userInfo?.firstName ?? "Unknown"}{" "}
                           {project?.userInfo?.lastName ?? ""}
                         </p>
                         {project?.userInfo?.company && (
-                          <p className="text-sm text-slate-400 flex items-center gap-2">
-                            <FaBuilding className="text-slate-300" />
+                          <p className="text-sm text-gray-600 dark:text-slate-400 flex items-center gap-2">
+                            <FaBuilding className="text-gray-500 dark:text-slate-300" />
                             {project?.userInfo?.company}
                           </p>
                         )}
@@ -2266,7 +2277,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                           setSelectedProject(project);
                           setProjectViewMode("detail");
                         }}
-                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-slate-600/20 text-slate-300 text-sm rounded-md hover:bg-slate-600/30 transition-colors"
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-gray-200 dark:bg-slate-600/20 text-gray-700 dark:text-slate-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-slate-600/30 transition-colors"
                       >
                         <Eye className="w-3 h-3" />
                         <span>View</span>
@@ -2279,7 +2290,7 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             setProjectDeleteModalOpen(true);
                           }
                         }}
-                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/20 text-rose-300 text-sm rounded-md hover:bg-rose-500/30 transition-colors"
+                        className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-rose-500/30 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-sm rounded-md hover:bg-rose-500/40 dark:hover:bg-rose-500/30 transition-colors"
                       >
                         <Trash2 className="w-3 h-3" />
                         <span>Delete</span>
@@ -2290,12 +2301,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
                   {/* Progress Bar */}
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-400">Progress</span>
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Progress
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {progress}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
                         style={{ width: `${progress}%` }}
@@ -2329,9 +2342,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
                       return (
                         <div className="flex items-center space-x-6 mt-4 text-sm">
                           <div className="flex items-center space-x-2">
-                            <DollarSign className="w-4 h-4 text-emerald-400" />
-                            <span className="text-slate-400">Budget:</span>
-                            <span className="text-white font-medium">
+                            <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-gray-600 dark:text-slate-400">
+                              Budget:
+                            </span>
+                            <span className="text-gray-900 dark:text-white font-medium">
                               {statusInfo.budgetDisplay}
                             </span>
                           </div>
@@ -2339,8 +2354,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             <div className="w-4 h-4 rounded-full bg-sky-500/20 flex items-center justify-center">
                               <div className="w-2 h-2 rounded-full bg-sky-400"></div>
                             </div>
-                            <span className="text-slate-400">Paid:</span>
-                            <span className="text-sky-400 font-medium">
+                            <span className="text-gray-600 dark:text-slate-400">
+                              Paid:
+                            </span>
+                            <span className="text-sky-600 dark:text-sky-400 font-medium">
                               {statusInfo.paidDisplay}
                             </span>
                           </div>
@@ -2348,12 +2365,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
                             <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center">
                               <div className="w-2 h-2 rounded-full bg-amber-400"></div>
                             </div>
-                            <span className="text-slate-400">Remaining:</span>
+                            <span className="text-gray-600 dark:text-slate-400">
+                              Remaining:
+                            </span>
                             <span
                               className={`font-medium ${
                                 statusInfo.remaining > 0
-                                  ? "text-amber-400"
-                                  : "text-emerald-400"
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-emerald-600 dark:text-emerald-400"
                               }`}
                             >
                               {statusInfo.remainingDisplay}
@@ -2800,10 +2819,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-semibold text-white mb-2">
+          <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
             Analytics Dashboard
           </h2>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Comprehensive business insights and metrics
           </p>
         </div>
@@ -2847,14 +2866,14 @@ export default function EnhancedAdminDashboard(): ReactNode {
         ].map((metric, index) => (
           <div
             key={metric.label}
-            className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6"
+            className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm uppercase tracking-wide">
+                <p className="text-gray-600 dark:text-gray-400 text-sm uppercase tracking-wide">
                   {metric.label}
                 </p>
-                <p className="text-2xl font-semibold text-white mt-1">
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
                   {metric.value}
                 </p>
                 <div className="flex items-center mt-2">
@@ -2879,11 +2898,11 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Revenue Trend
           </h3>
-          <div className="h-64 flex items-center justify-center text-gray-400">
+          <div className="h-64 flex items-center justify-center text-gray-600 dark:text-gray-400">
             <div className="text-center">
               <FaChartLine className="text-4xl mb-2 mx-auto" />
               <p>Revenue chart would be rendered here</p>
@@ -2891,8 +2910,8 @@ export default function EnhancedAdminDashboard(): ReactNode {
           </div>
         </div>
 
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Project Status Distribution
           </h3>
           <div className="space-y-3">
@@ -2901,10 +2920,12 @@ export default function EnhancedAdminDashboard(): ReactNode {
                 <div key={status} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     {getStatusIcon(status)}
-                    <span className="text-white capitalize">{status}</span>
+                    <span className="text-gray-900 dark:text-white capitalize">
+                      {status}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="w-16 bg-gray-700 rounded-full h-2">
+                    <div className="w-16 bg-gray-300 dark:bg-gray-700 rounded-full h-2">
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{
@@ -2915,7 +2936,9 @@ export default function EnhancedAdminDashboard(): ReactNode {
                         }}
                       ></div>
                     </div>
-                    <span className="text-gray-400 text-sm">{count}</span>
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">
+                      {count}
+                    </span>
                   </div>
                 </div>
               )
@@ -2926,13 +2949,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
 
       {/* Top Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Top Clients</h3>
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Top Clients
+          </h3>
           <div className="space-y-3">
             {(analytics?.topClients ?? []).map((client, index) => (
               <div
                 key={client?.name ?? index}
-                className="flex  items-center justify-between p-3 bg-white/5 rounded-lg"
+                className="flex  items-center justify-between p-3 bg-gray-100 dark:bg-white/5 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
@@ -2941,10 +2966,10 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     </span>
                   </div>
                   <div>
-                    <p className="text-white font-medium">
+                    <p className="text-gray-900 dark:text-white font-medium">
                       {client?.name ?? "Unknown"}
                     </p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                       {client?.projects ?? 0} projects
                     </p>
                   </div>
@@ -2957,15 +2982,15 @@ export default function EnhancedAdminDashboard(): ReactNode {
           </div>
         </div>
 
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Top Developers
           </h3>
           <div className="space-y-3">
             {(analytics?.topDevelopers ?? []).map((dev, index) => (
               <div
                 key={dev?.name ?? index}
-                className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                className="flex items-center justify-between p-3 bg-gray-100 dark:bg-white/5 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
@@ -2974,17 +2999,19 @@ export default function EnhancedAdminDashboard(): ReactNode {
                     </span>
                   </div>
                   <div>
-                    <p className="text-white font-medium">
+                    <p className="text-gray-900 dark:text-white font-medium">
                       {dev?.name ?? "Unknown"}
                     </p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                       {dev?.projects ?? 0} projects
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-1">
                   <span className="text-yellow-400">★</span>
-                  <span className="text-white">{dev?.rating ?? 0}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {dev?.rating ?? 0}
+                  </span>
                 </div>
               </div>
             ))}
@@ -3697,9 +3724,9 @@ Generate new credentials to reset password.`;
   // Main render
   return (
     <>
-      <div className="relative min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover mb-0">
+      <div className="relative min-h-screen bg-gray-50 dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover mb-0">
         {/* Navigation */}
-        <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/5 border-b border-white/10">
+        <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/90 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
           <div className="max-w-[94%] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-8">
@@ -3709,10 +3736,10 @@ Generate new credentials to reset password.`;
                   </div>
                   <button
                     onClick={() => renderOverview()}
-                    className="text-white font-semibold text-lg"
+                    className="text-gray-900 dark:text-white font-semibold text-lg"
                   >
                     Andishi {" | "}
-                    <span className="text-sm monty uppercase text-gray-400">
+                    <span className="text-sm monty uppercase text-gray-600 dark:text-gray-400">
                       admin dashboard
                     </span>
                   </button>
@@ -3760,7 +3787,7 @@ Generate new credentials to reset password.`;
                       className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                         activeTab === tab.id
                           ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-white/10 hover:text-white"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
                       }`}
                     >
                       <tab.icon className="text-sm" />
@@ -3773,7 +3800,7 @@ Generate new credentials to reset password.`;
               </div>
 
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-gray-300">
+                <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
                   <FaBell className="text-lg" />
                   <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">
@@ -3787,7 +3814,7 @@ Generate new credentials to reset password.`;
         </nav>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden bg-white/5 border-b border-white/10">
+        <div className="md:hidden bg-white/90 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
           <div className="flex space-x-1 p-2">
             {[
               { id: "overview", label: "Overview", icon: FaTachometerAlt },
@@ -3810,7 +3837,7 @@ Generate new credentials to reset password.`;
                 className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
                   activeTab === tab.id
                     ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:bg-white/10 hover:text-white"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
                 <tab.icon className="text-lg" />
@@ -3879,9 +3906,11 @@ Generate new credentials to reset password.`;
 
       {loading && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 flex items-center space-x-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-            <span className="text-white font-medium">Please wait ...</span>
+            <span className="text-gray-900 dark:text-white font-medium">
+              Please wait ...
+            </span>
           </div>
         </div>
       )}

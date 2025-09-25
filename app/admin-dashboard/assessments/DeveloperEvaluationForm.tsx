@@ -552,10 +552,10 @@ export default function DeveloperEvaluationForm({
     <div className="min-h-screen max-w-7xl mx-auto my-22">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold mb-2">
+        <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-white">
           Developer Evaluation Form
         </h1>
-        <p className="text-blue-100">
+        <p className="text-gray-600 dark:text-blue-100">
           Complete the assessment to evaluate the developer's skills and
           eligibility for the tech talent pool
         </p>
@@ -571,7 +571,7 @@ export default function DeveloperEvaluationForm({
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === tab
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                  : "bg-white/20 dark:bg-gray-800 text-gray-800 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-gray-700"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -581,16 +581,16 @@ export default function DeveloperEvaluationForm({
       </div>
 
       {/* Form Content */}
-      <div className="bg-white/5 backdrop-blur-2xl rounded-lg p-6">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg rounded-lg p-6">
         {activeTab === "technical" && (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Code className="w-5 h-5" />
+            <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
+              <Code className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               Technical Skills Assessment
             </h2>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Specialty
               </label>
               <select
@@ -616,7 +616,7 @@ export default function DeveloperEvaluationForm({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Primary Tech Stack
               </label>
               <div className="flex flex-wrap gap-2">
@@ -646,7 +646,7 @@ export default function DeveloperEvaluationForm({
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       formData.technicalSkills.primaryStack.includes(tech)
                         ? "bg-blue-600 text-white"
-                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        : "bg-white/20 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-gray-600"
                     }`}
                   >
                     {tech}

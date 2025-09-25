@@ -30,8 +30,12 @@ import {
   FaHeart,
   FaCode,
   FaLightbulb,
+  FaArrowLeft,
+  FaCheckCircle,
+  FaTimesCircle,
 } from "react-icons/fa";
 import { IoIosGrid, IoIosList } from "react-icons/io";
+import { formatProjectCurrency, getProjectCurrency } from "@/utils/currency-formatter";
 import ProjectDetail from "./ProjectDetail";
 
 interface DevProjectsProps {
@@ -660,7 +664,7 @@ export default function DevProjects({ projects }: DevProjectsProps) {
                     </div>
                     <div className="text-right">
                       <span className="text-green-400 font-semibold text-sm">
-                        ${parseFloat(milestone.budget).toLocaleString()}
+                        {formatProjectCurrency(milestone.budget, project)}
                       </span>
                     </div>
                   </div>

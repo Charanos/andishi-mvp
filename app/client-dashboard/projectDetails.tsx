@@ -25,14 +25,16 @@ import {
   AlertCircle,
   CheckCircle2,
   Eye,
-  EyeOff,
 } from "lucide-react";
 import { FaArrowCircleLeft } from "react-icons/fa";
 import { useProjectCRUD } from "@/hooks/useProjectCRUD";
+import {
+  formatProjectCurrency,
+  getProjectCurrency,
+} from "@/utils/currency-formatter";
 import ProjectChatComponent from "../admin-dashboard/ProjectChat";
 import ProjectAssignmentsComponent from "../admin-dashboard/ProjectAssignments";
 import { useAuth } from "@/hooks/useAuth";
-import { useProjectAssignments } from "@/hooks/useProjectAssignments";
 import { SystemUser } from "~/types";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../components/ToastContainer";
@@ -1885,7 +1887,7 @@ export default function EnhancedProjectTracking({
                           </div>
                           <div className="text-right">
                             <div className="text-xl font-semibold text-white">
-                              ${milestone.budget}
+                              {formatProjectCurrency(milestone.budget, project)}
                             </div>
                             <div className="text-sm text-gray-400">
                               {milestone.timeline || "No timeline"}

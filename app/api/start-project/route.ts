@@ -91,6 +91,16 @@ export async function PATCH(req: NextRequest) {
 // This handler receives form submissions from the Start Project form
 export async function POST(req: NextRequest) {
   try {
+    // Check content length to prevent oversized payloads
+    const contentLength = req.headers.get('content-length');
+    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    if (contentLength && parseInt(contentLength) > maxSize) {
+      return NextResponse.json({
+        success: false,
+        message: 'Request payload too large. Please reduce content size.'
+      }, { status: 413, headers: corsHeaders });
+    }
+
     // Validate environment variables first
     if (!process.env.DATABASE_URL) {
       console.error('DATABASE_URL not found in environment');
@@ -112,6 +122,60 @@ export async function POST(req: NextRequest) {
     
     const data = await req.json();
     console.log('Received data:', data);
+
+    // Enhanced validation for content lengths
+    if (data.projectDetails?.title && data.projectDetails.title.length > 200) {
+      return NextResponse.json({
+        success: false,
+        message: 'Project title is too long. Maximum 200 characters allowed.'
+      }, { status: 400, headers: corsHeaders });
+    }
+
+    if (data.projectDetails?.description && data.projectDetails.description.length > 10000) {
+      return NextResponse.json({
+        success: false,
+        message: 'Project description is too long. Maximum 10,000 characters allowed.'
+      }, { status: 400, headers: corsHeaders });
+    }
+
+    if (data.projectDetails?.techStack && data.projectDetails.techStack.length > 20) {
+      return NextResponse.json({
+        success: false,
+        message: 'Too many technologies selected. Maximum 20 allowed.'
+      }, { status: 400, headers: corsHeaders });
+    }
+
+    if (data.pricing?.milestones && data.pricing.milestones.length > 10) {
+      return NextResponse.json({
+        success: false,
+        message: 'Too many milestones. Maximum 10 allowed.'
+      }, { status: 400, headers: corsHeaders });
+    }
+
+    // Check for duplicate submissions
+    if (data.submissionId) {
+      const recentSubmissions = await prisma.project.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(Date.now() - 5 * 60 * 1000) // Last 5 minutes
+          }
+        },
+        select: { projectDetails: true, id: true }
+      });
+
+      const duplicateSubmission = recentSubmissions.find((p: any) => {
+        const details = p.projectDetails as any;
+        return details?.title === data.projectDetails?.title;
+      });
+
+      if (duplicateSubmission) {
+        return NextResponse.json({
+          success: false,
+          message: 'Duplicate submission detected. Project with this title was recently submitted.',
+          existingProjectId: duplicateSubmission.id
+        }, { status: 409, headers: corsHeaders });
+      }
+    }
 
     // Check if this is an authenticated submission (has userId)
     const isAuthenticated = !!(data.userId && typeof data.userId === 'string');
@@ -332,10 +396,35 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error submitting project:', error);
+    
+    // Handle specific error types
+    let errorMessage = 'Failed to submit project';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Payload too large')) {
+        errorMessage = 'Request payload too large. Please reduce content size.';
+        statusCode = 413;
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timeout. Please try again with smaller content.';
+        statusCode = 408;
+      } else if (error.message.includes('duplicate key')) {
+        errorMessage = 'A project with this title already exists. Please use a different title.';
+        statusCode = 409;
+      } else if (error.message.includes('validation')) {
+        errorMessage = 'Validation failed. Please check your input and try again.';
+        statusCode = 400;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return NextResponse.json({
       success: false,
-      message: 'Failed to submit project',
+      message: errorMessage,
       error: error instanceof Error ? error.message : error
-    }, { status: 500, headers: corsHeaders });
+    }, { status: statusCode, headers: corsHeaders });
+  } finally {
+    await prisma.$disconnect();
   }
 }

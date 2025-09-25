@@ -41,12 +41,12 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
     <aside
       className={`w-70 mr-4 sticky top-22 h-[calc(100vh-10rem)] ${className}`}
     >
-      <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-xl border border-purple-500/30 rounded-2xl p-6 h-full flex flex-col space-y-8 overflow-hidden">
+      <div className="backdrop-blur-xl bg-gradient-to-br dark:from-indigo-900/60 dark:via-purple-900/40 dark:to-pink-900/60 from-indigo-900/20 via-purple-900/10 to-pink-900/20 shadow-xl border border-purple-500/10 rounded-2xl p-6 h-full flex flex-col space-y-8 overflow-hidden">
         {/* Header */}
         <div className="space-y-4">
           <button
             onClick={onBack}
-            className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-400 hover:text-white transition-all duration-200 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg"
+            className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-800 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all duration-200 bg-black/10 dark:bg-white/5  hover:bg-white/10 dark:hover:bg-white/10 px-3 py-2 rounded-lg"
           >
             <FaArrowCircleLeft className="w-5 h-5" />
             <span className="text-xs monty uppercase">Back to Projects</span>
@@ -55,7 +55,7 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
             <h1 className="text-xl monty uppercase font-medium my-1 text-white leading-tight truncate">
               {selectedProject.projectDetails.title}
             </h1>
-            <p className="text-gray-400 text-xs mt-1 truncate">
+            <p className="text-gray-700 dark:text-gray-400 text-xs mt-1 truncate">
               {selectedProject.projectDetails.category}
             </p>
           </div>
@@ -73,8 +73,8 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
                     onClick={() => setTrackingView(tab.id as TrackingView)}
                     className={`cursor-pointer w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-300 ${
                       active
-                        ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25"
-                        : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20"
+                        ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 font-semi-bold text-gray-900 dark:text-gray-400 shadow-lg shadow-indigo-500/25"
+                        : "text-gray-800 dark:text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20"
                     }`}
                   >
                     <Icon className="w-4 h-4" />

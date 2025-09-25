@@ -39,11 +39,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-
   return (
-    <html lang="en" className={`${nunito.variable} ${montserrat.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${nunito.variable} ${montserrat.variable}`}
+      suppressHydrationWarning
+    >
       <body className="relative font-sans antialiased text-gray-900 dark:text-white bg-white dark:bg-dark">
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover opacity-0 dark:opacity-75 transition-opacity duration-300" />
+        <div className="pointer-events-none fixed inset-0 -z-10 dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover opacity-0 dark:opacity-75 transition-opacity duration-300" />
 
         <ThemeProvider>
           <AuthProvider>

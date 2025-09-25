@@ -374,7 +374,7 @@ export default function ClientReviews() {
     <>
       <section
         id="reviews"
-        className="py-32 mt-0 relative overflow-hidden bg-gray-50 dark:bg-transparent"
+        className="py-32 mt-0 relative overflow-hidden bg-black/10 dark:bg-white/5"
       >
         {/* Enhanced Background Elements - only show in dark mode */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 dark:block hidden"></div>

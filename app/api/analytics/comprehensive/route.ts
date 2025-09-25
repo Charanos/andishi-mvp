@@ -948,7 +948,7 @@ class AnalyticsService {
             .forEach(payment => {
                 activities.push({
                     timestamp: payment.date,
-                    description: `Payment of $${payment.amount.toFixed(2)} was received`,
+                    description: `Payment of ${payment.currency === 'KES' ? 'KSh' : '$'}${payment.amount.toFixed(2)} was received`,
                     type: 'payment_received',
                 });
             });

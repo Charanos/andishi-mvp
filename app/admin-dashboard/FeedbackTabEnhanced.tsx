@@ -207,38 +207,38 @@ const FeedbackTabEnhanced: React.FC = () => {
       <div className="">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h2 className="text-3xl font-semibold text-white mb-2 flex items-center gap-3">
-              <FaInbox className="text-blue-400" />
+            <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+              <FaInbox className="text-blue-600 dark:text-blue-400" />
               User Feedback Management
             </h2>
-            <p className="text-gray-300">
+            <p className="text-gray-600 dark:text-gray-300">
               Monitor and respond to customer inquiries and feedback
             </p>
           </div>
 
           {/* Stats Cards */}
           <div className="flex gap-4">
-            <div className="bg-blue-900/40 border border-blue-500/30 rounded-lg p-4 text-center min-w-[100px]">
-              <div className="text-2xl font-semibold text-blue-400">
+            <div className="bg-blue-500/20 dark:bg-blue-900/40 border border-blue-500/40 dark:border-blue-500/30 rounded-lg p-4 text-center min-w-[100px]">
+              <div className="text-2xl font-semibold text-blue-700 dark:text-blue-400">
                 {getTotalCount()}
               </div>
-              <div className="text-xs text-blue-300 uppercase tracking-wide">
+              <div className="text-xs text-blue-600 dark:text-blue-300 uppercase tracking-wide">
                 Total
               </div>
             </div>
-            <div className="bg-yellow-900/40 border border-yellow-500/30 rounded-lg p-4 text-center min-w-[100px]">
-              <div className="text-2xl font-semibold text-yellow-400">
+            <div className="bg-yellow-500/20 dark:bg-yellow-900/40 border border-yellow-500/40 dark:border-yellow-500/30 rounded-lg p-4 text-center min-w-[100px]">
+              <div className="text-2xl font-semibold text-yellow-700 dark:text-yellow-400">
                 {getUnreadCount()}
               </div>
-              <div className="text-xs text-yellow-300 uppercase tracking-wide">
+              <div className="text-xs text-yellow-600 dark:text-yellow-300 uppercase tracking-wide">
                 Unread
               </div>
             </div>
-            <div className="bg-green-900/40 border border-green-500/30 rounded-lg p-4 text-center min-w-[100px]">
-              <div className="text-2xl font-semibold text-green-400">
+            <div className="bg-green-500/20 dark:bg-green-900/40 border border-green-500/40 dark:border-green-500/30 rounded-lg p-4 text-center min-w-[100px]">
+              <div className="text-2xl font-semibold text-green-700 dark:text-green-400">
                 {getTotalCount() - getUnreadCount()}
               </div>
-              <div className="text-xs text-green-300 uppercase tracking-wide">
+              <div className="text-xs text-green-600 dark:text-green-300 uppercase tracking-wide">
                 Read
               </div>
             </div>
@@ -247,14 +247,14 @@ const FeedbackTabEnhanced: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white/10 border border-white/10 rounded-xl p-6 my-8">
+      <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6 my-8">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
-            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
+            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-lg" />
             <input
               type="text"
               placeholder="Search feedback by name, email, subject, or message..."
-              className="w-full bg-black/50 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full bg-white/20 dark:bg-black/50 border border-gray-300 dark:border-white/10 rounded-lg pl-12 pr-4 py-3 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               value={searchTerm}
               onChange={handleSearch}
             />
@@ -265,8 +265,8 @@ const FeedbackTabEnhanced: React.FC = () => {
               onClick={() => handleStatusFilter("all")}
               className={`cursor-pointer px-5 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium border-2 ${
                 statusFilter === "all"
-                  ? "bg-blue-500/10 border-blue-500/40 text-blue-300/40"
-                  : "bg-black/40 backdrop-blur-xl  border-transparent text-gray-400 hover:bg-gray-700/50 hover:text-white"
+                  ? "bg-blue-500/20 dark:bg-blue-500/10 border-blue-500/50 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"
+                  : "bg-white/20 dark:bg-black/40 backdrop-blur-xl border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <FiMessageSquare />
@@ -276,8 +276,8 @@ const FeedbackTabEnhanced: React.FC = () => {
               onClick={() => handleStatusFilter("unread")}
               className={`cursor-pointer px-5 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium border-2 ${
                 statusFilter === "unread"
-                  ? "bg-yellow-500/10 border-yellow-500/40 text-yellow-300/40"
-                  : "bg-black/40 backdrop-blur-xl  border-transparent text-gray-400 hover:bg-gray-700/50 hover:text-white"
+                  ? "bg-yellow-500/20 dark:bg-yellow-500/10 border-yellow-500/50 dark:border-yellow-500/40 text-yellow-700 dark:text-yellow-300"
+                  : "bg-white/20 dark:bg-black/40 backdrop-blur-xl border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <FiMail />
@@ -292,8 +292,8 @@ const FeedbackTabEnhanced: React.FC = () => {
               onClick={() => handleStatusFilter("read")}
               className={`cursor-pointer px-5 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium border-2 ${
                 statusFilter === "read"
-                  ? "bg-green-500/10 border-green-500/40 text-green-300/40"
-                  : "bg-black/40 backdrop-blur-xl border-transparent text-gray-400 hover:bg-gray-700/50 hover:text-white"
+                  ? "bg-green-500/20 dark:bg-green-500/10 border-green-500/50 dark:border-green-500/40 text-green-700 dark:text-green-300"
+                  : "bg-white/20 dark:bg-black/40 backdrop-blur-xl border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <FiCheck />
@@ -308,9 +308,9 @@ const FeedbackTabEnhanced: React.FC = () => {
         {/* Feedback List */}
         <div className="lg:col-span-2 space-y-4">
           {feedback.length === 0 ? (
-            <div className="bg-black/40 flex flex-col py-6 gap-4 items-center justify-between backdrop-blur-xl border border-gray-400/40">
-              <IoIosMailOpen className="mx-auto text-6xl text-gray-500 mb-4" />
-              <h3 className="text-xl font-medium text-white mb-2">
+            <div className="bg-white/20 dark:bg-black/40 flex flex-col py-6 gap-4 items-center justify-between backdrop-blur-xl border border-gray-300 dark:border-gray-400/40">
+              <IoIosMailOpen className="mx-auto text-6xl text-gray-500 dark:text-gray-500 mb-4" />
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
                 No feedback found
               </h3>
             </div>
@@ -320,10 +320,10 @@ const FeedbackTabEnhanced: React.FC = () => {
                 key={item.id}
                 className={`border rounded-xl p-6 transition-all duration-300 cursor-pointer hover:shadow-xl ${
                   selectedFeedback?.id === item.id
-                    ? "ring-2 ring-blue-500 border-blue-500/50 scale-[1.01] bg-gray-800/50"
+                    ? "ring-2 ring-blue-500 border-blue-500/50 scale-[1.01] bg-blue-500/10 dark:bg-gray-800/50"
                     : !item.read
-                    ? "bg-yellow-900/10 border-yellow-500/30 hover:bg-yellow-900/20"
-                    : "bg-black/20 border-gray-800/70 hover:bg-gray-900/40"
+                    ? "bg-yellow-500/10 dark:bg-yellow-900/10 border-yellow-500/40 dark:border-yellow-500/30 hover:bg-yellow-500/20 dark:hover:bg-yellow-900/20"
+                    : "bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md border-gray-300 dark:border-white/10 hover:bg-white/10 dark:hover:bg-black/10"
                 }`}
                 onClick={() => {
                   // If the message is unread, mark it as read automatically
@@ -337,7 +337,7 @@ const FeedbackTabEnhanced: React.FC = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-medium text-white truncate">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
                         {item.subject}
                       </h3>
                       {!item.read && (
@@ -347,17 +347,17 @@ const FeedbackTabEnhanced: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-3">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
                       <div className="flex items-center gap-2">
-                        <FiUser className="text-blue-400" />
+                        <FiUser className="text-blue-600 dark:text-blue-400" />
                         <span className="font-medium">{item.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <FiMail className="text-green-400" />
+                        <FiMail className="text-green-600 dark:text-green-400" />
                         <span>{item.email}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <FiClock className="text-purple-400" />
+                        <FiClock className="text-purple-600 dark:text-purple-400" />
                         <span>
                           {new Date(item.createdAt).toLocaleDateString(
                             "en-US",
@@ -374,7 +374,7 @@ const FeedbackTabEnhanced: React.FC = () => {
                       </div>
                     </div>
 
-                    <p className="text-gray-300 line-clamp-2 leading-relaxed">
+                    <p className="text-gray-700 dark:text-gray-300 line-clamp-2 leading-relaxed">
                       {item.message}
                     </p>
                   </div>
@@ -389,9 +389,9 @@ const FeedbackTabEnhanced: React.FC = () => {
                       title={item.read ? "Mark as Unread" : "Mark as Read"}
                     >
                       {item.read ? (
-                        <FiEyeOff className="text-gray-400 transition-all duration-200 group-hover:scale-110 group-hover:text-yellow-400" />
+                        <FiEyeOff className="text-gray-600 dark:text-gray-400 transition-all duration-200 group-hover:scale-110 group-hover:text-yellow-600 dark:group-hover:text-yellow-400" />
                       ) : (
-                        <FiEye className="text-gray-400 transition-all duration-200 group-hover:scale-110 group-hover:text-green-400" />
+                        <FiEye className="text-gray-600 dark:text-gray-400 transition-all duration-200 group-hover:scale-110 group-hover:text-green-600 dark:group-hover:text-green-400" />
                       )}
                     </button>
                     <button
@@ -399,10 +399,10 @@ const FeedbackTabEnhanced: React.FC = () => {
                         e.stopPropagation();
                         handleDeleteClick(item);
                       }}
-                      className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800/60 border border-transparent hover:border-gray-600 hover:bg-gray-700/80 transition-all duration-200 cursor-pointer group"
+                      className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 dark:bg-gray-800/60 border border-transparent hover:border-gray-400 dark:hover:border-gray-600 hover:bg-white/30 dark:hover:bg-gray-700/80 transition-all duration-200 cursor-pointer group"
                       title="Delete Feedback"
                     >
-                      <FiTrash2 className="text-gray-400 transition-all duration-200 group-hover:scale-110 group-hover:text-red-400" />
+                      <FiTrash2 className="text-gray-600 dark:text-gray-400 transition-all duration-200 group-hover:scale-110 group-hover:text-red-600 dark:group-hover:text-red-400" />
                     </button>
                   </div>
                 </div>
@@ -412,9 +412,9 @@ const FeedbackTabEnhanced: React.FC = () => {
 
           {/* Pagination */}
           {feedback.length > 0 && pagination.totalPages > 1 && (
-            <div className="bg-gray-900/50 border border-white/10 rounded-xl p-4">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-4">
               <div className="flex justify-between items-center">
-                <p className="text-gray-400">
+                <p className="text-gray-600 dark:text-gray-400">
                   Showing {(currentPage - 1) * 10 + 1} to{" "}
                   {Math.min(currentPage * 10, pagination.total)} of{" "}
                   {pagination.total} feedback
@@ -425,8 +425,8 @@ const FeedbackTabEnhanced: React.FC = () => {
                     disabled={currentPage === 1}
                     className={`px-4 py-2 rounded-lg transition-colors ${
                       currentPage === 1
-                        ? "bg-gray-800/50 text-gray-500 cursor-not-allowed"
-                        : "bg-gray-800/50 hover:bg-gray-700/50 text-white"
+                        ? "bg-gray-300 dark:bg-gray-800/50 text-gray-500 dark:text-gray-500 cursor-not-allowed"
+                        : "bg-white/20 dark:bg-gray-800/50 hover:bg-white/30 dark:hover:bg-gray-700/50 text-gray-900 dark:text-white"
                     }`}
                   >
                     Previous
@@ -439,8 +439,8 @@ const FeedbackTabEnhanced: React.FC = () => {
                     disabled={currentPage === pagination.totalPages}
                     className={`px-4 py-2 rounded-lg transition-colors ${
                       currentPage === pagination.totalPages
-                        ? "bg-gray-800/50 text-gray-500 cursor-not-allowed"
-                        : "bg-gray-800/50 hover:bg-gray-700/50 text-white"
+                        ? "bg-gray-300 dark:bg-gray-800/50 text-gray-500 dark:text-gray-500 cursor-not-allowed"
+                        : "bg-white/20 dark:bg-gray-800/50 hover:bg-white/30 dark:hover:bg-gray-700/50 text-gray-900 dark:text-white"
                     }`}
                   >
                     Next
@@ -454,49 +454,49 @@ const FeedbackTabEnhanced: React.FC = () => {
         {/* Feedback Details Sidebar */}
         <div className="lg:col-span-1 lg:sticky top-24 self-start">
           {selectedFeedback ? (
-            <div className="bg-black/40 backdrop-blur-xl border border-gray-400/40 rounded-xl p-6 sticky top-6">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-6 sticky top-6">
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-medium text-white">
+                  <h3 className="text-xl font-medium text-gray-900 dark:text-white">
                     {selectedFeedback.subject}
                   </h3>
                   <button
                     onClick={() => setSelectedFeedback(null)}
-                    className="cursor-pointer p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                    className="cursor-pointer p-2 rounded-lg bg-white/20 dark:bg-gray-800/50 hover:bg-white/30 dark:hover:bg-gray-700/50 transition-colors"
                     title="Close details"
                   >
-                    <FiXCircle className="text-gray-400" />
+                    <FiXCircle className="text-gray-600 dark:text-gray-400" />
                   </button>
                 </div>
 
                 <div className="space-y-8">
                   <div>
-                    <div className="flex items-center my-10 gap-2 text-sm text-gray-400 mb-1">
-                      <FiUser className="text-blue-400" />
+                    <div className="flex items-center my-10 gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <FiUser className="text-blue-600 dark:text-blue-400" />
                       <span className="monty uppercase">From</span>
                     </div>
-                    <p className="text-white font-normal monty">
+                    <p className="text-gray-900 dark:text-white font-normal monty">
                       {selectedFeedback.name} ({selectedFeedback.email})
                     </p>
                   </div>
 
                   <div>
-                    <div className="flex items-center my-10 gap-2 text-sm text-gray-400 mb-1">
-                      <FiClock className="text-purple-400" />
+                    <div className="flex items-center my-10 gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <FiClock className="text-purple-600 dark:text-purple-400" />
                       <span className="monty uppercase">Received</span>
                     </div>
-                    <p className="text-white font-normal monty">
+                    <p className="text-gray-900 dark:text-white font-normal monty">
                       {new Date(selectedFeedback.createdAt).toLocaleString()}
                     </p>
                   </div>
 
                   <div>
-                    <div className="flex items-center my-10 gap-2 text-sm text-gray-400 mb-1">
-                      <FiMessageSquare className="text-green-400" />
+                    <div className="flex items-center my-10 gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <FiMessageSquare className="text-green-600 dark:text-green-400" />
                       <span className="monty uppercase">Message</span>
                     </div>
-                    <div className="bg-white/10 border border-white/10 rounded-lg p-4">
-                      <p className="text-white font-normal monty whitespace-pre-wrap">
+                    <div className="bg-white/20 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg p-4">
+                      <p className="text-gray-900 dark:text-white font-normal monty whitespace-pre-wrap">
                         {selectedFeedback.message}
                       </p>
                     </div>
@@ -511,37 +511,37 @@ const FeedbackTabEnhanced: React.FC = () => {
                         !selectedFeedback.read
                       )
                     }
-                    className="border border-gray-400/10  backdrop-blur-xl cursor-pointer flex-1 py-3 px-4 rounded-lg bg-white/1 hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                    className="border border-gray-300 dark:border-white/10 cursor-pointer flex-1 py-3 px-4 rounded-lg bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md hover:bg-white/10 dark:hover:bg-black/10 transition-colors flex items-center justify-center gap-2 text-gray-900 dark:text-white"
                   >
                     {selectedFeedback.read ? (
                       <>
-                        <FiEyeOff className="text-yellow-400" />
+                        <FiEyeOff className="text-yellow-600 dark:text-yellow-400" />
                         <span>Mark as Unread</span>
                       </>
                     ) : (
                       <>
-                        <FiEye className="text-green-400" />
+                        <FiEye className="text-green-600 dark:text-green-400" />
                         <span>Mark as Read</span>
                       </>
                     )}
                   </button>
                   <button
                     onClick={() => handleDeleteClick(selectedFeedback)}
-                    className="border border-gray-400/10  backdrop-blur-xl cursor-pointer flex-1 py-3 px-4 rounded-lg  bg-white/1 hover:bg-red-500/5 transition-colors flex items-center justify-center gap-2"
+                    className="border border-gray-300 dark:border-white/10 cursor-pointer flex-1 py-3 px-4 rounded-lg bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-md hover:bg-red-500/20 dark:hover:bg-red-500/5 transition-colors flex items-center justify-center gap-2 text-gray-900 dark:text-white"
                   >
-                    <FiTrash2 className="text-red-400" />
+                    <FiTrash2 className="text-red-600 dark:text-red-400" />
                     <span>Delete</span>
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-black/40 backdrop-blur-xl border border-gray-400/40 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
-              <FiInbox className="mx-auto text-4xl text-gray-500 mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">
+            <div className="bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
+              <FiInbox className="mx-auto text-4xl text-gray-500 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 Select a feedback item
               </h3>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 Choose a feedback from the list to view details
               </p>
             </div>

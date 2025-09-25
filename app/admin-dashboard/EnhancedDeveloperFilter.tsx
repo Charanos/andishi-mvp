@@ -385,13 +385,13 @@ const EnhancedDeveloperFilter: React.FC<EnhancedDeveloperFilterProps> = ({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm">
               <IoMdTrendingUp className="w-4 h-4 text-blue-400" />
-              <span className="text-gray-300">
+              <span className="dark:text-gray-300 text-gray-700">
                 Showing{" "}
-                <span className="text-white font-semibold">
+                <span className="dark:text-gray-300 text-gray-700 font-semibold">
                   {filteredProfilesCount || 0}
                 </span>{" "}
                 of{" "}
-                <span className="text-white font-semibold">
+                <span className="dark:text-gray-300 text-gray-700 font-semibold">
                   {totalProfilesCount || 0}
                 </span>{" "}
                 developers

@@ -474,7 +474,7 @@ export default function ClientReviews() {
                       onMouseLeave={() => setHoveredCard(null)}
                     >
                       {/* Main card with enhanced styling */}
-                      <div className="backdrop-blur-xl w-full bg-white dark:bg-gradient-to-br dark:from-white/10 dark:via-white/5 dark:to-transparent border border-gray-200 dark:border-white/20 rounded-3xl p-8 relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:bg-gray-50 dark:hover:bg-white/15">
+                      <div className="backdrop-blur-xl w-full bg-black/5 dark:bg-white/5 shadow-lg dark:shadow-none border border-gray-200 dark:border-white/10 rounded-3xl p-8 relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:bg-black/10 dark:hover:bg-white/10">
                         {/* Quote decoration */}
                         <div className="absolute top-6 right-6 text-6xl text-blue-400/10 font-serif">
                           <FaQuoteRight />
@@ -573,7 +573,7 @@ export default function ClientReviews() {
 
                         {/* Enhanced project info cards */}
                         <div className="grid grid-cols-1 items-end justify-baseline md:grid-cols-3 gap-4 mb-6">
-                          <div className="bg-gray-100 dark:bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-gray-300 dark:border-white/10">
+                          <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-3xl rounded-xl p-4 border border-gray-200 dark:border-white/10">
                             <div className="text-blue-400 font-semibold text-md mb-1">
                               {review.timeToHire}
                             </div>
@@ -582,7 +582,7 @@ export default function ClientReviews() {
                             </div>
                           </div>
 
-                          <div className="bg-gray-100 dark:bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-gray-300 dark:border-white/10">
+                          <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-3xl rounded-xl p-4 border border-gray-200 dark:border-white/10">
                             <div className="text-purple-400 font-semibold text-md mb-1">
                               {review.project}
                             </div>
@@ -591,7 +591,7 @@ export default function ClientReviews() {
                             </div>
                           </div>
 
-                          <div className="bg-gray-100 dark:bg-black/10 backdrop-blur-3xl rounded-xl p-4 border border-gray-300 dark:border-white/10">
+                          <div className="bg-white/5 dark:bg-black/5 shadow-md dark:shadow-none backdrop-blur-3xl rounded-xl p-4 border border-gray-200 dark:border-white/10">
                             <div className="text-green-400 font-semibold text-md mb-1">
                               {review.keyResult}
                             </div>

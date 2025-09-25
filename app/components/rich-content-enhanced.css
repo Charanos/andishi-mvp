@@ -180,9 +180,9 @@
     justify-content: center;
   }
   
-  .rich-content-enhanced strong, 
+  .rich-content-enhanced strong,
   .rich-content-enhanced b {
-    color: white;
+    color: #111827; /* gray-900 for light theme */
     font-weight: 600;
   }
   

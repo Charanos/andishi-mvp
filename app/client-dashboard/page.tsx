@@ -475,32 +475,32 @@ const ClientDashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+        return "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/40 dark:border-yellow-500/30 font-medium";
       case "in-progress":
-        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
+        return "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/40 dark:border-blue-500/30 font-medium";
       case "completed":
-        return "bg-green-500/20 text-green-300 border-green-500/30";
+        return "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/40 dark:border-green-500/30 font-medium";
       case "cancelled":
-        return "bg-red-500/20 text-red-300 border-red-500/30";
+        return "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40 dark:border-red-500/30 font-medium";
       case "on_hold":
-        return "bg-orange-500/20 text-orange-300 border-orange-500/30";
+        return "bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/40 dark:border-orange-500/30 font-medium";
       default:
-        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
+        return "bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-500/40 dark:border-gray-500/30 font-medium";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-red-500/20 text-red-300 border-red-500/30";
+        return "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40 dark:border-red-500/30 font-bold";
       case "high":
-        return "bg-orange-500/20 text-orange-300 border-orange-500/30";
+        return "bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/40 dark:border-orange-500/30 font-medium";
       case "medium":
-        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+        return "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/40 dark:border-yellow-500/30 font-medium";
       case "low":
-        return "bg-green-500/20 text-green-300 border-green-500/30";
+        return "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/40 dark:border-green-500/30 font-medium";
       default:
-        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
+        return "bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-500/40 dark:border-gray-500/30 font-medium";
     }
   };
 
@@ -684,10 +684,12 @@ const ClientDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-          <span className="text-white font-medium">Loading...</span>
+      <div className="fixed inset-0 bg-black/50 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-white/95 dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 flex items-center space-x-4 shadow-xl">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 dark:border-blue-400"></div>
+          <span className="text-gray-900 dark:text-white font-medium">
+            Loading...
+          </span>
         </div>
       </div>
     );
@@ -984,16 +986,18 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-              <FaBell className="mr-2 text-blue-400" />
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <FaBell className="mr-2 text-blue-500 dark:text-blue-400" />
               Global Notification Preferences
             </h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">New Project Alerts</p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    New Project Alerts
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Get notified when new projects are created
                   </p>
                 </div>
@@ -1001,12 +1005,12 @@ const ClientDashboard: React.FC = () => {
                   Enabled
                 </button>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 dark:text-white font-medium">
                     Milestone Completions
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Notifications for all milestone completions
                   </p>
                 </div>
@@ -1014,12 +1018,12 @@ const ClientDashboard: React.FC = () => {
                   Enabled
                 </button>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 dark:text-white font-medium">
                     Overdue Project Alerts
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Alerts for projects past their due dates
                   </p>
                 </div>
@@ -1027,12 +1031,12 @@ const ClientDashboard: React.FC = () => {
                   Enabled
                 </button>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 dark:text-white font-medium">
                     Daily Portfolio Summary
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Daily email with portfolio overview
                   </p>
                 </div>
@@ -1043,52 +1047,54 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-              <FaComment className="mr-2 text-green-400" />
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <FaComment className="mr-2 text-green-500 dark:text-green-400" />
               Business Communication Settings
             </h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 dark:text-white font-medium">
                     Client Update Frequency
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Default update frequency for new clients
                   </p>
                 </div>
-                <select className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm">
+                <select className="px-3 py-1 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded text-gray-900 dark:text-white text-sm">
                   <option>Weekly</option>
                   <option>Bi-weekly</option>
                   <option>Monthly</option>
                   <option>On Milestones</option>
                 </select>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 dark:text-white font-medium">
                     Primary Contact Method
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Default communication channel
                   </p>
                 </div>
-                <select className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm">
+                <select className="px-3 py-1 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded text-gray-900 dark:text-white text-sm">
                   <option>Email</option>
                   <option>Slack</option>
                   <option>WhatsApp</option>
                   <option>Phone</option>
                 </select>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">Business Hours</p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    Business Hours
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     When clients can expect responses
                   </p>
                 </div>
-                <select className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm">
+                <select className="px-3 py-1 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded text-gray-900 dark:text-white text-sm">
                   <option>9 AM - 5 PM EAT</option>
                   <option>8 AM - 6 PM EAT</option>
                   <option>24/7 Available</option>
@@ -1099,45 +1105,61 @@ const ClientDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <FaInfoCircle className="mr-2 text-purple-400" />
+        <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <FaInfoCircle className="mr-2 text-purple-500 dark:text-purple-400" />
             Portfolio Overview
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-3 bg-black/10 rounded-lg">
-              <p className="text-gray-400 text-sm">Total Projects</p>
-              <p className="text-white font-medium text-xl">{totalProjects}</p>
+            <div className="p-3 bg-white/20 dark:bg-black/10 rounded-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Total Projects
+              </p>
+              <p className="text-gray-900 dark:text-white font-medium text-xl">
+                {totalProjects}
+              </p>
             </div>
-            <div className="p-3 bg-black/10 rounded-lg">
-              <p className="text-gray-400 text-sm">Active Projects</p>
-              <p className="text-white font-medium text-xl">{activeProjects}</p>
+            <div className="p-3 bg-white/20 dark:bg-black/10 rounded-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Active Projects
+              </p>
+              <p className="text-gray-900 dark:text-white font-medium text-xl">
+                {activeProjects}
+              </p>
             </div>
-            <div className="p-3 bg-black/10 rounded-lg">
-              <p className="text-gray-400 text-sm">Completed</p>
-              <p className="text-white font-medium text-xl">
+            <div className="p-3 bg-white/20 dark:bg-black/10 rounded-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Completed
+              </p>
+              <p className="text-gray-900 dark:text-white font-medium text-xl">
                 {completedProjects}
               </p>
             </div>
-            <div className="p-3 bg-black/10 rounded-lg">
-              <p className="text-gray-400 text-sm">Pending</p>
-              <p className="text-white font-medium text-xl">
+            <div className="p-3 bg-white/20 dark:bg-black/10 rounded-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Pending
+              </p>
+              <p className="text-gray-900 dark:text-white font-medium text-xl">
                 {pendingProjects}
               </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div className="p-3 bg-white/5 rounded-lg">
-              <p className="text-gray-400 text-sm">Business Since</p>
-              <p className="text-white font-medium">
+            <div className="p-3 bg-white/20 dark:bg-white/5 rounded-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Business Since
+              </p>
+              <p className="text-gray-900 dark:text-white font-medium">
                 {oldestProject
                   ? formatDate(oldestProject.createdAt)
                   : "No projects yet"}
               </p>
             </div>
-            <div className="p-3 bg-white/5 rounded-lg">
-              <p className="text-gray-400 text-sm">Last Activity</p>
-              <p className="text-white font-medium">
+            <div className="p-3 bg-white/20 dark:bg-white/5 rounded-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Last Activity
+              </p>
+              <p className="text-gray-900 dark:text-white font-medium">
                 {latestUpdate
                   ? formatDate(latestUpdate.createdAt)
                   : "No recent activity"}
@@ -1148,18 +1170,18 @@ const ClientDashboard: React.FC = () => {
 
         {/* Project Management Settings */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-              <FaCog className="mr-2 text-orange-400" />
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <FaCog className="mr-2 text-orange-500 dark:text-orange-400" />
               Project Management
             </h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 dark:text-white font-medium">
                     Auto-Archive Completed
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Automatically archive projects after completion
                   </p>
                 </div>
@@ -1167,30 +1189,32 @@ const ClientDashboard: React.FC = () => {
                   Enabled
                 </button>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 dark:text-white font-medium">
                     Default Project Priority
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Priority level for new projects
                   </p>
                 </div>
-                <select className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm">
+                <select className="px-3 py-1 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded text-gray-900 dark:text-white text-sm">
                   <option>Medium</option>
                   <option>Low</option>
                   <option>High</option>
                   <option>Urgent</option>
                 </select>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">Milestone Reminders</p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    Milestone Reminders
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Days before milestone due date
                   </p>
                 </div>
-                <select className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm">
+                <select className="px-3 py-1 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded text-gray-900 dark:text-white text-sm">
                   <option>3 days</option>
                   <option>1 day</option>
                   <option>5 days</option>
@@ -1200,16 +1224,18 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-              <FaShieldAlt className="mr-2 text-red-400" />
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <FaShieldAlt className="mr-2 text-red-500 dark:text-red-400" />
               Security & Backup
             </h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">Auto Backup</p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    Auto Backup
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Automatically backup project data
                   </p>
                 </div>
@@ -1217,10 +1243,12 @@ const ClientDashboard: React.FC = () => {
                   Enabled
                 </button>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">Two-Factor Auth</p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    Two-Factor Auth
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Extra security for your account
                   </p>
                 </div>
@@ -1228,14 +1256,16 @@ const ClientDashboard: React.FC = () => {
                   Disabled
                 </button>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg">
                 <div>
-                  <p className="text-white font-medium">Session Timeout</p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    Session Timeout
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Auto logout after inactivity
                   </p>
                 </div>
-                <select className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white text-sm">
+                <select className="px-3 py-1 bg-white/20 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded text-gray-900 dark:text-white text-sm">
                   <option>2 hours</option>
                   <option>1 hour</option>
                   <option>4 hours</option>
@@ -1247,10 +1277,12 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         {/* Global Action Buttons */}
-        <div className="flex items-center justify-between p-6 backdrop-blur-md bg-black/10 border border-white/10 rounded-xl">
+        <div className="flex items-center justify-between p-6 backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl shadow-lg dark:shadow-none">
           <div>
-            <h4 className="text-white font-medium mb-1">Portfolio Actions</h4>
-            <p className="text-gray-400 text-sm">
+            <h4 className="text-gray-900 dark:text-white font-medium mb-1">
+              Portfolio Actions
+            </h4>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
               Manage your entire project portfolio and business settings
             </p>
           </div>
@@ -1268,44 +1300,52 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <FaChartBar className="mr-2 text-cyan-400" />
+        <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <FaChartBar className="mr-2 text-cyan-500 dark:text-cyan-400" />
             Quick Portfolio Stats
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-semibold text-green-400">
+            <div className="text-center p-3 bg-white/20 dark:bg-white/5 rounded-lg">
+              <div className="text-2xl font-semibold text-green-600 dark:text-green-400">
                 {totalProjects > 0
                   ? Math.round((completedProjects / totalProjects) * 100)
                   : 0}
                 %
               </div>
-              <div className="text-gray-400 text-sm">Completion Rate</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">
+                Completion Rate
+              </div>
             </div>
-            <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-semibold text-blue-400">
+            <div className="text-center p-3 bg-white/20 dark:bg-white/5 rounded-lg">
+              <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
                 {projects.reduce(
                   (sum, p) => sum + (p.milestones?.length || 0),
                   0
                 )}
               </div>
-              <div className="text-gray-400 text-sm">Total Milestones</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">
+                Total Milestones
+              </div>
             </div>
-            <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-semibold text-yellow-400">
+            <div className="text-center p-3 bg-white/20 dark:bg-white/5 rounded-lg">
+              <div className="text-2xl font-semibold text-yellow-600 dark:text-yellow-400">
                 {projects.reduce((sum, p) => sum + (p.files?.length || 0), 0)}
               </div>
-              <div className="text-gray-400 text-sm">Files Managed</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">
+                Files Managed
+              </div>
             </div>
-            <div className="text-center p-3 bg-white/5 rounded-lg">
-              <div className="text-2xl font-semibold text-purple-400">
+            <div className="text-center p-3 bg-white/20 dark:bg-white/5 rounded-lg">
+              <div className="text-2xl font-semibold text-purple-600 dark:text-purple-400">
                 {
                   Array.from(new Set(projects.flatMap((p) => p.techStack)))
                     .length
                 }
               </div>
-              <div className="text-gray-400 text-sm">Technologies Used</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">
+                Technologies Used
+              </div>
             </div>
           </div>
         </div>
@@ -1318,10 +1358,10 @@ const ClientDashboard: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-semibold text-white mb-2">
+            <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
               Projects Analytics
             </h2>
-            <p className="text-gray-400 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Comprehensive overview of all your projects and business metrics
             </p>
           </div>
@@ -1368,14 +1408,14 @@ const ClientDashboard: React.FC = () => {
           ).map((metric: AnalyticsMetric, index: number) => (
             <div
               key={metric.label}
-              className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6"
+              className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm uppercase tracking-wide">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm uppercase tracking-wide">
                     {metric.label}
                   </p>
-                  <p className="text-2xl font-semibold text-white mt-1">
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
                     {metric.value}
                   </p>
                   <div className="flex items-center mt-2">
@@ -1403,7 +1443,7 @@ const ClientDashboard: React.FC = () => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Project Status Visual Cards */}
-          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
+          <div className="backdrop-blur-md bg-white/10  dark:bg-black/10  rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Project Status Distribution
             </h3>
@@ -1465,21 +1505,21 @@ const ClientDashboard: React.FC = () => {
                         <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
                           {item.icon}
                         </div>
-                        <span className="text-white font-medium">
+                        <span className="text-gray-900 dark:text-white font-medium">
                           {item.status}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-gray-400 text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 text-sm">
                           {item.count} projects
                         </span>
-                        <span className="text-white font-semibold">
+                        <span className="text-gray-900 dark:text-white font-semibold">
                           {item.percentage}%
                         </span>
                       </div>
                     </div>
                     {/* Animated Progress Bar */}
-                    <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-gray-300 dark:bg-gray-700/50 rounded-full h-2 overflow-hidden">
                       <div
                         className={`${item.color} h-2 rounded-full transition-all duration-1000 ease-out`}
                         style={{
@@ -1506,21 +1546,23 @@ const ClientDashboard: React.FC = () => {
             `}</style>
           </div>
 
-          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Portfolio Overview
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">Completion Rate</span>
-                <span className="text-white font-semibold">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">
+                  Completion Rate
+                </span>
+                <span className="text-gray-900 dark:text-white font-semibold">
                   {totalProjects > 0
                     ? Math.round((completedProjects / totalProjects) * 100)
                     : 0}
                   %
                 </span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-green-500 h-2 rounded-full"
                   style={{
@@ -1533,14 +1575,14 @@ const ClientDashboard: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">
                   Milestones Completed
                 </span>
-                <span className="text-white font-semibold">
+                <span className="text-gray-900 dark:text-white font-semibold">
                   {completedMilestones}/{totalMilestones}
                 </span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-blue-500 h-2 rounded-full"
                   style={{
@@ -1553,17 +1595,19 @@ const ClientDashboard: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">
                   Avg Project Duration
                 </span>
-                <span className="text-white font-semibold">
+                <span className="text-gray-900 dark:text-white font-semibold">
                   {avgProjectDuration} days
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">Active Projects</span>
-                <span className="text-white font-semibold">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">
+                  Active Projects
+                </span>
+                <span className="text-gray-900 dark:text-white font-semibold">
                   {inProgressProjects}
                 </span>
               </div>
@@ -1573,8 +1617,8 @@ const ClientDashboard: React.FC = () => {
 
         {/* Project Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Recent Activity
             </h3>
             <div className="space-y-3">
@@ -1582,23 +1626,23 @@ const ClientDashboard: React.FC = () => {
                 allUpdates.map((update, index: number) => (
                   <div
                     key={`${update.id}-${index}`}
-                    className="flex items-start space-x-3 p-3 bg-white/5 rounded-lg"
+                    className="flex items-start space-x-3 p-3 bg-white/20 dark:bg-white/5 rounded-lg"
                   >
                     <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                       <FaBell className="text-blue-400 text-sm" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-medium text-sm">
+                      <p className="text-gray-900 dark:text-white font-medium text-sm">
                         {update.title}
                       </p>
-                      <p className="text-gray-400 text-xs mt-1">
+                      <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
                         {update.description}
                       </p>
                       <div className="flex items-center justify-between mt-1">
-                        <p className="text-blue-400 text-xs">
+                        <p className="text-blue-500 dark:text-blue-400 text-xs">
                           {update.projectTitle}
                         </p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="text-gray-500 dark:text-gray-500 text-xs">
                           {formatDate(update.createdAt)}
                         </p>
                       </div>
@@ -1614,8 +1658,8 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Recent Files
             </h3>
             <div className="space-y-3">
@@ -1623,17 +1667,17 @@ const ClientDashboard: React.FC = () => {
                 allFiles.map((file, index: number) => (
                   <div
                     key={`${file.id}-${index}`}
-                    className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-white/20 dark:bg-white/5 rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
                         <FaFile className="text-purple-400 text-sm" />
                       </div>
                       <div>
-                        <p className="text-white font-medium text-sm">
+                        <p className="text-gray-900 dark:text-white font-medium text-sm">
                           {file.fileName}
                         </p>
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
+                        <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
                           <span>{file.projectTitle}</span>
                           <span>•</span>
                           <span>
@@ -1663,8 +1707,8 @@ const ClientDashboard: React.FC = () => {
 
         {/* Project Categories & Tech Stack */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="backdrop-blur-md  bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Project Categories
             </h3>
             <div className="space-y-3">
@@ -1687,12 +1731,12 @@ const ClientDashboard: React.FC = () => {
                     >
                       <div className="flex items-center space-x-2">
                         <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-white text-sm capitalize">
+                        <span className="text-gray-900 dark:text-white text-sm capitalize">
                           {category}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-gray-400 text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 text-sm">
                           {categoryCount} projects
                         </span>
                         <span className="text-blue-400 text-sm">
@@ -1711,8 +1755,8 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="backdrop-blur-md bg-black/10 border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Popular Tech Stack
             </h3>
             <div className="space-y-3">
@@ -1741,10 +1785,12 @@ const ClientDashboard: React.FC = () => {
                       >
                         <div className="flex items-center space-x-2">
                           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span className="text-white text-sm">{tech}</span>
+                          <span className="text-gray-900 dark:text-white text-sm">
+                            {tech}
+                          </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-gray-400 text-sm">
+                          <span className="text-gray-600 dark:text-gray-400 text-sm">
                             {count} projects
                           </span>
                           <span className="text-green-400 text-sm">
@@ -1812,11 +1858,13 @@ const ClientDashboard: React.FC = () => {
       <>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Projects</p>
-                <p className="text-2xl font-semibold text-white">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Total Projects
+                </p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {stats.total}
                 </p>
               </div>
@@ -1826,11 +1874,13 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">In Progress</p>
-                <p className="text-2xl font-semibold text-white">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  In Progress
+                </p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {stats.inProgress}
                 </p>
               </div>
@@ -1840,11 +1890,13 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Completed</p>
-                <p className="text-2xl font-semibold text-white">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Completed
+                </p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {stats.completed}
                 </p>
               </div>
@@ -1854,11 +1906,13 @@ const ClientDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className=" bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-lg dark:shadow-none">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Avg Progress</p>
-                <p className="text-2xl font-semibold text-white">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Avg Progress
+                </p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {stats.averageProgress}%
                 </p>
               </div>
@@ -1886,7 +1940,7 @@ const ClientDashboard: React.FC = () => {
             <div key={project.id}>
               {/* Project Card */}
               <div
-                className={`group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/5 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] ${
+                className={`group relative overflow-hidden rounded-xl backdrop-blur-md bg-white/10 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-500 hover:scale-[1.02] shadow-lg dark:shadow-none ${
                   currentView === "list" ? "p-60" : "p-6"
                 }`}
                 style={{
@@ -1903,15 +1957,15 @@ const ClientDashboard: React.FC = () => {
                 {/* Project Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors duration-300">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-500 dark:group-hover:text-purple-300 transition-colors duration-300">
                       {project.title}
                     </h3>
-                    <p className="text-gray-400 text-sm mt-1 line-clamp-2">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 line-clamp-2">
                       {project.description}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button className="p-1 text-gray-400 hover:text-white transition-colors">
+                    <button className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                       <MoreVertical className="w-4 h-4" />
                     </button>
                   </div>
@@ -1941,12 +1995,14 @@ const ClientDashboard: React.FC = () => {
                 {/* Progress Bar */}
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-400">Progress</span>
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Progress
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {calculateCompletionPercentage(project)}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
                       style={{
@@ -1964,13 +2020,13 @@ const ClientDashboard: React.FC = () => {
                       .map((tech, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md"
+                          className="px-2 py-1 bg-white/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-xs rounded-md"
                         >
                           {tech}
                         </span>
                       ))}
                     {(project.techStack || []).length > 3 && (
-                      <span className="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded-md">
+                      <span className="px-2 py-1 bg-white/20 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-xs rounded-md">
                         +{(project.techStack || []).length - 3} more
                       </span>
                     )}
@@ -1987,9 +2043,11 @@ const ClientDashboard: React.FC = () => {
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center space-x-2">
                               <DollarSign className="w-4 h-4 text-green-400" />
-                              <span className="text-gray-400">Budget:</span>
+                              <span className="text-gray-600 dark:text-gray-400">
+                                Budget:
+                              </span>
                             </div>
-                            <span className="text-white font-medium">
+                            <span className="text-gray-900 dark:text-white font-medium">
                               {statusInfo.budgetDisplay}
                             </span>
                           </div>
@@ -1999,9 +2057,11 @@ const ClientDashboard: React.FC = () => {
                               <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
                                 <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                               </div>
-                              <span className="text-gray-400">Paid:</span>
+                              <span className="text-gray-600 dark:text-gray-400">
+                                Paid:
+                              </span>
                             </div>
-                            <span className="text-blue-400 font-medium">
+                            <span className="text-blue-500 dark:text-blue-400 font-medium">
                               {statusInfo.paidDisplay}
                             </span>
                           </div>
@@ -2011,7 +2071,9 @@ const ClientDashboard: React.FC = () => {
                               <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
                                 <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
                               </div>
-                              <span className="text-gray-400">Remaining:</span>
+                              <span className="text-gray-600 dark:text-gray-400">
+                                Remaining:
+                              </span>
                             </div>
                             <span
                               className={`font-medium ${
@@ -2027,10 +2089,10 @@ const ClientDashboard: React.FC = () => {
                           {/* Budget Progress Bar */}
                           <div className="mt-2">
                             <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-500">
                                 Budget Progress
                               </span>
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
                                 {statusInfo.totalBudget > 0
                                   ? Math.round(
                                       (statusInfo.totalPaid /
@@ -2071,9 +2133,11 @@ const ClientDashboard: React.FC = () => {
                           <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
                             <div className="w-2 h-2 rounded-full bg-purple-400"></div>
                           </div>
-                          <span className="text-gray-400">Milestones:</span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Milestones:
+                          </span>
                         </div>
-                        <span className="text-purple-400 font-medium">
+                        <span className="text-purple-600 dark:text-purple-400 font-medium">
                           {
                             project.milestones.filter(
                               (m: any) => m.status === "completed"
@@ -2087,7 +2151,7 @@ const ClientDashboard: React.FC = () => {
                   {project.estimatedCompletionDate && (
                     <div className="flex items-center space-x-2 text-sm">
                       <Calendar className="w-4 h-4 text-blue-400" />
-                      <span className="text-gray-400">
+                      <span className="text-gray-600 dark:text-gray-400">
                         Due:{" "}
                         {project.estimatedCompletionDate.toLocaleDateString()}
                       </span>
@@ -2096,14 +2160,14 @@ const ClientDashboard: React.FC = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-white/10">
+                <div className="relative w-full bottom-0 flex items-center justify-between pt-4 border-t border-gray-200 dark:border-white/10">
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => {
                         setSelectedProject(project);
                         setViewMode("detail");
                       }}
-                      className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-purple-500/20 text-purple-300 text-sm rounded-md hover:bg-purple-500/30 transition-colors"
+                      className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-purple-500/20 text-purple-700 dark:text-purple-300 text-sm rounded-md hover:bg-purple-500/30 transition-colors font-medium"
                     >
                       <Eye className="w-3 h-3" />
                       <span>View</span>
@@ -2111,7 +2175,7 @@ const ClientDashboard: React.FC = () => {
 
                     <button
                       onClick={() => handleDeleteProject(project.id)}
-                      className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-red-500/20 text-red-300 text-sm rounded-md hover:bg-red-500/30 transition-colors"
+                      className="flex cursor-pointer items-center space-x-1 px-3 py-1.5 bg-red-500/20 text-red-700 dark:text-red-300 text-sm rounded-md hover:bg-red-500/30 transition-colors font-medium"
                     >
                       <Trash2 className="w-3 h-3" />
                       <span>Delete</span>
@@ -2121,16 +2185,16 @@ const ClientDashboard: React.FC = () => {
                   <div className="flex flex-col items-end">
                     <div className="flex items-center space-x-2 mb-1">
                       {project.updates && project.updates.length > 0 && (
-                        <div className="flex items-center space-x-1 text-xs text-blue-400">
+                        <div className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
                           <MessageSquare className="w-3 h-3" />
                           <span>{project.updates.length}</span>
                         </div>
                       )}
 
                       {project.files && project.files.length > 0 && (
-                        <div className="flex items-center space-x-1 text-xs text-green-400">
-                          <div className="w-3 h-3 rounded bg-green-400 flex items-center justify-center">
-                            <span className="text-xs font-semibold text-green-900">
+                        <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400 font-medium">
+                          <div className="w-3 h-3 rounded bg-green-500 dark:bg-green-400 flex items-center justify-center">
+                            <span className="text-xs font-semibold text-white dark:text-green-900">
                               {project.files.length}
                             </span>
                           </div>
@@ -2139,9 +2203,9 @@ const ClientDashboard: React.FC = () => {
                       )}
 
                       {project.payments && project.payments.length > 0 && (
-                        <div className="flex items-center space-x-1 text-xs text-orange-400">
-                          <div className="w-3 h-3 rounded bg-orange-400 flex items-center justify-center">
-                            <span className="text-xs font-semibold text-orange-900">
+                        <div className="flex items-center space-x-1 text-xs text-orange-600 dark:text-orange-400 font-medium">
+                          <div className="w-3 h-3 rounded bg-orange-500 dark:bg-orange-400 flex items-center justify-center">
+                            <span className="text-xs font-semibold text-white dark:text-orange-900">
                               {project.payments.length}
                             </span>
                           </div>
@@ -2150,12 +2214,12 @@ const ClientDashboard: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-600 dark:text-gray-500">
                       Updated {project.updatedAt?.toLocaleDateString()}
                     </div>
                     {project.pricing?.type === "milestone" &&
                       project.milestones && (
-                        <div className="text-xs text-purple-400 mt-1">
+                        <div className="text-xs text-purple-600 dark:text-purple-400 mt-1 font-medium">
                           Next:{" "}
                           {project.milestones.find(
                             (m: any) => m.status === "pending"
@@ -2171,13 +2235,13 @@ const ClientDashboard: React.FC = () => {
         {/* Empty State */}
         {filteredProjects.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-24 h-24 mx-auto mb-4 bg-white/5 rounded-full flex items-center justify-center">
-              <Search className="w-8 h-8 text-gray-400" />
+            <div className="w-24 h-24 mx-auto mb-4 bg-white/20 dark:bg-white/5 rounded-full flex items-center justify-center">
+              <Search className="w-8 h-8 text-gray-500 dark:text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No projects found
             </h3>
-            <p className="text-gray-400 mb-6 monty uppercase">
+            <p className="text-gray-600 dark:text-gray-400 mb-6 monty uppercase">
               {searchQuery ||
               selectedStatus !== "all" ||
               selectedPriority !== "all"
@@ -2192,20 +2256,20 @@ const ClientDashboard: React.FC = () => {
 
   return (
     <>
-      <div className="relative min-h-screen bg-[#0B0D0E] bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover  ">
+      <div className="relative min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-[#0B0D0E] dark:bg-[url('/bg-gradient-overlay.svg')] bg-center bg-cover  ">
         <div className="relative">
           {/* Navigation */}
-          <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/5 border-b border-white/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/90 dark:bg-white/5 border-b border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none">
+            <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-20">
               <div className="flex items-center justify-between h-16">
                 <div className="flex items-center space-x-8">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                       <FaCode className="text-white text-sm" />
                     </div>
-                    <button className="text-white font-semibold text-lg">
+                    <button className="text-gray-900 dark:text-white font-semibold text-lg">
                       Andishi {" | "}
-                      <span className="text-sm monty uppercase text-gray-400">
+                      <span className="text-sm monty uppercase text-gray-600 dark:text-gray-400">
                         client dashboard
                       </span>
                     </button>
@@ -2218,21 +2282,21 @@ const ClientDashboard: React.FC = () => {
                         label: "Projects",
                         icon: FaProjectDiagram,
                       },
-                      { id: "analytics", label: "Analytics", icon: FaChartBar },
                       {
                         id: "create",
                         label: "Start New Project",
                         icon: FaCode,
                       },
-                      { id: "settings", label: "Settings", icon: FaCog },
+                      { id: "analytics", label: "Analytics", icon: FaChartBar },
+                      // { id: "settings", label: "Settings", icon: FaCog },
                     ].map((tab) => (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as ActiveTab)}
                         className={`flex cursor-pointer items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                           activeTab === tab.id
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-300 hover:bg-white/10 hover:text-white"
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
                         }`}
                       >
                         <tab.icon className="text-sm" />
@@ -2243,10 +2307,10 @@ const ClientDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2 text-gray-300">
+                  <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
                     <FaBell className="text-lg" />
                     {toastNotifications.length > 0 && (
-                      <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-md">
                         <span className="text-white text-xs font-semibold">
                           {toastNotifications.length}
                         </span>
@@ -2259,21 +2323,21 @@ const ClientDashboard: React.FC = () => {
           </nav>
 
           {/* Mobile Navigation */}
-          <div className="md:hidden bg-white/5 border-b border-white/10">
+          <div className="md:hidden bg-white/90 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
             <div className="flex space-x-1 p-2">
               {[
                 { id: "projects", label: "Projects", icon: FaProjectDiagram },
-                { id: "analytics", label: "Analytics", icon: FaChartBar },
                 { id: "create", label: "Start New Project", icon: FaCode },
-                { id: "settings", label: "Settings", icon: FaCog },
+                { id: "analytics", label: "Analytics", icon: FaChartBar },
+                // { id: "settings", label: "Settings", icon: FaCog },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as ActiveTab)}
                   className={`flex-1 flex flex-col items-center space-y-1 py-2 rounded-lg transition-colors ${
                     activeTab === tab.id
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-white/10 hover:text-white"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
                   <tab.icon className="text-lg" />
@@ -2286,19 +2350,21 @@ const ClientDashboard: React.FC = () => {
           {/* Main Content */}
           <div className="w-[90vw] max-w-none mx-auto py-8 px-4 sm:px-6 lg:px-8 my-8">
             {activeTab === "projects" && renderProjects()}
-            {activeTab === "analytics" && renderAnalytics(projects)}
             {activeTab === "create" && renderCreateNewProject()}
-            {activeTab === "settings" && renderOverallSettings(projects)}
+            {activeTab === "analytics" && renderAnalytics(projects)}
+            {/* {activeTab === "settings" && renderOverallSettings(projects)} */}
           </div>
         </div>
 
         {/* Loading Overlay */}
 
         {loading && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-              <span className="text-white font-medium">Processing...</span>
+          <div className="fixed inset-0 bg-black/50 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white/95 dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 flex items-center space-x-4 shadow-xl">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 dark:border-blue-400"></div>
+              <span className="text-gray-900 dark:text-white font-medium">
+                Processing...
+              </span>
             </div>
           </div>
         )}

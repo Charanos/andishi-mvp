@@ -57,10 +57,10 @@ const ProjectDetailsPage = () => {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-gray-900 border border-white/10 rounded-xl p-6 flex items-center space-x-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-          <span className="text-white font-medium">Loading Project...</span>
+      <div className="fixed inset-0 bg-black/50 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-white/10 rounded-xl p-6 shadow-xl flex items-center space-x-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 dark:border-blue-400"></div>
+          <span className="text-gray-900 dark:text-white font-medium">Loading Project...</span>
         </div>
       </div>
     );
@@ -68,18 +68,22 @@ const ProjectDetailsPage = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-white text-center">
-        <h2 className="text-2xl font-semibold mb-4">Error</h2>
-        <p>{error}</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-900 dark:text-white text-center px-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 rounded-xl p-8 max-w-md">
+          <h2 className="text-2xl font-semibold mb-4 text-red-700 dark:text-red-400">Error</h2>
+          <p className="text-gray-700 dark:text-gray-300">{error}</p>
+        </div>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-white text-center">
-        <h2 className="text-2xl font-semibold mb-4">Project Not Found</h2>
-        <p>The project you are looking for does not exist.</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-900 dark:text-white text-center px-4">
+        <div className="bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-white/10 rounded-xl p-8 max-w-md">
+          <h2 className="text-2xl font-semibold mb-4">Project Not Found</h2>
+          <p className="text-gray-600 dark:text-gray-400">The project you are looking for does not exist.</p>
+        </div>
       </div>
     );
   }

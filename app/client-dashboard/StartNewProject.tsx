@@ -20,6 +20,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import RichContentEditor from "../components/RichContentEditor";
 
 interface ProjectDetails {
   title: string;
@@ -39,13 +40,23 @@ interface Milestone {
   timeline: string;
 }
 
+interface ContractDetails {
+  engagementType: "fixed-term" | "retainer" | "ongoing";
+  duration: string;
+  durationUnit: "months" | "years";
+  workingHoursPerWeek: string;
+  monthlyRate: string;
+  jobDescription: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 interface PricingOption {
-  type: "fixed" | "milestone" | "hourly";
+  type: "fixed" | "milestone" | "contract";
   currency: "USD" | "KES";
   fixedBudget?: string;
   milestones: Milestone[];
-  hourlyRate?: string;
-  estimatedHours?: string;
+  contractDetails?: ContractDetails;
 }
 
 interface UserInfo {
@@ -94,8 +105,16 @@ export default function ClientDashboardStartProject({}) {
       currency: "USD",
       milestones: [],
       fixedBudget: "",
-      hourlyRate: "",
-      estimatedHours: "",
+      contractDetails: {
+        engagementType: "fixed-term",
+        duration: "",
+        durationUnit: "months",
+        workingHoursPerWeek: "",
+        monthlyRate: "",
+        jobDescription: "",
+        startDate: "",
+        endDate: "",
+      },
     },
   });
 
@@ -269,10 +288,12 @@ export default function ClientDashboardStartProject({}) {
       case 2:
         if (formData.pricing.type === "fixed") {
           return formData.pricing.fixedBudget?.trim() !== "";
-        } else if (formData.pricing.type === "hourly") {
+        } else if (formData.pricing.type === "contract") {
           return (
-            formData.pricing.hourlyRate?.trim() !== "" &&
-            formData.pricing.estimatedHours?.trim() !== ""
+            formData.pricing.contractDetails?.duration &&
+            formData.pricing.contractDetails?.workingHoursPerWeek &&
+            formData.pricing.contractDetails?.monthlyRate &&
+            formData.pricing.contractDetails?.jobDescription
           );
         } else {
           // For milestone type
@@ -379,8 +400,7 @@ export default function ClientDashboardStartProject({}) {
           type: formData.pricing.type,
           currency: formData.pricing.currency,
           fixedBudget: formData.pricing.fixedBudget,
-          hourlyRate: formData.pricing.hourlyRate,
-          estimatedHours: formData.pricing.estimatedHours,
+          contractDetails: formData.pricing.contractDetails,
           milestones: formData.pricing.milestones,
         },
         userInfo: formData.userInfo,
@@ -475,10 +495,10 @@ export default function ClientDashboardStartProject({}) {
         {/* Header */}
         <div className="">
           <div>
-            <h1 className="text-3xl font-semibold text-white">
-              Create New <span className="text-purple-400">Project</span>
+            <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
+              Create New <span className="text-purple-600 dark:text-purple-400">Project</span>
             </h1>
-            <p className="text-gray-400 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Define your project requirements and get started
             </p>
           </div>
@@ -487,7 +507,7 @@ export default function ClientDashboardStartProject({}) {
         {/* Progress Steps */}
         <div className="p-6 py-4">
           <div className="flex justify-between items-center relative">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-700 -translate-y-1/2"></div>
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 dark:bg-gray-700 -translate-y-1/2"></div>
             <div
               className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -translate-y-1/2 transition-all duration-500"
               style={{
@@ -500,13 +520,13 @@ export default function ClientDashboardStartProject({}) {
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
                     currentStep >= step.number
-                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                      : "bg-gray-700 text-gray-400"
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-gray-900 dark:text-white"
+                      : "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                   }`}
                 >
                   <step.icon className="text-sm" />
                 </div>
-                <div className="absolute top-12 left-1/2 -translate-x-1/2 text-xs text-gray-400 whitespace-nowrap monty uppercase">
+                <div className="absolute top-12 left-1/2 -translate-x-1/2 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap monty uppercase">
                   {step.title}
                 </div>
               </div>
@@ -515,17 +535,17 @@ export default function ClientDashboardStartProject({}) {
         </div>
 
         {/* Form Content */}
-        <div className="p-6  bg-black/10 border border-gray-600/40 my-16 rounded-2xl backdrop-blur-sm">
+        <div className="p-6 bg-white/40 dark:bg-black/10 border border-gray-300/40 dark:border-gray-600/40 my-16 rounded-2xl backdrop-blur-sm shadow-lg dark:shadow-none">
           {currentStep === 1 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
-                <FaProjectDiagram className="mr-3 text-blue-400" />
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
+                <FaProjectDiagram className="mr-3 text-blue-600 dark:text-blue-400" />
                 Project Details
               </h2>
 
               <div className="space-y-6">
                 <div>
-                  <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
+                  <label className="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <span>Project Title *</span>
                     <span className={`text-xs ${
                       formData.projectDetails.title.length > 200 ? 'text-red-400' : 
@@ -540,19 +560,19 @@ export default function ClientDashboardStartProject({}) {
                     onChange={(e) =>
                       updateProjectDetails("title", e.target.value)
                     }
-                    className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                      formData.projectDetails.title.length > 200 ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-blue-400'
+                    className={`w-full px-4 py-3 bg-white/60 dark:bg-white/5 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none transition-colors ${
+                      formData.projectDetails.title.length > 200 ? 'border-red-500 focus:border-red-500' : 'border-gray-300 dark:border-white/10 focus:border-blue-500 dark:focus:border-blue-400'
                     }`}
                     placeholder="What's your project called?"
                     maxLength={250}
                   />
                   {formData.projectDetails.title.length > 200 && (
-                    <p className="text-red-400 text-xs mt-1">Title is too long. Maximum 200 characters allowed.</p>
+                    <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">Title is too long. Maximum 200 characters allowed.</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                     Project Category
                   </label>
                   <select
@@ -560,16 +580,16 @@ export default function ClientDashboardStartProject({}) {
                     onChange={(e) =>
                       updateProjectDetails("category", e.target.value)
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors cursor-pointer"
+                    className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors cursor-pointer"
                   >
-                    <option value="" className="bg-gray-800">
+                    <option value="" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
                       Select project category
                     </option>
                     {categories.map((category) => (
                       <option
                         key={category}
                         value={category}
-                        className="bg-gray-800"
+                        className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
                       >
                         {category}
                       </option>
@@ -578,7 +598,7 @@ export default function ClientDashboardStartProject({}) {
                 </div>
 
                 <div>
-                  <label className="flex items-center justify-between text-sm font-medium text-gray-300 my-6">
+                  <label className="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 my-6">
                     <span>Tech Stack/Services Needed</span>
                     <span className={`text-xs ${
                       (formData.projectDetails.techStack?.length || 0) > 20 ? 'text-red-400' : 
@@ -587,7 +607,7 @@ export default function ClientDashboardStartProject({}) {
                       {formData.projectDetails.techStack?.length || 0}/20
                     </span>
                   </label>
-                  <p className="text-sm text-gray-400 mb-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     Select all technologies and services you need for your
                     project
                   </p>
@@ -600,7 +620,7 @@ export default function ClientDashboardStartProject({}) {
                         className={`px-3 hover:bg-purple-700 cursor-pointer py-2 rounded-lg border transition-all duration-300 text-sm ${
                           formData.projectDetails.techStack?.includes(tech)
                             ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                            : "bg-white/60 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-white/20"
                         }`}
                       >
                         {tech}
@@ -625,7 +645,7 @@ export default function ClientDashboardStartProject({}) {
                 </div>
 
                 <div>
-                  <label className="flex items-center justify-between text-sm font-medium text-gray-300 mb-2">
+                  <label className="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <span>Project Description *</span>
                     <span className={`text-xs ${
                       formData.projectDetails.description.length > 10000 ? 'text-red-400' : 
@@ -640,8 +660,8 @@ export default function ClientDashboardStartProject({}) {
                       updateProjectDetails("description", e.target.value)
                     }
                     rows={4}
-                    className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors resize-none ${
-                      formData.projectDetails.description.length > 10000 ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-blue-400'
+                    className={`w-full px-4 py-3 bg-white/60 dark:bg-white/5 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none transition-colors resize-none ${
+                      formData.projectDetails.description.length > 10000 ? 'border-red-500 focus:border-red-500' : 'border-gray-300 dark:border-white/10 focus:border-blue-500 dark:focus:border-blue-400'
                     }`}
                     placeholder="Describe your project in detail. What problem does it solve? What features do you need?"
                     maxLength={10500}
@@ -653,8 +673,8 @@ export default function ClientDashboardStartProject({}) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaCalendarAlt className="mr-2 text-blue-400" />
+                    <label className=" text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaCalendarAlt className="mr-2 text-blue-600 dark:text-blue-400" />
                       Timeline
                     </label>
                     <select
@@ -662,16 +682,16 @@ export default function ClientDashboardStartProject({}) {
                       onChange={(e) =>
                         updateProjectDetails("timeline", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                     >
-                      <option value="" className="bg-gray-800">
+                      <option value="" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
                         Select timeline
                       </option>
                       {timelines.map((timeline) => (
                         <option
                           key={timeline}
                           value={timeline}
-                          className="bg-gray-800"
+                          className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                           {timeline}
                         </option>
@@ -680,8 +700,8 @@ export default function ClientDashboardStartProject({}) {
                   </div>
 
                   <div>
-                    <label className=" text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaFlag className="mr-2 text-blue-400" />
+                    <label className=" text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
+                      <FaFlag className="mr-2 text-blue-600 dark:text-blue-400" />
                       Priority Level
                     </label>
                     <select
@@ -692,16 +712,16 @@ export default function ClientDashboardStartProject({}) {
                           e.target.value as "low" | "medium" | "high" | "urgent"
                         )
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                     >
-                      <option value="" className="bg-gray-800">
+                      <option value="" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
                         Select priority
                       </option>
                       {priorityLevels.map((level) => (
                         <option
                           key={level.value}
                           value={level.value}
-                          className="bg-gray-800"
+                          className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                           {level.label}
                         </option>
@@ -711,7 +731,7 @@ export default function ClientDashboardStartProject({}) {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                     Special Requirements
                   </label>
                   <textarea
@@ -720,7 +740,7 @@ export default function ClientDashboardStartProject({}) {
                       updateProjectDetails("requirements", e.target.value)
                     }
                     rows={3}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                    className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                     placeholder="Any specific technologies, integrations, or requirements we should know about?"
                   />
                 </div>
@@ -731,15 +751,15 @@ export default function ClientDashboardStartProject({}) {
           {/* Step 3: Pricing Structure */}
           {currentStep === 2 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
-                <FaDollarSign className="mr-3 text-blue-400" />
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                <FaDollarSign className="mr-3 text-blue-600 dark:text-blue-400" />
                 Pricing Structure
               </h2>
 
               <div className="space-y-6">
                 {/* Currency Selection */}
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                     Preferred Currency
                   </label>
                   <div className="flex space-x-4">
@@ -749,7 +769,7 @@ export default function ClientDashboardStartProject({}) {
                       className={`px-6 py-3 rounded-lg border transition-all duration-300 ${
                         formData.pricing.currency === "USD"
                           ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
+                          : "bg-white/60 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-white/20 monty uppercase"
                       }`}
                     >
                       USD ($)
@@ -760,7 +780,7 @@ export default function ClientDashboardStartProject({}) {
                       className={`px-6 py-3 rounded-lg border transition-all duration-300 ${
                         formData.pricing.currency === "KES"
                           ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20 monty uppercase"
+                          : "bg-white/60 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-white/20 monty uppercase"
                       }`}
                     >
                       KES (KSh)
@@ -770,7 +790,7 @@ export default function ClientDashboardStartProject({}) {
 
                 {/* Pricing Options */}
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-4">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                     Choose Your Preferred Pricing Model
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -780,13 +800,13 @@ export default function ClientDashboardStartProject({}) {
                       className={`p-6 rounded-xl border transition-all duration-300 text-left ${
                         formData.pricing.type === "fixed"
                           ? "bg-blue-500/20 border-blue-400"
-                          : "bg-white/5 border-white/10 hover:border-white/20"
+                          : "bg-white/60 dark:bg-white/5 border-gray-300 dark:border-white/10 hover:border-white/20"
                       }`}
                     >
-                      <div className="text-lg font-semibold text-white mb-2 monty uppercase">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2 monty uppercase">
                         Fixed Price
                       </div>
-                      <div className="text-sm text-gray-400">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
                         One total price for the entire project
                       </div>
                     </button>
@@ -797,31 +817,31 @@ export default function ClientDashboardStartProject({}) {
                       className={`p-6 rounded-xl border transition-all duration-300 text-left ${
                         formData.pricing.type === "milestone"
                           ? "bg-blue-500/20 border-blue-400"
-                          : "bg-white/5 border-white/10 hover:border-white/20"
+                          : "bg-white/60 dark:bg-white/5 border-gray-300 dark:border-white/10 hover:border-white/20"
                       }`}
                     >
-                      <div className="text-lg font-semibold text-white mb-2 monty uppercase">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2 monty uppercase">
                         Milestone Based
                       </div>
-                      <div className="text-sm text-gray-400">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
                         Pay as we complete project milestones
                       </div>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => updatePricing("type", "hourly")}
+                      onClick={() => updatePricing("type", "contract")}
                       className={`p-6 rounded-xl border transition-all duration-300 text-left ${
-                        formData.pricing.type === "hourly"
+                        formData.pricing.type === "contract"
                           ? "bg-blue-500/20 border-blue-400"
-                          : "bg-white/5 border-white/10 hover:border-white/20"
+                          : "bg-white/60 dark:bg-white/5 border-gray-300 dark:border-white/10 hover:border-white/20"
                       }`}
                     >
-                      <div className="text-lg font-semibold monty uppercase text-white mb-2">
-                        Hourly Rate
+                      <div className="text-lg font-semibold monty uppercase text-gray-900 dark:text-white mb-2">
+                        Contract-Based
                       </div>
-                      <div className="text-sm text-gray-400">
-                        Hire a dedicated developer by the hour
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Fixed-term engagement with defined scope
                       </div>
                     </button>
                   </div>
@@ -831,7 +851,7 @@ export default function ClientDashboardStartProject({}) {
                 {formData.pricing.type === "fixed" && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Estimated Project Budget ({formData.pricing.currency})
                       </label>
                       <input
@@ -840,7 +860,7 @@ export default function ClientDashboardStartProject({}) {
                         onChange={(e) =>
                           updatePricing("fixedBudget", e.target.value)
                         }
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                        className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                         placeholder={`Enter your budget in ${formData.pricing.currency}`}
                       />
                     </div>
@@ -851,7 +871,7 @@ export default function ClientDashboardStartProject({}) {
                 {formData.pricing.type === "milestone" && (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-semibold text-white">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Project Milestones
                       </h3>
                       <button
@@ -868,10 +888,10 @@ export default function ClientDashboardStartProject({}) {
                       (milestone, index) => (
                         <div
                           key={milestone.id}
-                          className="p-4 bg-white/5 border border-white/10 rounded-lg space-y-4"
+                          className="p-4 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg space-y-4"
                         >
                           <div className="flex justify-between items-center">
-                            <h4 className="text-white font-medium">
+                            <h4 className="text-gray-900 dark:text-white font-medium">
                               Milestone {index + 1}
                             </h4>
                             <button
@@ -885,7 +905,7 @@ export default function ClientDashboardStartProject({}) {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-gray-300 text-sm font-medium mb-1">
+                              <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                                 Milestone Title
                               </label>
                               <input
@@ -898,13 +918,13 @@ export default function ClientDashboardStartProject({}) {
                                     e.target.value
                                   )
                                 }
-                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px"
+                                className="w-full px-3 py-2 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px"
                                 placeholder="e.g., Design & Wireframes"
                               />
                             </div>
 
                             <div>
-                              <label className="block text-gray-300 text-sm font-medium mb-1">
+                              <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                                 Budget ({formData.pricing.currency})
                               </label>
                               <input
@@ -917,14 +937,14 @@ export default function ClientDashboardStartProject({}) {
                                     e.target.value
                                   )
                                 }
-                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px"
+                                className="w-full px-3 py-2 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px"
                                 placeholder="Amount"
                               />
                             </div>
                           </div>
 
                           <div>
-                            <label className="block text-gray-300 text-sm font-medium mb-1">
+                            <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                               Description
                             </label>
                             <textarea
@@ -937,13 +957,13 @@ export default function ClientDashboardStartProject({}) {
                                 )
                               }
                               rows={2}
-                              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px resize-none"
+                              className="w-full px-3 py-2 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px resize-none"
                               placeholder="What will be delivered in this milestone?"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-gray-300 text-sm font-medium mb-1">
+                            <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
                               Timeline
                             </label>
                             <input
@@ -956,7 +976,7 @@ export default function ClientDashboardStartProject({}) {
                                   e.target.value
                                 )
                               }
-                              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors text-[15.5px"
+                              className="w-full px-3 py-2 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-[15.5px"
                               placeholder="e.g., 2 weeks"
                             />
                           </div>
@@ -965,7 +985,7 @@ export default function ClientDashboardStartProject({}) {
                     )}
 
                     {(formData.pricing.milestones || []).length === 0 && (
-                      <div className="text-center py-8 text-gray-400">
+                      <div className="text-center py-8 text-gray-600 dark:text-gray-400">
                         <FaProjectDiagram className="mx-auto text-3xl mb-4 opacity-50" />
                         <p>
                           No milestones added yet. Click "Add Milestone" to get
@@ -976,39 +996,189 @@ export default function ClientDashboardStartProject({}) {
                   </div>
                 )}
 
-                {/* Hourly Rate Details */}
-                {formData.pricing.type === "hourly" && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Contract-Based Details */}
+                {formData.pricing.type === "contract" && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-gray-300 text-[15.5px font-medium mb-2">
-                          Preferred Hourly Rate ({formData.pricing.currency})
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                          Engagement Type *
                         </label>
-                        <input
-                          type="text"
-                          value={formData.pricing.hourlyRate || ""}
-                          onChange={(e) =>
-                            updatePricing("hourlyRate", e.target.value)
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
-                          placeholder={`Rate per hour in ${formData.pricing.currency}`}
-                        />
+                        <select
+                          value={formData.pricing.contractDetails?.engagementType || "fixed-term"}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              pricing: {
+                                ...prev.pricing,
+                                contractDetails: {
+                                  ...prev.pricing.contractDetails!,
+                                  engagementType: e.target.value as "fixed-term" | "retainer" | "ongoing"
+                                }
+                              }
+                            }));
+                          }}
+                          className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                        >
+                          <option value="fixed-term" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">Fixed-Term</option>
+                          <option value="retainer" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">Retainer</option>
+                          <option value="ongoing" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">Ongoing</option>
+                        </select>
                       </div>
 
                       <div>
-                        <label className="block text-gray-300 text-[15.5px font-medium mb-2">
-                          Estimated Hours per Week
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                          Duration *
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            value={formData.pricing.contractDetails?.duration || ""}
+                            onChange={(e) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                pricing: {
+                                  ...prev.pricing,
+                                  contractDetails: {
+                                    ...prev.pricing.contractDetails!,
+                                    duration: e.target.value
+                                  }
+                                }
+                              }));
+                            }}
+                            className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                            placeholder="e.g., 3"
+                            min="1"
+                          />
+                          <select
+                            value={formData.pricing.contractDetails?.durationUnit || "months"}
+                            onChange={(e) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                pricing: {
+                                  ...prev.pricing,
+                                  contractDetails: {
+                                    ...prev.pricing.contractDetails!,
+                                    durationUnit: e.target.value as "months" | "years"
+                                  }
+                                }
+                              }));
+                            }}
+                            className="px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                          >
+                            <option value="months" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">Months</option>
+                            <option value="years" className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">Years</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                          Working Hours/Week *
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.pricing.contractDetails?.workingHoursPerWeek || ""}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              pricing: {
+                                ...prev.pricing,
+                                contractDetails: {
+                                  ...prev.pricing.contractDetails!,
+                                  workingHoursPerWeek: e.target.value
+                                }
+                              }
+                            }));
+                          }}
+                          className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                          placeholder="e.g., 40"
+                          min="1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                          Monthly Rate ({formData.pricing.currency}) *
                         </label>
                         <input
                           type="text"
-                          value={formData.pricing.estimatedHours || ""}
-                          onChange={(e) =>
-                            updatePricing("estimatedHours", e.target.value)
-                          }
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
-                          placeholder="Hours per week"
+                          value={formData.pricing.contractDetails?.monthlyRate || ""}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              pricing: {
+                                ...prev.pricing,
+                                contractDetails: {
+                                  ...prev.pricing.contractDetails!,
+                                  monthlyRate: e.target.value
+                                }
+                              }
+                            }));
+                          }}
+                          className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                          placeholder="e.g., 4000"
+                        />
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          Enter the monthly rate (e.g., $4000/month)
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                          Preferred Start Date (Optional)
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.pricing.contractDetails?.startDate || ""}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              pricing: {
+                                ...prev.pricing,
+                                contractDetails: {
+                                  ...prev.pricing.contractDetails!,
+                                  startDate: e.target.value
+                                }
+                              }
+                            }));
+                          }}
+                          className="w-full px-4 py-3 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                        Detailed Job Description *
+                      </label>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                        Provide comprehensive details about the role, responsibilities, requirements, and expectations
+                      </p>
+                      <RichContentEditor
+                        value={formData.pricing.contractDetails?.jobDescription || ""}
+                        onChange={(html) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            pricing: {
+                              ...prev.pricing,
+                              contractDetails: {
+                                ...prev.pricing.contractDetails!,
+                                jobDescription: html
+                              }
+                            }
+                          }));
+                        }}
+                        placeholder="Enter detailed job description including responsibilities, requirements, and expectations..."
+                      />
+                    </div>
+
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong>Note:</strong> Contract details help us match you with the right developers and provide accurate project estimates.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -1019,30 +1189,30 @@ export default function ClientDashboardStartProject({}) {
           {/* Step 4: Review & Submit */}
           {currentStep === 3 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
                 <FaCheck className="mr-3 text-green-400" />
                 Review Your Project
               </h2>
 
               <div className="space-y-6">
                 {/* Project Details Summary */}
-                <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                    <FaProjectDiagram className="mr-2 text-blue-400" />
+                <div className="p-6 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <FaProjectDiagram className="mr-2 text-blue-600 dark:text-blue-400" />
                     Project Overview
                   </h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <span className="text-gray-400">Project Title:</span>
-                        <p className="text-white font-medium">
+                        <span className="text-gray-600 dark:text-gray-400">Project Title:</span>
+                        <p className="text-gray-900 dark:text-white font-medium">
                           {formData.projectDetails.title}
                         </p>
                       </div>
                       {formData.projectDetails.category && (
                         <div>
-                          <span className="text-gray-400">Category:</span>
-                          <p className="text-white font-medium">
+                          <span className="text-gray-600 dark:text-gray-400">Category:</span>
+                          <p className="text-gray-900 dark:text-white font-medium">
                             {formData.projectDetails.category}
                           </p>
                         </div>
@@ -1050,25 +1220,25 @@ export default function ClientDashboardStartProject({}) {
                     </div>
 
                     <div>
-                      <span className="text-gray-400">Description:</span>
-                      <p className="text-white mt-1">
+                      <span className="text-gray-600 dark:text-gray-400">Description:</span>
+                      <p className="text-gray-900 dark:text-white mt-1">
                         {formData.projectDetails.description}
                       </p>
                     </div>
 
                     {formData.projectDetails.requirements && (
                       <div>
-                        <span className="text-gray-400">
+                        <span className="text-gray-600 dark:text-gray-400">
                           Special Requirements:
                         </span>
-                        <p className="text-white mt-1">
+                        <p className="text-gray-900 dark:text-white mt-1">
                           {formData.projectDetails.requirements}
                         </p>
                       </div>
                     )}
 
                     <div>
-                      <span className="text-gray-400">Tech Stack:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Tech Stack:</span>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {formData.projectDetails.techStack?.map((tech) => (
                           <span
@@ -1084,15 +1254,15 @@ export default function ClientDashboardStartProject({}) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {formData.projectDetails.timeline && (
                         <div>
-                          <span className="text-gray-400">Timeline:</span>
-                          <p className="text-white font-medium">
+                          <span className="text-gray-600 dark:text-gray-400">Timeline:</span>
+                          <p className="text-gray-900 dark:text-white font-medium">
                             {formData.projectDetails.timeline}
                           </p>
                         </div>
                       )}
                       <div>
-                        <span className="text-gray-400">Priority:</span>
-                        <p className="text-white font-medium">
+                        <span className="text-gray-600 dark:text-gray-400">Priority:</span>
+                        <p className="text-gray-900 dark:text-white font-medium">
                           {priorityLevels.find(
                             (level) =>
                               level.value === formData.projectDetails.priority
@@ -1104,15 +1274,15 @@ export default function ClientDashboardStartProject({}) {
                 </div>
 
                 {/* Pricing Summary */}
-                <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <div className="p-6 bg-white/60 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                     <FaDollarSign className="mr-2 text-green-400" />
                     Pricing Structure
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <span className="text-gray-400">Pricing Model:</span>
-                      <p className="text-white font-medium capitalize">
+                      <span className="text-gray-600 dark:text-gray-400">Pricing Model:</span>
+                      <p className="text-gray-900 dark:text-white font-medium capitalize">
                         {formData.pricing.type} Price
                       </p>
                     </div>
@@ -1120,48 +1290,71 @@ export default function ClientDashboardStartProject({}) {
                     {formData.pricing.type === "fixed" &&
                       formData.pricing.fixedBudget && (
                         <div>
-                          <span className="text-gray-400">Budget:</span>
-                          <p className="text-white font-medium">
+                          <span className="text-gray-600 dark:text-gray-400">Budget:</span>
+                          <p className="text-gray-900 dark:text-white font-medium">
                             {formData.pricing.currency}{" "}
                             {formData.pricing.fixedBudget}
                           </p>
                         </div>
                       )}
 
-                    {formData.pricing.type === "hourly" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {formData.pricing.type === "contract" && formData.pricing.contractDetails && (
+                      <div className="space-y-3">
                         <div>
-                          <span className="text-gray-400">Hourly Rate:</span>
-                          <p className="text-white font-medium">
-                            {formData.pricing.currency}{" "}
-                            {formData.pricing.hourlyRate}/hr
+                          <span className="text-gray-600 dark:text-gray-400">Engagement Type:</span>
+                          <p className="text-gray-900 dark:text-white font-medium capitalize">
+                            {formData.pricing.contractDetails.engagementType.replace("-", " ")}
                           </p>
                         </div>
-                        {formData.pricing.estimatedHours && (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Duration:</span>
+                          <p className="text-gray-900 dark:text-white font-medium">
+                            {formData.pricing.contractDetails.duration} {formData.pricing.contractDetails.durationUnit}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Working Hours/Week:</span>
+                          <p className="text-gray-900 dark:text-white font-medium">
+                            {formData.pricing.contractDetails.workingHoursPerWeek} hours
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Monthly Rate:</span>
+                          <p className="text-gray-900 dark:text-white font-medium">
+                            {formData.pricing.currency} {formData.pricing.contractDetails.monthlyRate}/month
+                          </p>
+                        </div>
+                        {formData.pricing.contractDetails.startDate && (
                           <div>
-                            <span className="text-gray-400">
-                              Estimated Hours:
-                            </span>
-                            <p className="text-white font-medium">
-                              {formData.pricing.estimatedHours} hours
+                            <span className="text-gray-600 dark:text-gray-400">Start Date:</span>
+                            <p className="text-gray-900 dark:text-white font-medium">
+                              {new Date(formData.pricing.contractDetails.startDate).toLocaleDateString()}
                             </p>
                           </div>
                         )}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Job Description:</span>
+                          <div 
+                            className="prose dark:prose-invert max-w-none mt-2 p-4 bg-white/60 dark:bg-white/5 rounded-lg border border-gray-300 dark:border-white/10"
+                            dangerouslySetInnerHTML={{ __html: formData.pricing.contractDetails.jobDescription }}
+                          />
+                        </div>
                       </div>
                     )}
 
                     {formData.pricing.type === "milestone" &&
-                      formData.pricing.milestones && (
-                        <div className="space-y-4">
-                          <span className="text-gray-400">Milestones:</span>
+                      formData.pricing.milestones &&
+                      formData.pricing.milestones.length > 0 && (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Milestones:</span>
                           {formData.pricing.milestones.map(
                             (milestone, index) => (
                               <div
                                 key={milestone.id}
-                                className="p-4 bg-white/5 rounded-lg"
+                                className="p-4 bg-white/60 dark:bg-white/5 rounded-lg mt-3"
                               >
                                 <div className="flex items-center justify-between mb-2">
-                                  <h4 className="text-white font-medium">
+                                  <h4 className="text-gray-900 dark:text-white font-medium">
                                     {milestone.title}
                                   </h4>
                                   <span className="text-blue-300">
@@ -1169,7 +1362,7 @@ export default function ClientDashboardStartProject({}) {
                                     {milestone.budget}
                                   </span>
                                 </div>
-                                <p className="text-gray-400 text-sm">
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
                                   {milestone.description}
                                 </p>
                                 <div className="text-sm text-gray-500 mt-2">
@@ -1191,11 +1384,11 @@ export default function ClientDashboardStartProject({}) {
                       type="checkbox"
                       checked={termsAccepted}
                       onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-blue-400 bg-transparent border-2 border-blue-400 rounded focus:ring-blue-400 focus:ring-2"
+                      className="mt-1 w-4 h-4 text-blue-600 dark:text-blue-400 bg-transparent border-2 border-blue-400 rounded focus:ring-blue-400 focus:ring-2"
                     />
                     <label
                       htmlFor="terms"
-                      className="text-gray-300 leading-relaxed"
+                      className="text-gray-700 dark:text-gray-300 leading-relaxed"
                     >
                       I agree to Andishi's terms of service and privacy policy.
                       I understand that this is a project inquiry and final
@@ -1216,14 +1409,14 @@ export default function ClientDashboardStartProject({}) {
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
                 currentStep === 1
                   ? "text-gray-500 cursor-not-allowed"
-                  : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
+                  : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/5 cursor-pointer"
               }`}
             >
               <FaArrowLeft className="text-sm" />
               <span>Previous</span>
             </button>
 
-            <div className="text-center text-sm text-gray-400">
+            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
               Step {currentStep} of {steps.length}
             </div>
 
@@ -1234,8 +1427,8 @@ export default function ClientDashboardStartProject({}) {
                 disabled={!isStepValid()}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
                   isStepValid()
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
-                    : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-gray-900 dark:text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
+                    : "bg-gray-500/20 text-gray-600 dark:text-gray-400 cursor-not-allowed"
                 }`}
               >
                 <span>Next</span>
@@ -1248,8 +1441,8 @@ export default function ClientDashboardStartProject({}) {
                 disabled={!termsAccepted || submitStatus === "loading"}
                 className={`monty uppercase flex items-center space-x-2 px-8 py-3 rounded-lg transition-all duration-300 ${
                   termsAccepted && submitStatus !== "loading"
-                    ? "bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 cursor-pointer"
-                    : "bg-gray-500/20 text-gray-400 cursor-not-allowed"
+                    ? "bg-gradient-to-r from-green-500 to-blue-500 text-gray-900 dark:text-white hover:from-green-600 hover:to-blue-600 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 cursor-pointer"
+                    : "bg-gray-500/20 text-gray-600 dark:text-gray-400 cursor-not-allowed"
                 }`}
               >
                 {submitStatus === "loading" ? (

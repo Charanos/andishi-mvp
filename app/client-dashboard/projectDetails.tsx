@@ -291,15 +291,23 @@ const formatCurrency = (amount: number, currency: "USD" | "KES") => {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-    "in-progress": "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    completed: "bg-green-500/20 text-green-300 border-green-500/30",
-    overdue: "bg-red-500/20 text-red-300 border-red-500/30",
-    paid: "bg-green-500/20 text-green-300 border-green-500/30",
-    partial: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    reviewed: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    approved: "bg-teal-500/20 text-teal-300 border-teal-500/30",
-    rejected: "bg-red-500/20 text-red-300 border-red-500/30",
+    pending:
+      "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border-yellow-500/40 dark:border-yellow-500/30",
+    "in-progress":
+      "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/40 dark:border-blue-500/30",
+    completed:
+      "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/40 dark:border-green-500/30",
+    overdue:
+      "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40 dark:border-red-500/30",
+    paid: "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/40 dark:border-green-500/30",
+    partial:
+      "bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/40 dark:border-orange-500/30",
+    reviewed:
+      "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40 dark:border-purple-500/30",
+    approved:
+      "bg-teal-500/20 text-teal-700 dark:text-teal-300 border-teal-500/40 dark:border-teal-500/30",
+    rejected:
+      "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40 dark:border-red-500/30",
   };
   return colors[status] || colors.pending;
 };
@@ -320,11 +328,11 @@ const getStatusIcon = (status: string) => {
 
 const getPriorityColor = (priority: string) => {
   const colors: Record<string, string> = {
-    low: "bg-gray-500/20 text-gray-300",
-    medium: "bg-yellow-500/20 text-yellow-300",
-    high: "bg-red-500/20 text-red-300",
-    urgent: "bg-red-500/20 text-red-300",
-    critical: "bg-red-500/20 text-red-300",
+    low: "bg-gray-500/20 text-gray-700 dark:text-gray-300",
+    medium: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300",
+    high: "bg-red-500/20 text-red-700 dark:text-red-300",
+    urgent: "bg-red-500/20 text-red-700 dark:text-red-300",
+    critical: "bg-red-500/20 text-red-700 dark:text-red-300",
   };
   return colors[priority] || colors.low;
 };
@@ -603,33 +611,93 @@ export default function EnhancedProjectTracking({
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
 
   const totalBudget = (() => {
+    // Helper to safely parse budget values
+    const parseBudget = (value: any): number => {
+      if (typeof value === 'number') return value;
+      if (typeof value === 'string') {
+        const parsed = parseFloat(value.replace(/[^0-9.-]+/g, ''));
+        return isNaN(parsed) ? 0 : parsed;
+      }
+      return 0;
+    };
+
     switch (projectData.pricing?.type) {
       case "fixed":
-        return projectData.pricing.fixedBudget
-          ? parseFloat(projectData.pricing.fixedBudget)
-          : 0;
+        return parseBudget(projectData.pricing.fixedBudget);
+      
       case "milestone":
-        return (projectData.milestones || []).reduce(
-          (sum, m) => sum + parseFloat(m.budget),
+        // For milestone projects, sum all milestone budgets
+        const projectMilestones = projectData.milestones || [];
+        const pricingMilestones = projectData.pricing?.milestones || [];
+        
+        // Try project milestones first
+        let milestoneBudgets = projectMilestones.reduce(
+          (sum, m) => sum + parseBudget(m.budget),
           0
         );
+        
+        // If no budget from project milestones, try pricing milestones
+        if (milestoneBudgets === 0 && pricingMilestones.length > 0) {
+          milestoneBudgets = pricingMilestones.reduce(
+            (sum, m) => sum + parseBudget(m.budget),
+            0
+          );
+        }
+        
+        return milestoneBudgets;
+      
+      case "contract":
+        // For contract projects, calculate: monthlyRate × duration (in months)
+        const contractDetails = projectData.pricing?.contractDetails;
+        if (contractDetails) {
+          const monthlyRate = parseBudget(contractDetails.monthlyRate);
+          const duration = parseBudget(contractDetails.duration);
+          
+          // Convert duration to months if needed
+          const durationInMonths = contractDetails.durationUnit === 'years' 
+            ? duration * 12 
+            : duration;
+          
+          return monthlyRate * durationInMonths;
+        }
+        return 0;
+      
       case "hourly":
-        return projectData.pricing.hourlyRate &&
-          projectData.pricing.estimatedHours
-          ? parseFloat(projectData.pricing.hourlyRate) *
-              parseFloat(projectData.pricing.estimatedHours)
-          : 0;
+        const hourlyRate = parseBudget(projectData.pricing.hourlyRate);
+        const estimatedHours = parseBudget(projectData.pricing.estimatedHours);
+        return hourlyRate * estimatedHours;
+      
       default:
         return 0;
     }
   })();
 
   const spentBudget = (projectData.payments || []).reduce(
-    (sum, p) => sum + p.amount,
+    (sum, p) => sum + (typeof p.amount === 'number' ? p.amount : parseFloat(String(p.amount)) || 0),
     0
   );
+  
   const budgetProgress =
     totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
+  
+  const remainingBudget = totalBudget - spentBudget;
+  
+  // Debug logging for contract projects
+  useEffect(() => {
+    if (projectData.pricing?.type === 'contract') {
+      console.log('=== CONTRACT BUDGET DEBUG ===');
+      console.log('Contract Details:', projectData.pricing?.contractDetails);
+      console.log('Monthly Rate:', projectData.pricing?.contractDetails?.monthlyRate);
+      console.log('Duration:', projectData.pricing?.contractDetails?.duration);
+      console.log('Duration Unit:', projectData.pricing?.contractDetails?.durationUnit);
+      console.log('Total Budget (Calculated):', totalBudget);
+      console.log('Spent Budget:', spentBudget);
+      console.log('Remaining Budget:', remainingBudget);
+      console.log('Budget Progress:', budgetProgress + '%');
+      console.log('Payments:', projectData.payments);
+      console.log('============================');
+    }
+  }, [projectData, totalBudget, spentBudget, remainingBudget, budgetProgress]);
 
   // Calculate timeline
   const startDate = projectData.startDate;
@@ -1219,26 +1287,28 @@ export default function EnhancedProjectTracking({
             {/* Project Overview Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
               {/* Project Summary Card */}
-              <div className="bg-gradient-to-br from-gray-800/10 to-gray-700/5 backdrop-blur-xl border border-gray-600/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-gray-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-gray-200/60 dark:from-gray-800/10 to-gray-100/40 dark:to-gray-700/5 backdrop-blur-xl border border-gray-300/40 dark:border-gray-600/20 rounded-2xl p-6 shadow-md hover:shadow-gray-300/20 dark:hover:shadow-gray-500/10 transition-all duration-300">
                 <div className="flex flex-col items-start mb-4">
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     Project Summary
                   </h3>
-                  <p className="text-gray-300 text-sm">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm">
                     Start Date:{" "}
                     {projectData.startDate
                       ? new Date(projectData.startDate).toLocaleDateString()
                       : "N/A"}
                   </p>
-                  <p className="text-gray-300 text-sm">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm">
                     Status:{" "}
                     <span className={getStatusColor(projectData.status)}>
                       {projectData.status}
                     </span>
                   </p>
                 </div>
-                <h3 className="text-white font-semibold mb-2">Last Update</h3>
-                <p className="text-gray-400 text-sm">
+                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
+                  Last Update
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                   {projectData.updatedAt
                     ? new Date(projectData.updatedAt).toLocaleDateString()
                     : "N/A"}
@@ -1246,19 +1316,19 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Progress Card */}
-              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-blue-100/60 dark:from-blue-500/10 to-blue-50/40 dark:to-blue-600/5 backdrop-blur-xl border border-blue-300/40 dark:border-blue-500/20 rounded-2xl p-6 shadow-md hover:shadow-blue-300/20 dark:hover:shadow-blue-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <Target className="w-6 h-6 text-blue-300" />
+                  <div className="p-3 bg-blue-500/30 dark:bg-blue-500/20 rounded-xl">
+                    <Target className="w-6 h-6 text-blue-600 dark:text-blue-300" />
                   </div>
-                  <span className="text-2xl font-semibold text-white">
+                  <span className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {projectData.progress}%
                   </span>
                 </div>
-                <h3 className="text-white font-semibold mb-2">
+                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
                   Overall Progress
                 </h3>
-                <div className="w-full bg-gray-700/50 rounded-full h-2">
+                <div className="w-full bg-gray-300 dark:bg-gray-700/50 rounded-full h-2">
                   <div
                     className="bg-gradient-to-r from-blue-500 to-blue-400 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${projectData.progress}%` }}
@@ -1270,17 +1340,19 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Milestones Card */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-purple-100/60 dark:from-purple-500/10 to-purple-50/40 dark:to-purple-600/5 backdrop-blur-xl border border-purple-300/40 dark:border-purple-500/20 rounded-2xl p-6 shadow-md hover:shadow-purple-300/20 dark:hover:shadow-purple-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-purple-500/20 rounded-xl">
-                    <CheckCircle className="w-6 h-6 text-purple-300" />
+                  <div className="p-3 bg-purple-500/30 dark:bg-purple-500/20 rounded-xl">
+                    <CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-300" />
                   </div>
-                  <span className="text-2xl font-semibold text-white">
+                  <span className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {completedMilestones}/{totalMilestones}
                   </span>
                 </div>
-                <h3 className="text-white font-semibold mb-2">Milestones</h3>
-                <div className="w-full bg-gray-700/50 rounded-full h-2">
+                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
+                  Milestones
+                </h3>
+                <div className="w-full bg-gray-300 dark:bg-gray-700/50 rounded-full h-2">
                   <div
                     className="bg-gradient-to-r from-purple-500 to-purple-400 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${milestoneProgress}%` }}
@@ -1292,26 +1364,28 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Budget Card */}
-              <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-xl border border-green-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-green-100/60 dark:from-green-500/10 to-green-50/40 dark:to-green-600/5 backdrop-blur-xl border border-green-300/40 dark:border-green-500/20 rounded-2xl p-6 shadow-md hover:shadow-green-300/20 dark:hover:shadow-green-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-green-500/20 rounded-xl">
-                    <DollarSign className="w-6 h-6 text-green-300" />
+                  <div className="p-3 bg-green-500/30 dark:bg-green-500/20 rounded-xl">
+                    <DollarSign className="w-6 h-6 text-green-600 dark:text-green-300" />
                   </div>
-                  <span className="text-2xl font-semibold text-white">
+                  <span className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {formatCurrency(
                       spentBudget,
                       projectData.pricing?.currency || "USD"
                     )}
                   </span>
                 </div>
-                <h3 className="text-white font-semibold mb-2">Budget Spent</h3>
-                <div className="w-full bg-gray-700/50 rounded-full h-2">
+                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
+                  Budget Spent
+                </h3>
+                <div className="w-full bg-gray-300 dark:bg-gray-700/50 rounded-full h-2">
                   <div
                     className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(budgetProgress, 100)}%` }}
                   ></div>
                 </div>
-                <p className="text-gray-400 text-sm mt-2">
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
                   of{" "}
                   {formatCurrency(
                     totalBudget,
@@ -1322,19 +1396,21 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Timeline Card */}
-              <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 backdrop-blur-xl border border-orange-500/20 rounded-2xl p-6 hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300">
+              <div className="bg-gradient-to-br from-orange-100/60 dark:from-orange-500/10 to-orange-50/40 dark:to-orange-600/5 backdrop-blur-xl border border-orange-300/40 dark:border-orange-500/20 rounded-2xl p-6 shadow-md hover:shadow-orange-300/20 dark:hover:shadow-orange-500/10 transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-orange-500/20 rounded-xl">
-                    <Calendar className="w-6 h-6 text-orange-300" />
+                  <div className="p-3 bg-orange-500/30 dark:bg-orange-500/20 rounded-xl">
+                    <Calendar className="w-6 h-6 text-orange-600 dark:text-orange-300" />
                   </div>
-                  <span className="text-2xl font-semibold text-white">
+                  <span className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {daysPassed}
                   </span>
                 </div>
-                <h3 className="text-white font-semibold mb-2">Days Active</h3>
+                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
+                  Days Active
+                </h3>
                 {totalDays > 0 && (
                   <>
-                    <div className="w-full bg-gray-700/50 rounded-full h-2">
+                    <div className="w-full bg-gray-300 dark:bg-gray-700/50 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-orange-500 to-orange-400 h-2 rounded-full transition-all duration-500"
                         style={{
@@ -1345,7 +1421,7 @@ export default function EnhancedProjectTracking({
                         }}
                       ></div>
                     </div>
-                    <p className="text-gray-400 text-sm mt-2">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
                       {Math.max(totalDays - daysPassed, 0)} days remaining
                     </p>
                   </>
@@ -1359,8 +1435,8 @@ export default function EnhancedProjectTracking({
                     !projectData.estimatedCompletionDate
                   ) {
                     return (
-                      <div className="mt-3 p-2 bg-orange-500/10 rounded-lg">
-                        <p className="text-xs text-orange-300 font-medium">
+                      <div className="mt-3 p-2 bg-orange-500/20 dark:bg-orange-500/10 rounded-lg">
+                        <p className="text-xs text-orange-700 dark:text-orange-300 font-medium">
                           Estimated Due:{" "}
                           {calculatedDueDate.toLocaleDateString()}
                         </p>
@@ -1375,34 +1451,34 @@ export default function EnhancedProjectTracking({
             {/* Activity and Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Recent Activity */}
-              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
+              <div className="bg-white/40 dark:bg-black/5 backdrop-blur-xl border border-gray-300/40 dark:border-white/10 rounded-2xl p-8 shadow-md transition-all duration-300">
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
-                    <Activity className="w-5 h-5 text-cyan-300" />
+                  <div className="p-2 bg-gradient-to-br from-cyan-500/30 dark:from-cyan-500/20 to-blue-500/30 dark:to-blue-500/20 rounded-xl">
+                    <Activity className="w-5 h-5 text-cyan-600 dark:text-cyan-300" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-white">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                     Recent Activity
                   </h2>
                 </div>
 
                 <div className="space-y-6">
                   {recentActivity.length === 0 ? (
-                    <p className="text-gray-400">
+                    <p className="text-gray-600 dark:text-gray-400">
                       No recent activity available
                     </p>
                   ) : (
                     recentActivity.map((activity) => (
                       <div
                         key={activity.id}
-                        className="border-b border-gray-700 pb-2 mb-2"
+                        className="border-b border-gray-300 dark:border-gray-700 pb-2 mb-2"
                       >
-                        <h3 className="text-lg font-semibold text-white mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                           {activity.title}
                         </h3>
-                        <p className="text-gray-300 text-sm">
+                        <p className="text-gray-700 dark:text-gray-300 text-sm">
                           {activity.description}
                         </p>
-                        <p className="text-gray-500 text-xs mt-1">
+                        <p className="text-gray-500 dark:text-gray-500 text-xs mt-1">
                           {new Date(activity.createdAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -1412,61 +1488,61 @@ export default function EnhancedProjectTracking({
               </div>
 
               {/* Project Information */}
-              <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
+              <div className="bg-white/40 dark:bg-black/5 backdrop-blur-xl border border-gray-300/40 dark:border-white/10 rounded-2xl p-8 shadow-md transition-all duration-300">
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl">
-                    <FileText className="w-5 h-5 text-cyan-300" />
+                  <div className="p-2 bg-gradient-to-br from-cyan-500/30 dark:from-cyan-500/20 to-blue-500/30 dark:to-blue-500/20 rounded-xl">
+                    <FileText className="w-5 h-5 text-cyan-600 dark:text-cyan-300" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-white">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                     Project Details
                   </h2>
                 </div>
 
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       Description
                     </h3>
-                    <p className="text-gray-300 leading-relaxed">
+                    <p className="text-gray-800 dark:text-gray-300 leading-relaxed font-medium">
                       {projectData.projectDetails?.description}
                     </p>
                   </div>
 
                   {projectData.projectDetails?.requirements && (
                     <div>
-                      <h3 className="text-lg font-semibold text-white mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                         Requirements
                       </h3>
-                      <p className="text-gray-300 leading-relaxed">
+                      <p className="text-gray-800 dark:text-gray-300 leading-relaxed font-medium">
                         {projectData.projectDetails?.requirements}
                       </p>
                     </div>
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                      <label className="text-sm font-medium text-gray-400 mb-2 block">
+                    <div className="p-4 bg-white/60 dark:bg-white/[0.03] rounded-xl border border-gray-300/40 dark:border-white/5">
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
                         Priority
                       </label>
-                      <span className="text-white font-medium capitalize">
+                      <span className="text-gray-900 dark:text-white font-medium capitalize">
                         {projectData.projectDetails?.priority}
                       </span>
                     </div>
 
-                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                      <label className="text-sm font-medium text-gray-400 mb-2 block">
+                    <div className="p-4 bg-white/60 dark:bg-white/[0.03] rounded-xl border border-gray-300/40 dark:border-white/5">
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
                         Timeline
                       </label>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 dark:text-white font-medium">
                         {projectData.projectDetails.timeline}
                       </span>
                     </div>
 
-                    <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                      <label className="text-sm font-medium text-gray-400 mb-2 block">
+                    <div className="p-4 bg-white/60 dark:bg-white/[0.03] rounded-xl border border-gray-300/40 dark:border-white/5">
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
                         Expected Completion
                       </label>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 dark:text-white font-medium">
                         {(() => {
                           // Use existing completion date if available
                           if (projectData.estimatedCompletionDate) {
@@ -1499,67 +1575,75 @@ export default function EnhancedProjectTracking({
             </div>
 
             {/* Performance Insights */}
-            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
+            <div className="bg-white/40 dark:bg-black/5 backdrop-blur-xl border border-gray-300/40 dark:border-white/10 rounded-2xl p-8 shadow-md transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-teal-500/20 to-green-500/20 rounded-xl">
-                  <Target className="w-5 h-5 text-teal-300" />
+                <div className="p-2 bg-gradient-to-br from-teal-500/30 dark:from-teal-500/20 to-green-500/30 dark:to-green-500/20 rounded-xl">
+                  <Target className="w-5 h-5 text-teal-600 dark:text-teal-300" />
                 </div>
-                <h2 className="text-2xl font-semibold text-white">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                   Performance Insights
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                <div className="p-4 bg-white/60 dark:bg-white/[0.03] rounded-xl border border-gray-300/40 dark:border-white/5">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     Project Health
                   </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-gray-700 dark:text-gray-400 text-sm font-medium">
                         Milestones Completed
                       </span>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 dark:text-white font-bold">
                         {completedMilestones} of {totalMilestones}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-gray-700 dark:text-gray-400 text-sm font-medium">
                         Budget Utilized
                       </span>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 dark:text-white font-bold">
                         {Math.round(budgetProgress)}%
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Days Active</span>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-700 dark:text-gray-400 text-sm font-medium">
+                        Days Active
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-bold">
                         {daysPassed}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/5">
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                <div className="p-4 bg-white/60 dark:bg-white/[0.03] rounded-xl border border-gray-300/40 dark:border-white/5">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     Quick Stats
                   </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Total Files</span>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-700 dark:text-gray-400 text-sm font-medium">
+                        Total Files
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-bold">
                         {projectData.files?.length || 0}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Updates</span>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-700 dark:text-gray-400 text-sm font-medium">
+                        Updates
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-bold">
                         {projectData.updates?.length || 0}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Payments</span>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-700 dark:text-gray-400 text-sm font-medium">
+                        Payments
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-bold">
                         {projectData.payments?.length || 0}
                       </span>
                     </div>
@@ -1569,12 +1653,12 @@ export default function EnhancedProjectTracking({
             </div>
 
             {/* Technology Stack */}
-            <div className="bg-black/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:shadow-xl transition-all duration-300">
+            <div className="bg-white/40 dark:bg-black/5 backdrop-blur-xl border border-gray-300/40 dark:border-white/10 rounded-2xl p-8 shadow-md transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl">
-                  <Code className="w-5 h-5 text-indigo-300" />
+                <div className="p-2 bg-gradient-to-br from-indigo-500/30 dark:from-indigo-500/20 to-purple-500/30 dark:to-purple-500/20 rounded-xl">
+                  <Code className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
                 </div>
-                <h2 className="text-2xl font-semibold text-white">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                   Technology Stack
                 </h2>
               </div>
@@ -1583,9 +1667,9 @@ export default function EnhancedProjectTracking({
                 {projectData.projectDetails.techStack.map((tech, index) => (
                   <div
                     key={index}
-                    className="group relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 hover:scale-105 transition-all duration-200 text-center"
+                    className="group relative bg-gradient-to-br from-white/60 dark:from-white/10 to-white/40 dark:to-white/5 backdrop-blur-sm border border-gray-300/40 dark:border-white/10 rounded-xl p-4 hover:bg-white/70 dark:hover:bg-white/15 hover:scale-105 transition-all duration-200 text-center"
                   >
-                    <span className="text-gray-200 font-medium text-sm">
+                    <span className="text-gray-900 dark:text-gray-200 font-bold text-sm">
                       {tech}
                     </span>
                   </div>
@@ -2026,7 +2110,7 @@ export default function EnhancedProjectTracking({
                   </h3>
                   <p className="text-2xl font-semibold text-white">
                     {formatCurrency(
-                      totalBudget - spentBudget,
+                      remainingBudget,
                       projectData.pricing?.currency || "USD"
                     )}
                   </p>
@@ -2960,132 +3044,199 @@ export default function EnhancedProjectTracking({
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-[1600px] mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-pink-900/60 shadow-xl border border-purple-500/30 rounded-2xl p-8 mb-8 w-full relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-50"></div>
-          <div className="relative z-10">
-            <div className="flex flex-col sm:flex-row items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-4 mb-4">
-                  <button
-                    className="flex cursor-pointer items-center space-x-2 text-gray-400 hover:text-white transition-all duration-300 hover:bg-white/10 px-3 py-2 rounded-lg"
-                    onClick={onBack}
-                  >
-                    <FaArrowCircleLeft className="w-5 h-5" />
-                    <span>Back to Projects</span>
-                  </button>
-                  <div className="h-6 w-px bg-white/20"></div>
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl font-semibold text-white mb-2">
-                      {projectData.projectDetails?.title}
-                    </h1>
-                    <p className="text-gray-300 max-w-2xl">
-                      {projectData.projectDetails?.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4 mb-6">
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(projectData.status)}
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                        projectData.status
-                      )}`}
-                    >
-                      {projectData.status.replace("_", " ")}
-                    </span>
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(
-                      projectData.projectDetails?.priority
-                    )}`}
-                  >
-                    {projectData.projectDetails?.priority} priority
-                  </div>
-                  <div className="text-gray-300">
-                    <Code className="w-4 h-4 inline mr-2" />
+    <div className="min-h-screen ">
+      <div className="max-w-[1800px] mx-auto py-8">
+        <div className="flex gap-6">
+          {/* Sidebar */}
+          <aside className="w-70 flex-shrink-0 sticky top-4 h-[calc(100vh-2rem)] hidden lg:block">
+            <div className="backdrop-blur-xl bg-gradient-to-br dark:from-indigo-900/60 dark:via-purple-900/40 dark:to-pink-900/60 from-indigo-900/20 via-purple-900/10 to-pink-900/20 shadow-lg border border-purple-500/20 dark:border-purple-500/10 rounded-2xl p-6 h-full flex flex-col space-y-8 overflow-hidden">
+              {/* Sidebar Header */}
+              <div className="space-y-4">
+                <button
+                  onClick={onBack}
+                  className="flex cursor-pointer mb-4 items-center space-x-2 text-gray-800 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all duration-200 bg-white/20 dark:bg-white/5 hover:bg-white/30 dark:hover:bg-white/10 px-3 py-2 rounded-lg w-full"
+                >
+                  <FaArrowCircleLeft className="w-5 h-5" />
+                  <span className="text-xs monty uppercase">
+                    Back to Projects
+                  </span>
+                </button>
+                <div>
+                  <h1 className="text-xl monty uppercase font-medium my-1 text-gray-900 dark:text-white leading-tight truncate">
+                    {projectData.projectDetails?.title}
+                  </h1>
+                  <p className="text-gray-700 dark:text-gray-400 text-xs mt-1 truncate">
                     {projectData.projectDetails?.category}
-                  </div>
-                </div>
-
-                {/* Tech Stack */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {projectData.projectDetails?.techStack.map((tech, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
-                    >
-                      {tech}
-                    </span>
-                  ))}
+                  </p>
                 </div>
               </div>
 
-              {/* Project Stats */}
-              <div className="grid grid-cols-2 gap-4 mt-4 sm:mt-0 ml-0 sm:ml-8">
-                <div className="text-center">
-                  <div className="text-2xl font-semibold text-white">
-                    {projectData.progress}%
+              {/* Navigation */}
+              <nav className="flex-1 overflow-y-auto pr-2">
+                <ul className="space-y-5">
+                  {trackingTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const active = trackingView === tab.id;
+                    return (
+                      <li key={tab.id}>
+                        <button
+                          onClick={() => setTrackingView(tab.id)}
+                          className={`cursor-pointer w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-300 ${
+                            active
+                              ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 font-semi-bold text-white dark:text-gray-100 shadow-lg shadow-indigo-500/25"
+                              : "text-gray-800 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/30 dark:hover:from-indigo-500/20 hover:to-purple-500/30 dark:hover:to-purple-500/20"
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span className="text-xs font-medium monty uppercase">
+                            {tab.label}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8">
+            {/* Header Card */}
+            <div className="backdrop-blur-xl bg-gradient-to-br dark:from-indigo-900/60 dark:via-purple-900/40 dark:to-pink-900/60 from-indigo-900/20 via-purple-900/10 to-pink-900/20 shadow-lg border border-purple-500/20 dark:border-purple-500/30 rounded-2xl p-6 sm:p-8 mb-6 w-full relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-50"></div>
+              <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row items-start justify-between">
+                  <div className="flex-1">
+                    <div className="lg:hidden mb-4">
+                      <button
+                        className="flex cursor-pointer items-center space-x-2 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-300 hover:bg-white/20 dark:hover:bg-white/10 px-3 py-2 rounded-lg"
+                        onClick={onBack}
+                      >
+                        <FaArrowCircleLeft className="w-5 h-5" />
+                        <span>Back to Projects</span>
+                      </button>
+                    </div>
+                    <div>
+                      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-2">
+                        {projectData.projectDetails?.title}
+                      </h1>
+                      <p className="text-gray-600 dark:text-gray-300 max-w-2xl">
+                        {projectData.projectDetails?.description}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4 mb-6 mt-4">
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(projectData.status)}
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+                            projectData.status
+                          )}`}
+                        >
+                          {projectData.status.replace("_", " ")}
+                        </span>
+                      </div>
+                      <div
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(
+                          projectData.projectDetails?.priority
+                        )}`}
+                      >
+                        {projectData.projectDetails?.priority} priority
+                      </div>
+                      <div className="text-gray-700 dark:text-gray-300">
+                        <Code className="w-4 h-4 inline mr-2" />
+                        {projectData.projectDetails?.category}
+                      </div>
+                    </div>
+
+                    {/* Tech Stack */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {projectData.projectDetails?.techStack.map(
+                        (tech, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium"
+                          >
+                            {tech}
+                          </span>
+                        )
+                      )}
+                    </div>
                   </div>
-                  <div className="text-gray-400 text-sm">Complete</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-semibold text-white">
-                    {completedMilestones}/{totalMilestones}
+
+                  {/* Project Stats */}
+                  <div className="grid grid-cols-2 gap-4 mt-4 sm:mt-0 ml-0 sm:ml-8">
+                    <div className="text-center">
+                      <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        {projectData.progress}%
+                      </div>
+                      <div className="text-gray-600 dark:text-gray-400 text-sm">
+                        Complete
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        {completedMilestones}/{totalMilestones}
+                      </div>
+                      <div className="text-gray-600 dark:text-gray-400 text-sm">
+                        Milestones
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        {formatCurrency(
+                          remainingBudget,
+                          projectData.pricing?.currency || "USD"
+                        )}
+                      </div>
+                      <div className="text-gray-600 dark:text-gray-400 text-sm">
+                        Remaining
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        {(projectData.files || []).length}
+                      </div>
+                      <div className="text-gray-600 dark:text-gray-400 text-sm">
+                        Files
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-gray-400 text-sm">Milestones</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-semibold text-white">
-                    {formatCurrency(
-                      totalBudget - spentBudget,
-                      projectData.pricing?.currency || "USD"
-                    )}
-                  </div>
-                  <div className="text-gray-400 text-sm">Remaining</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-semibold text-white">
-                    {(projectData.files || []).length}
-                  </div>
-                  <div className="text-gray-400 text-sm">Files</div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Project Tracking Navigation */}
-        <div className="bg-gradient-to-r from-slate-800/60 via-gray-800/40 to-slate-800/60 shadow-xl backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-4 mb-8 w-full relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-70"></div>
-          <div className="relative z-10">
-            <div className="flex items-center justify-center space-x-2 overflow-x-auto md:overflow-x-visible py-2">
-              {trackingTabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setTrackingView(tab.id)}
-                    className={`cursor-pointer flex items-center space-x-2 px-5 py-3 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
-                      trackingView === tab.id
-                        ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25 scale-105"
-                        : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:scale-105"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="font-medium text-sm">{tab.label}</span>
-                  </button>
-                );
-              })}
+            {/* Mobile Navigation - Only shown on small screens */}
+            <div className="lg:hidden bg-gradient-to-r dark:from-slate-800/60 dark:via-gray-800/40 dark:to-slate-800/60 from-slate-200/60 via-gray-200/40 to-slate-200/60 shadow-lg backdrop-blur-xl border border-indigo-500/20 dark:border-indigo-500/20 rounded-2xl p-4 mb-6 w-full relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-70"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-center space-x-2 overflow-x-auto py-2">
+                  {trackingTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setTrackingView(tab.id)}
+                        className={`cursor-pointer flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                          trackingView === tab.id
+                            ? "bg-gradient-to-r from-indigo-500/80 to-purple-500/80 text-white shadow-lg shadow-indigo-500/25"
+                            : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gradient-to-r hover:from-indigo-500/30 dark:hover:from-indigo-500/20 hover:to-purple-500/30 dark:hover:to-purple-500/20"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="font-medium text-xs">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+
+            {/* Dynamic Content Based on Selected Tab */}
+            <div>{renderTrackingContent()}</div>
           </div>
         </div>
-
-        {/* Dynamic Content Based on Selected Tab */}
-        <div className="pt-4">{renderTrackingContent()}</div>
       </div>
 
       {/* Toast Container */}

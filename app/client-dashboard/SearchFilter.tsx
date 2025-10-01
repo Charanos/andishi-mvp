@@ -243,24 +243,24 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
   };
 
   return (
-    <div className="space-y-4 bg-white/5 my-8 p-6 rounded-3xl">
+    <div className="space-y-4 bg-white/10 dark:bg-white/5 my-8 p-6 rounded-3xl border border-gray-200 dark:border-white/10 shadow-lg dark:shadow-none backdrop-blur-md">
       {/* Main Search and Filter Bar */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center">
           {/* Enhanced Search Input */}
           <div className="relative group">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 group-focus-within:text-purple-500 dark:group-focus-within:text-purple-400 transition-colors" />
             <input
               type="text"
               placeholder="Search projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-black/10 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-purple-500/50 focus:bg-black/50 focus:outline-none lg:w-100  transition-all duration-200 hover:border-white/20"
+              className="pl-10 pr-4 py-2.5 bg-white/20 dark:bg-black/10 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500/50 focus:bg-white/30 dark:focus:bg-black/50 focus:outline-none lg:w-100  transition-all duration-200 hover:border-gray-400 dark:hover:border-white/20"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -272,19 +272,19 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value as StatusValue)}
-              className="appearance-none pl-4 pr-10 py-2.5  bg-black/10 border border-white/10 rounded-xl text-white focus:border-purple-500/50 focus:bg-white/10 focus:outline-none transition-all duration-200 hover:border-white/20 cursor-pointer min-w-[140px]"
+              className="appearance-none pl-4 pr-10 py-2.5 bg-white/20 dark:bg-black/10 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white focus:border-purple-500/50 focus:bg-white/30 dark:focus:bg-white/10 focus:outline-none transition-all duration-200 hover:border-gray-400 dark:hover:border-white/20 cursor-pointer min-w-[140px]"
             >
               {statusOptions.map((option) => (
                 <option
                   key={option.value}
                   value={option.value}
-                  className="bg-black/70 text-white"
+                  className="bg-gray-100 dark:bg-black/70 text-gray-900 dark:text-white"
                 >
                   {option.label}
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none" />
           </div>
 
           {/* Custom Priority Dropdown */}
@@ -294,13 +294,13 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
               onChange={(e) =>
                 setSelectedPriority(e.target.value as PriorityValue)
               }
-              className="appearance-none pl-4 pr-10 py-2.5  bg-black/10 border border-white/10 rounded-xl text-white focus:border-purple-500/50 focus:bg-white/10 focus:outline-none transition-all duration-200 hover:border-white/20 cursor-pointer min-w-[140px]"
+              className="appearance-none pl-4 pr-10 py-2.5 bg-white/20 dark:bg-black/10 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white focus:border-purple-500/50 focus:bg-white/30 dark:focus:bg-white/10 focus:outline-none transition-all duration-200 hover:border-gray-400 dark:hover:border-white/20 cursor-pointer min-w-[140px]"
             >
               {priorityOptions.map((option) => (
                 <option
                   key={option.value}
                   value={option.value}
-                  className="bg-gray-900 text-white"
+                  className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white"
                 >
                   {option.label}
                 </option>
@@ -314,8 +314,8 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className={`flex cursor-pointer items-center space-x-2 px-4 py-2.5 rounded-xl transition-all duration-200 ${
               showAdvancedFilters || activeFiltersCount > 0
-                ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                : "bg-black/10 border border-white/10 text-gray-400 hover:text-gray-300 hover:border-white/20"
+                ? "bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30"
+                : "bg-white/20 dark:bg-black/10 border border-gray-300 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
             }`}
           >
             <Filter className="w-4 h-4" />
@@ -331,7 +331,7 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
           {activeFiltersCount > 0 && (
             <button
               onClick={clearAllFilters}
-              className="cursor-pointer text-gray-400 hover:text-white text-sm underline transition-colors"
+              className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm underline transition-colors"
             >
               Clear all
             </button>
@@ -345,35 +345,35 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortByValue)}
-              className="appearance-none pl-4 pr-10 py-2.5 bg-black/10 border border-white/10 rounded-xl text-white focus:border-purple-500/50 focus:outline-none transition-all duration-200 hover:border-white/20 cursor-pointer text-sm"
+              className="appearance-none pl-4 pr-10 py-2.5 bg-white/20 dark:bg-black/10 border border-gray-300 dark:border-white/10 rounded-xl text-gray-900 dark:text-white focus:border-purple-500/50 focus:outline-none transition-all duration-200 hover:border-gray-400 dark:hover:border-white/20 cursor-pointer text-sm"
             >
-              <option value="newest" className=" bg-black/50">
+              <option value="newest" className="bg-gray-100 dark:bg-black/50 text-gray-900 dark:text-white">
                 Newest first
               </option>
-              <option value="oldest" className=" bg-black/50">
+              <option value="oldest" className="bg-gray-100 dark:bg-black/50 text-gray-900 dark:text-white">
                 Oldest first
               </option>
-              <option value="name" className=" bg-black/50">
+              <option value="name" className="bg-gray-100 dark:bg-black/50 text-gray-900 dark:text-white">
                 Name A-Z
               </option>
-              <option value="priority" className=" bg-black/50">
+              <option value="priority" className="bg-gray-100 dark:bg-black/50 text-gray-900 dark:text-white">
                 Priority
               </option>
-              <option value="status" className=" bg-black/50">
+              <option value="status" className="bg-gray-100 dark:bg-black/50 text-gray-900 dark:text-white">
                 Status
               </option>
             </select>
-            <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none" />
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center bg-black/10 border border-white/10 rounded-xl p-1">
+          <div className="flex items-center bg-white/20 dark:bg-black/10 border border-gray-300 dark:border-white/10 rounded-xl p-1">
             <button
               onClick={() => setCurrentView("grid")}
               className={`cursor-pointer p-2 rounded-lg transition-all duration-200 ${
                 currentView === "grid"
-                  ? "bg-purple-500/30 text-purple-300 shadow-lg"
-                  : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+                  ? "bg-purple-500/30 text-purple-600 dark:text-purple-300 shadow-lg"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-white/20 dark:hover:bg-white/5"
               }`}
               title="Grid view"
             >
@@ -383,8 +383,8 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
               onClick={() => setCurrentView("list")}
               className={`cursor-pointer p-2 rounded-lg transition-all duration-200 ${
                 currentView === "list"
-                  ? "bg-purple-500/30 text-purple-300 shadow-lg"
-                  : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+                  ? "bg-purple-500/30 text-purple-600 dark:text-purple-300 shadow-lg"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-white/20 dark:hover:bg-white/5"
               }`}
               title="List view"
             >
@@ -396,32 +396,32 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
 
       {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
+        <div className="bg-white/10 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-6 backdrop-blur-sm shadow-lg dark:shadow-none">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center space-x-2">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-300">Date Range:</span>
+              <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Date Range:</span>
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value as DateRangeValue)}
-                className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50 focus:outline-none"
+                className="px-3 py-1.5 bg-white/20 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white text-sm focus:border-purple-500/50 focus:outline-none"
               >
-                <option value="all" className="bg-gray-900">
+                <option value="all" className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                   All time
                 </option>
-                <option value="today" className="bg-gray-900">
+                <option value="today" className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                   Today
                 </option>
-                <option value="week" className="bg-gray-900">
+                <option value="week" className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                   This week
                 </option>
-                <option value="month" className="bg-gray-900">
+                <option value="month" className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                   This month
                 </option>
-                <option value="quarter" className="bg-gray-900">
+                <option value="quarter" className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                   This quarter
                 </option>
-                <option value="year" className="bg-gray-900">
+                <option value="year" className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                   This year
                 </option>
               </select>
@@ -433,7 +433,7 @@ const SearchFilterComponent: React.FC<SearchFilterProps> = ({
       {/* Active Filters Display */}
       {(searchQuery || activeFiltersCount > 0) && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-gray-400">Active filters:</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
 
           {searchQuery && (
             <div className="flex items-center space-x-1 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm">

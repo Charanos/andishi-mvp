@@ -41,6 +41,7 @@ const publicRoutes = [
   // Public API routes for email testing and contact form
   '/api/email/send',
   '/api/feedback',
+  '/api/cv-upload',
   // Public developer evaluation routes (CTA destination + public API)
   '/developer-evaluation',
   '/thank-you-evaluation',

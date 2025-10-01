@@ -40,6 +40,7 @@ const ROUTE_CONFIG = {
     "/thank-you-start-project",
     "/thanks",
     "/blogs",
+    "/api/cv-upload",
     "/project-details",
     "/featured-blog",
     "/legal/terms-of-service",
@@ -361,12 +362,22 @@ export default function ConditionalLayout({
     pathname === "/featured-blog";
   const isProjectRelatedRoute =
     pathname.startsWith("/projects") || pathname === "/projects";
+  const isJoinTalentPoolRoute = pathname === "/join-talent-pool";
+  const isStartProjectRoute = pathname === "/start-project";
+  const isThankYouRoute =
+    pathname === "/thank-you-join-talent-pool" ||
+    pathname === "/thank-you-start-project" ||
+    pathname === "/thank-you-evaluation" ||
+    pathname === "/thanks";
   const showFooter =
     !isAuthRoute &&
     !isMinimalLayout &&
     !isDashboardRoute &&
     !isBlogRelatedRoute &&
-    !isProjectRelatedRoute;
+    !isProjectRelatedRoute &&
+    !isJoinTalentPoolRoute &&
+    !isStartProjectRoute &&
+    !isThankYouRoute;
   const mainPadding = showNavbar ? "pt-19" : "";
 
   return (

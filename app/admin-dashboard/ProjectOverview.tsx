@@ -924,6 +924,17 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         0
       );
     }
+    if (project.pricing.type === "contract" && project.pricing.contractDetails) {
+      // Calculate total contract value: monthly rate × duration
+      const monthlyRate = parseFloat(project.pricing.contractDetails.monthlyRate || "0");
+      const duration = parseFloat(project.pricing.contractDetails.duration || "0");
+      const durationUnit = project.pricing.contractDetails.durationUnit;
+      
+      // Convert to months if duration is in years
+      const durationInMonths = durationUnit === "years" ? duration * 12 : duration;
+      
+      return monthlyRate * durationInMonths;
+    }
     if (
       project.pricing.type === "hourly" &&
       project.pricing.hourlyRate &&
@@ -1746,6 +1757,86 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({
                           </div>
                         </div>
                       </div>
+
+                      {/* Contract Details Section - Only for contract-based pricing */}
+                      {selectedProject.pricing.type === "contract" && selectedProject.pricing.contractDetails && (
+                        <div className="relative">
+                          <div className="flex items-center space-x-3 mb-4">
+                            <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+                              Contract Details
+                            </h4>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Engagement Type */}
+                              <div className="bg-white/10 dark:bg-white/10 rounded-xl px-4 py-3 border border-purple-500/30 dark:border-purple-500/20 backdrop-blur-sm">
+                                <p className="text-purple-700 dark:text-purple-300 text-sm font-semibold tracking-wide uppercase monty">
+                                  Engagement Type
+                                </p>
+                                <p className="text-gray-900 dark:text-white font-medium text-base capitalize mt-1">
+                                  {selectedProject.pricing.contractDetails.engagementType.replace("-", " ")}
+                                </p>
+                              </div>
+
+                              {/* Duration */}
+                              <div className="bg-white/10 dark:bg-white/10 rounded-xl px-4 py-3 border border-blue-500/30 dark:border-blue-500/20 backdrop-blur-sm">
+                                <p className="text-blue-700 dark:text-blue-300 text-sm font-semibold tracking-wide uppercase monty">
+                                  Duration
+                                </p>
+                                <p className="text-gray-900 dark:text-white font-medium text-base mt-1">
+                                  {selectedProject.pricing.contractDetails.duration} {selectedProject.pricing.contractDetails.durationUnit}
+                                </p>
+                              </div>
+
+                              {/* Working Hours */}
+                              <div className="bg-white/10 dark:bg-white/10 rounded-xl px-4 py-3 border border-green-500/30 dark:border-green-500/20 backdrop-blur-sm">
+                                <p className="text-green-700 dark:text-green-300 text-sm font-semibold tracking-wide uppercase monty">
+                                  Working Hours/Week
+                                </p>
+                                <p className="text-gray-900 dark:text-white font-medium text-base mt-1">
+                                  {selectedProject.pricing.contractDetails.workingHoursPerWeek} hours
+                                </p>
+                              </div>
+
+                              {/* Monthly Rate */}
+                              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 dark:from-green-500/10 dark:to-emerald-500/10 rounded-xl px-4 py-3 border border-green-500/40 dark:border-green-500/30 backdrop-blur-sm">
+                                <p className="text-green-700 dark:text-green-300 text-sm font-semibold tracking-wide uppercase monty">
+                                  Monthly Rate
+                                </p>
+                                <p className="text-gray-900 dark:text-white font-semibold text-lg mt-1">
+                                  {selectedProject.pricing.currency} {selectedProject.pricing.contractDetails.monthlyRate}/month
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Start Date if available */}
+                            {selectedProject.pricing.contractDetails.startDate && (
+                              <div className="bg-white/10 dark:bg-white/10 rounded-xl px-4 py-3 border border-gray-300 dark:border-gray-600/30 backdrop-blur-sm">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold tracking-wide uppercase monty">
+                                  Start Date
+                                </p>
+                                <p className="text-gray-900 dark:text-white font-medium text-base mt-1">
+                                  {new Date(selectedProject.pricing.contractDetails.startDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Job Description */}
+                            {selectedProject.pricing.contractDetails.jobDescription && (
+                              <div className="bg-white/10 dark:bg-white/10 rounded-xl px-4 py-4 border border-gray-300 dark:border-gray-600/30 backdrop-blur-sm">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold tracking-wide uppercase monty mb-3">
+                                  Job Description
+                                </p>
+                                <div 
+                                  className="prose dark:prose-invert max-w-none text-sm text-gray-800 dark:text-gray-200"
+                                  dangerouslySetInnerHTML={{ __html: selectedProject.pricing.contractDetails.jobDescription }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Payment Status or Additional Info */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

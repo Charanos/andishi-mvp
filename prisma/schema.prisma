@@ -178,12 +178,24 @@ type Milestone {
 }
 
 type Pricing {
-  type           String
-  currency       String
-  fixedBudget    Float?
-  hourlyRate     Float?
-  estimatedHours Int?
-  milestones     Milestone[] // Added for milestone-based pricing
+  type            String
+  currency        String
+  fixedBudget     Float?
+  hourlyRate      Float? // Deprecated - kept for backward compatibility
+  estimatedHours  Int? // Deprecated - kept for backward compatibility
+  milestones      Milestone[] // Added for milestone-based pricing
+  contractDetails ContractDetails? // Added for contract-based pricing
+}
+
+type ContractDetails {
+  engagementType      String // fixed-term, retainer, ongoing
+  duration            String
+  durationUnit        String // months, years
+  workingHoursPerWeek String
+  monthlyRate         String
+  jobDescription      String
+  startDate           String?
+  endDate             String?
 }
 
 type ProjectFile {

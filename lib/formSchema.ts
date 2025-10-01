@@ -15,7 +15,7 @@ const userInfoSchema = z.object({
 // Project details schema
 const projectDetailsSchema = z.object({
   title: z.string().min(1, "Project title is required"),
-  description: z.string().min(10, "Project description must be at least 10 characters"),
+  description: z.string().min(10, "Project summary must be at least 10 characters"),
   category: z.string().optional(),
   timeline: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "urgent"]).default("low"),
@@ -32,22 +32,35 @@ const milestoneSchema = z.object({
   timeline: z.string().min(1, "Milestone timeline is required")
 });
 
+// Contract details schema
+const contractDetailsSchema = z.object({
+  engagementType: z.enum(["fixed-term", "retainer", "ongoing"]),
+  duration: z.string().min(1, "Contract duration is required"),
+  durationUnit: z.enum(["months", "years"]),
+  workingHoursPerWeek: z.string().min(1, "Working hours per week is required"),
+  monthlyRate: z.string().min(1, "Monthly rate is required"),
+  jobDescription: z.string().min(50, "Detailed job description must be at least 50 characters"),
+  startDate: z.string().optional(),
+  endDate: z.string().optional()
+});
+
 // Pricing schema with conditional validation
 const pricingSchema = z.object({
-  type: z.enum(["fixed", "milestone", "hourly"]).default("fixed"),
+  type: z.enum(["fixed", "milestone", "contract"]).default("fixed"),
   currency: z.enum(["USD", "KES"]).default("USD"),
   fixedBudget: z.string().optional(),
   milestones: z.array(milestoneSchema).optional().default([]),
-  hourlyRate: z.string().optional(),
-  estimatedHours: z.string().optional()
+  contractDetails: contractDetailsSchema.optional()
 }).refine((data) => {
   // Conditional validation based on pricing type
   if (data.type === "fixed") {
     return data.fixedBudget && data.fixedBudget.trim() !== "";
   }
-  if (data.type === "hourly") {
-    return data.hourlyRate && data.hourlyRate.trim() !== "" && 
-           data.estimatedHours && data.estimatedHours.trim() !== "";
+  if (data.type === "contract") {
+    return data.contractDetails && 
+           data.contractDetails.duration && 
+           data.contractDetails.workingHoursPerWeek && 
+           data.contractDetails.monthlyRate;
   }
   if (data.type === "milestone") {
     return data.milestones && data.milestones.length > 0;
@@ -99,7 +112,6 @@ export const professionalInfoSchema = z.object({
   yearsOfExperience: z.string().min(1, 'Years of experience is required'),
   currentRole: z.string().min(2, 'Current role is required'),
   currentCompany: z.string().min(2, 'Current company is required'),
-  availability: z.string().min(2, 'Availability is required'),
   workType: z.array(z.string()).min(1, 'Please select at least one work type'),
   languages: z.array(z.string()).min(1, 'Please select at least one language'),
   bio: z.string().min(10, 'Bio must be at least 10 characters').max(500, 'Bio must not exceed 500 characters'),
@@ -110,7 +122,13 @@ export const technicalSkillsSchema = z.object({
   secondarySkills: z.array(z.string()).optional(),
   frameworks: z.array(z.string()).optional(),
   databases: z.array(z.string()).optional(),
-  tools: z.array(z.string()).optional(),
+  cloudDevOps: z.array(z.string()).optional(),
+  aiMlData: z.array(z.string()).optional(),
+  blockchain: z.array(z.string()).optional(),
+  mobileTools: z.array(z.string()).optional(),
+  testingQA: z.array(z.string()).optional(),
+  designTools: z.array(z.string()).optional(),
+  otherTools: z.array(z.string()).optional(),
   certifications: z.array(z.string()).optional(),
 });
 

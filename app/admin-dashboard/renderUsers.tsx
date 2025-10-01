@@ -2265,36 +2265,36 @@ const UserManagement: React.FC<UserManagementProps> = ({
             {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-black/5 dark:bg-white/5">
+                <thead className="bg-white/10 dark:bg-white/5">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-900 dark:text-gray-300 uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-900 dark:text-gray-300 uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-900 dark:text-gray-300 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-900 dark:text-gray-300 uppercase tracking-wider">
                       Approved
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-900 dark:text-gray-300 uppercase tracking-wider">
                       Availability
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-900 dark:text-gray-300 uppercase tracking-wider">
                       Joined
                     </th>
-                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm monty font-medium text-gray-900 dark:text-gray-300 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y bg-gray-100 divide-gray-100 dark:divide-white/10">
+                <tbody className="divide-y divide-gray-200 dark:divide-white/10">
                   {paginatedUsers.map((user) => (
                     <tr
                       key={user.id}
-                      className="hover:bg-gray-200 dark:hover:bg-white/5 transition-colors"
+                      className="bg-white/5 dark:bg-black/10 hover:bg-white/10 dark:hover:bg-white/5 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -2406,7 +2406,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                           <span className="text-gray-500">N/A</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                         {formatDate(user.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

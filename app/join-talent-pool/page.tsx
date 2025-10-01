@@ -28,6 +28,8 @@ import {
   FaTimes,
   FaStar,
   FaTools,
+  FaChevronDown,
+  FaChevronUp,
 } from "react-icons/fa";
 import Link from "next/link";
 import { useToast } from "../../hooks/useToast";
@@ -61,10 +63,15 @@ interface ProfessionalInfo {
 
 interface TechnicalSkills {
   primarySkills: string[];
-  secondarySkills: string[];
   frameworks: string[];
   databases: string[];
-  tools: string[];
+  cloudDevOps: string[];
+  aiMlData: string[];
+  blockchain: string[];
+  mobileTools: string[];
+  testingQA: string[];
+  designTools: string[];
+  otherTools: string[];
   certifications: string[];
 }
 
@@ -101,6 +108,17 @@ export default function DeveloperRegistrationForm() {
   const { toast, notifications, removeNotification } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<{
+    [key: string]: boolean;
+  }>({
+    cloudDevOps: false,
+    aiMlData: false,
+    blockchain: false,
+    mobileTools: false,
+    testingQA: false,
+    designTools: false,
+    otherTools: false,
+  });
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
       firstName: "",
@@ -126,10 +144,15 @@ export default function DeveloperRegistrationForm() {
     },
     technicalSkills: {
       primarySkills: [],
-      secondarySkills: [],
       frameworks: [],
       databases: [],
-      tools: [],
+      cloudDevOps: [],
+      aiMlData: [],
+      blockchain: [],
+      mobileTools: [],
+      testingQA: [],
+      designTools: [],
+      otherTools: [],
       certifications: [],
     },
     workExperience: [],
@@ -160,8 +183,13 @@ export default function DeveloperRegistrationForm() {
     "Kotlin",
     "Dart",
     "C++",
+    "C",
     "Scala",
     "Elixir",
+    "R",
+    "MATLAB",
+    "Solidity",
+    "SQL",
   ];
 
   const frameworks = [
@@ -171,17 +199,20 @@ export default function DeveloperRegistrationForm() {
     "Nuxt.js",
     "Angular",
     "Svelte",
+    "SvelteKit",
     "Node.js",
     "Express.js",
+    "NestJS",
     "Django",
     "Flask",
+    "FastAPI",
     "Laravel",
     "Symfony",
     "Ruby on Rails",
     "Spring Boot",
-    "ASP.NET",
-    "Flutter",
-    "React Native",
+    "ASP.NET Core",
+    "Remix",
+    "Astro",
   ];
 
   const databases = [
@@ -191,27 +222,112 @@ export default function DeveloperRegistrationForm() {
     "Redis",
     "Elasticsearch",
     "SQLite",
-    "Oracle",
-    "SQL Server",
     "Firebase",
     "Supabase",
     "DynamoDB",
+    "Cassandra",
+    "Neo4j",
+    "Prisma",
+    "TypeORM",
+    "Sequelize",
   ];
 
-  const tools = [
-    "Git",
+  // Categorized technical skills
+  const cloudDevOpsTools = [
     "Docker",
     "Kubernetes",
     "AWS",
     "Azure",
     "GCP",
-    "Jenkins",
-    "GitHub Actions",
     "Terraform",
     "Ansible",
+    "Jenkins",
+    "GitHub Actions",
+    "GitLab CI",
+    "CircleCI",
+    "Prometheus",
+    "Grafana",
+    "ELK Stack",
+    "Datadog",
+    "Vercel",
+    "Netlify",
+    "Heroku",
+    "Railway",
+  ];
+
+  const aiMlDataTools = [
+    "TensorFlow",
+    "PyTorch",
+    "Keras",
+    "Scikit-learn",
+    "Jupyter",
+    "Pandas",
+    "NumPy",
+    "OpenAI API",
+    "Hugging Face",
+    "LangChain",
+    "Apache Spark",
+    "Tableau",
+    "Power BI",
+  ];
+
+  const blockchainTools = [
+    "Solidity",
+    "Hardhat",
+    "Truffle",
+    "Web3.js",
+    "Ethers.js",
+    "MetaMask",
+    "Remix IDE",
+    "Ganache",
+    "IPFS",
+    "Smart Contracts",
+  ];
+
+  const mobileTools = [
+    "Flutter",
+    "React Native",
+    "Ionic",
+    "Xamarin",
+    "Swift",
+    "Kotlin",
+    "Android Studio",
+    "Xcode",
+  ];
+
+  const testingQATools = [
+    "Jest",
+    "Cypress",
+    "Playwright",
+    "Selenium",
+    "Postman",
+    "Insomnia",
+    "JUnit",
+    "Mocha",
+    "Chai",
+  ];
+
+  const designTools = [
+    "Figma",
+    "Adobe XD",
+    "Sketch",
+    "InVision",
+    "Photoshop",
+    "Illustrator",
+  ];
+
+  const otherTools = [
+    "Git",
+    "GitHub",
+    "GitLab",
     "Webpack",
     "Vite",
-    "Figma",
+    "REST API",
+    "GraphQL",
+    "Apollo",
+    "tRPC",
+    "Nginx",
+    "Apache",
   ];
 
   const experienceLevels = [
@@ -304,6 +420,13 @@ export default function DeveloperRegistrationForm() {
       ? skillArray.filter((s) => s !== skill)
       : [...skillArray, skill];
     updateTechnicalSkills(field, newSkills);
+  };
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
   };
 
   const toggleArrayField = (
@@ -484,7 +607,8 @@ export default function DeveloperRegistrationForm() {
       case 2:
         return (
           formData.professionalInfo.title &&
-          formData.professionalInfo.experienceLevel
+          formData.professionalInfo.experienceLevel &&
+          formData.cvUrl // CV is now required
         );
       case 3:
         return formData.technicalSkills.primarySkills.length > 0;
@@ -538,12 +662,12 @@ export default function DeveloperRegistrationForm() {
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
                     currentStep >= step.number
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25"
-                      : "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                   }`}
                 >
                   <step.icon className="text-lg" />
                 </div>
-                <div className="absolute top-14 left-1/2 -translate-x-1/2 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap monty uppercase">
+                <div className="absolute top-14 left-1/2 -translate-x-1/2 text-sm text-gray-700 dark:text-gray-400 whitespace-nowrap monty uppercase">
                   {step.title}
                 </div>
               </div>
@@ -574,7 +698,7 @@ export default function DeveloperRegistrationForm() {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Last Name *
                     </label>
                     <input
@@ -642,9 +766,9 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updatePersonalInfo("timeZone", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                     >
-                      <option value="" className="bg-gray-800">
+                      <option value="" className="bg-white dark:bg-gray-800">
                         Select your timezone
                       </option>
                       <option value="EAT" className="bg-white dark:bg-gray-800">
@@ -702,7 +826,7 @@ export default function DeveloperRegistrationForm() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                     Portfolio Website
                   </label>
                   <input
@@ -711,7 +835,7 @@ export default function DeveloperRegistrationForm() {
                     onChange={(e) =>
                       updatePersonalInfo("portfolio", e.target.value)
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
+                    className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                     placeholder="https://yourportfolio.com"
                   />
                 </div>
@@ -727,7 +851,7 @@ export default function DeveloperRegistrationForm() {
                 </h2>
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Professional Title *
                     </label>
                     <input
@@ -742,7 +866,7 @@ export default function DeveloperRegistrationForm() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Experience Level *
                       </label>
                       <select
@@ -770,7 +894,7 @@ export default function DeveloperRegistrationForm() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Years of Experience
                       </label>
                       <input
@@ -789,7 +913,7 @@ export default function DeveloperRegistrationForm() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Current Role
                       </label>
                       <input
@@ -803,7 +927,7 @@ export default function DeveloperRegistrationForm() {
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                         Current Company
                       </label>
                       <input
@@ -821,7 +945,7 @@ export default function DeveloperRegistrationForm() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Availability
                     </label>
                     <select
@@ -829,9 +953,9 @@ export default function DeveloperRegistrationForm() {
                       onChange={(e) =>
                         updateProfessionalInfo("availability", e.target.value)
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-400 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                     >
-                      <option value="" className="bg-gray-800">
+                      <option value="" className="bg-white dark:bg-gray-800">
                         Select availability
                       </option>
                       <option
@@ -867,7 +991,7 @@ export default function DeveloperRegistrationForm() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Preferred Work Types
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -924,7 +1048,7 @@ export default function DeveloperRegistrationForm() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Professional Bio
                     </label>
                     <textarea
@@ -933,24 +1057,20 @@ export default function DeveloperRegistrationForm() {
                         updateProfessionalInfo("bio", e.target.value)
                       }
                       rows={4}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                       placeholder="Tell us about yourself, your experience, and what makes you unique..."
                     />
                   </div>
                   <div>
-                    <label className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2 flex items-center">
-                      <FaFileUpload className="mr-2 text-blue-400" />
-                      Upload CV (Optional)
-                    </label>
                     <CVUpload
-                      label="Upload CV (Optional)"
+                      label="Upload CV *"
                       value={formData.cvUrl}
                       onChange={(url) =>
                         setFormData((prev) => ({ ...prev, cvUrl: url }))
                       }
                     />
-                    <p className="text-gray-400 text-xs mt-2">
-                      Supported formats: PDF, DOC, DOCX, TXT (Max 10MB)
+                    <p className="text-gray-600 dark:text-gray-400 text-xs mt-2">
+                      Required - Supported formats: PDF, DOC, DOCX, TXT (Max 10MB)
                     </p>
                   </div>
                 </div>
@@ -960,13 +1080,13 @@ export default function DeveloperRegistrationForm() {
             {/* Step 3: Technical Skills */}
             {currentStep === 3 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
-                  <FaCode className="mr-3 text-blue-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
+                  <FaCode className="mr-3 text-blue-600 dark:text-blue-400" />
                   Technical Skills
                 </h2>
                 <div className="space-y-8">
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-4">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                       Primary Programming Languages *
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -985,8 +1105,8 @@ export default function DeveloperRegistrationForm() {
                             formData.technicalSkills.primarySkills.includes(
                               skill
                             )
-                              ? "bg-blue-500/20 border-blue-400 text-blue-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                              ? "bg-blue-100 dark:bg-blue-500/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300"
+                              : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
                           }`}
                         >
                           {skill}
@@ -995,7 +1115,7 @@ export default function DeveloperRegistrationForm() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-4">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                       Frameworks & Libraries
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1014,8 +1134,8 @@ export default function DeveloperRegistrationForm() {
                             formData.technicalSkills.frameworks.includes(
                               framework
                             )
-                              ? "bg-purple-500/20 border-purple-400 text-purple-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                              ? "bg-purple-100 dark:bg-purple-500/20 border-purple-500 dark:border-purple-400 text-purple-700 dark:text-purple-300"
+                              : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
                           }`}
                         >
                           {framework}
@@ -1024,7 +1144,7 @@ export default function DeveloperRegistrationForm() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-4">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                       Databases
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1041,8 +1161,8 @@ export default function DeveloperRegistrationForm() {
                           }
                           className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
                             formData.technicalSkills.databases.includes(db)
-                              ? "bg-green-500/20 border-green-400 text-green-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
+                              ? "bg-green-100 dark:bg-green-500/20 border-green-500 dark:border-green-400 text-green-700 dark:text-green-300"
+                              : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
                           }`}
                         >
                           {db}
@@ -1050,35 +1170,322 @@ export default function DeveloperRegistrationForm() {
                       ))}
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-4">
-                      Tools & Technologies
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {tools.map((tool) => (
-                        <button
-                          key={tool}
-                          type="button"
-                          onClick={() =>
-                            toggleSkill(
-                              formData.technicalSkills.tools,
-                              tool,
-                              "tools"
-                            )
-                          }
-                          className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
-                            formData.technicalSkills.tools.includes(tool)
-                              ? "bg-orange-500/20 border-orange-400 text-orange-300"
-                              : "bg-white/5 border-white/10 text-gray-300 hover:border-white/20"
-                          }`}
-                        >
-                          {tool}
-                        </button>
-                      ))}
+                  {/* Specialized Skills Categories */}
+                  <div className="space-y-4">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                      Specialized Skills (Optional - Select relevant categories)
+                    </p>
+
+                    {/* Cloud & DevOps */}
+                    <div className="border border-gray-200 dark:border-white/10 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory("cloudDevOps")}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          Cloud & DevOps
+                        </span>
+                        {expandedCategories.cloudDevOps ? (
+                          <FaChevronUp className="text-gray-500 dark:text-gray-400" />
+                        ) : (
+                          <FaChevronDown className="text-gray-500 dark:text-gray-400" />
+                        )}
+                      </button>
+                      {expandedCategories.cloudDevOps && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {cloudDevOpsTools.map((tool) => (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() =>
+                                  toggleSkill(
+                                    formData.technicalSkills.cloudDevOps,
+                                    tool,
+                                    "cloudDevOps"
+                                  )
+                                }
+                                className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                                  formData.technicalSkills.cloudDevOps.includes(tool)
+                                    ? "bg-cyan-100 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 text-cyan-700 dark:text-cyan-300"
+                                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                                }`}
+                              >
+                                {tool}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* AI/ML & Data */}
+                    <div className="border border-gray-200 dark:border-white/10 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory("aiMlData")}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          AI/ML & Data Science
+                        </span>
+                        {expandedCategories.aiMlData ? (
+                          <FaChevronUp className="text-gray-500 dark:text-gray-400" />
+                        ) : (
+                          <FaChevronDown className="text-gray-500 dark:text-gray-400" />
+                        )}
+                      </button>
+                      {expandedCategories.aiMlData && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {aiMlDataTools.map((tool) => (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() =>
+                                  toggleSkill(
+                                    formData.technicalSkills.aiMlData,
+                                    tool,
+                                    "aiMlData"
+                                  )
+                                }
+                                className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                                  formData.technicalSkills.aiMlData.includes(tool)
+                                    ? "bg-indigo-100 dark:bg-indigo-500/20 border-indigo-500 dark:border-indigo-400 text-indigo-700 dark:text-indigo-300"
+                                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                                }`}
+                              >
+                                {tool}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Blockchain */}
+                    <div className="border border-gray-200 dark:border-white/10 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory("blockchain")}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          Blockchain & Web3
+                        </span>
+                        {expandedCategories.blockchain ? (
+                          <FaChevronUp className="text-gray-500 dark:text-gray-400" />
+                        ) : (
+                          <FaChevronDown className="text-gray-500 dark:text-gray-400" />
+                        )}
+                      </button>
+                      {expandedCategories.blockchain && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {blockchainTools.map((tool) => (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() =>
+                                  toggleSkill(
+                                    formData.technicalSkills.blockchain,
+                                    tool,
+                                    "blockchain"
+                                  )
+                                }
+                                className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                                  formData.technicalSkills.blockchain.includes(tool)
+                                    ? "bg-amber-100 dark:bg-amber-500/20 border-amber-500 dark:border-amber-400 text-amber-700 dark:text-amber-300"
+                                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                                }`}
+                              >
+                                {tool}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mobile Development */}
+                    <div className="border border-gray-200 dark:border-white/10 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory("mobileTools")}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          Mobile Development
+                        </span>
+                        {expandedCategories.mobileTools ? (
+                          <FaChevronUp className="text-gray-500 dark:text-gray-400" />
+                        ) : (
+                          <FaChevronDown className="text-gray-500 dark:text-gray-400" />
+                        )}
+                      </button>
+                      {expandedCategories.mobileTools && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {mobileTools.map((tool) => (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() =>
+                                  toggleSkill(
+                                    formData.technicalSkills.mobileTools,
+                                    tool,
+                                    "mobileTools"
+                                  )
+                                }
+                                className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                                  formData.technicalSkills.mobileTools.includes(tool)
+                                    ? "bg-pink-100 dark:bg-pink-500/20 border-pink-500 dark:border-pink-400 text-pink-700 dark:text-pink-300"
+                                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                                }`}
+                              >
+                                {tool}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Testing & QA */}
+                    <div className="border border-gray-200 dark:border-white/10 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory("testingQA")}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          Testing & QA
+                        </span>
+                        {expandedCategories.testingQA ? (
+                          <FaChevronUp className="text-gray-500 dark:text-gray-400" />
+                        ) : (
+                          <FaChevronDown className="text-gray-500 dark:text-gray-400" />
+                        )}
+                      </button>
+                      {expandedCategories.testingQA && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {testingQATools.map((tool) => (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() =>
+                                  toggleSkill(
+                                    formData.technicalSkills.testingQA,
+                                    tool,
+                                    "testingQA"
+                                  )
+                                }
+                                className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                                  formData.technicalSkills.testingQA.includes(tool)
+                                    ? "bg-teal-100 dark:bg-teal-500/20 border-teal-500 dark:border-teal-400 text-teal-700 dark:text-teal-300"
+                                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                                }`}
+                              >
+                                {tool}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Design Tools */}
+                    <div className="border border-gray-200 dark:border-white/10 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory("designTools")}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          Design & UI/UX
+                        </span>
+                        {expandedCategories.designTools ? (
+                          <FaChevronUp className="text-gray-500 dark:text-gray-400" />
+                        ) : (
+                          <FaChevronDown className="text-gray-500 dark:text-gray-400" />
+                        )}
+                      </button>
+                      {expandedCategories.designTools && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {designTools.map((tool) => (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() =>
+                                  toggleSkill(
+                                    formData.technicalSkills.designTools,
+                                    tool,
+                                    "designTools"
+                                  )
+                                }
+                                className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                                  formData.technicalSkills.designTools.includes(tool)
+                                    ? "bg-rose-100 dark:bg-rose-500/20 border-rose-500 dark:border-rose-400 text-rose-700 dark:text-rose-300"
+                                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                                }`}
+                              >
+                                {tool}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Other Tools */}
+                    <div className="border border-gray-200 dark:border-white/10 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory("otherTools")}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          Other Tools & APIs
+                        </span>
+                        {expandedCategories.otherTools ? (
+                          <FaChevronUp className="text-gray-500 dark:text-gray-400" />
+                        ) : (
+                          <FaChevronDown className="text-gray-500 dark:text-gray-400" />
+                        )}
+                      </button>
+                      {expandedCategories.otherTools && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {otherTools.map((tool) => (
+                              <button
+                                key={tool}
+                                type="button"
+                                onClick={() =>
+                                  toggleSkill(
+                                    formData.technicalSkills.otherTools,
+                                    tool,
+                                    "otherTools"
+                                  )
+                                }
+                                className={`px-3 py-2 rounded-lg border transition-all duration-300 text-sm ${
+                                  formData.technicalSkills.otherTools.includes(tool)
+                                    ? "bg-orange-100 dark:bg-orange-500/20 border-orange-500 dark:border-orange-400 text-orange-700 dark:text-orange-300"
+                                    : "bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-white/20"
+                                }`}
+                              >
+                                {tool}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                       Certifications
                     </label>
                     <textarea
@@ -1092,7 +1499,7 @@ export default function DeveloperRegistrationForm() {
                         )
                       }
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                       placeholder="List your certifications, separated by commas (e.g., AWS Solutions Architect, Google Cloud Professional, etc.)"
                     />
                   </div>
@@ -1104,14 +1511,14 @@ export default function DeveloperRegistrationForm() {
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-semibold text-white flex items-center">
-                    <FaGraduationCap className="mr-3 text-blue-400" />
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center">
+                    <FaGraduationCap className="mr-3 text-blue-600 dark:text-blue-400" />
                     Work Experience
                   </h2>
                   <button
                     type="button"
                     onClick={addWorkExperience}
-                    className="flex items-center px-4 py-2 bg-blue-500/20 border border-blue-400 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors"
+                    className="flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-500/20 border border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-500/30 transition-colors"
                   >
                     <FaPlus className="mr-2" />
                     Add Experience
@@ -1121,23 +1528,23 @@ export default function DeveloperRegistrationForm() {
                   {formData.workExperience.map((exp, index) => (
                     <div
                       key={exp.id}
-                      className="p-6 bg-white/5 border border-white/10 rounded-lg"
+                      className="p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg"
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-white">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                           Experience #{index + 1}
                         </h3>
                         <button
                           type="button"
                           onClick={() => removeWorkExperience(exp.id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                         >
                           <FaTrash />
                         </button>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                             Company
                           </label>
                           <input
@@ -1155,7 +1562,7 @@ export default function DeveloperRegistrationForm() {
                           />
                         </div>
                         <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                             Position
                           </label>
                           <input
@@ -1174,7 +1581,7 @@ export default function DeveloperRegistrationForm() {
                         </div>
                       </div>
                       <div className="mb-4">
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Duration
                         </label>
                         <input
@@ -1192,7 +1599,7 @@ export default function DeveloperRegistrationForm() {
                         />
                       </div>
                       <div className="mb-4">
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Description
                         </label>
                         <textarea
@@ -1205,12 +1612,12 @@ export default function DeveloperRegistrationForm() {
                             )
                           }
                           rows={3}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                          className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                           placeholder="Describe your role and achievements..."
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Technologies Used
                         </label>
                         <input
@@ -1239,14 +1646,14 @@ export default function DeveloperRegistrationForm() {
             {currentStep === 5 && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-semibold text-white flex items-center">
-                    <FaPortrait className="mr-3 text-blue-400" />
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center">
+                    <FaPortrait className="mr-3 text-blue-600 dark:text-blue-400" />
                     Portfolio Projects
                   </h2>
                   <button
                     type="button"
                     onClick={addProject}
-                    className="flex items-center px-4 py-2 bg-blue-500/20 border border-blue-400 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors"
+                    className="flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-500/20 border border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-500/30 transition-colors"
                   >
                     <FaPlus className="mr-2" />
                     Add Project
@@ -1256,23 +1663,23 @@ export default function DeveloperRegistrationForm() {
                   {formData.projects.map((project, index) => (
                     <div
                       key={project.id}
-                      className="p-6 bg-white/5 border border-white/10 rounded-lg"
+                      className="p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg"
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-white">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                           Project #{index + 1}
                         </h3>
                         <button
                           type="button"
                           onClick={() => removeProject(project.id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                         >
                           <FaTrash />
                         </button>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                             Project Name
                           </label>
                           <input
@@ -1286,7 +1693,7 @@ export default function DeveloperRegistrationForm() {
                           />
                         </div>
                         <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                             Your Role
                           </label>
                           <input
@@ -1301,7 +1708,7 @@ export default function DeveloperRegistrationForm() {
                         </div>
                       </div>
                       <div className="mb-4">
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Description
                         </label>
                         <textarea
@@ -1314,13 +1721,13 @@ export default function DeveloperRegistrationForm() {
                             )
                           }
                           rows={3}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+                          className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors resize-none"
                           placeholder="Describe the project, its purpose, and your contributions..."
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                             Live URL
                           </label>
                           <input
@@ -1338,7 +1745,7 @@ export default function DeveloperRegistrationForm() {
                           />
                         </div>
                         <div>
-                          <label className="block text-gray-300 text-sm font-medium mb-2">
+                          <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                             GitHub URL
                           </label>
                           <input
@@ -1357,7 +1764,7 @@ export default function DeveloperRegistrationForm() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                           Technologies Used
                         </label>
                         <input
@@ -1385,46 +1792,56 @@ export default function DeveloperRegistrationForm() {
             {/* Step 7: Review */}
             {currentStep === 6 && (
               <div className="space-y-8">
-                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center">
-                  <FaCheck className="mr-3 text-blue-400" />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 flex items-center">
+                  <FaCheck className="mr-3 text-blue-600 dark:text-blue-400" />
                   Review Your Application
                 </h2>
 
                 {/* Personal Info Review */}
-                <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                  <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-                    <FaUser className="mr-2 text-blue-400" />
+                <div className="p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                    <FaUser className="mr-2 text-blue-600 dark:text-blue-400" />
                     Personal Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-400">Name:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Name:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.personalInfo.firstName}{" "}
                         {formData.personalInfo.lastName}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Email:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Email:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.personalInfo.email}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Phone:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Phone:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.personalInfo.phone}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Location:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Location:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.personalInfo.location}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Timezone:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Timezone:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.personalInfo.timeZone}
                       </span>
                     </div>
@@ -1432,45 +1849,55 @@ export default function DeveloperRegistrationForm() {
                 </div>
 
                 {/* Professional Info Review */}
-                <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                  <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-                    <FaBriefcase className="mr-2 text-blue-400" />
+                <div className="p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                    <FaBriefcase className="mr-2 text-blue-600 dark:text-blue-400" />
                     Professional Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-400">Title:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Title:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.professionalInfo.title}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Experience:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Experience:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.professionalInfo.experienceLevel}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Years:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Years:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.professionalInfo.yearsOfExperience}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Availability:</span>{" "}
-                      <span className="text-white">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Availability:
+                      </span>{" "}
+                      <span className="text-gray-900 dark:text-white">
                         {formData.professionalInfo.availability}
                       </span>
                     </div>
                   </div>
                   {formData.professionalInfo.workType.length > 0 && (
                     <div className="mt-4">
-                      <span className="text-gray-400">Work Types:</span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Work Types:
+                      </span>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {formData.professionalInfo.workType.map((type) => (
                           <span
                             key={type}
-                            className="px-2 py-1 bg-blue-500/20 border border-blue-400 text-blue-300 rounded text-xs"
+                            className="px-2 py-1 bg-blue-100 dark:bg-blue-500/20 border border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300 rounded text-xs"
                           >
                             {type}
                           </span>
@@ -1481,21 +1908,21 @@ export default function DeveloperRegistrationForm() {
                 </div>
 
                 {/* Technical Skills Review */}
-                <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-                  <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-                    <FaCode className="mr-2 text-blue-400" />
+                <div className="p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                    <FaCode className="mr-2 text-blue-600 dark:text-blue-400" />
                     Technical Skills
                   </h3>
                   {formData.technicalSkills.primarySkills.length > 0 && (
                     <div className="mb-4">
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">
                         Primary Skills:
                       </span>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {formData.technicalSkills.primarySkills.map((skill) => (
                           <span
                             key={skill}
-                            className="px-2 py-1 bg-blue-500/20 border border-blue-400 text-blue-300 rounded text-xs"
+                            className="px-2 py-1 bg-blue-100 dark:bg-blue-500/20 border border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300 rounded text-xs"
                           >
                             {skill}
                           </span>
@@ -1505,13 +1932,15 @@ export default function DeveloperRegistrationForm() {
                   )}
                   {formData.technicalSkills.frameworks.length > 0 && (
                     <div className="mb-4">
-                      <span className="text-gray-400 text-sm">Frameworks:</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">
+                        Frameworks:
+                      </span>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {formData.technicalSkills.frameworks.map(
                           (framework) => (
                             <span
                               key={framework}
-                              className="px-2 py-1 bg-purple-500/20 border border-purple-400 text-purple-300 rounded text-xs"
+                              className="px-2 py-1 bg-purple-100 dark:bg-purple-500/20 border border-purple-500 dark:border-purple-400 text-purple-700 dark:text-purple-300 rounded text-xs"
                             >
                               {framework}
                             </span>
@@ -1523,20 +1952,23 @@ export default function DeveloperRegistrationForm() {
                 </div>
 
                 {/* Terms and Conditions */}
-                <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
+                <div className="p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg">
                   <div className="flex items-start space-x-3">
                     <input
                       type="checkbox"
                       id="terms"
                       checked={termsAccepted}
                       onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                      className="mt-1 w-4 h-4 text-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
                     />
-                    <label htmlFor="terms" className="text-sm text-gray-300">
+                    <label
+                      htmlFor="terms"
+                      className="text-sm text-gray-700 dark:text-gray-300"
+                    >
                       I agree to the{" "}
                       <Link
                         href="/legal/terms-of-service"
-                        className="text-blue-400 hover:text-blue-300 underline"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -1545,7 +1977,7 @@ export default function DeveloperRegistrationForm() {
                       and{" "}
                       <Link
                         href="/legal/privacy-policy"
-                        className="text-blue-400 hover:text-blue-300 underline"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -1560,22 +1992,22 @@ export default function DeveloperRegistrationForm() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-16 pt-6 border-t border-white/10">
+            <div className="flex justify-between items-center mt-16 pt-6 border-t border-gray-200 dark:border-white/10">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all duration-300 ${
                   currentStep === 1
-                    ? "text-gray-500 cursor-not-allowed"
-                    : "text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer"
+                    ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer"
                 }`}
               >
                 <FaArrowLeft className="text-[15.5px" />
                 <span>Previous</span>
               </button>
 
-              <div className="text-center flex place-self-center text-[15.5px] text-gray-400">
+              <div className="text-center flex place-self-center text-[15.5px] text-gray-600 dark:text-gray-400">
                 Step {currentStep} of {steps.length}
               </div>
 
@@ -1587,7 +2019,7 @@ export default function DeveloperRegistrationForm() {
                   className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${
                     isStepValid()
                       ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer"
-                      : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                      : "bg-gray-300 dark:bg-gray-500/20 text-gray-500 cursor-not-allowed"
                   }`}
                 >
                   Next
@@ -1600,8 +2032,8 @@ export default function DeveloperRegistrationForm() {
                   disabled={!isStepValid() || submitStatus === "loading"}
                   className={`flex items-center px-6 py-3 rounded-lg transition-all duration-300 ml-auto ${
                     isStepValid() && submitStatus !== "loading"
-                      ? "cursor-pointer bg-green-500/80 text-gray-200 hover:bg-green-500/70"
-                      : "bg-gray-500/20 text-gray-500 cursor-not-allowed"
+                      ? "cursor-pointer bg-green-600 dark:bg-green-500/80 text-white dark:text-gray-200 hover:bg-green-700 dark:hover:bg-green-500/70"
+                      : "bg-gray-300 dark:bg-gray-500/20 text-gray-500 cursor-not-allowed"
                   }`}
                 >
                   {submitStatus === "loading" ? (
@@ -1619,9 +2051,9 @@ export default function DeveloperRegistrationForm() {
         </div>
 
         {/* Ambient background effects */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-purple-500/8 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-purple-500/5 dark:bg-purple-500/8 rounded-full blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500/8 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500/5 dark:bg-blue-500/8 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
       </section>

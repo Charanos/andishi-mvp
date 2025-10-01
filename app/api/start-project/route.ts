@@ -152,6 +152,13 @@ export async function POST(req: NextRequest) {
       }, { status: 400, headers: corsHeaders });
     }
 
+    if (data.pricing?.contractDetails?.jobDescription && data.pricing.contractDetails.jobDescription.length > 50000) {
+      return NextResponse.json({
+        success: false,
+        message: 'Job description is too long. Maximum 50,000 characters allowed.'
+      }, { status: 400, headers: corsHeaders });
+    }
+
     // Check for duplicate submissions
     if (data.submissionId) {
       const recentSubmissions = await prisma.project.findMany({

@@ -37,9 +37,9 @@ export default function RichContentEditor({ value, onChange, placeholder }: Prop
   }, [md]);
 
   return (
-    <div className="border border-gray-700 rounded-lg overflow-hidden bg-gray-900">
+    <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
       {/* Mode switch */}
-      <div className="flex text-sm font-medium divide-x divide-gray-700 bg-gray-800">
+      <div className="flex text-sm font-medium divide-x divide-gray-300 dark:divide-gray-700 bg-gray-100 dark:bg-gray-800">
         {(
           [
             { k: "wysiwyg", label: "WYSIWYG" },
@@ -51,7 +51,9 @@ export default function RichContentEditor({ value, onChange, placeholder }: Prop
             key={k}
             onClick={() => setMode(k)}
             className={`px-4 py-2 flex-1 text-center transition-colors ${
-              mode === k ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200"
+              mode === k 
+                ? "bg-blue-600 text-white" 
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             }`}
           >
             {label}
@@ -76,7 +78,7 @@ export default function RichContentEditor({ value, onChange, placeholder }: Prop
               ["clean"],
             ],
           }}
-          className="dark quill-dark" // custom dark styles in quill-custom.css
+          className="quill-dual-theme" // custom dual theme styles in quill-custom.css
         />
       ) : (
         <div className="flex flex-col md:flex-row">
@@ -87,10 +89,10 @@ export default function RichContentEditor({ value, onChange, placeholder }: Prop
               onChange(DOMPurify.sanitize(marked.parse(e.target.value) as string));
             }}
             placeholder={placeholder}
-            className="w-full md:w-1/2 h-64 resize-none bg-gray-900 text-gray-200 p-4 outline-none border-r border-gray-800"
+            className="w-full md:w-1/2 h-64 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 p-4 outline-none border-r border-gray-300 dark:border-gray-800"
           />
           <div
-            className="prose prose-invert max-w-none p-4 overflow-auto md:w-1/2"
+            className="prose dark:prose-invert max-w-none p-4 overflow-auto md:w-1/2 bg-gray-50 dark:bg-gray-800"
             dangerouslySetInnerHTML={{ __html: mdHtml }}
           />
         </div>

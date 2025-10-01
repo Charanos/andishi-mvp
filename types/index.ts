@@ -51,13 +51,25 @@ export interface Milestone {
   payment?: number; // Added
 }
 
+export interface ContractDetails {
+  engagementType: "fixed-term" | "retainer" | "ongoing";
+  duration: string;
+  durationUnit: "months" | "years";
+  workingHoursPerWeek: string;
+  monthlyRate: string;
+  jobDescription: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface PricingOption {
-  type: "fixed" | "milestone" | "hourly";
+  type: "fixed" | "milestone" | "hourly" | "contract";
   currency: "USD" | "KES";
   fixedBudget?: string;
   milestones?: Milestone[];
   hourlyRate?: string;
   estimatedHours?: string;
+  contractDetails?: ContractDetails;
   // Added based on usage
   totalPaid?: string;
 }
